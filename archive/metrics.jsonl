@@ -16,3 +16,7 @@
 {"t":"2026-11-21T23:30:57.176Z","tier":"complex","secs":101,"ok":true,"errors":1,"retry":1,"routes":["3d","owner"],"touched":[],"signals":["errors"],"mode":"pc"}
 {"t":"2026-11-21T23:33:01.493Z","tier":"medium","secs":6,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-21T23:42:03.826Z","tier":"medium","secs":51,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve"],"mode":"pc"}
+{"t":"2026-11-21T23:43:01.333Z","tier":"medium","secs":28,"ok":true,"errors":1,"retry":1,"routes":["tools"],"touched":[],"signals":["errors"],"mode":"pc"}
+{"t":"2026-11-21T23:43:27.911Z","tier":"medium","secs":32,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve"],"mode":"pc"}
+{"t":"2026-11-21T23:44:05.705Z","tier":"medium","secs":307,"ok":false,"errors":6,"retry":2,"routes":[],"touched":[],"signals":["errors","slow"],"mode":"pc"}
+{"t":"2026-11-21T23:49:35.074Z","tier":"medium","secs":69,"ok":true,"errors":2,"retry":1,"routes":[],"touched":[],"signals":["errors"],"mode":"pc"}

@@ -58,12 +58,13 @@ def _strip(F, a, b, k, closed=True):                # quads between two loops of
 
 
 class H:                                            # one group: a mesh per material
-    def __init__(s): s.M = {}
+    def __init__(s): s.M = {}; s.P = {}             # P: face index where each piece starts (docs split between pieces)
 
     def add(s, mat, V, F, check=True):              # a closed piece; flipped as a whole if its signed volume is inward
         V = [np.asarray(v, float) for v in V]
         if check and _volume(V, F) < 0: F = [f[::-1] for f in F]
-        m = s.M.setdefault(mat, ([], [])); o = len(m[0]); m[0].extend(V); m[1].extend([[i + o for i in f] for f in F])
+        m = s.M.setdefault(mat, ([], [])); o = len(m[0]); s.P.setdefault(mat, []).append(len(m[1]))
+        m[0].extend(V); m[1].extend([[i + o for i in f] for f in F])
 
     def rings(s, mat, R, cap0=True, cap1=True, closed=False):   # loops of equal length -> a tube; closed joins last to first
         k = len(R[0]); V = [p for r in R for p in r]; F = []
@@ -167,7 +168,7 @@ class H:                                            # one group: a mesh per mate
         elif outline == 'oval': hw = lambda v: max(math.sqrt(max(1 - v * v, 0)), 0.18)
         elif outline[0] == 'octa': ch = outline[1]; hw = lambda v: 1 - ch * max(0, abs(v) - (1 - ch)) / ch if ch else 1
         elif outline[0] == 'shield': pd = outline[1]; hw = lambda v: 1.0 if v > -1 + 2 * pd * 0.5 else max(0.04, (v + 1) / (pd))
-        elif outline[0] == 'taper': k = outline[1]; hw = lambda v: 1 + (k - 1) * (v + 1) / 2
+        elif outline[0] == 'taper': tk = outline[1]; hw = lambda v, tk=tk: 1 + (tk - 1) * (v + 1) / 2
         else: raise ValueError(outline)
 
         def surf(x, y):                             # x, y in studs on the plate
@@ -224,7 +225,7 @@ class H:                                            # one group: a mesh per mate
         s.rings(mat, R)
 
     def mirror(s):                                  # the right side: x flipped, faces reversed
-        o = H()
+        o = H(); o.P = {k: list(v) for k, v in s.P.items()}
         for k, (V, F) in s.M.items(): o.M[k] = ([v * np.array([-1, 1, 1]) for v in V], [f[::-1] for f in F])
         return o
 
@@ -249,16 +250,23 @@ class Kit:                                          # writes OUT/geo/<prefix>-<g
                 kk = tuple(round(float(x), 4) for x in v)
                 if kk not in key: key[kk] = len(W); W.append(kk)
                 remap.append(key[kk])
-            FF = []
-            for f in F:
-                q = []
-                for v in f:
-                    if not q or remap[v] != q[-1]: q.append(remap[v])
-                if len(q) > 1 and q[0] == q[-1]: q.pop()
-                if len(set(q)) >= 3: FF.append(q)
-            parts = [FF]
+            starts = b.P.get(mat, [0]) + [len(F)]; pieces = []   # whole pieces only, so no doc ends with a cut (open) piece
+            for p0, p1 in zip(starts, starts[1:]):
+                FF = []
+                for f in F[p0:p1]:
+                    q = []
+                    for v in f:
+                        if not q or remap[v] != q[-1]: q.append(remap[v])
+                    if len(q) > 1 and q[0] == q[-1]: q.pop()
+                    if len(set(q)) >= 3: FF.append(q)
+                pieces.append(FF)
             size = lambda fs: len({v for f in fs for v in f}) * 24 + sum(len(f) * 6 + 2 for f in fs)
-            while any(size(p) > 190_000 for p in parts): parts = [q for p in parts for q in (p[:len(p) // 2], p[len(p) // 2:])]
+            parts, cur, cs = [], [], 0
+            for pc in pieces:
+                z = size(pc)
+                if cur and cs + z > 190_000: parts.append(cur); cur, cs = [], 0
+                cur = cur + pc; cs += z
+            if cur: parts.append(cur)
             for k, fs in enumerate(parts):
                 used = sorted({v for f in fs for v in f}); rm = {v: i for i, v in enumerate(used)}
                 geo = {'verts': [x for v in used for x in W[v]], 'faces': [[rm[v] for v in f] for f in fs], 'uvs': [0] * (2 * len(used))}
