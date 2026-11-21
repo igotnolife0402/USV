@@ -20,3 +20,4 @@ triggers: [vault, lesson, note, index, lint, rollup]
 - `node scripts/vault-lint.mjs` exits 0 (plus `node --test tests/` if hooks/scripts changed).
 ## Log
 - log.md entry `## [date] vault / what changed`.
+- [ ] Worktree branch done: merge into main without asking (owner rule 2026-11-22); append-only conflicts (lessons.md, errors.md, log.md) keep both sides; lesson id clash across sessions: renumber yours first.
