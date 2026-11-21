@@ -44,6 +44,7 @@ triggers: [index, map, where, vault]
 - [vfx](.claude/skills/vfx/SKILL.md): VFX recipe.
 - Engineering skills (auto-load on match): code-review-and-quality, debugging-and-error-recovery, test-driven-development, spec-driven-development, planning-and-task-breakdown, incremental-implementation, frontend-ui-engineering, performance-optimization, security-and-hardening, git-workflow-and-versioning, context-engineering, and more in `.claude/skills/`.
 - [sfx](.claude/skills/sfx/SKILL.md): sound effects recipe.
+- [crew](.claude/skills/crew/SKILL.md): any task, main model as manager + 3 crew-worker agents (Sonnet 5.5, medium).
 - [swarm](.claude/skills/swarm/SKILL.md): huge-tier multi-agent waves.
 - [vault-upkeep](.claude/skills/vault-upkeep/SKILL.md): lint, rollup, lesson promotion.
 - Commands (.claude/commands): [/plan](.claude/commands/plan.md), [/review](.claude/commands/review.md), [/test](.claude/commands/test.md), [/learn](.claude/commands/learn.md).

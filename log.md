@@ -49,3 +49,6 @@ Animation asset 82594256097105, 4 Decal sheets, model 123924497580446 (rig + 62 
 
 ## [2026-11-22] fix / Roblox export keeps the Sandbox scale pops
 Owner: pieces appeared instantly in Roblox, no grow-in. Added PopScale data + UmbrioPop client script; play-tested (0.02 -> 2.47 -> 2.08 on the chest plate). Model asset 110558219659237.
+
+## [2026-11-22] add / crew skill (main model = brain, 3 Sonnet 5.5 medium workers)
+.claude/skills/crew + .claude/agents/crew-worker.md (model claude-sonnet-5-5, effort medium), also copied to ~/.claude for every folder; router route crew. Not yet verified that the worker runs on Sonnet: agent files load next session; fallback in the skill if the model errors.

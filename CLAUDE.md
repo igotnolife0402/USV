@@ -78,7 +78,7 @@ Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's tra
 - 3-try cap per failing approach, then change approach or queue/log it.
 - Owner names a tool/artifact ("umbrio sandbox", "vfx generator"): `node scripts/vault.mjs tool find <words>` → Artifact list scope `all` (match title words, typos ok) → only then ask for the link ONCE. Owner teaches/shows a tool → `tool add` the same turn ([profiles/tools.md](profiles/tools.md)). Never give up after one empty search.
 - Talk to the vault only through its skills (never guess paths): `/vault` find|route|status|words, `/learn` lessons + errors rows, `/queue` PC steps. All run `scripts/vault.mjs`.
-- Reuse skills in `.claude/skills/` before writing from scratch: pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep. Engineering skills (review, debug, TDD, spec, plan, perf, security, git) load on match; reuse tools in `tools/` (see [index.md](index.md)).
+- Reuse skills in `.claude/skills/` before writing from scratch: pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, crew (main model = brain, 3 Sonnet workers = hands, any task), swarm, vault-upkeep. Engineering skills (review, debug, TDD, spec, plan, perf, security, git) load on match; reuse tools in `tools/` (see [index.md](index.md)).
 
 ## 7. Definition of done
 1. Open the checklist the router names ([checklists/](checklists/simple.md): simple, web, game, roblox, 3d, vfx, audio, images, math, vault).

@@ -433,6 +433,25 @@
       ],
       "checklist": "checklists/math.md",
       "skill": ""
+    },
+    {
+      "id": "crew",
+      "words": [
+        "crew",
+        "sub agents",
+        "subagents",
+        "sub-agents",
+        "agents",
+        "manager",
+        "brain",
+        "helpers",
+        "workers"
+      ],
+      "notes": [
+        ".claude/skills/crew/SKILL.md"
+      ],
+      "checklist": "checklists/simple.md",
+      "skill": "crew"
     }
   ],
   "tiers": {
