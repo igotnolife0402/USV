@@ -352,7 +352,7 @@ export function mountUI(app, root) {
   function buildModes() {
     const ms = [...app.modes.values()].sort((a, b) => a.order - b.order)
     modesEl.hidden = ms.length < 2
-    modesEl.innerHTML = ms.map(m => `<button role="tab" data-mode="${esc(m.id)}" aria-selected="${app.mode === m.id}">${icon(m.icon || 'cube')}<span>${esc(m.label)}</span></button>`).join('')
+    modesEl.innerHTML = ms.map(m => `<button role="tab" data-mode="${esc(m.id)}" title="${esc(m.label)}" aria-label="${esc(m.label)}" aria-selected="${app.mode === m.id}">${icon(m.icon || 'cube')}<span>${esc(m.label)}</span></button>`).join('')
     const cur = app.modes.get(app.mode); $('.t-pill').hidden = ms.length < 2
     $('.t-mi').innerHTML = icon(cur?.icon || 'cube'); $('.t-ml').textContent = cur?.short || cur?.label || 'Build'; $('.t-mode').setAttribute('aria-label', 'Mode: ' + (cur?.label || 'Build'))
   }
@@ -674,7 +674,7 @@ export function mountUI(app, root) {
   function renderHome(list) {
     const mode = app.store?.mode
     const banner = mode === 'local' ? `<div class="banner warn">${icon('cloudOff')}Offline: projects are saved in this browser only.</div>` : mode === 'memory' ? `<div class="banner bad">${icon('warn')}Not saved: storage is blocked, so projects are lost when this page closes.</div>` : ''
-    homeEl.innerHTML = `<header class="h-top"><div class="brand">${icon('cube')}<span>Studio</span></div><span class="grow"></span><button class="btn primary h-new">${icon('plus')}New project</button></header>
+    homeEl.innerHTML = `<header class="h-top"><div class="brand">${icon('cube')}<span>Umbrio Sandbox</span></div><span class="grow"></span><button class="btn primary h-new">${icon('plus')}New project</button></header>
       <div class="h-main">${banner}<div class="h-title"><h1>Projects</h1><span class="mute">${list ? list.length : ''}</span></div>
       ${list === null ? '<div class="h-grid">' + '<div class="card skel"></div>'.repeat(4) + '</div>' : list.length ? `<div class="h-grid">${list.map(p => `<div class="card" data-id="${esc(p.id)}" tabindex="0" role="link" aria-label="Open ${esc(p.name)}"><div class="thumb">${p.thumb ? `<img src="${esc(p.thumb)}" alt="" loading="lazy">` : icon('cube', 'big')}</div><div class="c-b"><div class="c-t"><div class="c-n">${p.ai ? `<b class="c-ai${isLive(p) ? ' live' : ''}">AI</b>` : ''}${esc(p.name)}</div><div class="c-m"><span>${p.count ?? 0} object${p.count === 1 ? '' : 's'}</span><span class="c-a">${esc(ago(p.updated))}</span></div></div><button class="ib c-more" aria-label="Project actions">${icon('more')}</button></div></div>`).join('')}</div>`
         : `<div class="empty">${icon('cube', 'huge')}<h2>No projects yet</h2><p>Create a project to start building.</p><button class="btn primary h-new">${icon('plus')}New project</button></div>`}</div>`
@@ -704,7 +704,7 @@ export function mountUI(app, root) {
   ui.showHome = () => {
     closeMenus(); closeSide()
     editor.hidden = true; homeEl.hidden = false
-    document.title = 'Studio'
+    document.title = 'Umbrio Sandbox'
     watchTabs()
     if (!homeUnsub && app.store?.db) { renderHome(null); homeUnsub = app.store.listProjects(list => { if (!homeEl.hidden) renderHome(list) }) }
     else if (!app.store?.db) renderHome([])
@@ -723,8 +723,8 @@ export function mountUI(app, root) {
     regQueued = true
     queueMicrotask(() => { regQueued = false; buildMenubar(); buildModes(); buildTools(); buildKeys(); syncPanels(); updateStatus() })
   })
-  app.on('project', () => { renderTabs(); updateTop(); updateStatus(); syncPanels({ type: 'project' }); document.title = app.scene.name + ' · Studio' })
-  app.on('change', ch => { if (ch.top.includes('name')) { updateTop(); document.title = app.scene.name + ' · Studio' } updateStatus(); syncPanels({ type: 'change', ...ch }) })
+  app.on('project', () => { renderTabs(); updateTop(); updateStatus(); syncPanels({ type: 'project' }); document.title = app.scene.name + ' · Umbrio Sandbox' })
+  app.on('change', ch => { if (ch.top.includes('name')) { updateTop(); document.title = app.scene.name + ' · Umbrio Sandbox' } updateStatus(); syncPanels({ type: 'change', ...ch }) })
   app.on('select', () => { updateStatus(); syncPanels({ type: 'select' }) })
   app.on('history', updateTop)
   app.on('prefs', updateTop)

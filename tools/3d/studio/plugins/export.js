@@ -72,7 +72,7 @@ const texFiles = mats => { const f = {}; for (const m of mats.values()) if (m.te
 // ---------- OBJ + MTL ----------
 async function objData (app, o) {
   const { list, base } = await gather(app, o), mats = materials(list)
-  const out = ['# Studio export', `mtllib ${base}.mtl`], v = new THREE.Vector3(), nm = new THREE.Matrix3()
+  const out = ['# Umbrio Sandbox export', `mtllib ${base}.mtl`], v = new THREE.Vector3(), nm = new THREE.Matrix3()
   let vo = 1
   for (const e of list) {
     out.push('o ' + e.name)
@@ -90,7 +90,7 @@ async function objData (app, o) {
     }
     vo += P.count
   }
-  const mtl = ['# Studio export']
+  const mtl = ['# Umbrio Sandbox export']
   for (const m of mats.values()) {
     mtl.push('', 'newmtl ' + m.name, `Kd ${m.color.map(r6).join(' ')}`, 'Ka 0 0 0', `Ks ${r6(0.5 * (1 - m.rough))} ${r6(0.5 * (1 - m.rough))} ${r6(0.5 * (1 - m.rough))}`, `Ns ${Math.round(2 + 250 * (1 - m.rough) ** 2)}`, `d ${r6(m.opacity)}`, 'illum 2')
     if (m.emissive.some(x => x > 0)) mtl.push(`Ke ${m.emissive.map(r6).join(' ')}`)
@@ -220,8 +220,8 @@ async function fbxData (app, o) {
   const types = Object.entries(count).filter(([, n]) => n)
   const top = [
     N('FBXHeaderExtension', [], [one('FBXHeaderVersion', I(1003)), one('FBXVersion', I(7400)), one('EncryptionType', I(0)),
-      N('CreationTimeStamp', [], [one('Version', I(1000)), ...stamp.map(([k, v]) => one(k, I(v)))]), one('Creator', S('Studio'))]),
-    one('FileId', ['R', new Uint8Array(FILE_ID)]), one('CreationTime', S('1970-01-01 10:00:00:000')), one('Creator', S('Studio')),
+      N('CreationTimeStamp', [], [one('Version', I(1000)), ...stamp.map(([k, v]) => one(k, I(v)))]), one('Creator', S('Umbrio Sandbox'))]),
+    one('FileId', ['R', new Uint8Array(FILE_ID)]), one('CreationTime', S('1970-01-01 10:00:00:000')), one('Creator', S('Umbrio Sandbox')),
     N('GlobalSettings', [], [one('Version', I(1000)), P70(gi('UpAxis', 1), gi('UpAxisSign', 1), gi('FrontAxis', 2), gi('FrontAxisSign', 1), gi('CoordAxis', 0), gi('CoordAxisSign', 1),
       gi('OriginalUpAxis', 1), gi('OriginalUpAxisSign', 1), P('UnitScaleFactor', 'double', 'Number', '', D(100)), P('OriginalUnitScaleFactor', 'double', 'Number', '', D(100)))]),   // 1 unit = 1 m, as glTF
     N('Documents', [], [one('Count', I(1)), N('Document', [L(id()), S(''), S('Scene')], [P70(P('SourceObject', 'object', '', ''), P('ActiveAnimStackName', 'KString', '', '', S(''))), one('RootNode', L(0))])]),
@@ -268,7 +268,7 @@ async function daeData (app, o) {
   const at = new Date().toISOString().replace(/\.\d+Z$/, 'Z')
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
-<asset><contributor><authoring_tool>Studio</authoring_tool></contributor><created>${at}</created><modified>${at}</modified><unit name="meter" meter="1"/><up_axis>Y_UP</up_axis></asset>
+<asset><contributor><authoring_tool>Umbrio Sandbox</authoring_tool></contributor><created>${at}</created><modified>${at}</modified><unit name="meter" meter="1"/><up_axis>Y_UP</up_axis></asset>
 ${images.length ? `<library_images>${images.join('')}</library_images>\n` : ''}<library_effects>${effects.join('\n')}</library_effects>
 <library_materials>${materialsX.join('')}</library_materials>
 <library_geometries>${geos.join('\n')}</library_geometries>
@@ -308,7 +308,7 @@ async function threeMFData (app, o) {
   if (!objs.length) throw new Error('Nothing to export: no solid triangles')
   const model = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
-<metadata name="Title">${xesc(base)}</metadata><metadata name="Application">Studio</metadata>
+<metadata name="Title">${xesc(base)}</metadata><metadata name="Application">Umbrio Sandbox</metadata>
 <resources><basematerials id="1">${baseMats.join('')}</basematerials>
 ${objs.join('\n')}
 </resources>

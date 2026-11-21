@@ -419,7 +419,7 @@ function buildProps(el, app) {
 }
 
 const propsPanel = {
-  id: 'props', label: 'Properties', icon: 'sliders', order: 10, when: a => a.selection.length > 0,
+  id: 'props', label: 'Properties', icon: 'sliders', order: 10, when: a => a.selection.length > 0 && !a.selection.every(id => a.obj(id)?.type === 'gui'),
   render(el, app) { el._p = buildProps(el, app); return () => { el._p = null } },
   refresh(el, app, ev) {
     if (ev.type === 'change' && !ev.objects.some(id => app.selection.includes(id)) && !ev.textures.length) return

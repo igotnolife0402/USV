@@ -1,4 +1,4 @@
-<title>Studio</title>
+<title>Umbrio Sandbox</title>
 <style>
 :root{--bg:#17191d;--panel:#202329;--panel2:#262a31;--line:#2f343c;--text:#d9dde4;--mute:#8b93a1;--accent:#3d8bfd;--select:#ffa23a;--danger:#e5484d;--ok:#3fb950;--hover:#2c3038;--field:#1a1c21;--h:28px;--r:5px;--side:300px;--top:40px;
 --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);color-scheme:dark}
@@ -81,6 +81,7 @@ select.inp{padding:0 6px;cursor:pointer}
 .modes button{height:22px;padding:0 9px;display:flex;align-items:center;gap:5px;border-radius:4px;font-size:12px;color:var(--mute)}
 .modes button .ic{width:14px;height:14px}
 .modes button[aria-selected=true]{background:var(--panel2);color:var(--text);box-shadow:0 0 0 1px var(--line)}
+@media (max-width:1599px){.modes button[aria-selected=false]{padding:0 6px}.modes button[aria-selected=false] span{display:none}}   /* seven tabs: unselected ones are icon only (title names them) */
 .t-title{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 6px;container-type:inline-size}
 @container (max-width:260px){.save-chip{font-size:0;gap:0;padding:0;margin-left:-4px;background:none}}
 .pname{width:min(240px,100%);min-width:60px;height:26px;padding:0 8px;text-align:center;font-weight:600;font-size:13px;background:transparent;border:1px solid transparent;border-radius:var(--r);outline:none;text-overflow:ellipsis}
@@ -437,6 +438,6 @@ import { boot } from './core/app.js'
 boot().catch(e => {
   console.error(e)
   const el = document.getElementById('app')
-  el.innerHTML = '<div style="padding:24px;color:#ff8a8d;font:13px system-ui">Studio failed to start: ' + String(e && e.message || e).replace(/[<>&]/g, '') + '</div>'
+  el.innerHTML = '<div style="padding:24px;color:#ff8a8d;font:13px system-ui">Umbrio Sandbox failed to start: ' + String(e && e.message || e).replace(/[<>&]/g, '') + '</div>'
 })
 </script>

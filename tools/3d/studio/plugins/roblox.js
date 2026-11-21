@@ -1,5 +1,6 @@
 // Roblox: .rbxmx + Lua builder export (parts, models, lights, strokes, R6 rig with KeyframeSequences), .rbxmx/.rbxm import.
 // Everything above "Plugin" is pure (no DOM): cli/studio.mjs imports these writers and readers too.
+import * as THREE from 'three'
 import * as M from '../core/model.js'
 
 const D2R = Math.PI / 180, R2D = 180 / Math.PI
@@ -108,8 +109,11 @@ export function robloxModel(scene, opts = {}) {
     const set = new Set(opts.ids.filter(id => objs[id]))
     roots = [...set].filter(id => { let p = objs[id].parent, n = 0; while (p && objs[p] && n++ < 1e4) { if (set.has(p)) return false; p = objs[p].parent } return true })
   }
-  const root = node('Model', opts.name || scene.name || 'Studio model')
+  const root = node('Model', opts.name || scene.name || 'Umbrio Sandbox model')
   for (const id of roots) convert(ctx, id, root)
+  if (opts.merge) mergeMeshes(ctx, root)
+  ctx.meshes.forEach((me, i) => { me.key = 'UMB' + String(i + 1).padStart(5, '0'); me.node.mesh = me.key; propOf(me.node.kids.find(k => k.cls === 'StringValue' && propOf(k, 'Name')[2] === 'UmbrioMesh'), 'Value')[2] = me.key })
+  ctx.counts.meshes = ctx.meshes.length
   return { root, meshes: ctx.meshes, notes: ctx.notes, counts: ctx.counts }
 }
 
@@ -129,13 +133,14 @@ function convert(ctx, id, parent) {
     return
   }
   let n = null
+  ctx.cur = id
   if (o.type === 'part') n = partNode(ctx, o, F, name)
   else if (o.type === 'mesh') n = meshNode(ctx, o, F, ctx.opts.getGeo?.(o.geo), name)
   else if (o.type === 'light') n = lightNode(ctx, o, F, name)
   else if (o.type === 'stroke') n = strokeNode(ctx, o, F, name)
   else if (o.type === 'model') n = meshNode(ctx, o, F, ctx.opts.modelGeo?.(id), name)
   else { ctx.notes.push(`${name}: ${o.type} has no Roblox form, skipped`); ctx.counts.skipped++ }
-  if (n) { parent.kids.push(n); ctx.nodeOf.set(id, n) }
+  if (n) { parent.kids.push(n); ctx.nodeOf.set(id, n); if (n.entry) n.entry.parent = parent }
   for (const c of ctx.kids.get(id) || []) convert(ctx, c, parent) // Roblox parts do not carry children: they become siblings
 }
 
@@ -152,22 +157,141 @@ function partNode(ctx, o, F, name) {
   else return meshNode(ctx, o, F, ctx.opts.partGeo?.(shape, base), name) // cone, torus, capsule, stretched sphere or cylinder
   ctx.counts.parts++
   const n = node(cls, name, [...(cls === 'Part' ? [['Shape', 'enum', type]] : []), ...baseProps(o, size, R, r.t)])
-  if (o.negate) n.kids.push(note('Studio negative part: select it, press Negate, then Union it with the parts it cuts.'))
+  if (o.negate) n.kids.push(note('Umbrio Sandbox negative part: select it, press Negate, then Union it with the parts it cuts.'))
   return n
 }
 
 function meshNode(ctx, o, F, geo, name) {
   if (!geo?.verts?.length) { ctx.notes.push(`${name}: geometry not available, skipped`); ctx.counts.skipped++; return null }
-  const r = rigid(F), v = geo.verts, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]
+  const r = rigid(F)
+  if (ctx.opts.simplify) { geo = simplifyGeo(geo, r.s, o.smooth, ctx.opts.simplify); r.s = [1, 1, 1] }   // scale baked into the reduced mesh
+  const v = geo.verts, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]
   for (let i = 0; i < v.length; i += 3) for (let j = 0; j < 3; j++) { const x = v[i + j] * r.s[j]; if (x < lo[j]) lo[j] = x; if (x > hi[j]) hi[j] = x }
   const c = [0, 1, 2].map(j => (lo[j] + hi[j]) / 2), size = [0, 1, 2].map(j => Math.max(0.05, hi[j] - lo[j]))
-  const file = `meshes/${safeName(name)}-${ctx.meshes.length + 1}.obj`
-  ctx.meshes.push({ name, file, text: toObj(geo, name, r.s) })
+  // Roblox can't hold mesh geometry inside a model file (a MeshPart only points at an uploaded mesh asset), so every mesh
+  // goes into one compressed .fbx, centred on this placeholder's frame, and link-meshes.lua swaps each one into place after a
+  // single Import 3D. The key ties the .fbx mesh to its placeholder.
+  const key = 'UMB' + String(ctx.meshes.length + 1).padStart(5, '0')
+  const entry = { name, key, id: ctx.cur, geo, s: r.s, c, R: r.R, t: r.t, pos: add(mv(r.R, c), r.t), smooth: o.smooth, tris: (geo.faces || []).reduce((t, f) => t + Math.max(0, f.length - 2), 0) }
+  ctx.meshes.push(entry)
   ctx.counts.meshes++
-  const n = node('MeshPart', name, baseProps(o, size, r.R, add(mv(r.R, c), r.t)))
-  n.mesh = file
-  n.kids.push(note(`Placeholder for ${file} in the export zip. In Roblox Studio import that file (Avatar > Import 3D, or Asset Manager > Bulk Import), then paste its MeshId into this MeshPart.`))
+  const n = node('MeshPart', name, baseProps(o, size, r.R, entry.pos))
+  n.mesh = key; n.entry = entry; entry.node = n
+  n.kids.push(node('StringValue', 'UmbrioMesh', [['Value', 'str', key]]))
   return n
+}
+
+// Fewer triangles (opts.simplify = {S: meshoptimizer's MeshoptSimplifier, ratio, error}): the mesh is triangulated as the
+// viewport draws it, scaled to studs, then edges collapse until `ratio` of its triangles are left or a surface would move more
+// than `error` studs, whichever comes first. Flat walls lose nothing; curves and fine trim coarsen within the error. Corners
+// with different palette colours count as seams, so colour borders stay put; sharp edges hold through the error limit.
+// The simplifier's own error estimate misses folded flat panels and thin trim, so every result is measured against the
+// original (both ways, at corners, edge midpoints and centres, through a BVH): over `tol` studs, it retries with more
+// triangles, and keeps full detail if nothing passes.
+export function simplifyGeo(geo, s, smooth, { S, BVH, ratio = 0.5, error = 0.05, tol = 0.1 }) {
+  const bg = M.toBufferGeometry(geo, { smooth }), P = bg.attributes.position.array, N = bg.attributes.normal.array, U = bg.attributes.uv.array, n = P.length / 3
+  const flip = s[0] * s[1] * s[2] < 0, seen = new Map(), pos = [], uv = []
+  let idx = new Uint32Array(n)
+  for (let i = 0; i < n; i++) {
+    const x = P[i * 3] * s[0], y = P[i * 3 + 1] * s[1], z = P[i * 3 + 2] * s[2]
+    const k = (smooth ? [x, y, z, N[i * 3], N[i * 3 + 1], N[i * 3 + 2], U[i * 2], U[i * 2 + 1]] : [x, y, z, U[i * 2], U[i * 2 + 1]]).map(q => Math.round(q * 1e4)).join(',')   // flat shading recomputes normals, so only colour borders are seams
+    let j = seen.get(k); if (j === undefined) { j = pos.length / 3; seen.set(k, j); pos.push(x, y, z); uv.push(U[i * 2], U[i * 2 + 1]) }
+    idx[flip ? i - (i % 3) + [0, 2, 1][i % 3] : i] = j
+  }
+  M.releaseGeometry?.(bg)
+  // a corner shared by two palette colours is locked: colour borders (cobbles, trims, stripes) keep their exact shape
+  const byPos = new Map(), lock = new Uint8Array(pos.length / 3)
+  for (let j = 0; j < lock.length; j++) { const k = Math.round(pos[j * 3] * 1e4) + ',' + Math.round(pos[j * 3 + 1] * 1e4) + ',' + Math.round(pos[j * 3 + 2] * 1e4); const l = byPos.get(k); if (l) { l.push(j); for (const q of l) lock[q] = 1 } else byPos.set(k, [j]) }
+  S.useExperimentalFeatures = true
+  const fp = Float32Array.from(pos), fu = Float32Array.from(uv)
+  { // zero-area faces (lines in the source) draw nothing: drop them before simplifying and measuring
+    const keep = []
+    for (let t = 0; t < idx.length; t += 3) {
+      const a = idx[t] * 3, b = idx[t + 1] * 3, c = idx[t + 2] * 3
+      const ux = fp[b] - fp[a], uy = fp[b + 1] - fp[a + 1], uz = fp[b + 2] - fp[a + 2], wx = fp[c] - fp[a], wy = fp[c + 1] - fp[a + 1], wz = fp[c + 2] - fp[a + 2]
+      if (Math.hypot(uy * wz - uz * wy, uz * wx - ux * wz, ux * wy - uy * wx) > 1e-8) keep.push(idx[t], idx[t + 1], idx[t + 2])
+    }
+    idx = Uint32Array.from(keep)
+  }
+  const pack = out => {
+    const map = new Map(), verts = [], uvs = [], faces = []
+    const at = i => { let j = map.get(i); if (j === undefined) { j = verts.length / 3; map.set(i, j); verts.push(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]); uvs.push(uv[i * 2], uv[i * 2 + 1]) } return j }
+    for (let i = 0; i < out.length; i += 3) { const a = out[i], b = out[i + 1], c = out[i + 2]; if (a !== b && b !== c && a !== c) faces.push([at(a), at(b), at(c)]) }
+    return { verts, faces, uvs }
+  }
+  const full = pack(idx)
+  if (idx.length <= 3 || !BVH) return full
+  const soup = ix => { const g = new THREE.BufferGeometry(), a = new Float32Array(ix.length * 3); for (let i = 0; i < ix.length; i++) { a[i * 3] = fp[ix[i] * 3]; a[i * 3 + 1] = fp[ix[i] * 3 + 1]; a[i * 3 + 2] = fp[ix[i] * 3 + 2] } g.setAttribute('position', new THREE.BufferAttribute(a, 3)); return g }
+  const W = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [.5, .5, 0], [0, .5, .5], [.5, 0, .5], [1 / 3, 1 / 3, 1 / 3]], v = new THREE.Vector3(), hit = { point: new THREE.Vector3() }
+  const far = (ix, bvh) => {                  // the farthest sample of mesh ix from the surface in bvh, stops early past tol
+    for (let t = 0; t < ix.length; t += 3) for (const w of W) {
+      const a = ix[t] * 3, b = ix[t + 1] * 3, c = ix[t + 2] * 3
+      v.set(fp[a] * w[0] + fp[b] * w[1] + fp[c] * w[2], fp[a + 1] * w[0] + fp[b + 1] * w[1] + fp[c + 1] * w[2], fp[a + 2] * w[0] + fp[b + 2] * w[1] + fp[c + 2] * w[2])
+      const h = bvh.closestPointToPoint(v, hit, tol, tol); if (!h || h.distance > tol) return Infinity     // the threshold only prunes the search: check the distance too
+    }
+    return 0
+  }
+  const origBvh = new BVH(soup(idx))
+  for (const r of [ratio, ratio + (1 - ratio) / 3, ratio + (1 - ratio) * 2 / 3]) {
+    const target = Math.max(3, Math.floor(n * r / 3) * 3)
+    const [out] = S.simplifyWithAttributes(idx, fp, 3, fu, 2, [0.5, 0.5], lock, target, error, ['ErrorAbsolute', 'LockBorder'])
+    if (out.length >= idx.length) return full
+    if (far(idx, new BVH(soup(out))) === 0 && far(out, origBvh) === 0) return pack(out)
+  }
+  return full
+}
+
+// Fewest MeshParts: anchored meshes that look the same (texture, colour, material, transparency) join into world-space meshes
+// of up to MERGE_TRIS triangles (Roblox's per-mesh cap is 20k), split by place so each piece stays compact. Rig limbs and loose
+// (unanchored) meshes keep their own part. Hundreds of parts become a few dozen: one model, far fewer draw calls.
+const MERGE_TRIS = 19000
+function mergeMeshes(ctx, root) {
+  const pools = new Map()
+  for (const me of ctx.meshes) {
+    const o = ctx.objs[me.id] || {}
+    if (!me.parent || propOf(me.node, 'Anchored')[2] === false || me.tris > MERGE_TRIS) continue
+    const k = [o.texture || '', o.color, o.material, +o.transparency || 0, +o.smooth || 0].join('|')
+    if (!pools.has(k)) pools.set(k, []); pools.get(k).push(me)
+  }
+  const gone = new Set(), made = []
+  const split = list => {
+    const tot = list.reduce((a, m) => a + m.tris, 0)
+    if (tot <= MERGE_TRIS || list.length < 2) return [list]
+    const lo = [0, 1, 2].map(j => Math.min(...list.map(m => m.pos[j]))), hi = [0, 1, 2].map(j => Math.max(...list.map(m => m.pos[j])))
+    const ax = [0, 1, 2].reduce((b, j) => hi[j] - lo[j] > hi[b] - lo[b] ? j : b, 0), sorted = [...list].sort((a, b) => a.pos[ax] - b.pos[ax])
+    // as few pieces as the cap allows: k slabs along the longest side, each filled to about tot / k; an overfull slab splits again
+    const k = Math.ceil(tot / MERGE_TRIS), out = []
+    let cur = [], acc = 0
+    for (const m of sorted) {
+      if (cur.length && acc + m.tris > MERGE_TRIS) { out.push(cur); cur = []; acc = 0 }
+      cur.push(m); acc += m.tris
+      if (acc >= tot / k && out.length < k - 1) { out.push(cur); cur = []; acc = 0 }
+    }
+    if (cur.length) out.push(cur)
+    return out
+  }
+  for (const list of pools.values()) for (const chunk of split(list)) {
+    if (chunk.length < 2) continue
+    const verts = [], faces = [], uvs = [], lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity]
+    for (const me of chunk) {
+      const v = me.geo.verts, base = verts.length / 3, flip = me.s[0] * me.s[1] * me.s[2] < 0, nv = v.length / 3
+      for (let i = 0; i < v.length; i += 3) {
+        const w = add(mv(me.R, [v[i] * me.s[0], v[i + 1] * me.s[1], v[i + 2] * me.s[2]]), me.t)
+        verts.push(...w); for (let j = 0; j < 3; j++) { if (w[j] < lo[j]) lo[j] = w[j]; if (w[j] > hi[j]) hi[j] = w[j] }
+      }
+      const U = me.geo.uvs; for (let i = 0; i < nv * 2; i++) uvs.push(U && U.length >= nv * 2 ? U[i] : 0)
+      for (const f of me.geo.faces || []) { const g = f.map(i => i + base); faces.push(flip ? g.reverse() : g) }
+      gone.add(me); me.parent.kids = me.parent.kids.filter(k => k !== me.node)
+    }
+    const c = [0, 1, 2].map(j => (lo[j] + hi[j]) / 2), size = [0, 1, 2].map(j => Math.max(0.05, hi[j] - lo[j])), o0 = ctx.objs[chunk[0].id] || {}
+    const entry = { name: `Mesh ${made.length + 1}`, id: chunk[0].id, geo: { verts, faces, uvs }, s: [1, 1, 1], c, R: I3, t: [0, 0, 0], pos: c, smooth: chunk[0].smooth, tris: chunk.reduce((a, m) => a + m.tris, 0), parent: root }
+    entry.node = node('MeshPart', entry.name, baseProps(o0, size, I3, c), [node('StringValue', 'UmbrioMesh', [['Value', 'str', '']])])
+    root.kids.push(entry.node); made.push(entry)
+  }
+  ctx.meshes = [...ctx.meshes.filter(m => !gone.has(m)), ...made]
+  const prune = n => { n.kids = n.kids.filter(k => { if (k.cls === 'Model') { prune(k); return k.kids.length > 0 } return true }) }   // Models left empty go
+  prune(root)
+  let models = 0; const count = n => { for (const k of n.kids) if (k.cls === 'Model') { models++; count(k) } }; count(root); ctx.counts.models = models
 }
 
 function lightNode(ctx, o, F, name) {
@@ -219,7 +343,7 @@ function rigify(ctx, gid, model, rig) {
   const fr = n => propOf(n, 'CFrame')[2], T = fr(nodes.Torso), tsz = propOf(nodes.Torso, 'Size')[2]
   const hrp = node('Part', 'HumanoidRootPart', [['Shape', 'enum', PT.Block], ['Size', 'v3', tsz.slice()], ['CFrame', 'cf', { R: T.R, t: T.t }], ['Transparency', 'num', 1], ['Anchored', 'bool', true], ['CanCollide', 'bool', false]])
   model.kids.unshift(hrp)
-  for (const k in nodes) setProp(nodes[k], 'Anchored', 'bool', false)
+  for (const k in nodes) { setProp(nodes[k], 'Anchored', 'bool', false); setProp(nodes[k], 'Name', 'str', k) }   // Poses find limbs by exact R6 name ("Left Arm", not "Left arm")
   model.kids.push(node('Humanoid', 'Humanoid', [['RigType', 'enum', ['HumanoidRigType', 'R6', 0]]]))
   model.props.push(['PrimaryPart', 'ref', hrp])
   hrp.kids.push(node('Motor6D', 'RootJoint', [['Part0', 'ref', hrp], ['Part1', 'ref', nodes.Torso], ['C0', 'cf', ROOT], ['C1', 'cf', ROOT], ['MaxVelocity', 'num', 0.1]]))
@@ -331,7 +455,7 @@ function luaVal(t, v) {
 export function writeLua(root, counts = {}) {
   const L = [
     `-- ${String(root.props[0][2]).replace(/[\r\n]/g, ' ')}: Roblox Studio builder made by Studio (${counts.parts || 0} parts).`,
-    '-- Paste into View > Command Bar and press Enter. Meshes are skipped (import them from the .rbxmx zip).',
+    '-- Paste into View > Command Bar and press Enter. Meshes are skipped (export Roblox model for the meshes .fbx).',
     'local I = {}',
     'local function M(n) local ok, m = pcall(function() return Enum.Material[n] end) return ok and m or Enum.Material.Plastic end',
     'local o']
@@ -349,11 +473,11 @@ export function writeLua(root, counts = {}) {
   emit(root, null)
   for (const [n, k, v] of late) if (!v || idx.has(v)) L.push(`I[${idx.get(n)}].${k} = ${v ? `I[${idx.get(v)}]` : 'nil'}`)
   L.push('I[1].Parent = workspace', 'game:GetService("Selection"):Set({I[1]})',
-    'pcall(function() game:GetService("ChangeHistoryService"):SetWaypoint("Studio build") end)', `print("Studio: built " .. I[1].Name .. " (${idx.size} instances)")`)
+    'pcall(function() game:GetService("ChangeHistoryService"):SetWaypoint("Umbrio Sandbox build") end)', `print("Umbrio Sandbox: built " .. I[1].Name .. " (${idx.size} instances)")`)
   return L.join('\n') + '\n'
 }
 export function toObj(geo, name = 'mesh', s = [1, 1, 1]) {
-  const v = geo.verts, uv = geo.uvs, L = [`# Studio mesh: ${String(name).replace(/[\r\n]/g, ' ')}`, `o ${safeName(name)}`]
+  const v = geo.verts, uv = geo.uvs, L = [`# Umbrio Sandbox mesh: ${String(name).replace(/[\r\n]/g, ' ')}`, `o ${safeName(name)}`]
   for (let i = 0; i < v.length; i += 3) L.push(`v ${num(v[i] * s[0])} ${num(v[i + 1] * s[1])} ${num(v[i + 2] * s[2])}`)
   const hasUv = uv && uv.length / 2 === v.length / 3
   if (hasUv) for (let i = 0; i < uv.length; i += 2) L.push(`vt ${num(uv[i])} ${num(uv[i + 1])}`)
@@ -361,13 +485,332 @@ export function toObj(geo, name = 'mesh', s = [1, 1, 1]) {
   for (const f of geo.faces || []) L.push('f ' + (flip ? [...f].reverse() : f).map(i => hasUv ? `${i + 1}/${i + 1}` : i + 1).join(' '))
   return L.join('\n') + '\n'
 }
+// All placeholder meshes as one binary glTF, each a node named by its key at the origin, vertices in its placeholder's frame
+// (object scale baked, centred on the placeholder). look(mesh) -> {color: [r,g,b] 0..1 sRGB, image: key, uv(u, v) -> [u, v]}
+// with glTF's top-left uv origin; images: {key: PNG bytes}.
+const RB_TRI_LIMIT = 20000                       // Studio's 3D importer refuses (or decimates) a single mesh above this
+const FBX_MAX = 19e6                             // Roblox caps an upload around 20 MB: a bigger build splits into the fewest files under it
+// Meshes -> k runs of about equal triangle count, in order.
+export function splitMeshes(meshes, k) {
+  if (k <= 1) return [meshes]
+  const total = meshes.reduce((a, m) => a + m.tris, 0), out = [[]]; let n = 0
+  for (const m of meshes) { if (n >= total / k * out.length && out.length < k && out[out.length - 1].length) out.push([]); out[out.length - 1].push(m); n += m.tris }
+  return out
+}
+export const meshFile = (name, i, n) => n > 1 ? `${name}-meshes-${i + 1}.fbx` : `${name}-meshes.fbx`
+// One mesh as welded triangle arrays in its placeholder's frame: object scale baked, centred, normals unit length, uvs in
+// a top-left origin (look.uv maps them), zero-area triangles dropped. null when nothing is left.
+function meshArrays(me, Lk) {
+  const bg = M.toBufferGeometry(me.geo, { smooth: me.smooth }), P = bg.attributes.position.array, N = bg.attributes.normal.array, U = bg.attributes.uv.array
+  const s = me.s, c = me.c, flip = s[0] * s[1] * s[2] < 0, n = P.length / 3
+  const seen = new Map(), pos = [], nor = [], uv = [], idx = new Uint32Array(n)
+  for (let i = 0; i < n; i++) {
+    const x = P[i * 3] * s[0] - c[0], y = P[i * 3 + 1] * s[1] - c[1], z = P[i * 3 + 2] * s[2] - c[2]
+    let nx = N[i * 3] / s[0], ny = N[i * 3 + 1] / s[1], nz = N[i * 3 + 2] / s[2]; const l = Math.hypot(nx, ny, nz)
+    if (l > 1e-9) { nx /= l; ny /= l; nz /= l } else { nx = 0; ny = 1; nz = 0 }        // a zero-area face has no normal
+    const [u, v] = Lk.uv ? Lk.uv(U[i * 2], U[i * 2 + 1]) : [U[i * 2], 1 - U[i * 2 + 1]]
+    const k = [x, y, z, nx, ny, nz, u, v].map(q => Math.round(q * 1e5)).join(',')
+    let j = seen.get(k)
+    if (j === undefined) { j = pos.length / 3; seen.set(k, j); pos.push(x, y, z); nor.push(nx, ny, nz); uv.push(u, v) }
+    idx[i] = j
+  }
+  const tri = [], face = [], TF = bg.userData.triFace
+  for (let i = 0; i < n; i += 3) { const a = idx[i], b = idx[flip ? i + 2 : i + 1], d = idx[flip ? i + 1 : i + 2]; if (a !== b && b !== d && a !== d) { tri.push(a, b, d); face.push(TF ? TF[i / 3] : i / 3) } }
+  M.releaseGeometry?.(bg)
+  return tri.length ? { pos, nor, uv, tri, face, Lk } : null
+}
+// One binary FBX 7.4 holding every placeholder mesh: a Model per mesh named by its key at the origin, its triangles in the
+// placeholder's frame. Arrays are zlib-compressed (FBX array encoding 1, what 3D modeling software writes), so a whole
+// build fits one Import 3D. deflate: bytes -> zlib bytes (fflate's zlibSync); uvs come back to FBX's bottom-left origin.
+// world: true writes each mesh at its place in the build (named after it, no marker cubes), so Import 3D alone gives the
+// assembled model; false keeps every mesh at the origin for link-meshes.lua.
+export function toFbx(meshes, look = () => ({}), images = {}, deflate = null, world = false) {
+  const te = new TextEncoder()
+  let next = 1000000
+  const id = () => ++next
+  const S = v => ['S', v], I = v => ['I', v], D = v => ['D', v], L = v => ['L', v]
+  const N = (name, props = [], kids = []) => [name, props, kids], one = (name, p) => N(name, [p])
+  const P = (n, t, l, f, ...v) => N('P', [S(n), S(t), S(l), S(f), ...v])
+  const P70 = (...ps) => N('Properties70', [], ps)
+  const objects = [], links = [], matKey = new Map(), texOf = new Map(), count = { Model: 0, Geometry: 0, Material: 0, Texture: 0, Video: 0 }
+  const material = Lk => {
+    const col = Lk.color || [1, 1, 1], k = col.join(',') + '|' + (Lk.image ?? '')
+    if (matKey.has(k)) return matKey.get(k)
+    const mid = id(), name = 'M' + matKey.size; count.Material++
+    objects.push(N('Material', [L(mid), S(name + '\0\x01Material'), S('')], [one('Version', I(102)), one('ShadingModel', S('phong')), one('MultiLayer', I(0)),
+      P70(P('ShadingModel', 'KString', '', '', S('Phong')), P('DiffuseColor', 'Color', '', 'A', ...col.map(D)), P('DiffuseFactor', 'Number', '', 'A', D(1)),
+        P('SpecularColor', 'Color', '', 'A', D(0.1), D(0.1), D(0.1)), P('Shininess', 'Number', '', 'A', D(8)), P('Opacity', 'Number', '', 'A', D(1)))]))
+    if (Lk.image != null && images[Lk.image]) {
+      let tid = texOf.get(Lk.image)
+      if (!tid) {
+        tid = id(); const vid = id(), f = `palette${texOf.size + 1}.png`; count.Texture++; count.Video++; texOf.set(Lk.image, tid)
+        objects.push(N('Video', [L(vid), S(f + '\0\x01Video'), S('Clip')], [one('Type', S('Clip')), P70(P('Path', 'KString', 'XRefUrl', '', S(f))), one('UseMipMap', I(0)), one('Filename', S(f)), one('RelativeFilename', S(f)), one('Content', ['R', images[Lk.image]])]))
+        objects.push(N('Texture', [L(tid), S(f + '\0\x01Texture'), S('')], [one('Type', S('TextureVideoClip')), one('Version', I(202)), one('TextureName', S(f + '\0\x01Texture')),
+          P70(P('UseMaterial', 'bool', '', '', I(1))), one('Media', S(f + '\0\x01Video')), one('FileName', S(f)), one('RelativeFilename', S(f)),
+          N('ModelUVTranslation', [D(0), D(0)]), N('ModelUVScaling', [D(1), D(1)]), one('Texture_Alpha_Source', S('None')), N('Cropping', [I(0), I(0), I(0), I(0)])]))
+        links.push(['OO', vid, tid])
+      }
+      links.push(['OP', tid, mid, 'DiffuseColor'])
+    }
+    matKey.set(k, mid)
+    return mid
+  }
+  const CUBE = { verts: [-.5, -.5, -.5, .5, -.5, -.5, .5, .5, -.5, -.5, .5, -.5, -.5, -.5, .5, .5, -.5, .5, .5, .5, .5, -.5, .5, .5],
+    faces: [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [3, 7, 6, 2], [0, 4, 7, 3], [1, 2, 6, 5]] }
+  const cal = [['UMBCAL0', [0, 0, 0]], ['UMBCALX', [CAL_L, 0, 0]], ['UMBCALY', [0, CAL_L, 0]], ['UMBCALZ', [0, 0, CAL_L]]]
+    .map(([key, o]) => ({ key, geo: CUBE, s: [1, 1, 1], c: o.map(v => -v), cal: true }))
+  const names = new Map(), uniq = n => { const b = String(n || 'Mesh').replace(/[\x00-\x1f]/g, ' ').slice(0, 60); const k = (names.get(b) || 0) + 1; names.set(b, k); return k > 1 ? `${b} ${k}` : b }
+  for (const me of world ? meshes : [...meshes, ...cal]) {
+    const a = meshArrays(me, me.cal ? {} : (look(me) || {}))
+    if (!a) continue
+    const { pos, nor, uv, tri, face, Lk } = a
+    // the two triangles of a quad face go back to the quad (4 corners, not 6): the importer splits it again
+    const poly = []
+    for (let t = 0; t < face.length; t++) {
+      const A = tri.slice(t * 3, t * 3 + 3)
+      if (t + 1 < face.length && face[t + 1] === face[t] && face[t + 2] !== face[t]) {
+        const B = tri.slice(t * 3 + 3, t * 3 + 6), sh = A.filter(v => B.includes(v))
+        if (sh.length === 2) {
+          const r = A.findIndex(v => !sh.includes(v)), [p0, p1, p2] = [A[r], A[(r + 1) % 3], A[(r + 2) % 3]], q = B.find(v => !sh.includes(v))
+          // B must run p2 -> p1 the other way round the shared edge (same winding), or the quad would fold
+          const bi = B.indexOf(p2); if (B[(bi + 1) % 3] === p1 && splitsBothWays(pos, p0, p1, q, p2)) { poly.push([p0, p1, q, p2]); t++; continue }
+        }
+      }
+      poly.push(A)
+    }
+    const nt = poly.reduce((k, p) => k + p.length, 0)
+    // control points weld by position only (normals and uvs stay per corner), so edges connect
+    const keys = new Map(), remap = new Int32Array(pos.length / 3), verts = []
+    for (let i = 0; i < remap.length; i++) {
+      const k = Math.round(pos[i * 3] * 1e5) + ',' + Math.round(pos[i * 3 + 1] * 1e5) + ',' + Math.round(pos[i * 3 + 2] * 1e5)
+      let v = keys.get(k); if (v === undefined) { v = verts.length / 3; keys.set(k, v); verts.push(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]) }
+      remap[i] = v
+    }
+    const pvi = new Int32Array(nt), nrm = new Float64Array(nt * 3), uvi = new Int32Array(nt)
+    let c = 0
+    for (const p of poly) for (let j = 0; j < p.length; j++, c++) {
+      const i = p[j]
+      pvi[c] = j === p.length - 1 ? ~remap[i] : remap[i]
+      nrm[c * 3] = Math.fround(nor[i * 3]); nrm[c * 3 + 1] = Math.fround(nor[i * 3 + 1]); nrm[c * 3 + 2] = Math.fround(nor[i * 3 + 2])
+      uvi[c] = i
+    }
+    // uvs dedupe to their distinct values (a palette has few): the per-corner index then repeats and packs small
+    const uvKey = new Map(), uvList = [], uvOf = new Int32Array(uv.length / 2)
+    for (let i = 0; i < uvOf.length; i++) {
+      const u = Math.fround(uv[i * 2]), v = Math.fround(1 - uv[i * 2 + 1]), k = u + ',' + v
+      let j = uvKey.get(k); if (j === undefined) { j = uvList.length / 2; uvKey.set(k, j); uvList.push(u, v) }
+      uvOf[i] = j
+    }
+    for (let c = 0; c < uvi.length; c++) uvi[c] = uvOf[uvi[c]]
+    const fuv = Float64Array.from(uvList)
+    const gid = id(), mid = id(); count.Geometry++; count.Model++
+    const label = world ? uniq(me.name) : me.key
+    objects.push(N('Geometry', [L(gid), S(label + '\0\x01Geometry'), S('Mesh')], [one('GeometryVersion', I(124)), one('Vertices', ['d', Float64Array.from(verts, Math.fround)]), one('PolygonVertexIndex', ['i', pvi]),
+      N('LayerElementNormal', [I(0)], [one('Version', I(102)), one('Name', S('')), one('MappingInformationType', S('ByPolygonVertex')), one('ReferenceInformationType', S('Direct')), one('Normals', ['d', nrm])]),
+      N('LayerElementUV', [I(0)], [one('Version', I(101)), one('Name', S('UVMap')), one('MappingInformationType', S('ByPolygonVertex')), one('ReferenceInformationType', S('IndexToDirect')), one('UV', ['d', fuv]), one('UVIndex', ['i', uvi])]),
+      N('LayerElementMaterial', [I(0)], [one('Version', I(101)), one('Name', S('')), one('MappingInformationType', S('AllSame')), one('ReferenceInformationType', S('IndexToDirect')), one('Materials', ['i', Int32Array.of(0)])]),
+      N('Layer', [I(0)], [N('Version', [I(100)]), ...['Normal', 'UV', 'Material'].map(t => N('LayerElement', [], [one('Type', S('LayerElement' + t)), one('TypedIndex', I(0))]))])]))
+    // placed: the mesh's frame (FBX eEulerXYZ turns X, then Y, then Z: three's 'ZYX' order)
+    let tr = [0, 0, 0], rot = [0, 0, 0]
+    if (world && me.pos) {
+      tr = me.pos
+      const R3 = me.R || I3, e = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().set(R3[0], R3[1], R3[2], 0, R3[3], R3[4], R3[5], 0, R3[6], R3[7], R3[8], 0, 0, 0, 0, 1), 'ZYX')
+      rot = [e.x, e.y, e.z].map(v => v * R2D)
+    }
+    objects.push(N('Model', [L(mid), S(label + '\0\x01Model'), S('Mesh')], [one('Version', I(232)),
+      P70(P('Lcl Translation', 'Lcl Translation', '', 'A', ...tr.map(D)), P('Lcl Rotation', 'Lcl Rotation', '', 'A', ...rot.map(D)), P('DefaultAttributeIndex', 'int', 'Integer', '', I(0)), P('InheritType', 'enum', '', '', I(1))),
+      one('Shading', ['C', true]), one('Culling', S('CullingOff'))]))
+    links.push(['OO', mid, 0], ['OO', gid, mid], ['OO', material(Lk), mid])
+  }
+  const gi = (n, v) => P(n, 'int', 'Integer', '', I(v)), types = Object.entries(count).filter(([, n]) => n)
+  const top = [
+    N('FBXHeaderExtension', [], [one('FBXHeaderVersion', I(1003)), one('FBXVersion', I(7400)), one('EncryptionType', I(0)),
+      N('CreationTimeStamp', [], [one('Version', I(1000)), ...['Year', 'Month', 'Day', 'Hour', 'Minute', 'Second', 'Millisecond'].map((k, i) => one(k, I([2026, 1, 1, 0, 0, 0, 0][i])))]), one('Creator', S('Umbrio Sandbox'))]),
+    one('FileId', ['R', new Uint8Array(FBX_FILE_ID)]), one('CreationTime', S('1970-01-01 10:00:00:000')), one('Creator', S('Umbrio Sandbox')),
+    N('GlobalSettings', [], [one('Version', I(1000)), P70(gi('UpAxis', 1), gi('UpAxisSign', 1), gi('FrontAxis', 2), gi('FrontAxisSign', 1), gi('CoordAxis', 0), gi('CoordAxisSign', 1),
+      gi('OriginalUpAxis', 1), gi('OriginalUpAxisSign', 1), P('UnitScaleFactor', 'double', 'Number', '', D(100)), P('OriginalUnitScaleFactor', 'double', 'Number', '', D(100)))]),
+    N('Documents', [], [one('Count', I(1)), N('Document', [L(id()), S(''), S('Scene')], [P70(P('SourceObject', 'object', '', ''), P('ActiveAnimStackName', 'KString', '', '', S(''))), one('RootNode', L(0))])]),
+    N('References'),
+    N('Definitions', [], [one('Version', I(100)), one('Count', I(1 + types.reduce((a, [, n]) => a + n, 0))), N('ObjectType', [S('GlobalSettings')], [one('Count', I(1))]),
+      ...types.map(([k, n]) => N('ObjectType', [S(k)], [one('Count', I(n))]))]),
+    N('Objects', [], objects),
+    N('Connections', [], links.map(([k, a, b, p]) => N('C', p ? [S(k), L(a), L(b), S(p)] : [S(k), L(a), L(b)])))
+  ]
+  return fbxWrite(top, te, deflate)
+}
+const FBX_FILE_ID = [0x28, 0xb3, 0x2a, 0xeb, 0xb6, 0x24, 0xcc, 0xc2, 0xbf, 0xc8, 0xb0, 0x2a, 0xa9, 0x2b, 0xfc, 0xf1]
+const FBX_FOOT_ID = [0xfa, 0xbc, 0xab, 0x09, 0xd0, 0xc8, 0xd4, 0x66, 0xb1, 0x76, 0xfb, 0x83, 0x1c, 0xf7, 0x26, 0x7e]
+const FBX_FOOT_END = [0xf8, 0x5a, 0x8c, 0x6a, 0xde, 0xf5, 0xd9, 0x7e, 0xec, 0xe9, 0x0c, 0xe3, 0x75, 0x8f, 0x29, 0x0b]
+// A flat, convex quad: both diagonals give the same surface, so however the importer splits it the shape stays.
+function splitsBothWays(P, a, b, c, d) {
+  const v = i => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]], A = v(a), B = v(b), C = v(c), Dd = v(d)
+  const n = (x, y, z) => norm(cross(sub(y, x), sub(z, x)))
+  const t = [n(A, B, C), n(A, C, Dd), n(A, B, Dd), n(B, C, Dd)]
+  if (t.some(x => !x)) return false
+  return t.every(x => dot(x, t[0]) > 0.9999)
+}
+// Node = [name, props, kids]; props [type, value]: I int32, D double, L int64, S string, R bytes, C bool, d Float64Array, i Int32Array.
+function fbxWrite(top, te, deflate) {
+  const prep = n => {
+    n[1] = n[1].map(([t, v]) => {
+      if (t === 'S') return [t, te.encode(v)]
+      if (t !== 'd' && t !== 'i') return [t, v]
+      const raw = new Uint8Array(v.buffer, v.byteOffset, v.byteLength), z = deflate && raw.length > 128 ? deflate(raw) : null
+      return [t, { n: v.length, enc: z ? 1 : 0, bytes: z || raw }]
+    })
+    n[2] = n[2] || []; n[2].forEach(prep)
+  }
+  const psize = ([t, v]) => t === 'C' ? 2 : t === 'I' ? 5 : t === 'D' || t === 'L' ? 9 : t === 'S' || t === 'R' ? 5 + v.length : 13 + v.bytes.length
+  const size = (n, last) => {
+    n.pl = n[1].reduce((a, p) => a + psize(p), 0)
+    let s = 13 + n[0].length + n.pl
+    if (n[2].length) s += n[2].reduce((a, c, i) => a + size(c, i === n[2].length - 1), 0) + 13
+    else if (!n[1].length && !last) s += 13
+    n.sz = s; return s
+  }
+  top.forEach(prep)
+  const body = 27 + top.reduce((a, n, i) => a + size(n, i === top.length - 1), 0) + 13
+  const pad = ((body + 20 + 15) & ~15) - (body + 20) || 16
+  const buf = new ArrayBuffer(body + 20 + pad + 140), dv = new DataView(buf), u8 = new Uint8Array(buf)
+  let o = 0
+  for (const ch of 'Kaydara FBX Binary  \0\x1a\0') u8[o++] = ch.charCodeAt(0)
+  dv.setUint32(o, 7400, true); o += 4
+  const w = n => {
+    const end = o + n.sz
+    dv.setUint32(o, end, true); dv.setUint32(o + 4, n[1].length, true); dv.setUint32(o + 8, n.pl, true); u8[o + 12] = n[0].length; o += 13
+    for (const ch of n[0]) u8[o++] = ch.charCodeAt(0)
+    for (const [t, v] of n[1]) {
+      u8[o++] = t.charCodeAt(0)
+      if (t === 'C') u8[o++] = v ? 1 : 0
+      else if (t === 'I') { dv.setInt32(o, v, true); o += 4 }
+      else if (t === 'D') { dv.setFloat64(o, v, true); o += 8 }
+      else if (t === 'L') { dv.setBigInt64(o, BigInt(v), true); o += 8 }
+      else if (t === 'S' || t === 'R') { dv.setUint32(o, v.length, true); u8.set(v, o + 4); o += 4 + v.length }
+      else { dv.setUint32(o, v.n, true); dv.setUint32(o + 4, v.enc, true); dv.setUint32(o + 8, v.bytes.length, true); u8.set(v.bytes, o + 12); o += 12 + v.bytes.length }
+    }
+    n[2].forEach(w)
+    o = end
+  }
+  top.forEach(w)
+  o += 13
+  u8.set(FBX_FOOT_ID, o); o += 20 + pad
+  dv.setUint32(o, 7400, true); o += 124
+  u8.set(FBX_FOOT_END, o)
+  return u8
+}
+// Studio Command Bar script: after File > Import 3D of the meshes .fbx, moves every imported mesh into its placeholder (frame, size,
+// colour, material, name, parent) and removes the placeholder and the leftover import model.
+export const CAL_L = 64                    // studs between the calibration cubes in the .fbx
+export const LINK_LUA = `-- Umbrio Sandbox: put the meshes from the -meshes .fbx into the placeholders of the inserted .rbxmx model.
+-- 1. Insert the .rbxmx (right-click Workspace > Insert from File).  2. File > Import 3D the -meshes .fbx > Import.
+-- 3. View > Command Bar, paste this whole file, press Enter. Run it again any time: it only touches unlinked placeholders.
+-- The importer may turn the file's axes and change its units. Four marker cubes (UMBCAL0/X/Y/Z, ${CAL_L} studs apart in the
+-- file) show exactly how, and every mesh gets that turn and scale undone before it goes into its placeholder.
+local L = ${CAL_L}
+local SMALL = 6                 -- studs: meshes smaller than this get box collision (and under 2 studs, no shadow)
+local function tagOf(inst, pat)
+	while inst and inst ~= workspace do
+		local k = string.match(inst.Name, pat) if k then return k end
+		inst = inst.Parent
+	end
+end
+local holders, meshes, cal, roots = {}, {}, {}, {}
+for _, d in ipairs(workspace:GetDescendants()) do
+	if d:IsA("StringValue") and d.Name == "UmbrioMesh" and d.Parent and d.Parent:IsA("BasePart") then holders[#holders + 1] = d.Parent
+	elseif d:IsA("BasePart") and not d:FindFirstChild("UmbrioMesh") then
+		local c = tagOf(d, "^UMBCAL([0XYZ])")
+		if c then if not cal[c] then cal[c] = d end
+		else
+			local k = d:IsA("MeshPart") and tagOf(d, "^(UMB%d%d%d%d%d)")
+			if k and not meshes[k] then meshes[k] = d end
+		end
+	end
+end
+-- file axes -> Studio: Q (a turn) and s (unit scale), from where the importer put the marker cubes
+local Q, s, calOk = CFrame.identity, nil, false
+if cal["0"] and cal.X and cal.Y and cal.Z then
+	local p0 = cal["0"].Position
+	local cx, cy, cz = (cal.X.Position - p0) / L, (cal.Y.Position - p0) / L, (cal.Z.Position - p0) / L
+	local sc = (cx.Magnitude + cy.Magnitude + cz.Magnitude) / 3
+	if sc > 1e-6 then
+		local function snap(v)        -- axis conversions are 90 degree turns: snap to the nearest axis when that close
+			v = v.Unit
+			for _, a in ipairs({ Vector3.xAxis, Vector3.yAxis, Vector3.zAxis }) do
+				if math.abs(v:Dot(a)) > 0.99 then return a * math.sign(v:Dot(a)) end
+			end
+			return v
+		end
+		local x, y, z = snap(cx), snap(cy), snap(cz)
+		if x:Cross(y):Dot(z) > 0.99 then Q, s, calOk = CFrame.fromMatrix(Vector3.zero, x, y, z), sc, true
+		else warn("Umbrio: the importer mirrored the file; meshes are placed without the fix and may look flipped") end
+	end
+else warn("Umbrio: marker cubes UMBCAL0/X/Y/Z not found (import the -meshes .fbx unchanged); fitting meshes to placeholder size instead") end
+local done, missing = 0, {}
+for _, h in ipairs(holders) do
+	local k = h.UmbrioMesh.Value
+	local m = meshes[k]
+	if m then
+		local top = m while top.Parent and top.Parent ~= workspace do top = top.Parent end
+		roots[top] = true
+		m.Parent = h.Parent
+		m.Name = h.Name
+		if calOk then
+			local turn = m.CFrame.Rotation
+			m.Size = m.Size / s
+			m.CFrame = CFrame.new(h.Position) * h.CFrame.Rotation * Q:Inverse() * turn
+		else m.Size, m.CFrame = h.Size, h.CFrame end
+		m.Color, m.Material, m.Transparency = h.Color, h.Material, h.Transparency
+		m.Anchored, m.CanCollide = h.Anchored, h.CanCollide
+		-- speed: detail lowers its triangles with distance; small pieces (books, candles, trim) get box collision and no shadow
+		pcall(function() m.RenderFidelity = Enum.RenderFidelity.Automatic end)
+		local big = math.max(m.Size.X, m.Size.Y, m.Size.Z)
+		if big < SMALL then
+			pcall(function() m.CollisionFidelity = Enum.CollisionFidelity.Box end)
+			if big < SMALL / 3 then m.CastShadow = false end
+		end
+		for _, c in ipairs(h:GetChildren()) do if c.Name ~= "UmbrioMesh" then c.Parent = m end end
+		local rig = h:FindFirstAncestorWhichIsA("Model")       -- joints that hold this piece now hold the mesh
+		if rig then
+			for _, j in ipairs(rig:GetDescendants()) do
+				if j:IsA("JointInstance") or j:IsA("WeldConstraint") then
+					if j.Part0 == h then j.Part0 = m end
+					if j.Part1 == h then j.Part1 = m end
+				end
+			end
+			if rig.PrimaryPart == h then rig.PrimaryPart = m end
+		end
+		h:Destroy() done = done + 1
+	else missing[#missing + 1] = k end
+end
+for _, c in pairs(cal) do local top = c while top.Parent and top.Parent ~= workspace do top = top.Parent end roots[top] = true c:Destroy() end
+for r in pairs(roots) do if r.Parent == workspace and not r:FindFirstChildWhichIsA("BasePart", true) then r:Destroy() end end
+pcall(function() game:GetService("Selection"):Set({}) end)   -- hundreds of selected meshes make Studio crawl
+pcall(function() game:GetService("ChangeHistoryService"):SetWaypoint("Umbrio link meshes") end)
+print(("Umbrio: linked %d of %d meshes%s"):format(done, #holders, calOk and (" (import scale %.4g)"):format(s) or ""))
+if #missing > 0 then warn("Umbrio: no imported mesh for " .. table.concat(missing, ", ", 1, math.min(#missing, 20)) .. (#missing > 20 and " ..." or "")) end
+`
 export function toRbxmx(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, xml: writeRbxmx(m.root) } }
 export function toLua(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, lua: writeLua(m.root, m.counts) } }
+export function importReadme(name, res) {
+  const many = res.meshFiles.length > 1
+  return [`${name}: Roblox export from Umbrio Sandbox (${res.counts.meshes} meshes, ${res.meshes.reduce((a, m) => a + m.tris, 0)} triangles)`, '',
+    `You need Roblox Studio on a computer (Windows or Mac). No scripts.`, '',
+    many ? `1. Home tab > Import 3D. Pick ${res.meshFiles[0]}, press Import. Repeat for ${res.meshFiles.slice(1).join(', ')} (the build is split so each upload stays under Roblox's size limit).`
+      : `1. Home tab > Import 3D (or File > Import 3D). Pick ${res.meshFiles[0]}, press Import once. That's it: one model with every mesh already in place.`,
+    `   Do not upload the meshes one by one: the single Import uploads all of them together.`,
+    `   If it comes in lying on its side or the wrong size, open the import settings before pressing Import and set World Up to Y (Front -Z) and the unit to Studs.`,
+    ...(res.extras ? [`2. Optional, for the lights${res.counts.parts ? ' and plain parts' : ''}: right-click Workspace > Insert from File, pick ${res.extras}. It uses the same coordinates as the build; if the imported model was moved, move both together.`] : []),
+    ...(res.big?.length ? [`Over ${RB_TRI_LIMIT} triangles, Studio may simplify: ${res.big.join(', ')}.`] : []),
+    '', ...res.notes.map(n => '- ' + n)].join('\n') + '\n'
+}
 export function exportReadme(name, res) {
-  return [`${name}: Roblox export from Studio`, '',
+  return [`${name}: Roblox export from Umbrio Sandbox`, '',
     `1. Roblox Studio: right-click Workspace > Insert from File, pick ${safeName(name)}.rbxmx (${res.counts.parts} parts, ${res.counts.models} models).`,
-    res.counts.meshes ? `2. ${res.counts.meshes} meshes are MeshPart placeholders. Import meshes/*.obj (Avatar > Import 3D or Asset Manager > Bulk Import), then paste each MeshId into its placeholder (each has a StudioNote).` : '2. No meshes: nothing else to import.',
-    res.counts.anims ? `3. ${res.counts.anims} animations are KeyframeSequences in the rig's AnimSaves: select the rig and open the Animation Editor.` : '',
+    ...(res.counts.meshes ? [res.meshFiles?.length > 1 ? `2. All ${res.counts.meshes} meshes are in ${res.meshFiles.join(', ')} (one file would pass Roblox's upload size limit): File > Import 3D each one and press Import.`
+        : `2. All ${res.counts.meshes} meshes are in ONE file, ${res.meshFiles?.[0] || 'the meshes .fbx'}. In Studio: Home tab > Import 3D (or File > Import 3D), pick that file, press Import once. Studio uploads every mesh in it together. Do not upload meshes one by one (Asset Manager, Bulk Import or the Creator Dashboard): that is the slow way and is not needed.`,
+      `3. View > Command Bar: paste link-meshes.lua and press Enter. Each imported mesh moves into its placeholder in ${safeName(name)}.rbxmx (position, size, colour, material) and the placeholders go away.`,
+      ...(res.big?.length ? [`   Over ${RB_TRI_LIMIT} triangles, Studio may refuse or simplify: ${res.big.join(', ')}.`] : [])] : ['2. No meshes: nothing else to import.']),
+    res.counts.anims ? `${res.counts.meshes ? 4 : 3}. ${res.counts.anims} animations are KeyframeSequences in the rig's AnimSaves: select the rig and open the Animation Editor.` : '',
     '', ...res.notes.map(n => '- ' + n)].filter((l, i, a) => l || a[i - 1]).join('\n') + '\n'
 }
 
@@ -494,8 +937,58 @@ async function build(app, fmt, args = {}) {
   const scene = { ...full, objects, anims: Object.fromEntries(Object.entries(full.anims || {}).map(([k, a]) => [k, a && { ...a, tracks: Object.fromEntries(Object.entries(a.tracks || {}).filter(([id]) => objects[id])) }])) }
   await preload(app, scene)
   const ids = args.ids || (args.selected || args.selection ? [...(app.selection || [])] : null)
-  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate }
+  const detail = args.detail ?? 0.5                     // share of triangles kept; 1 = full detail
+  let simplify = null
+  if (fmt !== 'lua' && detail < 1) {
+    try {
+      const [{ MeshoptSimplifier: S }, { MeshBVH: BVH }] = await Promise.all([import('https://cdn.jsdelivr.net/npm/meshoptimizer@0.22.0/meshopt_simplifier.module.js'), import('three-mesh-bvh')])
+      await S.ready; simplify = { S, BVH, ratio: detail, error: args.detailError ?? 0.05, tol: args.detailTol ?? 0.1 }
+    }
+    catch (e) { app.toast?.('Polygon reduction unavailable (' + e.message + '): exporting full detail', 'error') }
+  }
+  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate, merge: args.separate !== true, simplify }
   return fmt === 'lua' ? toLua(scene, opts) : toRbxmx(scene, opts)
+}
+// Each mesh's look as the viewport draws it: material colour, its texture (PNG, shared) and the texture's uv transform.
+async function fbxFor(app, meshes, world = false) {
+  try {      // an image texture shows plain white until its picture has loaded: wait for those, or the export bakes the white
+    const T = await import('./texture.js'), tids = new Set(meshes.map(m => app.obj?.(m.id)?.texture).filter(Boolean))
+    await Promise.all([...tids].map(tid => { const t = app.scene.textures?.[tid]; return t && (t.kind === 'image' || t.kind === 'paint' || t.data) ? T.imageEntry?.(app, tid, t)?.wait : null }))
+  } catch {}
+  const images = {}, byImg = new Map(), pending = []
+  const lookOf = new Map()
+  for (const me of meshes) {
+    let mat = null
+    app.viewport?.objects?.get(me.id)?.traverse?.(n => { if (!mat && n.isMesh) mat = Array.isArray(n.material) ? n.material[0] : n.material })
+    const c = { r: 1, g: 1, b: 1 }; mat?.color?.getRGB?.(c, 'srgb')
+    const L = { color: [c.r, c.g, c.b] }, map = mat?.map
+    if (map?.image) {
+      let k = byImg.get(map.image)
+      if (k === undefined) {
+        k = byImg.size; byImg.set(map.image, k)
+        const cv = drawImage(map.image)
+        if (cv) pending.push(new Promise(res => cv.toBlob(b => b ? b.arrayBuffer().then(a => { images[k] = new Uint8Array(a); res() }) : res(), 'image/png')))
+      }
+      map.updateMatrix(); const e = map.matrix.elements, fy = map.flipY !== false
+      L.image = k
+      L.uv = (u, v) => { const x = e[0] * u + e[3] * v + e[6], y = e[1] * u + e[4] * v + e[7]; return [x, fy ? 1 - y : y] }
+    }
+    lookOf.set(me, L)
+  }
+  await Promise.all(pending)
+  const { zlibSync } = await import('three/addons/libs/fflate.module.js'), deflate = b => zlibSync(b, { level: 6 })
+  const one = toFbx(meshes, me => lookOf.get(me), images, deflate, world)
+  if (one.length <= FBX_MAX) return [one]
+  return splitMeshes(meshes, Math.ceil(one.length / FBX_MAX * 1.1)).map(g => toFbx(g, me => lookOf.get(me), images, deflate, world))
+}
+function drawImage(img) {
+  const w = img.width || img.naturalWidth, h = img.height || img.naturalHeight
+  if (!w || !h || typeof document === 'undefined') return null
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h
+  const g = cv.getContext('2d')
+  if (img.data) { const d = img.data instanceof Uint8ClampedArray ? img.data : new Uint8ClampedArray(img.data.buffer || img.data); if (d.length !== w * h * 4) return null; g.putImageData(new ImageData(d, w, h), 0, 0) }
+  else g.drawImage(img, 0, 0)
+  return cv
 }
 async function zipFiles(files) {
   const { zipSync, strToU8 } = await import('three/addons/libs/fflate.module.js')
@@ -504,10 +997,33 @@ async function zipFiles(files) {
   return zipSync(z, { level: 6 })
 }
 async function packFor(app, fmt, args = {}) {
-  const res = await build(app, fmt, args), name = safeName(app.scene?.name || 'Studio model')
+  const res = await build(app, fmt, args), name = safeName(app.scene?.name || 'Umbrio Sandbox model')
   const files = {}
   if (fmt === 'lua') files[name + '.lua'] = res.lua
-  else { files[name + '.rbxmx'] = res.xml; for (const m of res.meshes) files[m.file] = m.text }
+  else if (!args.link && res.meshes.length) {
+    // default: no script. One .fbx holds the whole build already in place, so Import 3D alone gives the finished model;
+    // what an .fbx can't carry (lights, plain parts, rigs) goes in a small .rbxmx at the same coordinates.
+    const fbxs = await fbxFor(app, res.meshes, true)
+    res.meshFiles = fbxs.map((_, i) => fbxs.length > 1 ? `${name}-${i + 1}.fbx` : `${name}.fbx`)
+    fbxs.forEach((f, i) => { files[res.meshFiles[i]] = f })
+    const holders = new Set(res.meshes.map(m => m.node))
+    const strip = n => { n.kids = n.kids.filter(k => !holders.has(k)); n.kids.forEach(strip); n.kids = n.kids.filter(k => k.cls !== 'Model' || k.kids.length) }
+    strip(res.root)
+    if (res.root.kids.length) { res.extras = `${name}-lights-and-parts.rbxmx`; files[res.extras] = writeRbxmx(res.root) }
+    res.big = res.meshes.filter(m => m.tris > RB_TRI_LIMIT).map(m => `${m.name} (${m.tris})`)
+    files['README.txt'] = importReadme(name, res)
+    return { res, filename: `${name}-roblox.zip`, data: await zipFiles(files) }
+  }
+  else {
+    files[name + '.rbxmx'] = res.xml
+    if (res.meshes.length) {
+      const fbxs = await fbxFor(app, res.meshes)
+      fbxs.forEach((f, i) => { files[meshFile(name, i, fbxs.length)] = f })
+      files['link-meshes.lua'] = LINK_LUA
+      res.meshFiles = fbxs.map((_, i) => meshFile(name, i, fbxs.length))
+    }
+    res.big = res.meshes.filter(m => m.tris > RB_TRI_LIMIT).map(m => `${m.name} (${m.tris})`)
+  }
   files['README.txt'] = fmt === 'lua' ? `Paste ${name}.lua into Roblox Studio's Command Bar (View > Command Bar) and press Enter.\n${res.notes.map(n => '- ' + n).join('\n')}\n` : exportReadme(name, res)
   return { res, filename: `${name}-roblox-${fmt}.zip`, data: await zipFiles(files) }
 }
@@ -546,14 +1062,14 @@ export default {
     'roblox.export': { label: 'Export Roblox model (.rbxmx)', icon: 'rbx-brick', noUndo: true, run: (app, a = {}) => exportTo(app, 'rbxmx', a) },
     'roblox.exportLua': { label: 'Export Roblox build script (.lua)', icon: 'rbx-script', noUndo: true, run: (app, a = {}) => exportTo(app, 'lua', a) },
     'roblox.import': { label: 'Import Roblox model (.rbxmx)', icon: 'rbx-in', run: (app, a = {}) => a.text ? addItems(app, readRoblox(a.text)) : pickFile(app) },
-    'roblox.rbxmx': { label: 'Roblox model as text', icon: 'rbx-brick', hidden: true, noUndo: true, run: async (app, a = {}) => { const r = await build(app, 'rbxmx', a); return { xml: r.xml, counts: r.counts, notes: r.notes, meshes: r.meshes.map(m => m.file) } } },
+    'roblox.rbxmx': { label: 'Roblox model as text', icon: 'rbx-brick', hidden: true, noUndo: true, run: async (app, a = {}) => { const r = await build(app, 'rbxmx', a); return { xml: r.xml, counts: r.counts, notes: r.notes, meshes: r.meshes.map(m => m.key) } } },
     'roblox.lua': { label: 'Roblox build script as text', icon: 'rbx-script', hidden: true, noUndo: true, run: async (app, a = {}) => { const r = await build(app, 'lua', a); return { lua: r.lua, counts: r.counts, notes: r.notes } } }
   },
   menus: { File: ['-', 'roblox.import', 'roblox.export', 'roblox.exportLua'] },
   modes: [], tools: [], panels: [], types: {},
   importers: [{ ext: ['rbxmx', 'rbxm'], label: 'Roblox model', load: (file, app) => importFile(app, file) }],
   exporters: [
-    { ext: 'rbxmx', label: 'Roblox model', hint: 'Drag into Roblox Studio: parts, Models, R6 animations. Zip holds mesh OBJs and a README.', save: async (app, opts = {}) => { const p = await packFor(app, 'rbxmx', opts); return { filename: p.filename, data: p.data } } },
+    { ext: 'rbxmx', label: 'Roblox model', hint: 'Roblox Studio: parts, Models, R6 animations. All meshes come in one .fbx (one Import 3D) plus a script that puts them in place.', save: async (app, opts = {}) => { const p = await packFor(app, 'rbxmx', opts); return { filename: p.filename, data: p.data } } },
     { ext: 'lua', label: 'Roblox script', hint: 'Paste into Roblox Studio\'s Command Bar to build the parts. Meshes are skipped.', save: async (app, opts = {}) => { const p = await packFor(app, 'lua', opts); return { filename: p.filename, data: p.data } } }
   ],
   async init(app) {

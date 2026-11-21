@@ -39,3 +39,5 @@ tools/**/out/
 tools/roblox/lobby/out/geos.json
 __pycache__/
 .claude/.session/
+# Obsidian app settings (per machine)
+.obsidian/

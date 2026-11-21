@@ -201,7 +201,7 @@ async function loadObject (f, ctx) {
     case 'ply': {
       const { PLYLoader } = await L('loaders/PLYLoader.js')
       const geo = new PLYLoader(M).parse(await f.buffer())
-      if (!geo.index) throw new Error(f.name + ' is a point cloud: Studio imports surfaces only')
+      if (!geo.index) throw new Error(f.name + ' is a point cloud: Umbrio Sandbox imports surfaces only')
       return { root: new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: !!geo.attributes.color })) }
     }
     case 'dae': {
@@ -585,7 +585,7 @@ async function importFiles (app, input, opts = {}) {
     if (!mains.length) {
       const imgs = all.filter(f => IMAGE_EXT.includes(f.ext))
       if (imgs.length) return await importImages(app, imgs, opts, prog)
-      throw new Error('Nothing to import. Studio reads glb, gltf, obj, fbx, stl, ply, dae, 3mf, 3ds, vox, wrl, amf, usdz, svg, json, zip and images')
+      throw new Error('Nothing to import. Umbrio Sandbox reads glb, gltf, obj, fbx, stl, ply, dae, 3mf, 3ds, vox, wrl, amf, usdz, svg, json, zip and images')
     }
     if (mains.some(f => f.ext === 'gltf' || f.ext === 'glb')) mains = mains.filter(f => !(f.ext === 'json' && all.some(g => g.ext === 'gltf')))
     const ctx = makeCtx(app, all)
@@ -598,7 +598,7 @@ async function importFiles (app, input, opts = {}) {
       if (f.ext === 'json') {
         const data = JSON.parse(await f.text())
         if (data?.objects) { const s = studioNodes(app, data, ctx); nodes.push(...s.nodes); afters.push(s.after); continue }
-        if (!data?.asset?.version) throw new Error(f.name + ' is not a Studio scene')
+        if (!data?.asset?.version) throw new Error(f.name + ' is not a Umbrio Sandbox scene')
         f.ext = 'gltf'
       }
       const r = await loadObject(f, ctx)
@@ -738,6 +738,7 @@ async function exportRoot (app, o = {}) {
 }
 function syncCopy (a, b, o3s, app, names) {
   b.uuid = a.uuid
+  names.set(a.uuid, a.uuid)   // anim.toClips names tracks by the live object's uuid: without this every track was dropped
   const id = o3s.get(a)
   if (id) { const d = app.obj(id); names.set(a.name, a.uuid); names.set(id, a.uuid); if (d?.name) b.name = d.name; b.userData = { studioId: id } }
   const kids = b.children.slice()
@@ -825,7 +826,7 @@ async function pngData (app, o) {
 const EXPORTERS = [
   { ext: 'glb', rank: 1, label: 'glTF binary', hint: 'Best for 3D modeling software, Unity, Godot and the web. Keeps animation.', anims: true, io: true, save: async (app, o) => ({ filename: fname(app, o, 'glb'), data: await gltfData(app, o, true), mime: MIME.glb }) },
   { ext: 'gltf', rank: 2, label: 'glTF text', hint: 'Readable JSON with the data inside.', anims: true, io: true, save: async (app, o) => ({ filename: fname(app, o, 'gltf'), data: await gltfData(app, o, false), mime: MIME.gltf }) },
-  { ext: 'json', label: 'Studio scene', group: 'Scene and image', hint: 'Everything, including meshes and textures. Imports back into Studio.', io: true, save: jsonData },
+  { ext: 'json', label: 'Umbrio Sandbox scene', group: 'Scene and image', hint: 'Everything, including meshes and textures. Imports back into Umbrio Sandbox.', io: true, save: jsonData },
   { ext: 'png', label: 'PNG render', group: 'Scene and image', hint: 'Picture of the current view.', png: true, noSelection: true, io: true, save: pngData },
 ]
 const IMPORTERS = [
@@ -833,7 +834,7 @@ const IMPORTERS = [
   { ext: ['stl'], label: 'STL' }, { ext: ['ply'], label: 'PLY' }, { ext: ['dae'], label: 'Collada' },
   { ext: ['3mf'], label: '3MF' }, { ext: ['3ds'], label: '3DS' }, { ext: ['vox'], label: 'MagicaVoxel' },
   { ext: ['wrl', 'vrml'], label: 'VRML' }, { ext: ['amf'], label: 'AMF' }, { ext: ['usdz', 'usda', 'usdc'], label: 'USD' },
-  { ext: ['svg'], label: 'SVG (extruded)' }, { ext: ['json'], label: 'Studio scene' }, { ext: ['zip'], label: 'Zip of files' },
+  { ext: ['svg'], label: 'SVG (extruded)' }, { ext: ['json'], label: 'Umbrio Sandbox scene' }, { ext: ['zip'], label: 'Zip of files' },
   { ext: IMAGE_EXT, label: 'Image' },
 ].map(i => ({ ...i, io: true, load: (file, app) => importFiles(app, [file]) }))
 
