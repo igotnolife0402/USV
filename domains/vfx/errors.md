@@ -28,3 +28,4 @@ triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 | 8x8 sheet shows quarter frames | Emitter helper hard-coded `Grid4x4` (old `ElementVFX.make`) | Set `FlipbookLayout` from the sheet (Grid8x8); use tools/vfx/flipbook/VFX.lua | 2026-11-13 |
 | Beam turns with the camera | Beam built as a camera-facing card | Make it a 3D volume (`shape: beam`), tile the blade sheet along x | 2026-11-13 |
 | Effect ends with a hard cut at the cell edge | Content reaches the cell border / vanishes clean | Border fade `edge=0.07`; end by eroding into lingering embers/ash | 2026-11-13 |
+| first liquid build exploded to the frame edges, second barely moved | built a new VFX generator straight from memory without invoking the routed vfx skill, so its recipe rules (4 layers with roles, physics not painting, look over dark and light, --check) were applied by luck | skill-first; tune with the preview sheet, keep --check under 60 s | 2026-11-21 |
