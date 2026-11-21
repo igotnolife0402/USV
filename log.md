@@ -55,3 +55,6 @@ Owner: pieces appeared instantly in Roblox, no grow-in. Added PopScale data + Um
 
 ## [2026-11-22] check / crew-worker runs on Sonnet 5.5
 Test spawn: worker ran node, reported model claude-sonnet-5-5 (full id in agent frontmatter works; the sonnet alias does not).
+
+## [2026-11-22] fix / fast-path routing
+prompt-router: route `fast` entries (words -> read list + skill override) inject FAST PATH; 3d creature/monster asks open only tools/3d/beast/README.md (was 7 reads, ~2 min). Test in tests/hooks.test.mjs. Pre-existing worktree-path test fails in cli/global tests unchanged.

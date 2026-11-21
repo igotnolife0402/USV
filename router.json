@@ -185,14 +185,36 @@
         "catalog",
         "shots check",
         "umbrio",
-        "equip animation"
+        "equip animation",
+        "monster",
+        "beast",
+        "orc",
+        "dragon",
+        "shadow monster"
       ],
       "notes": [
         "domains/3d/index.md",
         "domains/3d/playbook.md"
       ],
       "checklist": "checklists/3d.md",
-      "skill": "3d-editor"
+      "skill": "3d-editor",
+      "fast": [
+        {
+          "words": [
+            "monster",
+            "beast",
+            "orc",
+            "dragon",
+            "creature",
+            "shadow monster"
+          ],
+          "skill": null,
+          "read": [
+            "tools/3d/beast/README.md"
+          ],
+          "do": "rigged creature = tools/3d/beast. Read only its README (Steps + API; never rig.py source, tools/3d/README.md or domains/3d/index.md). Copy orc.py (humanoid) or dragon.py (winged/long) to scratch, edit SEG/PAL/shape()/ANIM/FX/CAMS, build, look once, then checklists/3d.md."
+        }
+      ]
     },
     {
       "id": "animation",

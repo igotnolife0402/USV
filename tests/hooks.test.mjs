@@ -165,3 +165,13 @@ test('rollup archives old months idempotently', () => {
   assert.equal(readFileSync(join(TMP, 'log.md'), 'utf8'), log);
   assert.equal(lintFiles(['log.md'], TMP).length, 0, 'archive pointers resolve');
 });
+
+test('fast path: creature asks skip the generic 3d reads', async () => {
+  const { route, fastPath, skillsFor } = await import('../hooks/prompt-router.mjs');
+  const router = JSON.parse(readFileSync(new URL('../router.json', import.meta.url), 'utf8'));
+  const p = 'make a shadow monster model';
+  const f = fastPath(p, route(p, router));
+  assert.deepEqual(f.read, ['tools/3d/beast/README.md']);
+  assert.deepEqual(skillsFor(p, route(p, router)), []);
+  assert.equal(fastPath('make a glb of a chair', route('make a glb of a chair', router)), null);
+});
