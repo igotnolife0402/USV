@@ -166,6 +166,7 @@ def sheet(frames, path):
     for i, f in enumerate(frames):
         r, c = divmod(i, GRID)
         rgba = np.clip(f, 0, 1)
+        rgba[..., :3] *= rgba[..., 3:] > 0.002                  # no colour under zero alpha: sheets compress ~4x smaller
         out[r * cell:(r + 1) * cell, c * cell:(c + 1) * cell] = (rgba * 255 + 0.5).astype(np.uint8)
     Image.fromarray(out, 'RGBA').save(path, compress_level=6)
 

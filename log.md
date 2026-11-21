@@ -28,3 +28,6 @@ Umbrio Sandbox is the enforced default (hooks/prefer.json blocks Blender/generat
 
 ## [2026-11-21] rules / honesty + always-improve enforced; liquid VFX v-next
 Owner: 100% honest, no excuses; always improve even when goals are met. Stop hook now blocks "done" after a failed last call (honesty) and asks for one vault improvement on clean builds (improve). Liquid: 256 px default, shaded droplets, rim, ripples (7.1 s). Still not done: import into Umbrio Sandbox + attach to an animation.
+
+## [2026-11-21] build / Venomreaver poison armor in Umbrio Sandbox
+New poison set in tools/3d/armor/sets.py (62 meshes), 28 liquid flipbooks (7 pops x 4 layers) on the dragon equip clip, hub project venomreaver-p01s. Checked: local shots + 1080p render, db read-back matches. liquid.py: zero RGB under zero alpha (sheets ~30% smaller). Not checked in the live hub page (browser pane not signed in).

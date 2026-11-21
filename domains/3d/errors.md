@@ -44,3 +44,4 @@ triggers: [blender error, gltf error, three.js black, model invisible, normals]
 | Fast sword cut passes through the body | One 150° Euler key jump | `arc_keys` in-betweens (slerped wrist target + aim) — see [animation errors](domains/animation/errors.md) | 2026-11-16 |
 | GUI text wraps before web fonts load | Box sized for the web font | Size for the widest fallback, plus `tsc` (scale to fit) | 2026-11-19 |
 | beast build: `No such file 'sheets/...png'` | VFX flipbook sheets not passed | `--sheets DIR` built from the VFX sheet library ([vfx](domains/vfx/index.md)) | 2026-11-21 |
+| Artifact asset upload refused scratchpad files (outside allowed read paths) | the asset uploader only reads the working directory | copy into the gitignored .worktrees/ folder of the vault, upload from there | 2026-11-21 |

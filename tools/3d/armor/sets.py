@@ -22,7 +22,11 @@ MATS = {
     'storm': {'lacquer': dict(color='#1d3a5e', metalness=0.45, roughness=0.22), 'black': dict(color='#101318', metalness=0.5, roughness=0.2),
               'lace': dict(color='#c8462b', metalness=0.0, roughness=0.7), 'brass': dict(color='#c99a3c', metalness=1.0, roughness=0.26),
               'teal': dict(color='#2a8a8c', metalness=0.2, roughness=0.5), 'bone': dict(color='#ece6d6', metalness=0.0, roughness=0.4),
-              'dark': dict(color='#16161a', metalness=0.25, roughness=0.7), 'glow': dict(color='#86dcff', material='Neon')}}
+              'dark': dict(color='#16161a', metalness=0.25, roughness=0.7), 'glow': dict(color='#86dcff', material='Neon')},
+    'poison': {'plate': dict(color='#4d6b3c', metalness=0.7, roughness=0.32), 'iron': dict(color='#6b7466', metalness=0.85, roughness=0.38),
+               'deep': dict(color='#16240f', metalness=0.3, roughness=0.6), 'bronze': dict(color='#a8b24e', metalness=0.92, roughness=0.36),
+               'dark': dict(color='#0c100b', metalness=0.3, roughness=0.7), 'bone': dict(color='#d9d4b2', metalness=0.0, roughness=0.45),
+               'glass': dict(color='#9dff5c', metalness=0.05, roughness=0.05, transparency=0.35), 'glow': dict(color='#7dff2a', material='Neon')}}
 K = Kit(OUT, SET, MATS[SET])
 
 def ngon(b, mat, base, d, r0, r1, h, n=6, up=None):          # n-sided frustum from base along d (a crystal column, a disc)
@@ -332,5 +336,108 @@ def storm():
         laced(b, 'lacquer', 'lace', (0, -0.48, 0.66), 1.0, 0.3, 2, tilt=10)                                 # yodare-kake
         K.emit('HM', b, 'Kabuto')
 
-{'frost': frost, 'solar': solar, 'storm': storm}[SET]()
+# =============================================================================================== POISON: Venomreaver
+def vial(b, c, d, h, r):                                     # glass canister: iron caps, glass tube, glowing toxin core
+    d = nz(d); c = np.asarray(c, float)
+    ngon(b, 'iron', c, d, r * 1.15, r * 1.15, h * 0.14, 8); ngon(b, 'glass', c + d * h * 0.14, d, r, r, h * 0.72, 8)
+    ngon(b, 'glow', c + d * h * 0.18, d, r * 0.62, r * 0.62, h * 0.5, 8); ngon(b, 'iron', c + d * h * 0.86, d, r * 1.15, r * 0.8, h * 0.14, 8)
+def drip(b, c, l, w):                                        # acid running off an edge: a bead and a tapering drop
+    c = np.asarray(c, float); ngon(b, 'glow', c, -Y, w, w * 0.8, w * 0.8, 6); b.spike('glow', c - Y * w * 0.8, -Y, l, w * 0.8)
+def rivets(b, a, c, n, s=0.045):
+    for t in np.linspace(0, 1, n): b.box('bronze', np.asarray(a, float) * (1 - t) + np.asarray(c, float) * t, (s, s, 0.03))
+
+def poison():
+    if STAGE == 'cuirass':
+        b = B(); b.box('dark', (0, 0, 0), (2.06, 2.02, 1.06))
+        U, V, N = rot(-6, 0, 0); b.octa('plate', (0, 0.4, 0.6), U, V, N, 0.98, 0.58, 0.14, 0.25)          # breastplate
+        b.octa('iron', (0, 0.4, 0.56), U, V, N, 1.02, 0.62, 0.06, 0.25)
+        for sx in (-1, 1):                                                                                  # ribbed plague ribs
+            for k in range(3): b.box('deep', (sx * 0.5, 0.62 - 0.2 * k, 0.69), (0.5 - 0.06 * k, 0.07, 0.04), (0, 0, sx * (12 + 6 * k)))
+            b.box('glow', (sx * 0.5, 0.52, 0.705), (0.38, 0.025, 0.02), (0, 0, sx * 15))
+        b.octa('bronze', (0, 0.42, 0.72), X, Y, Z, 0.26, 0.3, 0.05); disc(b, 'glass', (0, 0.42, 0.76), Z, 0.17, 0.06, 8)    # toxin core
+        disc(b, 'glow', (0, 0.42, 0.79), Z, 0.11, 0.04, 8); drip(b, (0, 0.1, 0.74), 0.22, 0.035)
+        for sx in (-1, 1):
+            b.box('iron', (sx * 1.02, 0.3, 0), (0.1, 1.5, 0.98)); rivets(b, (sx * 1.07, 0.95, 0.4), (sx * 1.07, -0.35, 0.4), 5)
+            vial(b, (sx * 1.1, -0.35, -0.25), (0, 1, 0), 0.75, 0.11)                                     # side canisters
+            b.box('bronze', (sx * 1.1, 0.0, -0.25), (0.28, 0.06, 0.28))
+            b.spike('iron', (sx * 0.55, 0.95, -0.55), (sx * 0.3, 1, -0.6), 0.36, 0.07)
+        for k in range(3):                                                                                   # abdomen lames, acid seams
+            y = -0.1 - 0.23 * k; w = 1.8 - 0.1 * k
+            b.box('iron' if k % 2 else 'plate', (0, y, 0.58), (w, 0.23, 0.1), (-8, 0, 0)); b.box('glow', (0, y - 0.11, 0.62), (w * 0.8, 0.02, 0.03), (-8, 0, 0))
+        for x, l in ((-0.6, 0.18), (-0.2, 0.28), (0.35, 0.22), (0.7, 0.14)): drip(b, (x, -0.8, 0.62), l, 0.03)
+        b.box('plate', (0, 0.3, -0.585), (1.96, 1.3, 0.12))                                                 # backplate + tank
+        vial(b, (0, -0.35, -0.75), (0, 1, 0), 1.2, 0.2); b.box('iron', (0, 0.3, -0.68), (0.6, 0.08, 0.2)); b.box('iron', (0, -0.2, -0.68), (0.6, 0.08, 0.2))
+        for sx in (-1, 1): ngon(b, 'iron', (sx * 0.1, 0.9, -0.75), (sx * 0.4, 1, 0.3), 0.04, 0.035, 0.6, 6)     # hoses up to the helm
+        b.box('plate', (0, 1.04, 0), (2.08, 0.1, 1.1)); band(b, 'iron', (0, 1.16, 0), 1.44, 1.44, 0.16, 0.1); band(b, 'bronze', (0, 1.25, 0), 1.44, 1.44, 0.03, 0.12)
+        b.box('iron', (0, -0.9, 0), (2.12, 0.2, 1.12)); b.box('bronze', (0, -0.9, 0), (2.14, 0.04, 1.14))  # belt
+        for x in (-0.55, 0.55): vial(b, (x, -1.0, 0.62), (0, 1, 0), 0.32, 0.07)
+        b.octa('bronze', (0, -0.9, 0.6), X, Y, Z, 0.26, 0.18, 0.06); b.octa('deep', (0, -0.9, 0.64), X, Y, Z, 0.2, 0.13, 0.05)
+        for sx in (-1, 1): b.spike('bone', (sx * 0.08, -0.86, 0.67), (sx * 0.2, -1, 0.3), 0.14, 0.03)      # skull-buckle fangs
+        disc(b, 'glow', (-0.07, -0.86, 0.67), Z, 0.03, 0.02, 6); disc(b, 'glow', (0.07, -0.86, 0.67), Z, 0.03, 0.02, 6)
+        b.box('deep', (0, -1.25, 0.56), (0.62, 0.5, 0.04)); b.prism('deep', (0, -1.55, 0.56), X, Y, Z, [(-0.31, 0.06), (0.31, 0.06), (0.1, -0.1), (-0.05, -0.18)], 0.04)
+        b.box('glow', (0, -1.3, 0.585), (0.02, 0.4, 0.02))
+        K.emit('CP', b, 'Cuirass')
+    if STAGE == 'pauldrons':
+        b = B(); b.box('dark', (-0.12, 0.12, 0), (1.12, 0.2, 1.12))
+        for k, (w, h) in enumerate(((1.02, 0.18), (0.86, 0.16), (0.66, 0.14))):
+            b.box('plate' if k % 2 == 0 else 'iron', (-0.06 + 0.05 * k, 0.22 + 0.13 * k, 0), (w, h, w + 0.24))
+            b.box('bronze', (-0.06 + 0.05 * k, 0.22 + 0.13 * k - h / 2 + 0.02, 0), (w + 0.03, 0.035, w + 0.27))
+        for k in range(3):
+            a = -(28 + 14 * k); c = np.array([0.42 + 0.08 * k, 0.06 - 0.2 * k, 0])
+            b.box('plate' if k % 2 else 'iron', c, (0.5, 0.15, 1.24 - 0.06 * k), (0, 0, a)); b.box('glow', c + np.array([0.12, -0.1, 0]), (0.03, 0.03, 1.1 - 0.06 * k), (0, 0, a))
+        vial(b, (0.12, 0.55, 0.05), (0.5, 1, 0.1), 0.6, 0.12)                                                 # shoulder vial
+        for p, d, h in (((0.0, 0.62, -0.32), (0.2, 1, -0.5), 0.5), ((0.3, 0.5, 0.36), (0.6, 0.9, 0.4), 0.42), ((0.35, 0.5, -0.36), (0.6, 0.9, -0.5), 0.38)):
+            b.spike('iron', p, d, h, 0.08); b.spike('glow', np.asarray(p) + nz(d) * h * 0.55, d, h * 0.3, 0.035)
+        for z in (-0.4, 0.0, 0.35): drip(b, (0.62, -0.32, z), 0.2, 0.03)
+        K.pair('LS', 'RS', b, 'Pauldron')
+    if STAGE == 'arms':
+        b = B(); b.box('deep', (0, 1.0, 0), (1.04, 0.92, 1.04))
+        for y in (1.3, 1.05, 0.8): b.box('iron', (0, y, 0), (1.08, 0.1, 1.08))
+        b.box('plate', (0, 0.52, 0), (1.1, 0.16, 1.1)); disc(b, 'iron', (0, 0.52, -0.6), -Z, 0.26, 0.08, 8); disc(b, 'glow', (0, 0.52, -0.645), -Z, 0.1, 0.04, 8)
+        b.box('plate', (0, 0.17, 0), (1.12, 0.56, 1.12))
+        for y in (0.43, -0.09): b.box('bronze', (0, y, 0), (1.16, 0.05, 1.16))
+        vial(b, (0.6, -0.05, 0), (0, 1, 0), 0.44, 0.09)                                                    # injector on the forearm
+        for k in range(3): b.spike('iron', (0.56, 0.32 - 0.12 * k, -0.35), (1, 0.4, -0.5), 0.26, 0.05)
+        b.box('glow', (0, 0.17, 0.57), (0.6, 0.025, 0.02))
+        b.box('iron', (0, -0.3, 0), (1.08, 0.4, 1.08)); b.box('bronze', (0, -0.1, 0), (1.18, 0.06, 1.18))
+        for r in range(3):
+            for i, x in enumerate((-0.33, -0.11, 0.11, 0.33)): b.box('plate' if r % 2 == 0 else 'iron', (x, -0.17 - 0.11 * r, 0.56 + 0.01 * r), (0.19, 0.1, 0.07))
+        for x in (-0.33, -0.11, 0.11, 0.33): b.spike('bone', (x, -0.48, 0.56), (0, -1, 0.5), 0.16, 0.035)     # claw tips
+        drip(b, (0.2, -0.5, 0.45), 0.24, 0.03)
+        K.pair('LV', 'RV', b, 'Vambrace')
+    if STAGE == 'legs':
+        g = B(); g.box('deep', (0, 0.45, 0), (1.04, 0.8, 1.04)); g.box('plate', (0, 0.42, 0), (1.08, 0.5, 1.08))
+        lames(g, ['plate', 'iron'], (0, 0.74, 0.58), 1.0, 0.22, 0.08, 3, 0.2, -10, 'bronze')
+        vial(g, (0.6, 0.2, 0.0), (0, 1, 0), 0.5, 0.09)
+        disc(g, 'iron', (0, -0.06, 0.57), Z, 0.32, 0.1, 8); disc(g, 'plate', (0, -0.06, 0.63), Z, 0.24, 0.06, 8); disc(g, 'glow', (0, -0.06, 0.665), Z, 0.08, 0.02, 8)
+        g.spike('iron', (0, -0.06, 0.68), (0, 0.2, 1), 0.3, 0.07)
+        g.box('plate', (0, -0.5, 0), (1.1, 0.58, 1.1)); g.box('bronze', (0, -0.2, 0), (1.14, 0.04, 1.14))
+        g.prism('bronze', (0, -0.5, 0.55), X, Z, Y, [(-0.07, 0), (0.07, 0), (0, 0.1)], 0.56); g.box('glow', (0, -0.5, 0.66), (0.02, 0.4, 0.02))
+        for z in (-0.3, 0.3): drip(g, (0.57, -0.78, z), 0.18, 0.03)
+        K.pair('LG', 'RG', g, 'Greave')
+        s = B(); s.box('plate', (0, -0.02, -0.06), (1.14, 0.6, 1.14)); s.box('bronze', (0, 0.26, -0.06), (1.18, 0.05, 1.18))
+        s.box('dark', (0, -0.3, 0.06), (1.18, 0.08, 1.42))
+        for k in range(3): s.box('plate' if k % 2 == 0 else 'iron', (0, -0.1 - 0.04 * k, 0.5 + 0.12 * k), (1.0 - 0.18 * k, 0.24 - 0.04 * k, 0.16), (-16, 0, 0))
+        s.spike('iron', (0, -0.2, 0.82), (0, -0.3, 1), 0.2, 0.08); s.box('glow', (0, 0.08, 0.52), (0.8, 0.025, 0.025))
+        s.spike('iron', (0.55, 0.05, -0.3), (1, 0.5, -0.5), 0.24, 0.05)
+        K.pair('LB', 'RB', s, 'Sabaton')
+    if STAGE == 'helm':
+        b = B(); b.box('plate', (0, 0.06, 0), (1.34, 1.16, 1.34))                                            # plague-mask helm
+        b.box('iron', (0, -0.55, 0), (1.44, 0.14, 1.44)); b.box('bronze', (0, -0.48, 0), (1.46, 0.03, 1.46))
+        b.box('plate', (0, 0.68, -0.05), (1.2, 0.12, 1.2)); b.box('iron', (0, 0.78, -0.08), (0.9, 0.1, 0.9))
+        for sx in (-1, 1):                                                                                    # round glowing lenses
+            disc(b, 'bronze', (sx * 0.3, 0.22, 0.69), Z, 0.22, 0.06, 10); disc(b, 'dark', (sx * 0.3, 0.22, 0.715), Z, 0.17, 0.03, 10)
+            disc(b, 'glass', (sx * 0.3, 0.22, 0.73), Z, 0.15, 0.03, 10); disc(b, 'glow', (sx * 0.3, 0.22, 0.745), Z, 0.08, 0.02, 10)
+            vial(b, (sx * 0.5, -0.38, 0.72), (sx * 0.8, -0.3, 0.6), 0.42, 0.11)                            # respirator canisters
+            b.box('iron', (sx * 0.7, -0.05, 0.2), (0.08, 0.8, 0.8)); rivets(b, (sx * 0.745, 0.25, 0.5), (sx * 0.745, -0.35, 0.5), 4)
+        b.frustum('iron', (0, -0.15, 0.68), X, Z, Y, 0.18, 0.16, 0.1, 0.09, 0.32)                          # snout filter
+        disc(b, 'bronze', (0, -0.15, 1.02), Z, 0.12, 0.04, 8)
+        for k in range(3): b.box('glow', (0, -0.21 + 0.06 * k, 1.045), (0.14, 0.018, 0.01))
+        for p, d, h in (((0, 0.85, 0.1), (0, 1, 0.2), 0.55), ((0.25, 0.82, -0.2), (0.4, 1, -0.4), 0.45), ((-0.25, 0.82, -0.2), (-0.4, 1, -0.4), 0.45), ((0, 0.8, -0.45), (0, 0.8, -1), 0.4)):
+            b.spike('iron', p, d, h, 0.09); b.spike('glow', np.asarray(p) + nz(d) * h * 0.5, d, h * 0.35, 0.04)
+        lames(b, ['plate', 'iron'], (0, -0.2, -0.72), 1.3, 0.2, 0.1, 3, 0.17, 10, 'bronze')
+        drip(b, (0.28, 0.0, 0.7), 0.16, 0.025)
+        K.emit('HM', b, 'Helm')
+
+{'frost': frost, 'solar': solar, 'storm': storm, 'poison': poison}[SET]()
 print(json.dumps(K.save(STAGE)))
