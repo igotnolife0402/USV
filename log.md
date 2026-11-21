@@ -46,3 +46,6 @@ Venomreaver imported into Studio as one asset (100677928775604): 62 real meshes,
 
 ## [2026-11-22] fix / Venomreaver plays in Roblox: piece-by-piece equip + poison burst
 Animation asset 82594256097105, 4 Decal sheets, model 123924497580446 (rig + 62 meshes + 4 ParticleEmitters + UmbrioPlay). Play-tested: bare at 0.2 s (62 hidden), boots 2 s, full + burst 4.1 s. Exporter: flipbooks -> ParticleEmitters, ShowAt/HideAt visibility, animOnly/animAssets/textureAssets.
+
+## [2026-11-22] fix / Roblox export keeps the Sandbox scale pops
+Owner: pieces appeared instantly in Roblox, no grow-in. Added PopScale data + UmbrioPop client script; play-tested (0.02 -> 2.47 -> 2.08 on the chest plate). Model asset 110558219659237.

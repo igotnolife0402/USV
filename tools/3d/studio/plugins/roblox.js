@@ -429,6 +429,19 @@ function rigify(ctx, gid, model, rig) {
     if (!flip) continue
     n.kids.push(node('NumberValue', on(0) ? 'HideAt' : 'ShowAt', [['Value', 'num', flip[0]]]))
   }
+  // Scale pops (Roblox poses can't scale either): the scale keys of the nearest group above a piece, sampled at 30 fps over
+  // their span, plus that group's origin in the limb's space. UmbrioPop (client) resizes the part and slides its joint about
+  // that origin in step with the playing animation, so a piece grows in, overshoots and settles exactly as in the Sandbox.
+  if (firstAnim) for (const e of extra) {
+    let g = null, sc = null
+    for (let p = e.id; p && !sc; p = ctx.objs[p]?.parent) if (firstAnim.tracks?.[p]?.scale?.length) { g = p; sc = firstAnim.tracks[p].scale }
+    if (!sc || sc.every(k => (k[1] || []).every(v => Math.abs(v - 1) < 1e-3))) continue
+    const t0 = sc[0][0], t1 = sc[sc.length - 1][0], N = Math.max(2, Math.round((t1 - t0) * 30) + 1), dt = (t1 - t0) / (N - 1) || 1 / 30
+    const S = Array.from({ length: N }, (_, i) => (sampleTrack(sc, t0 + i * dt) || [1, 1, 1]).map(v => +(+v).toFixed(3)))
+    const pw = rigid(ctx.world(g)).t, pv = rmul(rinv(fr(nodes[e.k])), { R: ID.R, t: pw }).t.map(v => +v.toFixed(4))
+    e.n.kids.push(node('StringValue', 'PopScale', [['Value', 'str', JSON.stringify({ t0: +t0.toFixed(3), dt: +dt.toFixed(4), pivot: pv, s: S })]]))
+    if (!model.kids.some(k => propOf(k, 'Name')[2] === 'UmbrioPop')) model.kids.push(node('Script', 'UmbrioPop', [['RunContext', 'enum', ['RunContext', 'Client', 2]], ['Source', 'src', POP_LUA]]))
+  }
   const seqs = []
   for (const [aid, a] of Object.entries(ctx.scene.anims || {})) { const s = a && keyframeSeq(ctx, a, aid, gid, rig, nodes, C0, extra); if (s) seqs.push(s) }
   const anims = ctx.opts.animAssets || {}, playable = seqs.filter(q => anims[propOf(q, 'Name')[2]])
@@ -881,6 +894,47 @@ if #missing > 0 then warn("Umbrio: no imported mesh for " .. table.concat(missin
 const findCls = (n, c) => n.cls === c ? n : n.kids.reduce((f, k) => f || findCls(k, c), null)
 // animOnly: just the first KeyframeSequence, as an .rbxmx to upload as an Animation asset (then pass its id as animAssets).
 export function toRbxmx(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, xml: writeRbxmx(opts.animOnly ? findCls(m.root, 'KeyframeSequence') || m.root : m.root) } }
+// Client side of the scale pops: follows the playing track's time every frame, so pops stay in sync on every client.
+export const POP_LUA = `--!strict
+-- Umbrio Sandbox: grows each armor piece in (small, overshoot, settle) in step with the playing animation, as in the editor.
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local model = script.Parent
+local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
+if not humanoid then return end
+local animator = humanoid:WaitForChild("Animator") :: Animator
+local items, seen = {}, {}
+local function add(data: Instance)       -- parts stream in after this script starts: pick each one up as it arrives
+	local p = data.Parent
+	if seen[data] or not data:IsA("StringValue") or data.Name ~= "PopScale" or not (p and p:IsA("BasePart")) then return end
+	seen[data] = true
+	table.insert(items, { part = p, d = HttpService:JSONDecode(data.Value), size = p.Size })
+end
+for _, d in model:GetDescendants() do add(d) end
+model.DescendantAdded:Connect(add)
+RunService.RenderStepped:Connect(function()
+	local track = animator:GetPlayingAnimationTracks()[1]
+	if not track then return end
+	local t = track.TimePosition
+	for _, it in items do
+		if not it.joint then
+			for _, j in model:GetDescendants() do if j:IsA("Motor6D") and j.Part1 == it.part then it.joint = j it.c0 = j.C0 end end
+		end
+		local d, s = it.d, nil
+		local k = (t - d.t0) / d.dt
+		if k <= 0 then s = d.s[1] elseif k >= #d.s - 1 then s = d.s[#d.s] else
+			local i = math.floor(k) local f = k - i local a, b = d.s[i + 1], d.s[i + 2]
+			s = { a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f }
+		end
+		local v = Vector3.new(math.max(s[1], 0.01), math.max(s[2], 0.01), math.max(s[3], 0.01))
+		it.part.Size = it.size * v
+		if it.joint and it.c0 then
+			local pivot = Vector3.new(d.pivot[1], d.pivot[2], d.pivot[3])
+			it.joint.C0 = CFrame.new(pivot + (it.c0.Position - pivot) * v) * it.c0.Rotation
+		end
+	end
+end)
+`
 // The model plays its own equip animation and fires its effects at their StartTime, every loop. Delete it to drive both yourself.
 export const PLAY_LUA = `--!strict
 -- Umbrio Sandbox: plays this model's animation, shows each piece at its equip time and fires the particle effects in time with it.
