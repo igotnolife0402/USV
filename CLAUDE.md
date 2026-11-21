@@ -5,7 +5,8 @@ Runs from the Windows PC (`pc`) and from phone cloud sessions on this repo (`mob
 Prime directives: hit the tier time target; never fill context; leave the vault smarter than you found it.
 
 ## Owner rules (both modes; detail in [profiles/owner.md](profiles/owner.md), read it before any build)
-- Honest: never call it done unless checked; else `Failed: <what>`. A fallback + queued PC step is not a failure.
+- 100% honest: never call it done unless checked; else `Failed: <what>`, no excuses or softening. A fallback + queued PC step is not a failure.
+- Always improve: goal met is not the end; every build leaves one concrete improvement in the vault.
 - Never claim a look you did not see: say "not visually verified" and queue the visual check.
 - Replies short (aim <= 10 words); errors, questions and requested reports exempt.
 - Max quality, no placeholders, scope = exactly what was asked. Owner's latest word beats any stored rule: fix that rule now.

@@ -44,11 +44,14 @@ export function parseTurn(lines) {
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
   let tEnd = t0;
   const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set(), skills = new Set();
+  let lastText = '', lastErr = false; // final reply + whether the last tool result was a real failure
   for (const m of String(prompt).matchAll(/<command-name>\s*\/?([\w:-]+)/g)) skills.add(m[1].split(':').pop()); // slash command
   for (const e of E.slice(start + 1)) {
     const ts = Date.parse(e.timestamp); if (ts > tEnd) tEnd = ts;
     const c = e.message?.content; if (!Array.isArray(c)) continue;
     for (const b of c) {
+      if (b?.type === 'text' && e.type === 'assistant' && b.text?.trim()) lastText = b.text;
+      if (b?.type === 'tool_result') lastErr = !!b.is_error && !NOISE.test(resultText(b)) && !/^(Grep|Glob)$/.test(uses.get(b.tool_use_id)?.name || '');
       if (b?.type === 'tool_use') {
         uses.set(b.id, { name: b.name, input: b.input || {} });
         const p = String(b.input?.file_path || b.input?.notebook_path || '').replace(/\\/g, '/');
@@ -67,7 +70,7 @@ export function parseTurn(lines) {
   }
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
-    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills],
+    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
   };
 }
 
@@ -98,8 +101,18 @@ export function signals(turn, state = {}) {
   // Vault upkeep legitimately reads many domains; a miss is 1-2 unrouted domains on a non-vault task.
   if (missed.length && missed.length <= 2 && !routed.has('vault'))
     out.push({ kind: 'router', text: `read domains/${missed.join(', domains/')} but the prompt routed to ${[...routed].join(', ') || 'nothing'}`, domains: missed });
+  // Honesty: the reply claims success while the last tool call failed (owner rule: never claim done unless checked).
+  if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
+    out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
+  // Always improve: a clean build still leaves the vault better (owner rule: meeting the goal is not the end).
+  if (!out.length && tier !== 'simple' && builds.length && !turn.writes.some(p => KNOW.test(rel(p))))
+    out.push({ kind: 'improve', text: 'goal met with no improvement recorded' });
   return out;
 }
+const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
+const ADMIT = /\b(error|failed|fail(s|ing)?|not (done|verified|checked|working|fixed)|broken|blocked)\b/i;
+const KNOW = /^(domains|tools|checklists|\.claude\/skills)\/|^lessons\.md$/;
+const LEARNED = new Set(['errors', 'slow', 'correction', 'skill', 'router']);
 
 export const nextLessonId = (text) => {
   const n = Math.max(0, ...[...text.matchAll(/\[L-(\d+)\]/g)].map(m => +m[1]));
@@ -107,11 +120,14 @@ export const nextLessonId = (text) => {
 };
 
 // Stop-hook instruction: diagnose, fix the note, record the lesson, retune the router. Kept short.
-export function learnReason(sigs, { lessonsChanged, routerChanged, nextId }) {
-  const need = sigs.filter(s => !(s.kind === 'router' && routerChanged));
-  if (!need.length || (lessonsChanged && need.every(s => s.kind !== 'router'))) return null;
+export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged = false, nextId }) {
+  const need = sigs.filter(s => s.kind === 'router' ? !routerChanged
+    : s.kind === 'improve' ? !(knowChanged || lessonsChanged) : s.kind === 'honesty' || !lessonsChanged);
+  if (!need.length) return null;
   const steps = [];
-  if (!lessonsChanged) steps.push(
+  if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
+  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE: the goal was met, which is not the end. Add one concrete improvement so the next similar task is faster or better: a speed trick or rule in domains/<d>/playbook.md, a snippet, a tool option/preset, or a checklist line. Real and specific, not filler.');
+  if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',
     `Append to lessons.md: - [${nextId}] (h:0 x:1) ${today()} <cause> → <rule> — trigger: <words>. If a lesson already covers it, bump its x: instead (seen twice → promote it).`);

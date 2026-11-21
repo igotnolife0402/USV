@@ -52,7 +52,7 @@ function stop(input) {
   const sigs = signals(turn, state);
   recordMetrics(turn, { ...state, routes: state.routes || [] }, sigs, 'pc');
   if (sigs.length && !input.stop_hook_active) {
-    const why = learnReason(sigs, { lessonsChanged: vaultChanged('lessons.md'), routerChanged: vaultChanged('router.json'),
+    const why = learnReason(sigs, { lessonsChanged: vaultChanged('lessons.md'), routerChanged: vaultChanged('router.json'), knowChanged: ['domains', 'tools', 'checklists', '.claude/skills'].some(vaultChanged),
       nextId: nextLessonId(readIf(join(ROOT, 'lessons.md'))) });
     if (why) return emit({ decision: 'block', reason: `${why}\nVault: ${V} (lessons.md, router.json and domains/ are there; paths above are relative to it). Project: ${basename(input.cwd || process.cwd())}.` });
   }

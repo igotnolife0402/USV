@@ -9,7 +9,7 @@ Render, per frame, four layers that stack in Umbrio Sandbox (same start, same si
   glow    wide bloom of the body in the liquid's emissive colour                                           blend add
 Output: <out>/<name>_<layer>.png (8x8 grid, 64 frames), <name>_preview.png, <name>.json (manifest for import).
 
-Usage: python liquid.py OUT [preset] [--cell 128] [--seed 1] [--check]
+Usage: python liquid.py OUT [preset] [--cell 256] [--seed 1] [--check]
 Presets: poison, water, blood, slime, lava.
 """
 import json, math, os, sys, time
@@ -25,6 +25,7 @@ PRESETS = {
     'lava':   dict(deep=(0.35, 0.03, 0.0), bright=(1.0, 0.62, 0.12), glow=(1.0, 0.35, 0.05), shape='splash', spread=0.7, speed=0.9, g=0.7, coh=1.4, n=2400, bubbles=False),
 }
 FRAMES, GRID, FPS, SUB = 64, 8, 30, 3
+RIPPLE = np.random.default_rng(3).standard_normal((1024, 1024)).astype(np.float32)   # fixed: ripples don't flicker frame to frame
 
 
 def emit(p, rng):
@@ -108,15 +109,18 @@ def simulate(p, seed):
 def shade(dens, p, cell, life):
     """Metaball body: alpha from density, normal from its gradient, light from the upper left."""
     a = np.clip((dens - 0.35) / 0.5, 0, 1); a = a * a * (3 - 2 * a)
-    gy, gx = np.gradient(blur(dens, max(1, cell // 64)))
+    ripple = blur(RIPPLE[:cell, :cell], max(1, cell // 48)) * 6.0 * np.clip(dens - 0.8, 0, 1)   # surface ripples on thick pools
+    gy, gx = np.gradient(blur(dens, max(1, cell // 64)) + ripple)
     nz = np.full_like(dens, 0.35); n = np.stack([-gx, gy, nz], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True) + 1e-6
     L = np.array([-0.45, 0.6, 0.66], np.float32); L /= np.linalg.norm(L)
     diff = np.clip((n * L).sum(-1), 0, 1)
     H = L + np.array([0, 0, 1], np.float32); H /= np.linalg.norm(H)
-    spec = np.clip((n * H).sum(-1), 0, 1) ** 40
+    nh = np.clip((n * H).sum(-1), 0, 1)
+    spec = nh ** 40 * 0.7 + nh ** 400 * 1.2                  # broad sheen + sharp wet hotspot
+    rim = (1 - n[..., 2]) ** 2 * a                           # fresnel: edges catch the emissive colour
     thick = np.clip(dens / 2.5, 0, 1)
     col = np.array(p['deep'])[None, None] * (0.5 + thick[..., None]) + np.array(p['bright'])[None, None] * (diff[..., None] * (1 - thick[..., None] * 0.6))
-    col = col + spec[..., None] * 0.9 + np.array(p['glow'])[None, None] * (1 - thick[..., None]) * 0.25 * a[..., None]
+    col = col + spec[..., None] + np.array(p['glow'])[None, None] * ((1 - thick[..., None]) * 0.25 * a[..., None] + rim[..., None] * 0.6)
     return np.concatenate([np.clip(col, 0, 1), (a * life)[..., None]], -1)
 
 
@@ -137,10 +141,9 @@ def render(frames, p, cell, seed):
         dp = np.zeros((cell, cell), np.float32)
         for s in np.linspace(0, 1, 5):
             dp += splat(pos[sep] - vel[sep] * s * 0.025, np.ones(sep.sum(), np.float32), cell)
-        dp = blur(dp, max(1, cell // 128)) * 1.8
-        da = np.clip(dp, 0, 1)[::-1] * life
-        dcol = np.broadcast_to(np.array(p['bright'], np.float32), (cell, cell, 3)) * (0.75 + 0.25 * da[..., None])
-        drops = np.concatenate([dcol, da[..., None]], -1)
+        k = max(1, cell // 96); w = 2 * k + 1
+        dp = blur(dp, k) * (w * w / 5) * 1.6                # one droplet peaks ~1.6, so it clears the surface threshold
+        drops = shade(dp[::-1], p, cell, life)              # droplets are lit liquid too: highlight + rim, not flat dots
         # mist: fine spray jittered around fast particles, fading
         fast = np.linalg.norm(vel, axis=1) > np.percentile(np.linalg.norm(vel, axis=1), 60)
         mp = pos[fast] + rng.normal(0, 0.012, (fast.sum(), 2)).astype(np.float32)
@@ -180,7 +183,7 @@ def composite(layers):
     return out
 
 
-def build(out, preset='poison', cell=128, seed=1):
+def build(out, preset='poison', cell=256, seed=1):
     t0 = time.time()
     p = PRESETS[preset]
     os.makedirs(out, exist_ok=True)
@@ -206,7 +209,7 @@ if __name__ == '__main__':
     pos = [x for i, x in enumerate(a) if not x.startswith('--') and (i == 0 or not a[i - 1].startswith('--'))]
     preset = pos[1] if len(pos) > 1 else 'poison'
     if preset not in PRESETS: print(f'unknown preset {preset}; have {", ".join(PRESETS)}'); sys.exit(1)
-    m, s = build(pos[0], preset, opt('--cell', 128), opt('--seed', 1))
+    m, s = build(pos[0], preset, opt('--cell', 256), opt('--seed', 1))
     print(json.dumps({'out': pos[0], **s, 'layers': [l['file'] for l in m['layers']]}))
     if '--check' in a and (s['seconds'] > 60 or s['empty_frames'] > 2 or s['max_step_jump'] > 0.5):
         print('CHECK FAILED: over 60 s, empty frames or choppy motion'); sys.exit(2)

@@ -68,7 +68,7 @@ if (isMain(import.meta.url)) safe(() => {
   const files = changedFiles(st.stdout || '');
 
   if (sigs.length) {
-    const why = learnReason(sigs, { lessonsChanged: files.includes('lessons.md'), routerChanged: files.includes('router.json'),
+    const why = learnReason(sigs, { lessonsChanged: files.includes('lessons.md'), routerChanged: files.includes('router.json'), knowChanged: files.some(f => /^(domains|tools|checklists|\.claude\/skills)\//.test(f)),
       nextId: nextLessonId(readIf(join(ROOT, 'lessons.md'))) });
     if (why) return block(why);
   }

@@ -25,3 +25,6 @@ Owner tools/artifacts registry (profiles/tools.md) + `vault.mjs tool find|add`, 
 
 ## [2026-11-21] build / Umbrio Sandbox default + liquid VFX generator
 Umbrio Sandbox is the enforced default (hooks/prefer.json blocks Blender/generators unless named); new tools/vfx/liquid generator (4 layers, ~2 s) registered as VFX Generator.
+
+## [2026-11-21] rules / honesty + always-improve enforced; liquid VFX v-next
+Owner: 100% honest, no excuses; always improve even when goals are met. Stop hook now blocks "done" after a failed last call (honesty) and asks for one vault improvement on clean builds (improve). Liquid: 256 px default, shaded droplets, rim, ripples (7.1 s). Still not done: import into Umbrio Sandbox + attach to an animation.

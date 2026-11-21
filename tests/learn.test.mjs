@@ -126,6 +126,27 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   assert.equal(g('status', '--porcelain').stdout.trim(), '', 'committed');
 });
 
+test('honesty: claiming done after a failed last call is flagged; admitting it is not', () => {
+  const said = (text) => JSON.stringify({ type: 'assistant', timestamp: at(40), message: { content: [{ type: 'text', text }] } });
+  const lie = L.parseTurn(transcript('build the site', [...failing.slice(0, 2), said('Done')]).split('\n'));
+  assert.ok(L.signals(lie, { tier: 'medium' }).some(s => s.kind === 'honesty'));
+  const why = L.learnReason(L.signals(lie, { tier: 'medium' }), { lessonsChanged: true, routerChanged: false, nextId: 'L-1' });
+  assert.match(why, /HONESTY/, 'a lesson does not excuse a false claim');
+  const honest = L.parseTurn(transcript('build the site', [...failing.slice(0, 2), said('Error: build fails, three missing')]).split('\n'));
+  assert.ok(!L.signals(honest, { tier: 'medium' }).some(s => s.kind === 'honesty'));
+  const fixed = L.parseTurn(transcript('build the site', [...failing.slice(0, 2), use('b', 'Bash', { command: 'npm run build' }, 30), res('b', 'ok', false, 31), said('Done')]).split('\n'));
+  assert.ok(!L.signals(fixed, { tier: 'medium' }).some(s => s.kind === 'honesty'));
+});
+
+test('always improve: a clean build asks for one improvement until a domain/tool note changes', () => {
+  const clean = L.parseTurn(transcript('make a landing page', [use('w', 'Write', { file_path: 'C:/x/site/index.html' }, 5), res('w', 'ok', false, 6)]).split('\n'));
+  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] });
+  assert.deepEqual(sigs.map(s => s.kind), ['improve']);
+  assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
+  assert.equal(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, knowChanged: true, nextId: 'L-1' }), null);
+  assert.equal(L.signals(clean, { tier: 'simple', routes: ['web'] }).length, 0, 'simple tasks stay fast');
+});
+
 test('owner-preferred tools: Blender is denied unless the owner names it (Umbrio Sandbox instead)', () => {
   const root = join(BASE, 'prefer vault'); mkdirSync(join(root, 'hooks'), { recursive: true });
   writeFileSync(join(root, 'hooks', 'modes.json'), '{}');
