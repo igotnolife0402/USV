@@ -42,7 +42,8 @@ function buildContext(prompt, mode, router) {
       return s ? `${n} (${s})` : n;
     });
     lines.push(`Checklist: ${uniq(routes.map(r => r.checklist)).join(', ')}`);
-    lines.push(`Skill: ${uniq(routes.map(r => r.skill)).join(', ')}`);
+    const sk = uniq(routes.map(r => r.skill));
+    if (sk.length) lines.push(`Skill: ${sk.join(', ')} (invoke first with the Skill tool for any build/edit; the Stop hook checks)`);
     lines.push(`Read first: ${notes.join('; ')}`);
     lines.push('Before working: state in one line which of these apply, read them, then work. Mobile: never call PC-only tools; use the fallback and append PC-only steps to queue/pc.md.');
   }
@@ -59,6 +60,6 @@ if (isMain(import.meta.url)) safe(() => {
   const text = String(prompt);
   const ctx = buildContext(text, getMode(session_id).mode, router);
   // Tier + routes for the Stop hook's learning check (relays don't overwrite the owner's turn).
-  if (!RELAY.test(text)) saveTurnState(session_id, { tier: classify(text, router.tiers), routes: route(text, router).map(r => r.id), t: Date.now() });
+  if (!RELAY.test(text)) saveTurnState(session_id, { tier: classify(text, router.tiers), routes: route(text, router).map(r => r.id), skills: [...new Set(route(text, router).map(r => r.skill).filter(Boolean))], t: Date.now() });
   emit({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } });
 });

@@ -32,10 +32,12 @@ export function promptContext(prompt, sid) {
   if (RELAY.test(prompt)) return '';
   const router = routerJson();
   const tier = classify(prompt, router.tiers), routes = route(prompt, router);
-  saveTurnState(sid, { tier, routes: routes.map(r => r.id), t: Date.now(), external: true });
+  const uniq = (a) => [...new Set(a.filter(Boolean))];
+  const skills = uniq(routes.map(r => r.skill));
+  saveTurnState(sid, { tier, routes: routes.map(r => r.id), skills, t: Date.now(), external: true });
   const lines = [`VAULT ${V} | TIER=${tier}`];
   if (routes.length) {
-    const uniq = (a) => [...new Set(a.filter(Boolean))];
+    if (skills.length) lines.push(`Skill recipe (read first for any build/edit; the Stop hook checks): ${skills.map(s => `${V}/.claude/skills/${s}/SKILL.md`).join(', ')}`);
     lines.push(`Checklist: ${uniq(routes.map(r => r.checklist)).map(p => `${V}/${p}`).join(', ')}`);
     lines.push(`Read first: ${uniq(routes.flatMap(r => r.notes || [])).slice(0, 4).map(n => {
       const s = fm(readIf(join(ROOT, n))).data?.summary; return `${V}/${n}${s ? ` (${s})` : ''}`; }).join('; ')}`);

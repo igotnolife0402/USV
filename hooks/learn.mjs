@@ -43,7 +43,8 @@ export function parseTurn(lines) {
   const prompt = start >= 0 ? textOf(E[start].message.content) : '';
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
   let tEnd = t0;
-  const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set();
+  const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set(), skills = new Set();
+  for (const m of String(prompt).matchAll(/<command-name>\s*\/?([\w:-]+)/g)) skills.add(m[1].split(':').pop()); // slash command
   for (const e of E.slice(start + 1)) {
     const ts = Date.parse(e.timestamp); if (ts > tEnd) tEnd = ts;
     const c = e.message?.content; if (!Array.isArray(c)) continue;
@@ -52,6 +53,8 @@ export function parseTurn(lines) {
         uses.set(b.id, { name: b.name, input: b.input || {} });
         const p = String(b.input?.file_path || b.input?.notebook_path || '').replace(/\\/g, '/');
         if (b.name === 'Read' && p) reads.add(p);
+        if (b.name === 'Skill' && b.input?.skill) skills.add(String(b.input.skill).split(':').pop());
+        const sk = p.match(/\.claude\/skills\/([\w-]+)\/SKILL\.md$/); if (b.name === 'Read' && sk) skills.add(sk[1]);
         if (/^(Write|Edit|MultiEdit)$/.test(b.name) && p) writes.add(p);
       } else if (b?.type === 'tool_result' && b.is_error) {
         const u = uses.get(b.tool_use_id) || { name: '?', input: {} };
@@ -64,7 +67,7 @@ export function parseTurn(lines) {
   }
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
-    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes],
+    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills],
   };
 }
 
@@ -83,6 +86,10 @@ export function signals(turn, state = {}) {
   if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s vs ${tier} target ${target}s` });
   if (turn.prompt.length < 1500 && CORRECTION.test(turn.prompt))
     out.push({ kind: 'correction', text: `owner said: "${turn.prompt.replace(/\s+/g, ' ').slice(0, 120)}"` });
+  // Skill miss: the router named a skill for real work (files were written) but it was never invoked or read.
+  const missedSkills = tier !== 'simple' && turn.writes.length ? (state.skills || []).filter(s => !(turn.skills || []).includes(s)) : [];
+  if (missedSkills.length)
+    out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);
   const missed = domainsOf(turn.reads).filter(d => !routed.has(d));
   // Vault upkeep legitimately reads many domains; a miss is 1-2 unrouted domains on a non-vault task.
@@ -105,6 +112,8 @@ export function learnReason(sigs, { lessonsChanged, routerChanged, nextId }) {
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',
     `Append to lessons.md: - [${nextId}] (h:0 x:1) ${today()} <cause> → <rule> — trigger: <words>. If a lesson already covers it, bump its x: instead (seen twice → promote it).`);
+  const sk = need.find(s => s.kind === 'skill');
+  if (sk) steps.push(`Skill miss (${sk.skills.join(', ')}): if the skill was needed, record it with /learn so it is invoked next time; if it was the wrong skill for this route, fix the route's "skill" in router.json.`);
   const r = need.find(s => s.kind === 'router');
   if (r) steps.push(`Router miss: add 1-3 words from the owner's prompt to route ${r.domains.join('/')} in router.json so it routes next time.`);
   return [`LEARN (auto): this turn had: ${need.map(s => s.text).join('; ')}.`, 'Before stopping (keep it under 2 minutes):',

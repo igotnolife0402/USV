@@ -34,6 +34,7 @@ triggers: [index, map, where, vault]
 - [.orchestration/ARCHITECTURE.md](.orchestration/ARCHITECTURE.md): frozen layout/schema contract.
 
 ## Skills (.claude/skills/<name>/SKILL.md)
+- [vault](.claude/skills/vault/SKILL.md), [learn](.claude/skills/learn/SKILL.md), [queue](.claude/skills/queue/SKILL.md): talk to the vault (find/route/status, lessons, PC queue) via `scripts/vault.mjs`.
 - [pc](.claude/skills/pc/SKILL.md): PC mode setup and MCP preflight.
 - [mobile](.claude/skills/mobile/SKILL.md): mobile mode, fallbacks, queueing.
 - [website](.claude/skills/website/SKILL.md): website recipe.

@@ -16,3 +16,6 @@ Learning now triggers on any real error for every task size; new math domain + r
 
 ## [2026-11-21] build / learn from every folder
 User-level hooks (hooks/global.mjs via scripts/install-global.mjs) route any session's prompts through the vault and make failures in any folder write lessons into it.
+
+## [2026-11-21] build / vault skills
+New /vault, /learn, /queue skills on one CLI (scripts/vault.mjs); router-named skills are now enforced (skill-miss learning signal); personal copies installed so they work in every folder. 40 tests.

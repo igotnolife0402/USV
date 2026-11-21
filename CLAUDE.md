@@ -74,6 +74,7 @@ Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's tra
 - Sub-agents: give file lists, a contract, the owner rules and the routed playbook (they don't load this file's context); omit `model` (inherit); replies <= 2k tokens; <= 40 tool calls, one review round, a stop line. 10 calls without a write: stop reading, write.
 - `/clear` between unrelated tasks. Long task state goes in `state/<task>.md`, not in context ([state/README.md](state/README.md)).
 - 3-try cap per failing approach, then change approach or queue/log it.
+- Talk to the vault only through its skills (never guess paths): `/vault` find|route|status|words, `/learn` lessons + errors rows, `/queue` PC steps. All run `scripts/vault.mjs`.
 - Reuse skills in `.claude/skills/` before writing from scratch: pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep. Engineering skills (review, debug, TDD, spec, plan, perf, security, git) load on match; reuse tools in `tools/` (see [index.md](index.md)).
 
 ## 7. Definition of done
