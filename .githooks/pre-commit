@@ -1,4 +1,6 @@
 #!/bin/sh
 # Vault gate on every commit (old vault: hub.py selftest + check). Install: node scripts/install-githooks.mjs
 cd "$(git rev-parse --show-toplevel)" || exit 1
+# Tests run git in temp repos: drop the hook's GIT_* env or they write to this index (wiped it in a worktree, 2026-11-22).
+unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_PREFIX
 node scripts/vault-lint.mjs --all && node --test "tests/*.test.mjs"

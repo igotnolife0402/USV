@@ -27,6 +27,13 @@ export function route(prompt, router = {}) {
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n || a.i - b.i).slice(0, 2).map(x => x.r);
 }
 
+// Fast path: a route's `fast` entry whose words hit replaces the generic notes/skill with the exact files to open.
+export function fastPath(prompt, routes = []) {
+  for (const r of routes) for (const f of r.fast || []) if ((f.words || []).some(w => hit(prompt, w))) return f;
+  return null;
+}
+export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes); return [...new Set((f && 'skill' in f ? [f.skill] : routes.map(r => r.skill)).filter(Boolean))]; };
+
 const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
 
 function buildContext(prompt, mode, router) {
@@ -36,13 +43,15 @@ function buildContext(prompt, mode, router) {
   const routes = route(prompt, router);
   if (routes.length) {
     const uniq = (a) => [...new Set(a.filter(Boolean))];
-    const paths = uniq(routes.flatMap(r => r.notes || [])).slice(0, 4);
+    const f = fastPath(prompt, routes);
+    const paths = f ? f.read || [] : uniq(routes.flatMap(r => r.notes || [])).slice(0, 4);
     const notes = paths.map(n => {
       const s = fm(readIf(join(ROOT, n))).data?.summary;
       return s ? `${n} (${s})` : n;
     });
     lines.push(`Checklist: ${uniq(routes.map(r => r.checklist)).join(', ')}`);
-    const sk = uniq(routes.map(r => r.skill));
+    const sk = skillsFor(prompt, routes);
+    if (f) lines.push(`FAST PATH (open only these, skip index/playbook/tool tables): ${f.do}`);
     if (sk.length) lines.push(`Skill: ${sk.join(', ')} (invoke first with the Skill tool for any build/edit; the Stop hook checks)`);
     lines.push(`Read first: ${notes.join('; ')}`);
     lines.push('Before working: state in one line which of these apply, read them, then work. Mobile: never call PC-only tools; use the fallback and append PC-only steps to queue/pc.md.');
@@ -60,6 +69,6 @@ if (isMain(import.meta.url)) safe(() => {
   const text = String(prompt);
   const ctx = buildContext(text, getMode(session_id).mode, router);
   // Tier + routes for the Stop hook's learning check (relays don't overwrite the owner's turn).
-  if (!RELAY.test(text)) saveTurnState(session_id, { tier: classify(text, router.tiers), routes: route(text, router).map(r => r.id), skills: [...new Set(route(text, router).map(r => r.skill).filter(Boolean))], t: Date.now() });
+  if (!RELAY.test(text)) saveTurnState(session_id, { tier: classify(text, router.tiers), routes: route(text, router).map(r => r.id), skills: skillsFor(text, route(text, router)), t: Date.now() });
   emit({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } });
 });

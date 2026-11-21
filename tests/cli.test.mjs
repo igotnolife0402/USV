@@ -79,7 +79,7 @@ test('personal skill copies call the CLI by absolute path', () => {
   for (const s of SKILLS) {
     const txt = personalSkill(s, REPO.replace(/\\/g, '/'));
     assert.ok(!/node scripts\/vault\.mjs/.test(txt), s);
-    assert.match(txt, /node ".*Super-Vault\/scripts\/vault\.mjs"/);
+    assert.match(txt, /node ".*Super-Vault(\/\.claude\/worktrees\/[^/"]+)?\/scripts\/vault\.mjs"/);
     assert.match(txt, /^---\nname: /);
   }
 });
