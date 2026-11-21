@@ -1,5 +1,5 @@
 ---
-paths: ["**/*.luau","**/*.lua","**/default.project.json","domains/roblox/**"]
+paths: ["**/*.luau","**/*.lua","**/default.project.json","**/*.rbxmx","domains/roblox/**","tools/roblox/**"]
 ---
 # Roblox rules
 - Use Studio's built-in MCP server; never install or suggest the deprecated studio-rust-mcp-server.
@@ -12,3 +12,8 @@ paths: ["**/*.luau","**/*.lua","**/default.project.json","domains/roblox/**"]
 - Script suffixes: `.server.luau` Script, `.client.luau` LocalScript, `.luau` ModuleScript.
 - Mobile mode: no Studio claims; queue play-tests in queue/pc.md.
 - Check domains/roblox/errors.md before debugging; add new failures there.
+- Before delivering any .rbxmx: `node tools/roblox/rbxmx-check.mjs <file>` passes; never invent asset ids, leave named slots (domains/roblox/delivery.md).
+- UI: palette + wireframe first, vivid colours, no overlaps, >= 14 px text, >= 44 px taps (domains/roblox/ui.md).
+- Maps/lobbies: no placeholders; hero/scene floors and budgets in tools/roblox/lobby/validate.mjs must pass (domains/roblox/maps.md).
+- Say plainly which steps were not run in Roblox; never claim a look that was not seen.
+- Tool scripts: paths via fileURLToPath/import.meta.url, never URL.pathname (breaks on Windows).

@@ -1,8 +1,12 @@
 // Shared helpers for vault hooks. Node 20+ stdlib only.
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { join, dirname, basename, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+// Vault root = parent of hooks/. Hook commands are shell-agnostic (`node "./hooks/x.mjs"`, no $VAR): on this
+// Windows PC hooks may run in PowerShell, where "$CLAUDE_PROJECT_DIR" expands to nothing (L-029).
+// Never CLAUDE_PROJECT_DIR: it keeps the session's ORIGINAL folder after the session moves directories. VAULT_ROOT = tests only.
+export const ROOT = process.env.VAULT_ROOT || dirname(dirname(fileURLToPath(import.meta.url)));
 const MODE_FILE = join(ROOT, '.claude', '.mode');
 
 export function readInput() {
@@ -12,13 +16,28 @@ export function readInput() {
   } catch { return {}; }
 }
 
-export const emit = (obj) => process.stdout.write(JSON.stringify(obj));
+// True when this module is the script node was started with (case-insensitive: Windows drive letters vary).
+export const isMain = (url) => !!process.argv[1] && fileURLToPath(url).toLowerCase() === resolve(process.argv[1]).toLowerCase();
 
-// Hooks must never crash the session.
+export const emit =(obj) => process.stdout.write(JSON.stringify(obj));
+
+// Hooks must never crash the session. Internal errors go to .claude/.logs/hooks.log (gitignored) so they can be debugged.
 export async function safe(fn) {
-  try { await fn(); } catch { /* silent */ }
+  try { await fn(); } catch (e) { logError(e); }
   process.exit(0);
 }
+
+export function logError(e) {
+  try {
+    const dir = join(ROOT, '.claude', '.logs');
+    mkdirSync(dir, { recursive: true });
+    appendFileSync(join(dir, 'hooks.log'), `${new Date().toISOString()} ${basename(process.argv[1] || '?')} ${String(e?.stack || e).split('\n').slice(0, 3).join(' | ')}\n`);
+  } catch { /* logging must never throw */ }
+}
+
+// /pc or /mobile at the very start of the owner's prompt, also as an expanded slash command
+// (`<command-name>/pc</command-name>`). "/pcx", "/pc-foo", "how do I use /pc?" and "/review /pc" do not switch.
+export const MODE_CMD = /^\s*(?:<command-name>\s*)?\/(pc|mobile)(?=\s|<|$)/i;
 
 export function readIf(path) {
   try { return readFileSync(path, 'utf8'); } catch { return ''; }

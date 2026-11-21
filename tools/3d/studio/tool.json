@@ -1,0 +1,12 @@
+{
+ "name": "studio",
+ "what": "3D builder: parts, meshes, animation, textures, drawing, import/export, MP4 video; AI-editable projects",
+ "run": "Serve this folder (npx serve) or the Claude-Hub artifact (url); offline it saves to IndexedDB. Headless: node cli/studio.mjs <validate|info|export> <scene.json> (NODE_PATH with three@0.186.1)",
+ "prompt": "Projects live in the hub artifact's db: edit them with ArtifactData on the url (docs/for-ais.md). Build requests by hand with parts, meshes, textures; no new plugins unasked.",
+ "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF",
+ "web": [
+  "index.html",
+  "core",
+  "plugins"
+ ]
+}

@@ -1,0 +1,36 @@
+<!doctype html><html><body style="margin:0">
+<!-- Usage: PAGE=glbview.html node render.js "" glbviews  — orbit views of final/tiger.glb as Roblox Studio would load it (GLTFLoader, PBR). -->
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+try {
+  const W = 800, H = 600;
+  const r = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
+  r.setSize(W, H); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+  document.body.appendChild(r.domElement);
+  const s = new THREE.Scene(); s.background = new THREE.Color(0xb7cde0);
+  s.add(new THREE.HemisphereLight(0xe2ecff, 0x6a5a44, 1.3));
+  const sun = new THREE.DirectionalLight(0xfff0da, 2.4); sun.position.set(7, 12, 9); s.add(sun);
+  const g = await new GLTFLoader().loadAsync('final/tiger.glb'); s.add(g.scene);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({color: 0x86907a, roughness: 1}));
+  ground.rotation.x = -Math.PI/2; s.add(ground);
+  const box = new THREE.Box3().setFromObject(g.scene), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
+  let tris = 0, head = new THREE.Vector3(), nh = 0, mesh;
+  g.scene.traverse(o => { if (o.isMesh) { mesh = o; tris += o.geometry.index.count/3; } });
+  const pa = mesh.geometry.attributes.position;
+  for (let i = 0; i < pa.count; i++) if (pa.getZ(i) > box.max.z - 1.2) { head.x += pa.getX(i); head.y += pa.getY(i); head.z += pa.getZ(i); nh++; }
+  head.divideScalar(nh);
+  const cam = new THREE.PerspectiveCamera(35, W/H, 0.05, 500), shots = {};
+  const shot = (n, pos, tgt) => { cam.position.copy(pos); cam.lookAt(tgt); r.render(s, cam); shots[n] = r.domElement.toDataURL('image/png'); };
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  shot('front', V(0, c.y + 0.6, box.max.z + 7), V(0, c.y, box.max.z - 2));
+  shot('side', V(14.5, c.y + 0.8, c.z), c);
+  shot('back', V(0, c.y + 1.2, box.min.z - 7), V(0, c.y, box.min.z + 2));
+  shot('threeq', c.clone().add(V(1, 0.35, 1.1).normalize().multiplyScalar(13)), c);
+  shot('rearq', c.clone().add(V(-1, 0.45, -0.9).normalize().multiplyScalar(13)), c);
+  shot('face', head.clone().add(V(0.45, 0.12, 1).normalize().multiplyScalar(2.6)), head);
+  window.info = {tris, verts: pa.count, size: sz.toArray().map(v => +v.toFixed(2)), head: head.toArray().map(v => +v.toFixed(2))};
+  window.shots = shots; window.done = 1;
+} catch (e) { window.fail = String(e.stack || e); }
+</script></body></html>

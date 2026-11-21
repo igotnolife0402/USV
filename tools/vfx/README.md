@@ -1,0 +1,11 @@
+# tools/vfx
+
+Self-contained VFX generators ported from the old vault. Outputs go to a scratch folder (never into the repo); commit only scripts.
+Domain notes: [vfx index](../../domains/vfx/index.md), rules for the flipbook: [domains/vfx/flipbook.md](../../domains/vfx/flipbook.md).
+
+| Tool | Does | Run | Needs |
+|---|---|---|---|
+| [flipbook](flipbook/README.md) | Roblox flipbook sheets from physics (fluid sim, ray-traced black hole, kamehameha, lightsaber, slash/embers/flame-arc/dragon, shock/glints); 64 frames, 1024 px Grid8x8, `--check` prints `max_step_jump`, `thin_stroke_pct`, seconds (fails > 60 s) | `python3 tools/vfx/flipbook/vfx.py OUT <preset\|recipe\|a+b+c+d\|all> --check` | python3, numpy, Pillow |
+| [VFX.lua](flipbook/VFX.lua) | Luau: `VFX.make(id, part)` turns a `VFXLibrary.lua` entry into a ParticleEmitter (loops overlap 4 cycles with fade so they never pop) | require beside the generated `VFXLibrary.lua` | Roblox |
+
+Checked 2026-11-21: `vfx.py OUT slash --check` builds in 1.4 s, max_step_jump 1.41, thin_stroke_pct 1.2.

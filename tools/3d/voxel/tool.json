@@ -1,0 +1,6 @@
+{
+ "name": "voxel",
+ "what": "Voxel build (city template) → Roblox .rbxmx, 1 voxel = 1 stud, built live in a studio tab",
+ "run": "python3 city.py city.rbxmx stages; PAGE=view.html node render.js \"w=2560&h=1920\" final (README Steps)",
+ "prompt": "Follow README Steps. Edit only city.py layout."
+}

@@ -47,3 +47,10 @@ Scale: 1 stud = 0.28 m (export scale ≈ 3.57 if modelled in meters, or set unit
 
 ## 7. Mobile
 Write `models/<name>.blend.py` + three.js Artifact preview with procedural stand-in; queue the Blender run in [queue/pc.md](queue/pc.md).
+
+## 8. Generator → Studio → Roblox (owner's tools)
+1. Generator (`tools/3d/<tool>`) writes `OUT/geo/<gid>.json` (`{verts, faces, uvs}`, CCW from outside, Y up, 1/1000 rounding) + objects JSON; each geo doc ≤ 225 KB.
+2. Write into a fresh Studio tab per [studio](domains/3d/studio.md) (live build rules, `meta.building`).
+3. Gates on the read-back: `zfight.py check` (exit 0) → shots check (`SHOTS_DEPTH16=1` for phones).
+4. Export from Studio (`io.export` op or headless `cli/studio.mjs export`): GLB for web/animation (FBX has no animation), `.rbxmx` for Roblox (writes `meshes/*.obj` beside it), Roblox meshes ≤ 19k tris each, neon as Neon parts.
+5. Deliver: `.glb` → Roblox Studio Import 3D; `.rbxmx` → drag in / Model → Insert from File.

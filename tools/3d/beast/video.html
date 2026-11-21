@@ -1,0 +1,98 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+// Video frames: <name>.glb + glow blocks posed by rig.json's animation spec (same maths as the Roblox Animator), with the VFX pack as sprites.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const Q = new URLSearchParams(location.search), W = +Q.get('w') || 1280, H = +Q.get('h') || 720, OUT = Q.get('out') || 'out';
+const rig = await (await fetch(`/${OUT}/rig.json`)).json(), A = rig.anim, K = rig.k;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H); document.body.appendChild(renderer.domElement);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+{ const c = document.createElement('canvas'); c.width = 2; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, '#d9d4e6'); gr.addColorStop(1, '#f4f2f8'); g.fillStyle = gr; g.fillRect(0, 0, 2, 256);
+  scene.background = new THREE.CanvasTexture(c); scene.background.colorSpace = THREE.SRGBColorSpace; }
+const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+const [blo, bhi] = rig.bounds, span = Math.max(...bhi.map((v, i) => v - blo[i]));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(-span * .5, span, -span * .4); sun.target.position.set(0, (blo[1] + bhi[1]) / 2, 0); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -span * .7, right: span * .7, top: span * .7, bottom: -span * .7, near: 1, far: span * 3 }); scene.add(sun, sun.target);
+scene.add(new THREE.HemisphereLight(0xc8bff0, 0x1a1424, 0.6));
+const gltf = await new GLTFLoader().loadAsync(`/${OUT}/${rig.name}.glb`);
+gltf.scene.traverse(o => { if (o.isMesh) { const t = o.material.map; t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; o.castShadow = o.receiveShadow = true; o.material.roughness = 0.75 } });
+const seg = {}, piv = {};
+for (const s of rig.segments) { seg[s.name] = new THREE.Group(); piv[s.name] = new THREE.Vector3(...s.pivot) }
+for (const s of rig.segments) { const g = seg[s.name]; if (s.parent) { seg[s.parent].add(g); g.position.copy(piv[s.name]).sub(piv[s.parent]) } else { scene.add(g); g.position.copy(piv[s.name]) } }
+for (const m of [...gltf.scene.children]) { const info = rig.meshes[m.name]; if (info) { seg[info.seg].add(m); m.position.sub(piv[info.seg]) } }
+const box = new THREE.BoxGeometry(1, 1, 1);
+for (const [s, pos, size, color] of rig.glow) { const m = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(1.6) })); m.position.set(...pos); m.scale.set(...size); seg[s].add(m) }
+const att = {}, tl = new THREE.TextureLoader(), flips = [];
+for (const [n, f] of Object.entries(rig.fx)) { const o = new THREE.Object3D(); o.position.set(...f.pos); seg[f.seg].add(o); att[n] = o;
+  o.light = new THREE.PointLight(0xa24dff, 0, 25 * K, 2); o.add(o.light); o.pack = f.pack.some(p => typeof p === 'string');
+  o.flip = await Promise.all(f.pack.filter(p => typeof p === 'object').map(async p => { const e = p.sheet, t = await tl.loadAsync(`/${OUT}/sheets/${e.file}`); t.colorSpace = THREE.SRGBColorSpace;
+    const grid = { Grid2x2: 2, Grid4x4: 4, Grid8x8: 8 }[e.FlipbookLayout]; return { e, t, grid, frames: e.frames || grid * grid, size: p.size, count: p.count || 1 } })) }
+const plane = new THREE.PlaneGeometry(1, 1);
+function spawn(o, d, loop) { const t = d.t.clone(); t.repeat.set(1 / d.grid, 1 / d.grid); t.needsUpdate = true;
+  const m = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: d.e.LightEmission > 0.3 ? THREE.AdditiveBlending : THREE.NormalBlending, side: THREE.DoubleSide }));
+  m.scale.setScalar(d.size); o.getWorldPosition(m.position); if (d.e.Orientation === 'VelocityPerpendicular') { m.rotation.x = -Math.PI / 2; m.position.y = Math.max(m.position.y, 0.05) }
+  scene.add(m); const f = { m, d, o, age: 0, loop }; flips.push(f); return f }
+// particles
+const sprite = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.4, 'rgba(255,255,255,0.55)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) })();
+const MAXP = 2000, pos = new Float32Array(MAXP * 3), col = new Float32Array(MAXP * 4), siz = new Float32Array(MAXP);
+const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); pg.setAttribute('pcol', new THREE.BufferAttribute(col, 4)); pg.setAttribute('size', new THREE.BufferAttribute(siz, 1));
+const pmat = new THREE.ShaderMaterial({ uniforms: { map: { value: sprite }, uScale: { value: H / (2 * Math.tan(Math.PI * 32 / 360)) } }, transparent: true, depthWrite: false,
+  vertexShader: 'attribute float size; attribute vec4 pcol; uniform float uScale; varying vec4 vC; void main(){ vC = pcol; vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = size * uScale / -mv.z; gl_Position = projectionMatrix * mv; }',
+  fragmentShader: 'uniform sampler2D map; varying vec4 vC; void main(){ float a = texture2D(map, gl_PointCoord).a; gl_FragColor = vec4(vC.rgb * (1.3 + a), vC.a * a); }' });
+const points = new THREE.Points(pg, pmat); points.frustumCulled = false; scene.add(points);
+const parts = []; let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const CS = ['#d7a8ff', '#9b3dff', '#5a14c8', '#2a0b5c'].map(c => new THREE.Color(c));
+const camera = new THREE.PerspectiveCamera(32, W / H, 0.5, span * 8);
+const d2r = Math.PI / 180, sm = u => (1 - Math.cos(Math.PI * u)) / 2, win = (b, a, e, i, o) => b <= a - i || b >= e + o ? 0 : b < a ? sm((b - a + i) / i) : b > e ? sm(1 - (b - e) / o) : 1;
+const base = {}; for (const k in seg) base[k] = seg[k].position.clone();
+const Wn = {};
+const term = (tr, t) => typeof tr[0] === 'string' ? tr[1] * (Wn[tr[0]] || 0) : tr.length === 1 ? tr[0] : tr[0] * Math.sin(2 * Math.PI * t / (typeof tr[1] === 'string' ? A.periods[tr[1]] : tr[1]) + tr[2]);
+const sum = (l, t) => (l || []).reduce((v, tr) => v + term(tr, t), 0);
+let lastT = 0;
+const mp = new THREE.Vector3(), fwd = new THREE.Vector3(), q = new THREE.Quaternion();
+window.frame = (t, cam) => {
+  const tl = t % A.len, act = A.action, b = tl >= act.first && tl <= act.first + act.len ? tl - act.first : null;
+  for (const [n, ph] of Object.entries(act.phases)) Wn[n] = b === null ? 0 : win(b, ...ph);
+  for (const [n, ch] of Object.entries(A.joints)) { const g = seg[n]; if (!g) continue; const r = ch.rot || {}, p = ch.pos || {};
+    g.position.copy(base[n]).add(new THREE.Vector3(-sum(p.x, tl), sum(p.y, tl), -sum(p.z, tl)));
+    g.rotation.set(-sum(r.x, tl) * d2r, sum(r.y, tl) * d2r, -sum(r.z, tl) * d2r, 'XYZ') }
+  scene.updateMatrixWorld(true);
+  const dt = Math.max(0, t - lastT); lastT = t;
+  for (const o of Object.values(att)) { o.light.intensity = 0; o.looping = o.looping || [] }
+  const liveLoops = new Set();
+  for (const ev of A.fx) { const o = att[ev.att]; if (!o || b === null) continue;
+    if (ev.burst !== undefined && b >= ev.burst && b - dt < ev.burst) for (const d of o.flip) for (let i = 0; i < d.count; i++) { const f = spawn(o, d, false); f.m.position.x += (rnd() - .5) * d.size * .15 * (i > 0); f.m.position.z += (rnd() - .5) * d.size * .15 * (i > 0) }
+    if (ev.on !== undefined && b >= ev.on && b < ev.off) for (const d of o.flip) liveLoops.add(d) }
+  for (const o of Object.values(att)) for (const d of o.flip) if (d.e.FlipbookMode === 'Loop') { const have = flips.find(f => f.d === d); if (liveLoops.has(d) && !have) spawn(o, d, true); if (!liveLoops.has(d) && have) have.dead = true }
+  for (const f of flips) { f.age += dt; if (f.loop) f.o.getWorldPosition(f.m.position); const d = f.d, life = d.e.Lifetime;
+    const i = f.loop ? Math.floor(f.age * (d.e.FlipbookFramerate || 16)) % d.frames : Math.min(d.frames - 1, Math.floor(f.age / life * d.frames));
+    f.m.material.map.offset.set((i % d.grid) / d.grid, 1 - (Math.floor(i / d.grid) + 1) / d.grid);
+    if (d.e.Orientation !== 'VelocityPerpendicular') f.m.quaternion.copy(camera.quaternion);
+    if (!f.loop && f.age > life) f.dead = true }
+  for (let i = flips.length - 1; i >= 0; i--) if (flips[i].dead) { scene.remove(flips[i].m); flips[i].m.material.map.dispose(); flips[i].m.material.dispose(); flips.splice(i, 1) }
+  for (const ev of A.fx) { const o = att[ev.att]; if (!o || b === null || !o.pack) continue; o.getWorldPosition(mp); o.getWorldQuaternion(q);
+    if (ev.on !== undefined && b >= ev.on && b < ev.off) { fwd.set(0, 0, -1).applyQuaternion(q); o.light.intensity = 40 * K * K;
+      for (let i = 0; i < 160 * dt + 1; i++) { const a = rnd() * Math.PI * 2, r = rnd() * .16, d = fwd.clone().add(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, (rnd() - .5) * r)).normalize();
+        parts.push({ p: mp.clone().addScaledVector(d, rnd() * 1.3 * K), v: d.multiplyScalar((40 + 10 * rnd()) * K), age: 0, life: .45 + .3 * rnd(), s: (0.7 + 0.6 * rnd()) * K, g: 2 * K, grow: 4 }) } }
+    if (ev.burst !== undefined && b >= ev.burst && b - dt < ev.burst) for (let i = 0; i < (ev.count || 40) * 3; i++) {
+      const d = new THREE.Vector3(rnd() - .5, rnd() * .9, rnd() - .5).normalize();
+      parts.push({ p: mp.clone(), v: d.multiplyScalar((10 + 26 * rnd()) * K), age: 0, life: .5 + .6 * rnd(), s: (0.4 + 0.8 * rnd()) * K, g: -6 * K, grow: 2.5 }) }
+    if (ev.burst !== undefined && b >= ev.burst && b < ev.burst + 0.25) o.light.intensity = 90 * K * K }
+  for (const p of parts) { p.age += dt; p.v.multiplyScalar(Math.exp(-1.6 * dt)); p.v.y += p.g * dt; p.p.addScaledVector(p.v, dt) }
+  for (let i = parts.length - 1; i >= 0; i--) if (parts[i].age > parts[i].life) parts.splice(i, 1);
+  const n = Math.min(parts.length, MAXP);
+  for (let i = 0; i < n; i++) { const p = parts[parts.length - n + i], u = p.age / p.life, c = u < .25 ? CS[0].clone().lerp(CS[1], u / .25) : u < .7 ? CS[1].clone().lerp(CS[2], (u - .25) / .45) : CS[2].clone().lerp(CS[3], (u - .7) / .3);
+    pos.set(p.p.toArray(), i * 3); col.set([c.r, c.g, c.b, Math.min(1, (1 - u) * 1.4) * 0.55], i * 4); siz[i] = p.s * (1 + p.grow * u) }
+  pg.setDrawRange(0, n); for (const k of ['position', 'pcol', 'size']) pg.attributes[k].needsUpdate = true;
+  const c = rig.cams[cam % rig.cams.length], ang = c.ang * d2r;
+  camera.position.set(c.look[0] + Math.sin(ang) * c.dist, c.y, c.look[2] + Math.cos(ang) * c.dist); camera.lookAt(...c.look);
+  renderer.render(scene, camera); return renderer.domElement.toDataURL('image/jpeg', 0.92);
+};
+window.ready = 1;
+</script></body></html>

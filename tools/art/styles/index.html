@@ -1,0 +1,84 @@
+<title>Image Styles</title>
+<style>
+/* One screen on a phone: subject, style, add-ons, the finished prompt and a copy button. */
+:root{--st-font:system-ui,-apple-system,sans-serif;--st-bg:#f3f5f8;--st-card:#fff;--st-fg:#151a22;--st-mute:#5d6878;--st-line:#d9dfe8;--st-accent:#2b59d9;--st-chip:#e6ecfb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--st-bg:#0f131a;--st-card:#171d27;--st-fg:#e8edf5;--st-mute:#93a0b4;--st-line:#2a3342;--st-accent:#7d9cff;--st-chip:#1f2a40;color-scheme:dark}}
+:root[data-theme="dark"]{--st-bg:#0f131a;--st-card:#171d27;--st-fg:#e8edf5;--st-mute:#93a0b4;--st-line:#2a3342;--st-accent:#7d9cff;--st-chip:#1f2a40;color-scheme:dark}
+body{margin:0;background:var(--st-bg);color:var(--st-fg);font:15px/1.45 var(--st-font)}
+.st{max-width:720px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px));display:grid;gap:16px}
+.st h1{font-size:22px;margin:0}
+.st label,.st h2{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--st-mute);margin:0 0 6px}
+.st textarea{box-sizing:border-box;width:100%;border:1px solid var(--st-line);border-radius:10px;background:var(--st-card);color:var(--st-fg);font:16px/1.4 var(--st-font);padding:10px 12px;resize:vertical}
+.st textarea:focus-visible,.st button:focus-visible{outline:2px solid var(--st-accent);outline-offset:2px}
+.st .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.st .chip{min-height:44px;padding:8px 10px;border:1px solid var(--st-line);border-radius:10px;background:var(--st-card);color:var(--st-fg);font:500 14px/1.2 var(--st-font);text-align:left;cursor:pointer}
+.st .chip small{color:var(--st-mute);font-weight:400}
+.st .chip[aria-pressed="true"]{border-color:var(--st-accent);background:var(--st-chip);color:var(--st-accent)}
+.st .row{display:flex;flex-wrap:wrap;gap:8px}
+.st .row .chip{flex:1 1 30%}
+.st .how{margin:8px 0 0;color:var(--st-mute);font-size:14px}
+.st .out{box-sizing:border-box;width:100%;min-height:180px;font-size:15px}
+.st .copy{min-height:48px;border:0;border-radius:10px;background:var(--st-accent);color:#fff;font:600 16px var(--st-font);cursor:pointer}
+.st details{border:1px solid var(--st-line);border-radius:10px;background:var(--st-card);padding:10px 12px;font-size:14px}
+.st summary{cursor:pointer;font-weight:600}
+.st details ul{margin:8px 0 0;padding-left:20px}
+</style>
+<main class="st">
+<h1>Image Styles</h1>
+<div><label for="st-subject">Subject</label><textarea id="st-subject" rows="2" placeholder="an orc brute with a wooden club, roaring, three-quarter view"></textarea></div>
+<div><h2>Style</h2><div class="grid" id="st-styles"></div><p class="how" id="st-how"></p></div>
+<div><h2>Add-ons</h2><div class="row" id="st-addons"></div></div>
+<div><label for="st-out">Prompt</label><textarea class="out" id="st-out" readonly></textarea></div>
+<button class="copy" id="st-copy" type="button">Copy prompt</button>
+<details><summary>Mixing styles</summary><p>Combine only two or three styles and say what each one controls, for example:</p><ul>
+<li>Voxel geometry + cinematic lighting + dark fantasy atmosphere.</li><li>Anime character design + 3D render + cel shading.</li>
+<li>Low-poly geometry + hand-painted textures.</li><li>Photorealistic materials + stylized proportions.</li><li>Pixel-art details + voxel 3D structure.</li></ul></details>
+</main>
+<script>
+{  // block scope: inside the hub this script shares the window with the hub's own
+// [name, how it works, prompt]; [SUBJECT] is replaced by the subject box.
+const STYLES=[
+["Photorealistic","Makes the subject look like a real photograph, with natural materials, believable proportions, fine surface detail, and realistic light.","Create [SUBJECT] in a photorealistic style. Use physically believable anatomy and materials, highly detailed textures, natural imperfections, realistic shadows, accurate reflections, and photographic lighting. Make it look like a real subject captured by a professional camera, not a cartoon or game render."],
+["3D render","Presents the subject as a fully modeled three-dimensional object, with clear volume, materials, depth, and studio lighting.","Create [SUBJECT] as a polished 3D render. Give it clearly defined three-dimensional form, carefully crafted materials, realistic depth, clean geometry, soft contact shadows, and professional studio lighting. Show the entire subject clearly with a strong readable silhouette."],
+["Cartoon","Uses simplified shapes, bold outlines or clean edges, expressive features, and bright readable colors.","Create [SUBJECT] in a polished cartoon style. Use simplified appealing shapes, expressive features, clean edges, bold readable forms, vibrant colors, and smooth shading. Keep the design playful, visually clear, and recognizable at small sizes."],
+["Anime","Uses stylized proportions, expressive eyes and faces, clean linework, dramatic colors, and distinctive cel-style shading.","Create [SUBJECT] in a high-quality anime art style. Use expressive stylized features, clean confident linework, carefully designed shapes, dramatic composition, rich colors, and controlled cel shading. Make the result detailed and dynamic without losing clarity."],
+["Pixel art","Builds the image from visible square pixels, using deliberate pixel clusters and a limited palette rather than smooth digital painting.","Create [SUBJECT] as polished pixel art. Construct every detail from intentional square pixels and clean pixel clusters. Use a controlled color palette, crisp pixel edges, readable shading, and no blur, anti-aliasing, or smooth gradients. Make the silhouette recognizable."],
+["Voxel art","Builds objects from 3D cubes or block-like units, creating a chunky three-dimensional pixel aesthetic.","Create [SUBJECT] in detailed 3D voxel art. Build its shape from clearly visible cubes and block-based geometry. Use stepped surfaces, chunky forms, block-defined details, and voxel-consistent proportions. Keep the subject recognizably three-dimensional with strong lighting and a clean silhouette."],
+["Low-poly","Uses a deliberately small number of polygons, with angular surfaces and simplified geometry.","Create [SUBJECT] in a high-quality low-poly 3D style. Use simplified polygonal geometry, clearly visible angular planes, clean facets, and carefully placed shapes. Avoid excessive tiny details. Use strong form, appealing colors, and lighting that reveals the polygon structure."],
+["Stylized realism","Combines realistic lighting and materials with exaggerated, simplified, or artistically designed shapes.","Create [SUBJECT] in a stylized-realistic 3D style. Combine believable materials, detailed surfaces, and cinematic lighting with slightly exaggerated proportions and carefully simplified shapes. Make it feel grounded and tangible while remaining visually designed and more striking than ordinary realism."],
+["Cinematic","Uses film-like composition, dramatic lighting, atmosphere, depth, and controlled color grading to create a movie-frame look.","Depict [SUBJECT] in a cinematic visual style. Use dramatic directional lighting, atmospheric depth, strong foreground and background separation, rich contrast, subtle environmental effects, and professional film color grading. Compose the image like a memorable frame from a big-budget movie."],
+["Comic book","Uses bold ink outlines, graphic shadows, dynamic poses, strong contrast, and punchy colors.","Create [SUBJECT] in a polished comic-book illustration style. Use confident ink outlines, graphic shadow shapes, dynamic perspective, bold color areas, dramatic action, and high contrast. Make the image energetic and instantly readable, like a premium comic cover."],
+["Manga","Uses manga-style linework, expressive character design, speed lines, and often black-and-white screentone shading.","Create [SUBJECT] in manga illustration style. Use expressive linework, carefully controlled black-and-white values, screentone textures, dramatic framing, and strong visual storytelling. Add speed lines or impact marks only where they support the action."],
+["Watercolor","Uses translucent washes, soft pigment edges, paper texture, and colors that blend naturally.","Paint [SUBJECT] in a refined watercolor style. Use translucent layered washes, subtle pigment blooms, soft color transitions, visible watercolor paper texture, and organic brush edges. Preserve a clear subject silhouette while allowing natural painterly variation."],
+["Oil painting","Uses rich layered color, visible brushwork, textured surfaces, and painterly light.","Paint [SUBJECT] as a detailed traditional oil painting. Use rich layered pigments, expressive but controlled brushstrokes, subtle canvas texture, deep colors, and carefully modeled light and shadow. Make it feel like a finished gallery painting."],
+["Sketch / pencil","Uses pencil marks, construction lines, hatching, and varied line weight to create a hand-drawn study.","Draw [SUBJECT] as a professional pencil concept sketch. Use confident graphite lines, varied line weight, construction marks, cross-hatching, and carefully observed forms. Keep the drawing readable and intentional, with a white or lightly textured paper background."],
+["Minimalist","Removes unnecessary detail and focuses on a few strong shapes, a limited palette, and clear negative space.","Create a minimalist design of [SUBJECT]. Reduce the subject to its most recognizable shapes and essential details. Use a restrained color palette, clean composition, generous negative space, and precise edges. Every element should have a clear purpose."],
+["Flat vector","Uses crisp, scalable-looking shapes, solid color fills, clean edges, and little or no texture.","Create [SUBJECT] as clean flat vector artwork. Use precise smooth shapes, solid color fills, crisp edges, simplified details, and consistent visual weight. Avoid photographic textures, noisy gradients, and rough brushwork. Make the design clean and instantly recognizable."],
+["Isometric","Shows a 3D subject or environment from a fixed angled view, with parallel edges and a diagram-like sense of space.","Create [SUBJECT] in a polished isometric art style. Use a consistent three-quarter isometric camera angle, clean geometric construction, readable depth, carefully arranged details, and balanced lighting. Keep parallel edges consistent and make the layout easy to understand."],
+["Claymation","Makes the subject look sculpted from clay, with soft forms, fingerprints or handmade texture, and stop-motion charm.","Create [SUBJECT] as a claymation character or scene. Give it hand-sculpted shapes, soft clay surfaces, subtle fingerprints and tool marks, slightly imperfect handmade details, and warm stop-motion-style lighting. Make it feel like a physical miniature set."],
+["Paper cutout","Builds the image from layered pieces of colored paper, using visible cut edges and shadows between layers.","Create [SUBJECT] as layered paper-cut artwork. Construct the design from distinct pieces of colored paper with crisp cut edges, overlapping layers, subtle paper fibers, and soft cast shadows. Use depth from the stacked layers rather than 3D modeling."],
+["Surreal / abstract","Uses unusual combinations, distorted forms, unexpected scale, and imaginative visual logic rather than literal realism.","Create an imaginative surreal interpretation of [SUBJECT]. Use unexpected but deliberate shapes, unusual scale or perspective, striking visual contrasts, and dreamlike details. Keep a clear focal point and a cohesive composition so the result feels intentional rather than random."]]
+const ADDONS=[
+["Roblox","Keep the design suitable for Roblox: use readable proportions, a strong recognizable silhouette, clear separation between major body parts, and details that remain visible at thumbnail size. Do not let decorative effects hide the actual subject. Maintain the requested art style consistently across the whole image."],
+["Design sheet","Present the subject as a clean professional design sheet on a plain white background. Include a large main three-quarter view, front view, side view, back view, and separate close-ups of important details. Keep the design, proportions, colors, and features consistent across every view. Use clear spacing and no overlapping views."],
+["Thumbnail","Use a bold instantly readable composition, one clear focal subject, strong subject-background separation, expressive action or pose, and dramatic lighting. Keep important details large enough to read at small thumbnail size. Avoid clutter and unnecessary text."]]
+const $=id=>document.getElementById(id),KEY="styles.last"
+let st={style:5,addons:[0],subject:""}
+try{Object.assign(st,JSON.parse(localStorage.getItem(KEY))||{})}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function chip(label,on,tap){const b=document.createElement("button");b.type="button";b.className="chip";b.innerHTML=label;b.setAttribute("aria-pressed",on);b.onclick=tap;return b}
+function render(){
+  $("st-styles").replaceChildren(...STYLES.map((s,i)=>chip(`<small>${String(i+1).padStart(2,"0")}</small> ${s[0]}`,i===st.style,()=>{st.style=i;save();render()})))
+  $("st-addons").replaceChildren(...ADDONS.map((a,i)=>chip(a[0],st.addons.includes(i),()=>{st.addons=st.addons.includes(i)?st.addons.filter(x=>x!==i):[...st.addons,i].sort();save();render()})))
+  const s=STYLES[st.style]||STYLES[0],subj=st.subject.trim()||"[SUBJECT]"
+  $("st-how").textContent=s[1]
+  $("st-out").value=[s[2].replaceAll("[SUBJECT]",subj),...st.addons.map(i=>ADDONS[i][1])].join(" ")
+}
+$("st-subject").value=st.subject
+$("st-subject").oninput=e=>{st.subject=e.target.value;save();render()}
+$("st-copy").onclick=async()=>{const b=$("st-copy"),t=$("st-out").value
+  try{await navigator.clipboard.writeText(t)}catch(e){const o=$("st-out");o.focus();o.setSelectionRange(0,t.length);document.execCommand("copy")}   // iOS in a frame can refuse the async clipboard
+  b.textContent="Copied";setTimeout(()=>b.textContent="Copy prompt",1200)}
+render()
+}
+</script>

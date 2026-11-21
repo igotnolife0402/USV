@@ -1,0 +1,6 @@
+{
+ "name": "props",
+ "what": "Detailed cartoon 3D props (cone, wheel, dashboard, hood, sign, rocks, cliff, trees, cloud, crate, barrel) as studio meshes: bevels, lathes, grooves, bolts, smooth normals",
+ "run": "python3 props.py OUT all",
+ "prompt": "Make a detailed <prop> for the studio"
+}

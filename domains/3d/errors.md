@@ -24,3 +24,23 @@ triggers: [blender error, gltf error, three.js black, model invisible, normals]
 | Textures missing after GLB export | Image textures not packed / unsupported nodes | Use Principled BSDF + Image Texture only; bake procedurals | 2026-11-21 |
 | Z-fighting flicker | Coplanar faces or near/far ratio too large | Offset faces; camera near 0.1, far ≤ 1000 | 2026-11-21 |
 | Editor fork breaks after updating three | Editor and three versions mismatched | Pin both to the same release tag | 2026-11-21 |
+| Surfaces flicker on iPhone, clean on desktop | Phone depth buffer far coarser: same-facing faces 3-12 cm apart fight | `python tools/3d/zfight/zfight.py check` then `fix` on the tab read-back; inlay one plane, floors' base 10 cm under; check with `SHOTS_DEPTH16=1` | 2026-11-17 |
+| zfight PASS but phone still flickers | Gate checks meshes only; overlapping Parts invisible to it | Batch parts into meshes first, then run the gate | 2026-11-19 |
+| zfight FAIL on a shatter/swap build | Gate ignores `visible` over time: whole object and its pieces overlap but never show together | Expected false positive; check the swap frame in shots instead | 2026-11-21 |
+| Trim/visor/plate 2-8 cm proud of a face flickers | Near-coplanar stacking | Stand ≥ 15 cm clear, or sit behind the face | 2026-11-19 |
+| Octagon of boxes flickers at corners | Coplanar overlapping tops | Horizontal octagonal slabs = one ring mesh; boxes only for vertical walls | 2026-11-19 |
+| Hand-wound polar mesh inside-out (faces down) | Winding by reversing lists | Set winding by Newell-normal score (`facing()`), never by reversing | 2026-11-19 |
+| Glow meshes sit inside walls | Built with a separate transform stack | Meshes built together share one transform stack | 2026-11-17 |
+| Mirrored side feature on the inner face | Sign error on "outer" | Look at a side view of every mirrored piece before moving on | 2026-11-17 |
+| Neon glow hidden | Opaque lamp cage in front | Glow behind glass, metal only at the corners | 2026-11-19 |
+| Animate froze the iPhone | Shadow map redrawn per frame × 711 draw calls; whole-build root bob | Bake static parts (~150 calls max), never animate the root of a big build | 2026-11-19 |
+| Changing an early stage breaks later stages | Positional object ids shift | Re-send the whole doc (keep env/camera from read-back) or diff full builds | 2026-11-19 |
+| Tab refuses a write | Doc > 225 KB | Split geo docs (< 200-220 KB) or coarser studio copy; fix in the next tab write | 2026-11-13 |
+| Voxel build 3,338 parts, doc 309 KB | Per-voxel colour noise blocks greedy merge | Vary colour per patch/window/stripe | 2026-11-13 |
+| Studio test boot fails: module missing from modulepreload | New boot module (e.g. plugins/ui.js) added without `<link rel="modulepreload">` | Add the link in `tools/3d/studio/index.html` | 2026-11-21 |
+| Studio test: no local libraries / boot 404 | `DEPS` lacks three etc. | `DEPS=<scratch>/node_modules` with three@0.186.1, three-mesh-bvh, three-bvh-csg, mp4-muxer | 2026-11-21 |
+| Playwright `Executable doesn't exist` on PC | Playwright browsers not installed | `CHROME="C:/Program Files/Google/Chrome/Application/chrome.exe"` (tools read it) | 2026-11-21 |
+| `PCFSoftShadowMap` missing / warns | three r186 dropped it | Use `PCFShadowMap` | 2026-11-13 |
+| Fast sword cut passes through the body | One 150° Euler key jump | `arc_keys` in-betweens (slerped wrist target + aim) — see [animation errors](domains/animation/errors.md) | 2026-11-16 |
+| GUI text wraps before web fonts load | Box sized for the web font | Size for the widest fallback, plus `tsc` (scale to fit) | 2026-11-19 |
+| beast build: `No such file 'sheets/...png'` | VFX flipbook sheets not passed | `--sheets DIR` built from the VFX sheet library ([vfx](domains/vfx/index.md)) | 2026-11-21 |

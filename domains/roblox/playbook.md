@@ -12,6 +12,11 @@ triggers: [roblox, luau, studio mcp, rojo, play test]
 - Rojo (github.com/rojo-rbx/rojo) keeps Luau in the repo as `.luau` files; Studio syncs from `rojo serve`.
 - luau-lsp analyzer type-checks without Studio: `luau-lsp analyze --definitions=globalTypes.d.luau src`.
 
+## Sub-notes (read only the one the task needs)
+- Importing files, kits, asset ids → [delivery](domains/roblox/delivery.md). GUI/shop/HUD → [ui](domains/roblox/ui.md). New game or release → [game-design](domains/roblox/game-design.md). Lobby/map/hero piece → [maps](domains/roblox/maps.md).
+- "Build me a UI" = build instances in Studio, not scripts, unless scripts are asked for.
+- The owner's latest word beats any stored rule; update the note when it changes.
+
 ## PC (/pc)
 1. Confirm Studio MCP is connected (tool list shows Roblox_Studio tools). Not connected → open Studio, enable MCP in Studio settings, retry once.
 2. Repo has `default.project.json` → run `rojo serve`, connect the Rojo plugin, edit files in `src/`. No Rojo → edit via MCP run-code, then export scripts to files before stopping.
@@ -46,4 +51,4 @@ triggers: [roblox, luau, studio mcp, rojo, play test]
 - CollectionService tags + one handler script beats one script per part.
 
 ## Done
-Run [checklists/roblox.md](checklists/roblox.md). Record new failures in [errors](domains/roblox/errors.md).
+Run [checklists/roblox.md](checklists/roblox.md). Delivered files:  must PASS and the reply names every step not run in Roblox. Record new failures in [errors](domains/roblox/errors.md).

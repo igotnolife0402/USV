@@ -2,7 +2,7 @@
 summary: VFX domain entry: particles, shaders (GLSL), post-processing, screen juice for web/games/Roblox
 updated: 2026-11-21
 status: current
-triggers: [vfx, particles, shader, glsl, bloom, explosion, trail, glow, post-processing, effect, fragment shader]
+triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosion, trail, glow, post-processing, effect, fragment shader]
 ---
 # VFX
 
@@ -13,6 +13,7 @@ Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox
 2. [Errors](domains/vfx/errors.md): symptom → fix table.
 3. [Pipeline](domains/vfx/pipeline.md): shader files, textures, flipbooks, perf budget.
 4. [Snippets](domains/vfx/snippets/README.md): particle pool, shader boilerplate.
+5. [Flipbook](domains/vfx/flipbook.md): physics-made Roblox flipbook sheets, 4-layer stacks, recipes, smoothness checks; tool [tools/vfx](tools/vfx/README.md).
 
 ## Skill and done
 - Skill: [vfx](.claude/skills/vfx/SKILL.md)

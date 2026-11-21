@@ -1,0 +1,6 @@
+{
+ "name": "beast",
+ "what": "Rigged block creatures for Roblox: mesh GLB + kit (rig, animation, purple VFX pack) + MP4 video",
+ "run": "python3 <creature>.py out --sheets <built VFX sheets>; NODE_MODULES=<folder with three> node video.mjs out 12 24 (README Steps)",
+ "prompt": "Follow README Steps. Copy the closest template (orc.py humanoids, dragon.py winged); edit only SEG, PAL, shape, ANIM, FX, CAMS. Build huge for detail (block 0.125 for a 20-stud figure), mixed sizes, no smooth base. Effects: the newest VFX sheet library, never the dragon PACK on other creatures."
+}

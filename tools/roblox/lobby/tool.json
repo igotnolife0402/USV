@@ -1,0 +1,6 @@
+{
+ "name": "lobby",
+ "what": "Studio Lobby generator: grassy meadow lobby with an Old Oak centrepiece, validator and live-build plan",
+ "run": "node build.mjs && node validate.mjs && node live.mjs; tests: node --test test/",
+ "prompt": "Follow domains/roblox/maps.md; build live."
+}

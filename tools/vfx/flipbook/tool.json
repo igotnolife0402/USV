@@ -1,0 +1,6 @@
+{
+ "name": "flipbook",
+ "what": "Roblox flipbook VFX from physics: 3D fire/smoke sim, ray-traced black hole, sword swings; 4 stacked layers per effect, one 1024 px sheet per effect, under 60 s each",
+ "run": "python3 tools/vfx/flipbook/vfx.py OUT <preset|all> --check (README Steps). Phone: build if python3+numpy+Pillow exist, else queue in queue/pc.md",
+ "prompt": "Follow README Steps. Build to a scratch folder, never into the vault. New effect = a recipe (docs/recipes.md); only new physics gets a preset function (docs/api.md); keep it under 60 s with --check."
+}

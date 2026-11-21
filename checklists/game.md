@@ -6,6 +6,9 @@ triggers: [browser game, canvas, phaser, platformer, shooter]
 ---
 # Checklist: game (browser)
 - [ ] Used the [browser-game skill](.claude/skills/browser-game/SKILL.md); followed the [games playbook](domains/games/playbook.md).
+- [ ] Owner floor met ([profiles/owner.md](profiles/owner.md)): full detail, no placeholders, scope exactly as asked, original (no clones).
+- [ ] 10-second test: goal clear without reading; the 3 most common actions each get animation + sound/visual feedback.
+- [ ] Phone: touch targets >= 38 px, nothing overlaps or clips at 375 px wide.
 - [ ] Full loop: start screen → play → lose/win → restart without reload.
 - [ ] Controls: keyboard + pointer/touch where sensible; shown on screen.
 - [ ] requestAnimationFrame loop with delta time; speed independent of frame rate.

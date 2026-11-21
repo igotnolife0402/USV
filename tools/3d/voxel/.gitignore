@@ -1,0 +1,9 @@
+*.rbxmx
+final/
+prev/
+stages/
+live/
+node_modules/
+__pycache__/
+*.png
+*.jpg

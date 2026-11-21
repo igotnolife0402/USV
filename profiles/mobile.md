@@ -18,6 +18,7 @@ Rule: never say "failed"/"can't" when a fallback exists. Do the fallback, queue 
 - Local PC files outside the repo, `CLAUDE.local.md` paths.
 - stdio MCPs: Roblox Studio MCP, Blender MCP, computer use, Claude in Chrome, built-in browser automation.
 - Plugins, ~/.claude skills/hooks/settings, bypass-permissions mode.
+- PC mode: `/pc` typed here stays mobile. Don't add npm dependencies (vault is Node stdlib only).
 
 ## Fallback table
 | PC tool | Mobile next-best | Queue for PC |
@@ -32,7 +33,8 @@ Rule: never say "failed"/"can't" when a fallback exists. Do the fallback, queue 
 
 ## Queue format (append to [queue/pc.md](queue/pc.md))
 `- [ ] YYYY-MM-DD step — context (files, why, expected result)`
-One line per PC-only step, imperative, enough context to run cold. Commit + push so the PC sees it.
+One line per PC-only step, imperative, enough context to run cold.
+Queue sync: mobile commits queue/pc.md and its work to its cloud session branch (the cloud pushes it); the PC SessionStart hook fetches origin and lists unchecked items from origin/claude/* branches plus the branches to merge.
 
 ## Remote Control
 If the PC is on and the owner wants PC tools from the phone, suggest `/remote-control` (phone drives the PC session; mode becomes pc, remote). Don't suggest it for work the fallback covers.

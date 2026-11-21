@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+ <!-- raised square studs: light top-left edge, dark bottom-right edge, like a pressed plastic panel -->
+ <g>
+  <rect x="6" y="6" width="10" height="10" rx="2" fill="#ffffff" opacity=".10"/>
+  <path d="M6 16V8a2 2 0 0 1 2-2h8" fill="none" stroke="#fff" stroke-width="1.6" opacity=".45"/>
+  <path d="M16 6v8a2 2 0 0 1-2 2H6" fill="none" stroke="#000" stroke-width="1.6" opacity=".28"/>
+  <rect x="26" y="26" width="10" height="10" rx="2" fill="#ffffff" opacity=".10"/>
+  <path d="M26 36v-8a2 2 0 0 1 2-2h8" fill="none" stroke="#fff" stroke-width="1.6" opacity=".45"/>
+  <path d="M36 26v8a2 2 0 0 1-2 2h-8" fill="none" stroke="#000" stroke-width="1.6" opacity=".28"/>
+ </g>
+</svg>

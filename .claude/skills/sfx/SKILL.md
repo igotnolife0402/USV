@@ -101,4 +101,4 @@ Render every category, play each once (PC: browser page or Artifact), confirm: n
 Set of 5 game SFX < 5 min (presets + tweak + export).
 
 ## Mobile
-Build an HTML Artifact: preset buttons, sliders bound to the params JSON, play + "Download WAV". Save params JSON + renderer in the repo. Queue only if assets must be uploaded or placed in Studio: `- [ ] YYYY-MM-DD upload <name>.wav to Roblox / copy into <project>/assets — mobile SFX`.
+agent-audio (and any local audio MCP) is a local stdio server: PC-only, the pre-tool hook blocks it. Build an HTML Artifact: preset buttons, sliders bound to the params JSON, play + "Download WAV". Save params JSON + renderer in the repo. Queue only if assets must be uploaded or placed in Studio: `- [ ] YYYY-MM-DD upload <name>.wav to Roblox / copy into <project>/assets — mobile SFX`.

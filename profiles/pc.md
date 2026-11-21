@@ -14,7 +14,8 @@ Everything connected is allowed. Order: Claude-native (own tools, repo skills) â
 - Built-in browser preview and Claude in Chrome (`mcp__claude-in-chrome__*`): DOM-aware testing of sites/games.
 - Computer use (`mcp__computer-use__*`): native apps with no MCP; request_access first.
 - Terminal tools, scheduled tasks, worktrees (`git worktree`) for parallel sub-agents.
-- Remote MCPs: Firecrawl (search/scrape/developer docs), Figma (create_session first), Claude Docs, Customuse (3D/image gen, needs workflowId), agent-audio (SFX/voice gen).
+- Remote MCPs: Firecrawl (search/scrape/developer docs), Figma (create_session first), Claude Docs, Customuse (3D/image gen, needs workflowId).
+- agent-audio (SFX/voice gen): local stdio MCP on this PC, so PC-only (hooks/modes.json blocks it on mobile).
 - Plugins and ~/.claude skills/hooks load here (never on mobile).
 - Sub-agents (omit `model`, replies <= 2k tokens), agent teams (huge tier only).
 
@@ -26,7 +27,8 @@ Everything connected is allowed. Order: Claude-native (own tools, repo skills) â
 - Blender: save the .blend before every execute call. Imported assets: rescale from world_bounding_box.
 
 ## PC QUEUE first
-- SessionStart shows [queue/pc.md](queue/pc.md). If items exist, list them in one line and offer to run them before new work (run them first if they block the task).
+- SessionStart shows [queue/pc.md](queue/pc.md). PC QUEUE: do queued items first if the task depends on them or the owner says /pc with no task; otherwise mention them in one line.
+- Queue sync: mobile commits queue/pc.md and its work to its cloud session branch (the cloud pushes it); the PC SessionStart hook fetches origin and lists unchecked items from origin/claude/* branches plus the branches to merge.
 - Done item â†’ `- [x]`, add result in a few words; rolled to archive monthly.
 
 ## After work

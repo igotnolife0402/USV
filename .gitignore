@@ -14,3 +14,27 @@ Thumbs.db
 *.fbx
 *.wav
 *.mp4
+# secrets never committed
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+# more binaries and build output
+*.rbxl
+*.rbxlx
+*.rbxm
+*.glb
+*.gltf.bin
+*.obj
+*.ogg
+*.mp3
+*.flac
+*.psd
+dist/
+build/
+# generated tool output (regenerate with the tool)
+tools/**/out/
+!tools/roblox/lobby/out/*.json
+tools/roblox/lobby/out/geos.json
+__pycache__/

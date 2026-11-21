@@ -1,0 +1,6 @@
+{
+ "name": "creature",
+ "what": "Realistic animal render + Roblox GLB from code (tiger template)",
+ "run": "python3 geo.py out; node render.js \"w=2560&h=1600&shells=40&views=hero&depth=1\" final; python3 post.py ...; python3 glb.py final/x.glb (README Steps)",
+ "prompt": "Follow README Steps. Edit only geo.py anatomy + paint."
+}

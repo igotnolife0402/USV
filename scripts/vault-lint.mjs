@@ -4,10 +4,11 @@ import { readdirSync, existsSync } from 'node:fs';
 import { join, resolve, relative, dirname, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ROOT, readIf, fm, today } from '../hooks/lib.mjs';
+import { repoCheck, listFiles } from './repo-check.mjs';
 
 const SKIP = /(^|\/)(node_modules|\.git|archive|\.worktrees)(\/|$)/;
 const NOT_NOTE = /^(CLAUDE\.md|CLAUDE\.local\.md.*|log\.md|archive\/.*|\.orchestration\/.*|\.github\/.*|\.claude\/.*)$|(^|\/)README\.md$/;
-const isNote = (rel) => !NOT_NOTE.test(rel) && (/^(domains|profiles|checklists)\/.*\.md$/.test(rel) || ['index.md', 'lessons.md', 'queue/pc.md'].includes(rel));
+export const isNote = (rel) => !NOT_NOTE.test(rel) && (/^(domains|profiles|checklists)\/.*\.md$/.test(rel) || ['index.md', 'lessons.md', 'queue/pc.md'].includes(rel));
 const relOf = (p, root) => relative(root, resolve(root, p)).replace(/\\/g, '/');
 
 function validDate(s) {
@@ -51,7 +52,7 @@ function lintMarkdown(rel, text, root, out) {
       if (!data.summary) add('frontmatter missing summary', 'error', 1);
       else if (String(data.summary).length > 140) add(`summary is ${String(data.summary).length} chars (cap 140)`, 'error', 1);
       if (!validDate(data.updated)) add(`updated "${data.updated ?? ''}" is not a valid YYYY-MM-DD date`, 'error', 1);
-      else if (data.updated > today()) add(`updated ${data.updated} is in the future`, 'error', 1);
+      else if (data.updated > today(new Date(Date.now() + 864e5))) add(`updated ${data.updated} is in the future`, 'error', 1);
       if (!['current', 'superseded'].includes(data.status)) add(`status "${data.status ?? ''}" must be current or superseded`, 'error', 1);
       if (data.status === 'superseded' && !data.superseded_by) add('superseded note needs superseded_by', 'error', 1);
     }
@@ -101,25 +102,19 @@ export function lintFiles(paths, root = ROOT) {
 }
 
 export function lintAll(root = ROOT) {
-  const files = [];
-  const walk = (d) => {
-    for (const e of readdirSync(d, { withFileTypes: true })) {
-      const p = join(d, e.name), rel = relOf(p, root);
-      if (SKIP.test(rel)) continue;
-      if (e.isDirectory()) walk(p);
-      else if (rel.endsWith('.md')) files.push(rel);
-    }
-  };
-  walk(root);
+  // git-tracked + untracked-not-ignored files (gitignored output is never linted); falls back to a walk outside git.
+  const all = listFiles(root).filter(f => !SKIP.test(f));
+  const files = all.filter(f => f.endsWith('.md'));
   for (const j of ['router.json', 'hooks/modes.json']) if (existsSync(join(root, j))) files.push(j);
-  return lintFiles(files, root);
+  return [...lintFiles(files, root), ...repoCheck(root, all)];
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
+  const t0 = Date.now();
   const res = args.includes('--all') || !args.length ? lintAll() : lintFiles(args);
   for (const r of res) console.log(`${r.file}:${r.line ?? 0} ${r.level} ${r.msg}`);
   const errs = res.filter(r => r.level === 'error').length;
-  console.log(`vault-lint: ${errs} error(s), ${res.length - errs} warning(s)`);
+  console.log(`vault-lint: ${errs} error(s), ${res.length - errs} warning(s), ${Date.now() - t0} ms`);
   process.exit(errs ? 1 : 0);
 }

@@ -2,7 +2,7 @@
 summary: 3D domain entry: Blender MCP modelling, glTF/GLB assets, three.js scenes and the browser mini-Blender editor
 updated: 2026-11-21
 status: current
-triggers: [3d, blender, model, mesh, gltf, glb, three.js, threejs, scene, editor, mini-blender, render, low poly]
+triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, voxel, props, 3d, blender, model, mesh, gltf, glb, three.js, threejs, scene, editor, mini-blender, render, low poly]
 ---
 # 3D
 
@@ -13,6 +13,11 @@ Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.
 2. [Errors](domains/3d/errors.md): symptom → fix table.
 3. [Pipeline](domains/3d/pipeline.md): Blender → GLB export, three.js load, Roblox export.
 4. [Snippets](domains/3d/snippets/README.md): bpy and three.js known-good code.
+5. [Studio](domains/3d/studio.md): the owner's web 3D editor (tools/3d/studio): data, live builds, speed caps, tests, shots check.
+
+## Tools
+- [tools/3d](tools/3d/README.md): studio, zfight gate, props, shatter, voxel, creature, beast, avatar, armor (which-tool table in the playbook).
+- Owner reference images: [.claude/references/](.claude/references/dragon-armor-reference.jpg) (dragon armor).
 
 ## Skill and done
 - Skill: [3d-editor](.claude/skills/3d-editor/SKILL.md)
@@ -24,3 +29,5 @@ Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.
 - [Games](domains/games/index.md): 3D browser games.
 - [VFX](domains/vfx/index.md): shaders, post-processing.
 - [Roblox](domains/roblox/index.md): mesh limits for Roblox import.
+- [Animation](domains/animation/index.md): key poses, clips, motion specs.
+- [Images](domains/images/index.md): style prompts, Roblox thumbnails built in Studio.

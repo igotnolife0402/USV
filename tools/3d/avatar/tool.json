@@ -1,0 +1,7 @@
+{
+ "name": "avatar",
+ "what": "Roblox avatars from real catalog items (body package, hair, shirt, pants, face) as a rigged, animated studio tab, rendered by the studio",
+ "run": "python3 catalog.py KIT --body ... --hair ... --shirt ... --pants ... --face ...; python3 avatar.py KIT OUT [--pose P] [--clip C] [--fx fx.json]; render: studio shots check with SHOTS_RENDER=1",
+ "prompt": "Roblox avatar or character render: follow README Steps with the real catalog items (never guessed colours or shapes). Finished result: write OUT/studio to the studio tab via batches.json.",
+ "web": []
+}

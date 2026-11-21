@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+ <defs>
+  <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf3a"/><stop offset="1" stop-color="#c27a00"/></linearGradient>
+  <radialGradient id="face" cx="0.38" cy="0.32" r="0.75"><stop offset="0" stop-color="#fff3a6"/><stop offset="0.55" stop-color="#ffd23f"/><stop offset="1" stop-color="#f0a400"/></radialGradient>
+  <linearGradient id="inner" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2a900"/><stop offset="1" stop-color="#ffd84a"/></linearGradient>
+ </defs>
+ <!-- coin thickness: darker edge offset below the face -->
+ <ellipse cx="48" cy="54" rx="40" ry="38" fill="#a85f00" stroke="#b35a00" stroke-width="5"/>
+ <ellipse cx="48" cy="47" rx="40" ry="38" fill="url(#rim)" stroke="#b35a00" stroke-width="5"/>
+ <ellipse cx="48" cy="47" rx="30" ry="28.5" fill="url(#inner)" stroke="#8a4e00" stroke-width="3"/>
+ <ellipse cx="48" cy="47" rx="25" ry="23.5" fill="url(#face)"/>
+ <!-- embossed star -->
+ <path d="M48 31l5 10.5 11.5 1.3-8.6 7.8 2.4 11.4L48 56.3 37.7 62l2.4-11.4-8.6-7.8 11.5-1.3z" fill="#e89a00" stroke="#8a4e00" stroke-width="2.5" stroke-linejoin="round" transform="translate(0 1.5)"/>
+ <path d="M48 31l5 10.5 11.5 1.3-8.6 7.8 2.4 11.4L48 56.3 37.7 62l2.4-11.4-8.6-7.8 11.5-1.3z" fill="#ffe680" stroke="#b86e00" stroke-width="2" stroke-linejoin="round"/>
+ <!-- rim notches -->
+ <g stroke="#a86400" stroke-width="2" stroke-linecap="round" opacity=".7">
+  <path d="M48 11v5M48 78v5M12 47h5M79 47h5M22.5 21.5l3.5 3.5M70 69l3.5 3.5M73.5 21.5L70 25M26 69l-3.5 3.5"/>
+ </g>
+ <!-- gloss -->
+ <path d="M22 34a28 26 0 0 1 22-20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+ <ellipse cx="33" cy="25" rx="4" ry="3" fill="#fff" opacity=".95"/>
+</svg>

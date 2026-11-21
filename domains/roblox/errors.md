@@ -25,3 +25,15 @@ triggers: [roblox error, luau error, studio crash, rojo error, datastore error]
 | Touched fires many times | No debounce, multiple limbs touch | Per-player debounce table keyed by UserId | 2026-11-21 |
 | luau-lsp: unknown global `game`/`workspace` | Missing Roblox definitions file | Pass `--definitions=globalTypes.d.luau` (from luau-lsp releases) and sourcemap from `rojo sourcemap` | 2026-11-21 |
 | Uploaded audio/image stays "pending"/blocked | Moderation or audio privacy permissions | Wait for moderation; grant place permission to the asset | 2026-11-21 |
+| Owner: UI "plain grid, ugly" / "a pro had 1 minute" | Uniform small cards, built-in boxes and glyph icons, uneven gutters | Hero offer + few big cards, hand-made skins, drawn icons, 8 px grid ([ui](domains/roblox/ui.md)) | 2026-11-18 |
+| Owner: colours "soft", then "gloomy" | Pastels, then near-black panels/outlines added for contrast | Vivid palette (s,v >= 0.75), coloured outlines, white plates; `vividCheck()` fails the build | 2026-11-18 |
+| Owner: fonts/outlines "generic" | Default simulator recipe (Fredoka/Luckiest Guy, black outline everywhere, all centred) | Decide a type system with palette+layout, show 3 directions first | 2026-11-18 |
+| UI art/badges break card edges, parts poke through | No containment rule | Every box inside its parent, outline+lip counted; overlap check (`shop/preview.mjs`) | 2026-11-18 |
+| Phone UI: 9-11 px text, 30 px taps, clipped rows | Designed on desktop only | >= 14 px text, >= 44 px taps, effect line per card; render at 844x390 before going live | 2026-11-18 |
+| Wrote Luau for a GUI the owner wanted designed in Studio | Misread "build me a UI" | UI requests = build instances in Studio unless scripts are asked for | 2026-11-18 |
+| Live write failed halfway (doc too big) | Thousands of grass parts as separate objects | Merge mass-repeated pieces into one mesh per colour; doc <= 230 KB | 2026-11-18 |
+| Large batch update refused | One giant write | Chunk writes: <= 150 objects, < 750 KB per batch (`lobby/stage.mjs`, `live.mjs`) | 2026-11-18 |
+| Owner: "no scenery, I said grassy meadow" / placeholder spawn | Plain slab, 4-part draft, stand-in spheres | Build the named theme everywhere first; no placeholders; hero floors in [maps](domains/roblox/maps.md) | 2026-11-18 |
+| Imported kit does nothing / effects blank | Mesh names changed on import, or `SheetAssetIds` empty | Keep importer names; owner uploads sheets and pastes ids ([delivery](domains/roblox/delivery.md)) | 2026-11-13 |
+| Exported sphere/cylinder arrives as mesh placeholder | Non-uniform scale on round parts | Keep spheres/cylinders round; bake scale, no scaled groups | 2026-11-13 |
+| Tool script ENOENT `C:\C:\...` on Windows | `new URL(...).pathname` used as a file path | `fileURLToPath(new URL(...))`; main guard `pathToFileURL(process.argv[1]).href` | 2026-11-21 |

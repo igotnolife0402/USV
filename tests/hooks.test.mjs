@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TMP = mkdtempSync(join(tmpdir(), 'vault-test-'));
-process.env.CLAUDE_PROJECT_DIR = TMP;
+process.env.VAULT_ROOT = TMP;
+// Under the pre-commit hook git exports GIT_DIR/GIT_INDEX_FILE: never let them leak into temp-dir git calls.
+for (const k of Object.keys(process.env)) if (k.startsWith('GIT_')) delete process.env[k];
 delete process.env.CLAUDE_CODE_REMOTE;
 delete process.env.CLAUDE_CODE_BRIDGE_SESSION_ID;
 const { getMode, setMode, fm } = await import('../hooks/lib.mjs');
@@ -23,7 +25,7 @@ copyFileSync(join(REPO, 'hooks', 'modes.json'), join(TMP, 'hooks', 'modes.json')
 function run(hook, input, env = {}) {
   const r = spawnSync(process.execPath, [join(REPO, 'hooks', hook)], {
     input: JSON.stringify(input), encoding: 'utf8',
-    env: { ...process.env, CLAUDE_PROJECT_DIR: TMP, ...env },
+    env: { ...process.env, VAULT_ROOT: TMP, ...env },
   });
   assert.equal(r.status, 0, r.stderr);
   return r.stdout ? JSON.parse(r.stdout) : null;
@@ -70,7 +72,12 @@ test('prompt-router: routes, tiers and /mobile override', () => {
 
   assert.match(ctx('quick: explain flexbox'), /TIER=simple/);
   assert.match(ctx('make a full app'), /TIER=complex/);
-  assert.match(ctx('x'.repeat(700)), /TIER=complex/);
+  assert.match(ctx('x'.repeat(700)), /TIER=medium/, '>600 chars alone is no longer complex');
+  assert.match(ctx('x '.repeat(2100)), /TIER=complex/, '> 4000 chars is complex');
+  assert.match(ctx('fix typo in the editor title'), /TIER=simple/, 'simple-fix words win over complex words');
+  assert.match(ctx('RATING: 7/10\nbuild a full app'), /TIER=medium/, 'sub-agent reports are not tiered by words');
+  const order = ctx('build me a website');
+  assert.ok(order.indexOf('Checklist:') < order.indexOf('Read first:'), 'checklist before read-first');
   assert.doesNotMatch(ctx('websites are cool'), /Read first/, 'word boundary');
   assert.match(ctx('/mobile build a website'), /^MODE=mobile/);
   assert.match(ctx('next prompt'), /^MODE=mobile/);
@@ -133,7 +140,7 @@ test('session-start: <= 8000 chars and shows PC QUEUE', () => {
   const ctx = run('session-start.mjs', { session_id: 's' }).hookSpecificOutput.additionalContext;
   assert.ok(ctx.length <= 8000, `length ${ctx.length}`);
   assert.match(ctx, /^MODE=pc/);
-  assert.match(ctx, /PC QUEUE \(do these first\)\n- \[ \] 2025-01-02 run studio/);
+  assert.match(ctx, /PC QUEUE: 1 item\(s\)\. Do them first if the task depends on them or the owner says \/pc with no task; otherwise mention them in one line\.\n- \[ \] 2025-01-02 run studio/);
   assert.doesNotMatch(ctx, /done one/);
   assert.match(ctx, /PC PROFILE BODY/);
   assert.doesNotMatch(ctx, /summary: pc profile/);

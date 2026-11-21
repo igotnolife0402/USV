@@ -3,10 +3,11 @@ on: [push, pull_request]
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: node scripts/vault-lint.mjs --all
-      - run: node --test tests/
+      - run: node --test "tests/*.test.mjs"

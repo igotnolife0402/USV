@@ -1,0 +1,9 @@
+out/
+final/
+preview/
+glbviews/
+node_modules/
+__pycache__/
+*.jpg
+*.png
+*.glb

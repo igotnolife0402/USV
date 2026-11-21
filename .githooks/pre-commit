@@ -1,0 +1,4 @@
+#!/bin/sh
+# Vault gate on every commit (old vault: hub.py selftest + check). Install: node scripts/install-githooks.mjs
+cd "$(git rev-parse --show-toplevel)" || exit 1
+node scripts/vault-lint.mjs --all && node --test "tests/*.test.mjs"

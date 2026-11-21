@@ -22,3 +22,9 @@ triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 | Texture sprite has dark fringes | Non-premultiplied alpha edges | Premultiply alpha or use radial gradient generated in canvas | 2026-11-21 |
 | Roblox ParticleEmitter shows nothing | `Enabled` false with no `:Emit()`, or Rate 0, or parent not a part/attachment | Parent to Attachment/BasePart, call `emitter:Emit(n)` | 2026-11-21 |
 | Effect fine at 60 Hz, too fast at 144 Hz | Per-frame updates | Multiply by dt; fixed step | 2026-11-21 |
+| Flipbook choppy / pops (`max_step_jump` > ~3) | Something appears whole between frames; too few frames | 64 frames, ease the motion, tween keys along flow, never pop in | 2026-11-13 |
+| Hair-thin lines read badly (`thin_stroke_pct` > ~10) | Strokes < 3 px at 128 px cell | Widen to >= 3 px; black hole 19.6 → 9 with 73° view, tighter frame, 3 px photon ring | 2026-11-13 |
+| Loop visibly pops on Roblox | Single particle restarts its flipbook | Life = 4 cycles, Transparency fade in/out at 0.2/0.8, Rate 2/life so two overlap (VFX.lua) | 2026-11-13 |
+| 8x8 sheet shows quarter frames | Emitter helper hard-coded `Grid4x4` (old `ElementVFX.make`) | Set `FlipbookLayout` from the sheet (Grid8x8); use tools/vfx/flipbook/VFX.lua | 2026-11-13 |
+| Beam turns with the camera | Beam built as a camera-facing card | Make it a 3D volume (`shape: beam`), tile the blade sheet along x | 2026-11-13 |
+| Effect ends with a hard cut at the cell edge | Content reaches the cell border / vanishes clean | Border fade `edge=0.07`; end by eroding into lingering embers/ash | 2026-11-13 |

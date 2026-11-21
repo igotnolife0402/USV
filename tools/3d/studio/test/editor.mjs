@@ -1,0 +1,201 @@
+// Editor input: shortcuts, click and box select, drag to move, context menu, command palette, camera views.
+const centre = id => { const v = window.studio.app.viewport, o = v.objects.get(id), p = o.getWorldPosition(o.position.clone()); return v.project(p) }
+export default async function (t) {
+  await t.test('shortcuts: Q W E R tools, Ctrl+D, Delete, Ctrl+Z, Ctrl+Shift+Z, Tab, H, Ctrl+G', async () => {
+    const s = await t.open()
+    await s.project('Keys')
+    const a = await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.page.focus('canvas')
+    const tool = () => s.eval(() => window.studio.app.tool)
+    for (const [k, want] of [['w', 'move'], ['e', 'rotate'], ['r', 'scale'], ['q', 'select']]) { await s.page.keyboard.press(k); t.eq(await tool(), want, 'key ' + k) }
+    const count = () => s.eval(() => Object.keys(window.studio.app.scene.objects).length)
+    await s.page.keyboard.press('Control+d'); t.eq(await count(), 3, 'Ctrl+D duplicates')
+    await s.page.keyboard.press('Delete'); t.eq(await count(), 2, 'Delete removes the copy')
+    await s.page.keyboard.press('Control+z'); t.eq(await count(), 3, 'Ctrl+Z brings it back')
+    await s.page.keyboard.press('Control+Shift+z'); t.eq(await count(), 2, 'Ctrl+Shift+Z redoes')
+    await s.page.keyboard.press('Control+y'); t.eq(await count(), 2, 'Ctrl+Y with nothing to redo is harmless')
+    await s.eval(id => window.studio.select([id]), a)
+    await s.page.keyboard.press('h'); t.eq(await s.eval(id => window.studio.app.obj(id).visible, a), false, 'H hides')
+    await s.page.keyboard.press('h'); t.eq(await s.eval(id => window.studio.app.obj(id).visible, a), true, 'H shows again')
+    await s.page.keyboard.press('Tab')
+    t.ok(await s.eval(() => !document.activeElement || document.activeElement.tagName === 'CANVAS' || document.activeElement === document.body), 'Tab does not move focus out of the viewport')
+    t.eq(await s.eval(() => window.studio.app.mode), 'mesh', 'Tab enters mesh edit')
+    await s.page.keyboard.press('Tab')
+    t.eq(await s.eval(() => window.studio.app.mode), 'build', 'Tab again leaves mesh edit')
+    const b = await s.run('parts.sphere', { pos: [4, 1, 0] })
+    await s.eval(ids => window.studio.select(ids), [a, b])
+    await s.page.keyboard.press('Control+g')
+    t.eq(await s.eval(() => window.studio.app.obj(window.studio.selection()[0]).type), 'group', 'Ctrl+G groups')
+    s.noErrors()
+  })
+
+  await t.test('mouse: click select, shift add, empty click clears, box select, drag moves', async () => {
+    const s = await t.open()
+    await s.project('Mouse')
+    const a = await s.run('parts.box', { pos: [-3, 0.5, 0] }), b = await s.run('parts.box', { pos: [3, 0.5, 0] }), c = await s.run('parts.box', { pos: [0, 0.5, 14] })
+    await s.run('view.frameAll'); await s.eval(() => new Promise(r => setTimeout(r, 400)))
+    await s.eval(() => window.studio.select([]))
+    const pa = await s.eval(centre, a), pb = await s.eval(centre, b)
+    await s.page.mouse.click(pa.x, pa.y); t.eq(await s.eval(() => window.studio.selection()), [a], 'click selects')
+    await s.page.keyboard.down('Shift'); await s.page.mouse.click(pb.x, pb.y); await s.page.keyboard.up('Shift')
+    t.eq((await s.eval(() => window.studio.selection())).sort(), [a, b].sort(), 'shift-click adds')
+    // empty sky: top-left of the viewport
+    const vr = await s.eval(() => { const r = window.studio.app.viewport.canvas.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height } })
+    await s.page.mouse.click(vr.x + 20, vr.y + 20); t.eq(await s.eval(() => window.studio.selection()), [], 'empty click clears')
+    // box select from the locked baseplate around a and b only
+    const x0 = Math.min(pa.x, pb.x) - 40, x1 = Math.max(pa.x, pb.x) + 40, y0 = Math.min(pa.y, pb.y) - 30, y1 = Math.max(pa.y, pb.y) + 30
+    await s.page.mouse.move(x0, y0); await s.page.mouse.down(); await s.page.mouse.move((x0 + x1) / 2, (y0 + y1) / 2, { steps: 4 }); await s.page.mouse.move(x1, y1, { steps: 4 })
+    await s.shot('desktop-box-select.png')
+    await s.page.mouse.up()
+    t.eq((await s.eval(() => window.studio.selection())).sort(), [a, b].sort(), 'box selects the two parts, not the far one or the baseplate')
+    // drag a part along the ground
+    await s.eval(id => window.studio.select([id]), a)
+    const before = await s.eval(id => window.studio.app.obj(id).pos, a)
+    const p = await s.eval(centre, a)
+    await s.page.mouse.move(p.x, p.y); await s.page.mouse.down(); await s.page.mouse.move(p.x - 60, p.y + 10, { steps: 6 }); await s.page.mouse.up()
+    const after = await s.eval(id => window.studio.app.obj(id).pos, a)
+    t.ok(Math.hypot(after[0] - before[0], after[2] - before[2]) >= 1, 'drag moves the part: ' + JSON.stringify([before, after]))
+    t.near(after[1], before[1], 1e-6, 'drag keeps the height')
+    await s.run('edit.undo'); t.near(await s.eval(id => window.studio.app.obj(id).pos, a), before, 1e-6, 'one undo puts it back')
+    s.noErrors()
+  })
+
+  await t.test('move tool centre handle, snap on: an 80 px sideways drag keeps the height 0.5 and moves whole studs (desktop, phone)', async () => {
+    for (const device of ['desktop', 'phone']) {
+      const s = await t.open({ device })
+      await s.project('Centre ' + device)
+      const start = device === 'phone' ? [0, 0.5, -2] : [1, 0.5, -3]
+      const a = await s.run('parts.box', { pos: start })
+      await s.eval(id => { const app = window.studio.app; app.setPref('snap', true); app.setPref('moveSnap', 1); app.setTool('move'); window.studio.select([id]) }, a)
+      await s.idle(); await s.eval(() => new Promise(r => setTimeout(r, 200)))
+      const p = await s.eval(centre, a)
+      if (device === 'desktop') { await s.page.mouse.move(p.x, p.y); await s.page.mouse.down(); for (let i = 1; i <= 8; i++) await s.page.mouse.move(p.x + i * 10, p.y); await s.page.mouse.up() }
+      else {
+        const cdp = await s.ctx.newCDPSession(s.page), touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1, radiusX: 4, radiusY: 4, force: 0.5 }] })
+        await touch('touchStart', p.x, p.y); for (let i = 1; i <= 8; i++) await touch('touchMove', p.x + i * 10, p.y); await touch('touchEnd')
+      }
+      await s.idle()
+      const after = await s.eval(id => window.studio.app.obj(id).pos, a)
+      t.eq(after[1], 0.5, device + ': height stays exactly 0.5, got ' + JSON.stringify(after))
+      t.ok(Math.abs(after[0] - start[0]) >= 1 && [0, 2].every(k => Math.abs((after[k] - start[k]) - Math.round(after[k] - start[k])) < 1e-6), device + ': moved by whole studs ' + JSON.stringify([start, after]))
+      s.noErrors()
+    }
+  })
+
+  await t.test('context menu and command palette', async () => {
+    const s = await t.open()
+    await s.project('Menus', { empty: true })
+    const a = await s.run('parts.box', { pos: [0, 0.5, 0], size: [6, 1, 6] })
+    await s.eval(() => window.studio.select([]))
+    const p = await s.eval(centre, a)
+    await s.page.mouse.click(p.x, p.y, { button: 'right' })
+    await s.page.waitForSelector('.menu [role="menuitem"], .menu button')
+    t.eq(await s.eval(() => window.studio.selection()), [a], 'right-click selects what is under it')
+    const items = await s.eval(() => [...document.querySelectorAll('.menu button')].map(b => b.textContent.trim()).filter(Boolean))
+    t.ok(items.some(x => /Duplicate/.test(x)) && items.some(x => /Union/.test(x)), 'menu has edit and parts items: ' + items.slice(0, 8).join(', '))
+    await s.page.keyboard.press('Escape')
+    await s.page.keyboard.press('Control+k')
+    await s.page.waitForSelector('.palette .pal-in input')
+    await s.page.keyboard.type('sphere')
+    t.ok(/Sphere/.test(await s.eval(() => document.querySelector('.pal-item.on')?.textContent)), 'first match is Sphere')
+    await s.shot('desktop-palette.png')
+    await s.page.keyboard.press('Enter')
+    await s.waitFor(() => !document.querySelector('.palette') && Object.values(window.studio.app.scene.objects).some(o => o.shape === 'sphere'))
+    s.noErrors()
+  })
+
+  await t.test('camera: numpad views, orthographic, frame, field of view, bookmarks', async () => {
+    const s = await t.open()
+    await s.project('Camera')
+    const a = await s.run('parts.box', { pos: [10, 0.5, 10] })
+    await s.page.focus('canvas')
+    await s.page.keyboard.press('Numpad7'); await s.eval(() => new Promise(r => setTimeout(r, 400)))
+    const top = await s.eval(() => window.studio.app.viewport.getCamera())
+    t.eq(await s.eval(() => window.studio.app.viewport.view), 'top')
+    t.ok(top.pos[1] - top.target[1] > 0.99 * Math.hypot(...top.pos.map((v, i) => v - top.target[i])), 'top view looks straight down')
+    await s.page.keyboard.press('Numpad5'); t.eq(await s.eval(() => window.studio.app.viewport.ortho), true, 'Numpad5 orthographic')
+    await s.page.keyboard.press('Numpad5'); t.eq(await s.eval(() => window.studio.app.viewport.ortho), false)
+    await s.page.keyboard.press('Numpad1'); await s.eval(() => new Promise(r => setTimeout(r, 400)))
+    t.eq(await s.eval(() => window.studio.app.viewport.view), 'front')
+    await s.eval(id => window.studio.select([id]), a)
+    // software rendering in the test browser draws few frames, so wait for the move to land instead of a fixed time
+    const at = (p, eps = 0.05) => s.waitFor(([p, eps]) => window.studio.app.viewport.getCamera().target.every((v, i) => Math.abs(v - p[i]) < eps), [p, eps], 3000).then(() => true, () => false)
+    await s.page.keyboard.press('f')
+    t.ok(await at([10, 0.5, 10]), 'F frames the selection, got ' + JSON.stringify((await s.eval(() => window.studio.app.viewport.getCamera())).target))
+    t.eq(await s.run('view.fov', { fov: 35 }), 35)
+    t.near(await s.eval(() => window.studio.app.viewport.getCamera().fov), 35, 1e-6, 'field of view applies')
+    await s.run('view.bookmarkSave', { slot: 2 })
+    await s.page.keyboard.press('Home')
+    t.ok(await s.waitFor(() => Math.abs(window.studio.app.viewport.getCamera().target[0] - 10) > 1, null, 3000).then(() => true, () => false), 'Home frames everything')
+    await s.page.keyboard.press('Shift+2')
+    t.ok(await at([10, 0.5, 10]), 'Shift+2 returns to bookmark 2')
+    s.noErrors()
+  })
+  await nav(t)
+}
+
+// Navigation: endless zoom (the wheel keeps travelling past the orbit target), clip planes fitted to the view,
+// fly mode (button, WASD, wheel, joystick on a phone, Esc), and W still picks the move tool once flying stops.
+async function nav(t) {
+  const cam = s => s.eval(() => { const v = window.studio.app.viewport; return { c: v.camera.position.toArray(), t: v.getCamera().target, near: v.camera.near, far: v.camera.far } })
+  await t.test('endless zoom: the wheel passes the target and keeps going; near/far follow the view', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Zoom')
+    await s.run('parts.box', { pos: [0, 0.5, -60], size: [4, 1, 4] })
+    await s.eval(() => window.studio.app.viewport.setCamera({ pos: [0, 2, 10], target: [0, 2, 0] }))
+    const box = await s.page.locator('canvas').boundingBox()
+    await s.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    for (let i = 0; i < 120; i++) await s.page.mouse.wheel(0, -100)
+    const a = await cam(s)
+    t.ok(a.c[2] < -2, 'camera travelled past the old target (z ' + a.c[2].toFixed(2) + ')')
+    t.ok(a.near < 0.2, 'near plane small when close (' + a.near.toFixed(3) + ')')
+    for (let i = 0; i < 200; i++) await s.page.mouse.wheel(0, 100)
+    const b = await cam(s), d = Math.hypot(b.c[0] - b.t[0], b.c[1] - b.t[1], b.c[2] - b.t[2])
+    t.ok(d > 200, 'zooms far out (' + d.toFixed(0) + ')'); t.ok(b.far >= d * 20, 'far plane follows')
+    t.ok(b.near > a.near, 'near plane grows with distance')
+    s.noErrors()
+  })
+  await t.test('fly mode: button on, W moves forward, wheel moves, Esc leaves; editor keys work again', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Fly')
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.eval(() => window.studio.app.viewport.setCamera({ pos: [0, 2, 10], target: [0, 2, 0] }))
+    await s.page.click('.vp-fly')
+    await s.waitFor(() => window.studio.app.viewport.flying)
+    t.ok(await s.eval(() => !!document.querySelector('.fly-joy')), 'joystick shown')
+    await s.page.focus('canvas')
+    const z0 = (await cam(s)).c[2]
+    await s.page.keyboard.down('w'); await new Promise(r => setTimeout(r, 600)); await s.page.keyboard.up('w')
+    await new Promise(r => setTimeout(r, 400))
+    const z1 = (await cam(s)).c[2]
+    t.ok(z1 < z0 - 0.5, 'W flew forward (' + z0.toFixed(2) + ' -> ' + z1.toFixed(2) + ')')
+    t.eq(await s.eval(() => window.studio.app.tool), 'select', 'W did not switch tools while flying')
+    const box = await s.page.locator('canvas').boundingBox()
+    await s.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    for (let i = 0; i < 10; i++) await s.page.mouse.wheel(0, -100)
+    t.ok((await cam(s)).c[2] < z1 - 0.5, 'wheel moves forward while flying')
+    await s.page.keyboard.press('Escape')
+    t.eq(await s.eval(() => window.studio.app.viewport.flying), false, 'Esc leaves fly mode')
+    t.ok(await s.eval(() => !document.querySelector('.fly-ui')), 'overlay removed')
+    await s.page.focus('canvas'); await s.page.keyboard.press('w')
+    t.eq(await s.eval(() => window.studio.app.tool), 'move', 'W is the move tool again')
+    s.noErrors()
+  })
+  await t.test('fly on a phone: joystick drag moves the camera', async () => {
+    const s = await t.open({ device: 'phone' })
+    await s.project('FlyPhone')
+    await s.eval(() => window.studio.app.viewport.setCamera({ pos: [0, 2, 10], target: [0, 2, 0] }))
+    await s.eval(() => window.studio.app.viewport.fly(true))
+    await s.waitFor(() => !!document.querySelector('.fly-joy'))
+    const z0 = (await cam(s)).c[2]
+    const j = await s.page.locator('.fly-joy').boundingBox(), cx = j.x + j.width / 2, cy = j.y + j.height / 2
+    await s.page.evaluate(([x, y]) => {
+      const pad = document.querySelector('.fly-joy'), o = { pointerId: 7, bubbles: true, pointerType: 'touch', clientX: x, clientY: y }
+      pad.dispatchEvent(new PointerEvent('pointerdown', o)); pad.dispatchEvent(new PointerEvent('pointermove', { ...o, clientY: y - 50 }))
+    }, [cx, cy])
+    await new Promise(r => setTimeout(r, 700))
+    await s.page.evaluate(() => document.querySelector('.fly-joy').dispatchEvent(new PointerEvent('pointerup', { pointerId: 7, bubbles: true })))
+    t.ok((await cam(s)).c[2] < z0 - 0.5, 'joystick up flies forward')
+    s.noErrors()
+  })
+}

@@ -54,6 +54,10 @@ Playtest via MCP + console shows zero errors/warnings from our scripts and the f
 - [ ] Playtest console clean; debug prints removed.
 - [ ] Repo files match Studio (Rojo synced or scripts exported).
 
+## Domain notes and tools
+- Imports/kits/asset ids: [delivery](domains/roblox/delivery.md); UI: [ui](domains/roblox/ui.md); game design + playtest sims: [game-design](domains/roblox/game-design.md); lobbies/maps: [maps](domains/roblox/maps.md).
+- Tools: `tools/roblox/rbxmx-check.mjs` (run before handing over any .rbxmx), `tools/roblox/lobby` (validator), `tools/roblox/shop` (palette/vivid checks). Index: `tools/roblox/README.md`.
+
 ## Time target
 Single script/feature: medium < 5 min (2-3 loop iterations). Full game system (inventory + DataStore + UI): complex tier, split server/client/shared across sub-agents.
 

@@ -1,0 +1,6 @@
+{
+ "name": "zfight",
+ "what": "Z-fight gate for every studio build: finds surfaces that flicker (same-facing faces overlapping closer than a phone's depth step) and fixes them (separate level overlaps, cut hidden faces)",
+ "run": "python3 zfight.py check project.json geo/",
+ "prompt": "Check and fix z-fighting in my studio project"
+}

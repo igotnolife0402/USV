@@ -1,0 +1,72 @@
+<!doctype html><meta charset="utf-8"><title>Voxel City render</title>
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+// Renders city.rbxmx exactly as the file holds it (so it doubles as the open check). Query: w h dist az el file
+import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {GTAOPass} from 'three/addons/postprocessing/GTAOPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+const q = new URLSearchParams(location.search), num = (k, d) => +(q.get(k) ?? d);
+const W = num('w', 1280), H = num('h', 960), FOV = num('fov', 22);
+try {
+  const xml = new DOMParser().parseFromString(await (await fetch('/' + (q.get('file') || 'city.rbxmx'))).text(), 'text/xml');
+  const parts = [...xml.querySelectorAll('Item[class="Part"]')];
+  if (!parts.length) throw Error('no parts in file');
+  const val = (p, sel) => p.querySelector(sel).textContent, v3 = (p, sel) => ['X', 'Y', 'Z'].map(a => +p.querySelector(sel + '>' + a).textContent);
+  // One geometry per look: plastic, neon (unlit, glows), glass (see-through, reflective).
+  const B = {std: [], neon: [], glass: []}, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  for (const p of parts) {
+    const mat = +val(p, 'token[name="Material"]'), c = +val(p, 'Color3uint8'), tr = +val(p, 'float[name="Transparency"]');
+    const pos = v3(p, 'CoordinateFrame'), size = v3(p, 'Vector3[name="size"]');
+    const col = new THREE.Color().setRGB((c >> 16 & 255) / 255, (c >> 8 & 255) / 255, (c & 255) / 255, THREE.SRGBColorSpace);
+    (mat === 288 ? B.neon : mat === 1568 || tr > 0 ? B.glass : B.std).push([pos, size, col]);
+    for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], pos[i] - size[i] / 2); hi[i] = Math.max(hi[i], pos[i] + size[i] / 2) }
+  }
+  const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed(), BP = box.attributes.position.array, BN = box.attributes.normal.array;
+  function merge(list) {
+    const n = BP.length, P = new Float32Array(list.length * n), N = new Float32Array(list.length * n), C = new Float32Array(list.length * n);
+    list.forEach(([pos, s, c], k) => { for (let i = 0; i < n; i += 3) for (let a = 0; a < 3; a++) {
+      P[k * n + i + a] = pos[a] + BP[i + a] * s[a]; N[k * n + i + a] = BN[i + a]; C[k * n + i + a] = [c.r, c.g, c.b][a] } });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.BufferAttribute(N, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3));
+    return g;
+  }
+  const r = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
+  r.setSize(W, H); r.setPixelRatio(1); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap;
+  r.toneMapping = THREE.NeutralToneMapping; r.toneMappingExposure = num('exp', 1.05); document.body.appendChild(r.domElement);
+  const scene = new THREE.Scene();
+  // Sky: soft vertical gradient so the diorama floats on light, not a void.
+  const cv = document.createElement('canvas'); cv.width = 4; cv.height = 256; const cx = cv.getContext('2d'), gr = cx.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, '#8fbfe8'); gr.addColorStop(.62, '#d4e6f5'); gr.addColorStop(1, '#eef3f7'); cx.fillStyle = gr; cx.fillRect(0, 0, 4, 256);
+  scene.background = new THREE.CanvasTexture(cv); scene.background.colorSpace = THREE.SRGBColorSpace;
+  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), .04).texture; scene.environmentIntensity = .35;
+  scene.add(new THREE.HemisphereLight(0xdcecff, 0x8a7a66, .9));
+  const sun = new THREE.DirectionalLight(0xfff1dc, 2.6), sa = THREE.MathUtils.degToRad(num('sunaz', 150)), se = THREE.MathUtils.degToRad(num('sunel', 52));
+  sun.position.set(Math.sin(sa) * Math.cos(se), Math.sin(se), Math.cos(sa) * Math.cos(se)).multiplyScalar(90); sun.castShadow = true;
+  Object.assign(sun.shadow.camera, {left: -45, right: 45, top: 45, bottom: -45, near: 1, far: 220}); sun.shadow.mapSize.set(4096, 4096);
+  sun.shadow.bias = -.0004; sun.shadow.normalBias = .03; sun.shadow.radius = 2; scene.add(sun);
+  const mesh = (list, m, shadow) => { if (!list.length) return; const o = new THREE.Mesh(merge(list), m); o.castShadow = shadow; o.receiveShadow = true; scene.add(o) };
+  mesh(B.std, new THREE.MeshStandardMaterial({vertexColors: true, roughness: .82, metalness: 0}), true);
+  mesh(B.glass, new THREE.MeshStandardMaterial({vertexColors: true, roughness: .12, metalness: .15, envMapIntensity: 2.2}), true);
+  const neon = new THREE.MeshBasicMaterial({vertexColors: true, toneMapped: false}); neon.color.setScalar(1.6); mesh(B.neon, neon, false);
+  // Camera: 3/4 view from the city's front-left corner, long lens so the blocks stay square.
+  const tgt = new THREE.Vector3(0, num('ty', 17), 0), az = THREE.MathUtils.degToRad(num('az', 225)), el = THREE.MathUtils.degToRad(num('el', 35));
+  const rad = Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 2, dist = num('dist', rad / Math.sin(THREE.MathUtils.degToRad(FOV / 2)) * .9);
+  const cam = new THREE.PerspectiveCamera(FOV, W / H, 1, 1000);
+  cam.position.set(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).multiplyScalar(dist).add(tgt); cam.lookAt(tgt);
+  let ao = 'gtao';
+  try {
+    const comp = new EffectComposer(r, new THREE.WebGLRenderTarget(W, H, {type: THREE.HalfFloatType, samples: 4}));
+    comp.addPass(new RenderPass(scene, cam));
+    const g = new GTAOPass(scene, cam, W, H); g.updateGtaoMaterial({radius: 1.6, distanceExponent: 1.4, thickness: 2, scale: 1.1}); g.blendIntensity = .85; comp.addPass(g);
+    comp.addPass(new OutputPass()); comp.render();
+  } catch (e) { ao = 'off: ' + e.message; r.render(scene, cam) }
+  const tris = parts.length * 12;
+  window.shots = {city: r.domElement.toDataURL('image/png')};
+  window.info = {parts: parts.length, models: xml.querySelectorAll('Item[class="Model"]').length, neon: B.neon.length, glass: B.glass.length, size: hi.map((h, i) => h - lo[i]), tris, ao, dist: +dist.toFixed(1)};
+  window.done = true;
+} catch (e) { window.fail = e.stack || String(e) }
+</script>

@@ -6,6 +6,7 @@ triggers: [sound, sfx, audio, music, jsfxr, webaudio]
 ---
 # Checklist: audio
 - [ ] Used the [sfx skill](.claude/skills/sfx/SKILL.md); followed the [audio playbook](domains/audio/playbook.md).
+- [ ] One consistent sound style per project; nothing too loud, annoying or off-style; volume balanced across the set.
 - [ ] Each requested sound exists, named by use (jump, hit, coin), short and trimmed.
 - [ ] No clipping: peak <= -1 dBFS / gain <= 1; consistent loudness across the set.
 - [ ] Web: AudioContext resumed on first user gesture; procedural/jsfxr params saved in code.

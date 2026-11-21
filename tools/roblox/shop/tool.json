@@ -1,0 +1,6 @@
+{
+ "name": "shop",
+ "what": "Gadget Shop GUI for Studio Interface mode: design system, hand-made skins, item art, overlap-checked preview",
+ "run": "node design.mjs && node art/items.mjs && node art/render.mjs && node build.mjs; STUDIO_UI=<plugins/ui.js> node preview.mjs",
+ "prompt": "Follow domains/roblox/ui.md."
+}

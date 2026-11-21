@@ -1,0 +1,6 @@
+{
+ "name": "shatter",
+ "what": "Breakable crystal for a studio tab: Voronoi pieces of the model, a metal ball, physics motion, live stages",
+ "run": "python3 shatter.py OUT --pieces 100 [--fx crystal-burst.png] (README Steps)",
+ "prompt": "Follow README Steps; the effect comes from the flipbook tool's crystal-burst stack."
+}

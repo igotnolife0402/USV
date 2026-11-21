@@ -1,0 +1,8 @@
+{
+ "name": "styles",
+ "what": "20 image-style prompts: pick a style, type the subject, add Roblox/sheet/thumbnail add-ons, copy",
+ "run": "Open index.html in any browser (or as an Artifact on mobile). Data: STYLES and ADDONS in index.html.",
+ "prompt": "When the owner names an art style (voxel, low-poly, anime...) for an image, render or 3D piece, use that style's prompt in index.html (STYLES) as the spec and its 'how' line as the checklist. Roblox assets: add the Roblox add-on; reference sheets: the sheet add-on; thumbnails: the thumbnail add-on. Mixes: at most 3 styles, say what each controls. New style: append one [name, how, prompt] row to STYLES, keep [SUBJECT].",
+ "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF",
+ "web": ["index.html"]
+}

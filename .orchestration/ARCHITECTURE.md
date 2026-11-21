@@ -20,7 +20,7 @@ No outside AI assistants built into the vault (no ChatGPT, Copilot, embedding in
 | `domains/<d>/` for d in roblox, web, games, 3d, vfx, audio | `index.md`, `playbook.md`, `errors.md`, `pipeline.md`, `snippets/README.md` | W-DOMAINS |
 | `.claude/rules/<d>.md` | Path-scoped rules (`paths:` frontmatter) | W-DOMAINS |
 | `.claude/skills/<name>/SKILL.md` | pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep | W-SKILLS |
-| `.claude/agents/*.md` | qa-gate (adversarial verifier), explorer (haiku vault searcher) | W-SKILLS |
+| `.claude/agents/*.md` | qa-gate (adversarial verifier), explorer (vault searcher; no model field) | W-SKILLS |
 | `.claude/settings.json`, `.claude/settings.local.json.example` | Hook wiring + permissions | W-HOOKS |
 | `hooks/*.mjs` | lib, session-start, prompt-router, pre-tool, post-tool-lint, stop-gate | W-HOOKS |
 | `hooks/modes.json` | PC-only tool patterns + fallback text | W-HOOKS |

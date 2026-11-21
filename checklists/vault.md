@@ -10,8 +10,10 @@ triggers: [vault, lesson, note, index, lint, rollup]
 - [ ] Notes <= 150 lines (hard 200); CLAUDE.md <= 200; index.md <= 150.
 - [ ] New note linked from its domain index; superseded notes keep the file + `superseded_by:`.
 - [ ] One fact once: grep before adding; link instead of copying.
-- [ ] lessons.md: only appended bullets or bumped h/x counters; no rewrites.
-- [ ] Missed trigger words added to router.json; router.json still parses.
+- [ ] lessons.md is append-only; allowed in-place edits are only bumping h:/x: counters and appending ` → promoted: <path>` or ` → dup of L-xxx` to a bullet's end; pruning is proposed in log.md, never deleted.
+- [ ] Missed trigger words added to router.json; router.json still parses; replay the real ask: `echo '{"prompt":"<ask>"}' | node hooks/prompt-router.mjs` names the right route.
+- [ ] No orphans: every new note is linked from an index; every skill/tool is named in [index.md](index.md).
+- [ ] Owner correction: the rule it contradicts is replaced in the same edit (owner's latest word wins), plus a lesson.
 ## Verify (one)
 - `node scripts/vault-lint.mjs` exits 0 (plus `node --test tests/` if hooks/scripts changed).
 ## Log
