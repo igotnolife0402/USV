@@ -34,3 +34,6 @@ New poison set in tools/3d/armor/sets.py (62 meshes), 28 liquid flipbooks (7 pop
 
 ## [2026-11-21] fix / Venomreaver liquid VFX blends in mid-air
 Owner: splash landed on an invisible floor mid-air, looked pasted on, odd light. liquid.py --air (no floor, radial, half gravity), camera-lit translucent soft shading, 3-frame fade-in; hub tex swapped, splashes 0.8x. Checked: studio shots harness. Not checked in the signed-in hub page.
+
+## [2026-11-22] fix / Venomreaver: one finale burst + permanent no-overkill rule
+Owner: a big splash per armor piece was overstimulating. Removed the 7 per-piece splashes, one 4-layer burst when the helm lands (4.05 s). Rule added to profiles/owner.md, CLAUDE.md, checklists vfx+3d, vfx playbook, armor README. Checked: studio shots harness; hub db written (v8).

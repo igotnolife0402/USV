@@ -19,6 +19,10 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Never reach for Blender, Customuse or Roblox AI generators unless the owner names them; `hooks/prefer.json` blocks them otherwise.
 - VFX: make layered sheets with `tools/vfx/liquid` (liquid) or `tools/vfx/flipbook`, then import into Umbrio Sandbox and attach to the animation (Animate tab → Effects list → drag onto the part row).
 
+## No overkill (owner rule 2026-11-21, every model, effect, animation, UI)
+- Effects punctuate, they don't repeat: never a big effect on every small step (each armor piece, each hit of a combo, each UI tap). Pick ONE of: one big moment when the whole thing completes (all armor on, the combo ends), or a small, subtle continuous effect (drips, faint glow) that runs throughout.
+- Small steps get at most a tiny cue (a glint, a few drops), never a full burst. Nothing extra that wasn't asked for; when unsure, use less.
+
 ## Quality and scope
 - Maximum quality by default, expert-level, matching the owner's references; all effort up front.
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".

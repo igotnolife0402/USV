@@ -58,3 +58,4 @@ Run [checklists/vfx.md](checklists/vfx.md). Add new failures to [errors](domains
 - Normalise splat density by blur width (`w*w`) so one droplet clears the surface threshold at any cell size.
 - Thick flat pools need detail: add fixed (not per-frame) noise to the height before the gradient, or they flicker.
 - Flipbook cards in a 3D scene: never bake a side light (it fights the scene light as the camera turns); light from the camera, mostly emissive, thin parts translucent, soft alpha edges. Physics must match where it plays: a floor bounce only on the ground (`liquid.py --air` for bodies/mid-air).
+- No overkill: effects mark the one big moment (all done) or run small and subtle throughout; never a big burst on every step (each armor piece, each hit). Owner rule 2026-11-21, applies to all builds.

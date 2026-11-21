@@ -28,6 +28,6 @@ Blocky, high-detail dragon armor (an original ember-wyrm design) fitted to the s
 ## Equip with liquid VFX (2026-11-21, Venomreaver)
 1. `python tools/vfx/liquid/liquid.py OUT <preset> --check` → 4 sheets. Upload them as hub assets (Artifact publish `asset: true`); the tool refuses scratchpad paths, so copy them into the gitignored `.worktrees/` first.
 2. One tex doc per layer: `projects/<id>/tex/fx-<preset>-<layer>` = `{"asset": "<id>"}`.
-3. Rig, groups and equip clip: copy them from hub project `dragon-armor` (`R`, joints, the 8 body parts, `anims.equip`; drop tracks whose object is missing). At each of its 7 pop times, stack 4 flipbooks (mist, body, drops, glow; grid 8, frames 64, life 1.4, fps 45.71, same parent and size as the dragon burst, z +0.02 per layer).
+3. Rig, groups and equip clip: copy them from hub project `dragon-armor` (`R`, joints, the 8 body parts, `anims.equip`; drop tracks whose object is missing). No overkill (owner rule): ONE 4-layer burst when the last piece lands (parent R, pos 0,3,0.9, start ~4.05, size 6.5, `--air` sheets; grid 8, frames 64, life 1.4, fps 45.71, z +0.02 per layer), never one per piece.
 4. Two batches: tex + geo (<= 50 writes), then the rest of the geo + `projects/<id>` + `meta/<id>`.
 5. Check without signing in: studio `test/run.mjs shots` with SHOTS_TAB (geo/, project.json, meta.json, uploads.json = tex id → png path), `SHOTS_RENDER=1` for 1080p. Deps: `npm i three@0.186.1 three-mesh-bvh@0.9.16 three-bvh-csg@0.0.18 mp4-muxer@5.2.2 playwright` in scratch, `CHROME=<chrome.exe>`. About 10 s per run.
