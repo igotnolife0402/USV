@@ -1,4 +1,4 @@
-"""Venomreaver HQ torso pieces: cuirass (group CP) and pauldrons (LS/RS). build(stage, K) from venom_hq.py.
+"""Venomreaver HQ torso pieces: cuirass (group CP) and pauldrons (LS/RS). build(stage, K) from venomreaver.py.
 Frames: CP torso x+-1 y+-1 z+-0.5 (+z front); LS arm x -0.62..0.38, top y 0.08, z+-0.5 (torso side toward -x)."""
 import math
 import numpy as np
@@ -57,9 +57,9 @@ def rrect(hx, hz, rad, y, n=5):                     # rounded-rectangle path aro
 def cuirass():
     b = H()
     # ---- breastplate: octa curved plate with ridge and rolled rim, sternum shield on top
-    bp = plate(b, 'plate', (0, 0.45, 0.62), X, Y, 0.95, 0.5, 0.08, ('octa', 0.3), bulge=(0.1, 0.06), ridge=0.03, rim=0.045, nu=24, nv=18)
+    bp = plate(b, 'plate', (0, 0.45, 0.62), X, Y, 0.95, 0.5, 0.08, ('octa', 0.3), bulge=(0.1, 0.06), ridge=0.03, rim=0.045, nu=20, nv=14)
     trim(b, bp, 0.93, 0.014)
-    rivets(b, bp, loop_pts(bp, 0.82, 5, 5))
+    rivets(b, bp, loop_pts(bp, 0.82, 4, 4))
     p0, n0 = bp.at(0, 0.06, 0)
     sp = plate(b, 'iron', p0 + n0 * 0.015, X, Y, 0.28, 0.36, 0.05, ('shield', 0.7), bulge=(0.04, 0.03), ridge=0.025, rim=0.03, nu=14, nv=14)
     trim(b, sp, 0.88, 0.009)
@@ -72,7 +72,6 @@ def cuirass():
         b.tube('bronze', bp.curve([(sx * 0.58 + (x - sx * 0.5) * 1.0, y + 0.06) for x, y in cu], 0.003), 0.01, 8)
     p, n = sp.at(0, 0.1, 0)                         # toxin gem: bronze bezel, glass lens, small glowing core
     b.torus('bronze', p, n, 0.075, 0.02, 30, 8); b.disc('glass', p + n * 0.01, n, 0.068, 0.04); b.disc('glow', p + n * 0.025, n, 0.032, 0.02)
-    for sx in (-1, 1): rvt(b, *sp.at(sx * 0.19, 0.22, 0), 0.022)
     # ---- abdomen lames (upper overlaps lower), glow drips off a few edges
     a = math.radians(8); lames = []
     for k in range(4):
@@ -80,21 +79,20 @@ def cuirass():
         pl = plate(b, 'plate' if k % 2 == 0 else 'iron', (0, -0.14 - 0.17 * k, 0.665 - 0.025 * k), U, V, 0.97 - 0.03 * k, 0.13, 0.06, 'rect',
                      bulge=(0.11, 0.0), rim=0.035, nu=22, nv=6)
         lames.append(pl); edge(b, pl)
-        rivets(b, pl, [(x * pl.w, 0.0) for x in (-0.6, 0.6)], 0.022)
     for k, x, l in ((0, -0.5, 0.2), (1, 0.28, 0.24), (2, -0.12, 0.14), (3, 0.6, 0.16)):
         b.drip('glow', lames[k].at(x, -0.93, 0)[0], l, 0.026)
     # ---- backplate, back lames, toxin tank
-    bk = plate(b, 'plate', (0, 0.3, -0.62), -X, Y, 0.95, 0.65, 0.08, ('octa', 0.2), bulge=(0.1, 0.05), ridge=0.03, rim=0.045, nu=24, nv=18)
-    trim(b, bk, 0.93, 0.014); rivets(b, bk, loop_pts(bk, 0.84, 5, 6))
+    bk = plate(b, 'plate', (0, 0.3, -0.62), -X, Y, 0.95, 0.65, 0.08, ('octa', 0.2), bulge=(0.1, 0.05), ridge=0.03, rim=0.045, nu=20, nv=14)
+    trim(b, bk, 0.93, 0.014); rivets(b, bk, loop_pts(bk, 0.84, 4, 4))
     for k in range(3):
         N = nz(-Z * math.cos(a) + Y * math.sin(a)); U, V = frame(N)
         pl = plate(b, 'iron' if k % 2 == 0 else 'plate', (0, -0.47 - 0.17 * k, -0.665 + 0.025 * k), U, V, 0.95 - 0.03 * k, 0.13, 0.06, 'rect',
                      bulge=(0.11, 0.0), rim=0.035, nu=22, nv=6)
         edge(b, pl)
     tc = np.array([0, -0.28, -0.88]); h = 1.2
-    vial(b, tc, Y, h, 0.2, 48)
+    vial(b, tc, Y, h, 0.2, 36)
     for y in (0.22, 0.6, 0.98):
-        b.torus('bronze', tc + Y * y, Y, 0.215, 0.03, 48, 12)
+        b.torus('bronze', tc + Y * y, Y, 0.215, 0.03, 36, 10)
     for y in (0.22, 0.98):                          # mounts tying the tank to the backplate
         b.rbox('iron', (0, tc[1] + y, -0.76), (0.34, 0.1, 0.2), 0.04)
     b.rbox('bronze', (0, tc[1] + h + 0.08, -0.88), (0.34, 0.1, 0.2), 0.04)
@@ -105,13 +103,13 @@ def cuirass():
     # ---- hoses from the tank manifold up over the shoulders into the collar
     for sx in (-1, 1):
         P = bez((sx * 0.09, 1.0, -0.88), (sx * 0.09, 1.45, -0.9), (sx * 0.95, 1.55, -0.55), (sx * 0.72, 1.1, -0.12), 28)
-        b.tube('deep', P, 0.048, 24)
-        for i in (0, 9, 18, 28):
-            b.torus('bronze', P[i], P[min(i + 1, 28)] - P[max(i - 1, 0)], 0.062, 0.017, 32, 12)
+        b.tube('deep', P, 0.048, 20)
+        for i in (0, 14, 28):
+            b.torus('bronze', P[i], P[min(i + 1, 28)] - P[max(i - 1, 0)], 0.062, 0.017, 28, 10)
     # ---- gorget collar and shoulder yokes
-    b.torus('plate', (0, 1.03, 0), Y, 0.72, 0.11, 48, 14, ell=(1.0, 0.74))
-    b.torus('bronze', (0, 1.13, 0), Y, 0.7, 0.026, 48, 10, ell=(1.0, 0.74))
-    b.torus('iron', (0, 0.94, 0), Y, 0.8, 0.07, 48, 12, ell=(1.0, 0.68))
+    b.torus('plate', (0, 1.03, 0), Y, 0.72, 0.11, 40, 12, ell=(1.0, 0.74))
+    b.torus('bronze', (0, 1.13, 0), Y, 0.7, 0.026, 40, 8, ell=(1.0, 0.74))
+    b.torus('iron', (0, 0.94, 0), Y, 0.8, 0.07, 40, 10, ell=(1.0, 0.68))
     for sx in (-1, 1):
         yk = plate(b, 'plate', (sx * 0.8, 1.11, 0), Z, X, 0.45, 0.22, 0.06, 'oval', bulge=(0.08, 0.04), rim=0.035, nu=16, nv=12)
         trim(b, yk, 0.82, 0.01)
@@ -129,7 +127,7 @@ def cuirass():
         b.torus('bronze', (sx * 0.64, -0.88, 0.61), Y, 0.07, 0.014, 20, 8)
     # ---- tasset: leather tongue with trim, plate cap, hip plates
     ts = plate(b, 'leather', (0, -1.42, 0.585), X, Y, 0.3, 0.46, 0.05, ('shield', 0.65), bulge=(0.06, 0.0), flare=0.07, rim=0.03, nu=14, nv=14)
-    trim(b, ts, 0.88, 0.01); rivets(b, ts, [(0, 0.3), (-0.1, 0.1), (0.1, 0.1), (0, -0.15)], 0.022)
+    trim(b, ts, 0.88, 0.01); rivets(b, ts, [(0, 0.3), (0, 0.05)], 0.022)
     pc, nc = ts.at(0, 0.3, 0.0)
     plate(b, 'plate', (0, -1.1, 0.625), X, Y, 0.34, 0.15, 0.06, ('octa', 0.4), bulge=(0.05, 0.03), rim=0.035, nu=14, nv=8)
     for sx in (-1, 1):
