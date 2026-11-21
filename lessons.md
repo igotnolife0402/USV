@@ -53,3 +53,4 @@ lessons.md is append-only; allowed in-place edits are only bumping h:/x: counter
 - [L-042] (h:0 x:0) 2026-11-21 New effect = a recipe of existing presets; only new physics gets code — trigger: new effect, preset, recipe
 - [L-043] (h:0 x:0) 2026-11-21 8x8 sheets need FlipbookLayout Grid8x8, never a helper hard-coded to 4x4 — trigger: flipbook quarter frames, ElementVFX
 - [L-044] (h:0 x:0) 2026-11-21 Effects never vanish cleanly: they erode into lingering embers or ash — trigger: effect end, dissipate, fade out
+- [L-045] (h:0 x:1) 2026-11-21 Regex/backslash code piped through a Bash heredoc into node gets re-escaped and breaks; edit JS files with the Edit tool, not string-replace scripts — trigger: heredoc, node -e, escape, regex, anchor not found

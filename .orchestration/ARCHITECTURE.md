@@ -22,7 +22,8 @@ No outside AI assistants built into the vault (no ChatGPT, Copilot, embedding in
 | `.claude/skills/<name>/SKILL.md` | pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep | W-SKILLS |
 | `.claude/agents/*.md` | qa-gate (adversarial verifier), explorer (vault searcher; no model field) | W-SKILLS |
 | `.claude/settings.json`, `.claude/settings.local.json.example` | Hook wiring + permissions | W-HOOKS |
-| `hooks/*.mjs` | lib, session-start, prompt-router, pre-tool, post-tool-lint, stop-gate | W-HOOKS |
+| `hooks/*.mjs` | lib, session-start, prompt-router, pre-tool, post-tool-lint, stop-gate, learn (turn analysis, learn block, 3-try cap, metrics) | W-HOOKS |
+| `archive/metrics.jsonl` | One line per owner turn: tier, secs, on-target, errors, retries, routes, signals. Rolled monthly into `archive/metrics-YYYY-MM.md` | hooks |
 | `hooks/modes.json` | PC-only tool patterns + fallback text | W-HOOKS |
 | `scripts/vault-lint.mjs`, `scripts/rollup.mjs` | Lint CLI/library, monthly log rollup | W-HOOKS |
 | `tests/*.test.mjs` | `node --test tests/` | W-HOOKS |

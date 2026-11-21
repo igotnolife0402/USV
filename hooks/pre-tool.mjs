@@ -2,6 +2,7 @@ import { join, resolve, relative } from 'node:path';
 import { homedir } from 'node:os';
 import { ROOT, readInput, emit, safe, getMode, readIf, isMain } from './lib.mjs';
 import { isNote } from '../scripts/vault-lint.mjs';
+import { readTail, parseTurn, retryCapHit } from './learn.mjs';
 
 const deny = (reason) => emit({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } });
 
@@ -96,7 +97,16 @@ export function outsideInstalls(cmd, allowed) {
 }
 
 if (isMain(import.meta.url)) safe(() => {
-  const { tool_name: tool = '', tool_input: ti = {}, session_id } = readInput();
+  const { tool_name: tool = '', tool_input: ti = {}, session_id, transcript_path } = readInput();
+
+  // 3-try cap: the exact same call already failed 3 times this turn -> change approach instead of looping.
+  if (transcript_path && /^(Bash|PowerShell|mcp__)/.test(tool)) {
+    const turn = parseTurn(readTail(transcript_path, 1_500_000));
+    if (retryCapHit(turn, tool, ti)) {
+      const last = turn.errors.filter(e => e.tool === tool).at(-1);
+      return deny(`3-try cap: this exact call already failed 3 times this turn${last ? ` (last error: ${last.text.slice(0, 160)})` : ''}. Change approach: read the domain's errors.md, try a different method, or log it (lessons.md / queue/pc.md) and move on.`);
+    }
+  }
 
   if ((tool === 'Bash' || tool === 'PowerShell') && typeof ti.command === 'string') {
     const why = dangerousCommand(ti.command);

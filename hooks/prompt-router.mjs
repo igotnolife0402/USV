@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import { ROOT, readInput, emit, safe, getMode, setMode, readIf, fm, MODE_CMD } from './lib.mjs';
+import { saveTurnState } from './learn.mjs';
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const hit = (text, word) => new RegExp(`(^|[^\\w])${esc(word)}($|[^\\w])`, 'i').test(text);
@@ -55,6 +56,9 @@ safe(() => {
   if (m && !(m[1].toLowerCase() === 'pc' && process.env.CLAUDE_CODE_REMOTE === 'true')) setMode(m[1].toLowerCase(), session_id);
   let router = {};
   try { router = JSON.parse(readIf(join(ROOT, 'router.json')) || '{}'); } catch { /* bad router: lint reports it */ }
-  const ctx = buildContext(String(prompt), getMode(session_id).mode, router);
+  const text = String(prompt);
+  const ctx = buildContext(text, getMode(session_id).mode, router);
+  // Tier + routes for the Stop hook's learning check (relays don't overwrite the owner's turn).
+  if (!RELAY.test(text)) saveTurnState(session_id, { tier: classify(text, router.tiers), routes: route(text, router).map(r => r.id), t: Date.now() });
   emit({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx } });
 });

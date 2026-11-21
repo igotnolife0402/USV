@@ -38,3 +38,4 @@ tools/**/out/
 !tools/roblox/lobby/out/*.json
 tools/roblox/lobby/out/geos.json
 __pycache__/
+.claude/.session/

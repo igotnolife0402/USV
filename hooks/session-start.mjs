@@ -2,6 +2,8 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { ROOT, readInput, emit, safe, getMode, readIf, fm } from './lib.mjs';
 import { installGitHooks } from '../scripts/install-githooks.mjs';
+import { rollup, rollupMetrics } from '../scripts/rollup.mjs';
+import { perfDigest, toPromote, METRICS } from './learn.mjs';
 
 const CAP = 8000;
 const num = (l) => parseInt(l.match(/^- \[L-(\d+)/)?.[1] || '0', 10);
@@ -38,6 +40,14 @@ safe(() => {
   const what = mode === 'pc'
     ? 'PC: every connected MCP/tool/plugin allowed, Claude-native routes first.'
     : 'MOBILE: only Claude tools, Artifacts, GitHub and session connectors; PC-only tools are blocked, queue PC steps in queue/pc.md and commit them to the session branch.';
+  // Monthly upkeep runs itself: old log sections and metric rows move to archive/ on the first startup of a month.
+  if (input.source === 'startup') { try { rollup(ROOT); rollupMetrics(ROOT); } catch { /* never block startup */ } }
+
+  // Learning feedback: where recent turns were slow or failed, and lessons seen twice that must become rules.
+  const perf = perfDigest(readIf(join(ROOT, METRICS)));
+  const promote = toPromote(readIf(join(ROOT, 'lessons.md')));
+  if (perf) warn.push(perf);
+  if (promote.length) warn.push(`PROMOTE NOW (seen twice): ${promote.slice(0, 8).join(', ')}: move each rule into its domain playbook/checklist or a hook, then append "→ promoted: <path>" to the bullet.`);
   const banner = [`MODE=${mode} | remote=${remote ? 'yes' : 'no'}\n${what}`, ...warn].join('\n');
 
   let queue = '';

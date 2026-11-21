@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { existsSync, statSync, readFileSync } from 'node:fs';
 import { ROOT, readInput, emit, safe, getMode, readIf, today, isMain } from './lib.mjs';
 import { lintAll } from '../scripts/vault-lint.mjs';
+import { readTail, parseTurn, signals, learnReason, nextLessonId, loadTurnState, recordMetrics, METRICS } from './learn.mjs';
 
 const ENV = { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' };
 const git = (args, timeout = 5000) => spawnSync('git', args, { cwd: ROOT, encoding: 'utf8', timeout, env: ENV, windowsHide: true, maxBuffer: 32 << 20 });
@@ -56,10 +57,23 @@ if (isMain(import.meta.url)) safe(() => {
   const canBlock = !input.stop_hook_active; // second pass: never block (loop guard), but still commit if lint passes
   const block = (reason) => { if (canBlock) emit({ decision: 'block', reason }); };
 
+  // Auto-learning: analyse this turn (errors, retries, slowness, owner corrections, router misses); keep metrics.
+  const turn = input.transcript_path ? parseTurn(readTail(input.transcript_path)) : null;
+  const state = loadTurnState(input.session_id);
+  const sigs = turn ? signals(turn, state) : [];
+  if (turn) recordMetrics(turn, state, sigs, getMode(input.session_id).mode);
+
   const st = git(['status', '--porcelain', '-z', '-uall']);
   if (st.status !== 0) return; // not a git repo (or git missing): never block
   const files = changedFiles(st.stdout || '');
-  if (!files.length) return;
+
+  if (sigs.length) {
+    const why = learnReason(sigs, { lessonsChanged: files.includes('lessons.md'), routerChanged: files.includes('router.json'),
+      nextId: nextLessonId(readIf(join(ROOT, 'lessons.md'))) });
+    if (why) return block(why);
+  }
+  // Metrics alone never make a commit; they ride along with the next real change.
+  if (!files.some(f => f !== METRICS)) return;
 
   const errs = lintAll(ROOT).filter(r => r.level === 'error');
   if (errs.length) return block(`Vault lint failed:\n${errs.slice(0, 30).map(e => `${e.file}:${e.line ?? 0} ${e.msg}`).join('\n')}${errs.length > 30 ? `\n(+${errs.length - 30} more)` : ''}\nFix now.`);
@@ -70,7 +84,7 @@ if (isMain(import.meta.url)) safe(() => {
   }
 
   const d = today();
-  if (files.some(f => f !== 'log.md') && !readIf(join(ROOT, 'log.md')).includes(`## [${d}]`))
+  if (files.some(f => f !== 'log.md' && f !== METRICS) && !readIf(join(ROOT, 'log.md')).includes(`## [${d}]`))
     return block(`Add a log.md entry: ## [${d}] <op> / <title> + 1-3 lines, and add a lessons.md bullet if anything failed this session.`);
 
   if (inConflict()) return block('Merge/rebase in progress or unresolved conflicts: resolve them (git status), then stop again. Nothing was committed.');
