@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { ROOT, readInput, emit, safe, getMode, setMode, readIf, fm, MODE_CMD } from './lib.mjs';
+import { ROOT, readInput, emit, safe, getMode, setMode, readIf, fm, MODE_CMD, isMain } from './lib.mjs';
 import { saveTurnState } from './learn.mjs';
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -18,10 +18,10 @@ export function classify(prompt, tiers = {}) {
 }
 
 // System/agent relays (hand-backs, notifications) are not owner tasks: no tier, no routes.
-const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
+export const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
 
 // Top 2 routes by distinct word hits (ties: earlier route), so at most 2 checklists, 2 skills, 4 notes.
-function route(prompt, router = {}) {
+export function route(prompt, router = {}) {
   return (router.routes || [])
     .map((r, i) => ({ r, i, n: new Set((r.words || []).filter(w => hit(prompt, w)).map(w => w.toLowerCase())).size }))
     .filter(x => x.n > 0).sort((a, b) => b.n - a.n || a.i - b.i).slice(0, 2).map(x => x.r);
@@ -49,7 +49,7 @@ function buildContext(prompt, mode, router) {
   return lines.join('\n').slice(0, 1500);
 }
 
-safe(() => {
+if (isMain(import.meta.url)) safe(() => {
   const { prompt = '', session_id } = readInput();
   const m = String(prompt).match(MODE_CMD);
   // A phone cloud session can't become PC: /pc there is ignored (stays mobile).

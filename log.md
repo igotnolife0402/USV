@@ -13,3 +13,6 @@ Stop hook now analyses each turn (errors, retries, slowness, owner complaints, r
 
 ## [2026-11-21] build / learn on every task
 Learning now triggers on any real error for every task size; new math domain + route + checklist; images get their own checklist.
+
+## [2026-11-21] build / learn from every folder
+User-level hooks (hooks/global.mjs via scripts/install-global.mjs) route any session's prompts through the vault and make failures in any folder write lessons into it.

@@ -65,7 +65,7 @@ On any error, failed check or owner correction, in the same task:
 3. Add the trigger words that should have routed here to [router.json](router.json) (route `words` or `tiers`).
 4. Lesson seen twice (h >= 2 or same root cause twice) → promote to a rule in the domain playbook or a hook; leave the lesson bullet, add `→ promoted: path`.
 On success with a reusable trick: add it to the domain playbook or snippets, link it from the index.
-Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on any real tool error (every task, however small: pictures, models, math, vault upkeep), a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly.
+Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on any real tool error (every task, however small: pictures, models, math, vault upkeep), a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly. Sessions in ANY folder learn into this vault too (user-level hooks from `scripts/install-global.mjs`; `--remove` undoes it).
 
 ## 6. Speed levers
 - Simple: effort low, no sub-agents, no plan, answer from routed notes.
