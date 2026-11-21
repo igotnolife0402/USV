@@ -29,7 +29,7 @@ def load(project, gdir):
     docs, inst, refs = {}, collections.defaultdict(list), collections.defaultdict(list)
     global OBJS; OBJS = objs
     for k, o in objs.items():
-        if o.get('type') != 'mesh' or not o.get('geo'): continue
+        if o.get('type') != 'mesh' or not o.get('geo') or o.get('shadowOnly'): continue   # shadow stand-ins never draw colour
         s, p, rot = world(k)
         if rot: print('skipped (rotated):', o.get('name', k)); continue
         f = os.path.join(gdir, o['geo'] + '.json')

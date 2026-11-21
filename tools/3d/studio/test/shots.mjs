@@ -1,6 +1,6 @@
 // Check an exported tab before it goes up (no-op unless SHOTS_TAB is set): SHOTS_TAB=<OUT/studio> SHOTS_AT="1,1.9,2.2"
 // [SHOTS_CAM="x,y,z,tx,ty,tz"] [SHOTS_DEVICE=desktop] [SHOTS_RENDER=1: also render.png, 1920x1080] [SHOTS_VIDEO=1: also clip.mp4] node test/run.mjs shots -> one phone screenshot per clip time (shots-<t>.png) and shots.jpg (all of them).
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 export default async function (t) {
   const D = process.env.SHOTS_TAB
@@ -9,6 +9,7 @@ export default async function (t) {
     const pid = 'shots', docs = {}
     for (const f of readdirSync(join(D, 'geo'))) docs[`projects/${pid}/geo/${f.replace('.json', '')}`] = JSON.parse(readFileSync(join(D, 'geo', f)))
     for (const [id, p] of Object.entries(JSON.parse(readFileSync(join(D, 'uploads.json'))))) docs[`projects/${pid}/tex/${id}`] = { kind: 'image', data: 'data:image/png;base64,' + readFileSync(p).toString('base64') }
+    if (existsSync(join(D, 'tex'))) for (const f of readdirSync(join(D, 'tex'))) docs[`projects/${pid}/tex/${f.replace('.json', '')}`] = JSON.parse(readFileSync(join(D, 'tex', f)))   // palette etc. written as tex docs
     docs[`projects/${pid}`] = JSON.parse(readFileSync(join(D, 'project.json'))); docs[`meta/${pid}`] = JSON.parse(readFileSync(join(D, 'meta.json')))
     const s = await t.open({ device: process.env.SHOTS_DEVICE || 'phone' })
     await s.page.evaluate(d => { for (const [p, v] of Object.entries(d)) window.__mock.external(p, v, { set: true }) }, docs)
