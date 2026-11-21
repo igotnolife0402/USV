@@ -1,0 +1,16 @@
+# PC-only, never committed
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/.mode
+.claude/.logs/
+# build/run junk
+node_modules/
+.worktrees/
+*.blend1
+.DS_Store
+Thumbs.db
+# big binaries live outside git
+*.blend
+*.fbx
+*.wav
+*.mp4

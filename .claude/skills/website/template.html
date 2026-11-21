@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brand — One clear promise</title>
+<meta name="description" content="One sentence that says what this is and who it is for.">
+<meta property="og:title" content="Brand — One clear promise">
+<meta property="og:description" content="One sentence that says what this is and who it is for.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235b5bf7'/></svg>">
+<style>
+/* ===== tokens ===== */
+:root{
+  --accent:#5b5bf7; --accent-ink:#fff;
+  --bg:#fff; --fg:#14141a; --muted:#5d5d6b; --card:#f6f6f9; --line:#e4e4ea;
+  --fs-0:1rem; --fs-1:1.25rem; --fs-2:1.563rem; --fs-3:1.953rem; --fs-4:clamp(2.2rem,5vw,3.6rem);
+  --s1:.5rem; --s2:1rem; --s3:1.5rem; --s4:2rem; --s5:3rem; --s6:5rem;
+  --r:12px; --shadow:0 1px 2px rgb(0 0 0/.06),0 8px 24px rgb(0 0 0/.08);
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --accent:#8b8bff; --accent-ink:#0b0b12; --bg:#0e0e13; --fg:#ececf1; --muted:#a3a3b2; --card:#17171f; --line:#2a2a35;
+    --shadow:0 1px 2px rgb(0 0 0/.4),0 8px 24px rgb(0 0 0/.4); }
+}
+/* ===== base ===== */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:400 var(--fs-0)/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
+h1,h2,h3{line-height:1.1;margin:0 0 var(--s2);letter-spacing:-.02em}
+h1{font-size:var(--fs-4)} h2{font-size:var(--fs-3)} h3{font-size:var(--fs-1)}
+p{margin:0 0 var(--s2);max-width:65ch}
+a{color:inherit}
+img,svg{max-width:100%;height:auto;display:block}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.container{max-width:72rem;margin-inline:auto;padding-inline:1rem}
+.section{padding-block:var(--s6)}
+.muted{color:var(--muted)}
+.skip{position:absolute;left:-999px;top:0;background:var(--accent);color:var(--accent-ink);padding:var(--s1) var(--s2);z-index:10}
+.skip:focus{left:var(--s2)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* ===== buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 var(--s3);border-radius:999px;font-weight:600;text-decoration:none;border:1px solid transparent;transition:transform .15s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{border-color:var(--line)}
+/* ===== header ===== */
+.header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.header .container{display:flex;align-items:center;justify-content:space-between;min-height:64px;gap:var(--s2)}
+.logo{font-weight:800;text-decoration:none;font-size:var(--fs-1)}
+.nav-toggle{min-width:44px;min-height:44px;background:none;border:1px solid var(--line);border-radius:var(--r);color:inherit;font-size:1.2rem}
+.nav{display:none;position:absolute;inset:64px 0 auto 0;background:var(--bg);border-bottom:1px solid var(--line);padding:var(--s2)}
+.nav.open{display:block}
+.nav ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s1)}
+.nav a{display:block;padding:var(--s1) 0;text-decoration:none}
+@media (min-width:48rem){
+  .nav-toggle{display:none}
+  .nav{display:block;position:static;padding:0;border:0;background:none}
+  .nav ul{display:flex;gap:var(--s4);align-items:center}
+}
+/* ===== hero ===== */
+.hero{padding-block:var(--s6)}
+.hero .container{display:grid;gap:var(--s5);align-items:center}
+.hero p{font-size:var(--fs-1);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
+.hero-art{aspect-ratio:4/3;border-radius:calc(var(--r)*2);background:radial-gradient(circle at 30% 30%,var(--accent),transparent 60%),linear-gradient(135deg,var(--card),var(--line));box-shadow:var(--shadow)}
+@media (min-width:48rem){.hero .container{grid-template-columns:1.1fr .9fr}}
+/* ===== cards ===== */
+.grid{display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fit,minmax(16rem,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s4)}
+.icon{width:40px;height:40px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;margin-bottom:var(--s2)}
+.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:var(--s3)}
+.steps li{counter-increment:s;padding-left:3.5rem;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:2.5rem;height:2.5rem;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;font-weight:700}
+@media (min-width:48rem){.steps{grid-template-columns:repeat(3,1fr)}}
+/* ===== faq / cta / footer ===== */
+details{border-bottom:1px solid var(--line);padding:var(--s2) 0}
+summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.cta{background:var(--accent);color:var(--accent-ink);border-radius:calc(var(--r)*2);padding:var(--s5) var(--s4);text-align:center}
+.cta p{margin-inline:auto}
+.cta .btn{background:var(--accent-ink);color:var(--accent)}
+.footer{border-top:1px solid var(--line);padding-block:var(--s4);font-size:.9rem}
+.footer .container{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s2)}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="header">
+  <div class="container">
+    <a class="logo" href="#">Brand</a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Menu">&#9776;</button>
+    <nav id="nav" class="nav" aria-label="Main">
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a class="btn btn-primary" href="#cta">Get started</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="container">
+      <div>
+        <h1>One clear promise in eight words</h1>
+        <p>A specific subline: who it is for and the outcome they get, under twenty words.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#cta">Primary action</a>
+          <a class="btn btn-ghost" href="#features">See features</a>
+        </div>
+      </div>
+      <div class="hero-art" role="img" aria-label="Product illustration"></div>
+    </div>
+  </section>
+
+  <section id="features" class="section reveal">
+    <div class="container">
+      <h2>Why it works</h2>
+      <p class="muted">One line framing the benefits below.</p>
+      <div class="grid">
+        <article class="card"><div class="icon" aria-hidden="true">1</div><h3>Benefit one</h3><p class="muted">One concrete sentence with a number or outcome.</p></article>
+        <article class="card"><div class="icon" aria-hidden="true">2</div><h3>Benefit two</h3><p class="muted">One concrete sentence with a number or outcome.</p></article>
+        <article class="card"><div class="icon" aria-hidden="true">3</div><h3>Benefit three</h3><p class="muted">One concrete sentence with a number or outcome.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section reveal">
+    <div class="container">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><h3>Step one</h3><p class="muted">Short action.</p></li>
+        <li><h3>Step two</h3><p class="muted">Short action.</p></li>
+        <li><h3>Step three</h3><p class="muted">Short result.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="faq" class="section reveal">
+    <div class="container">
+      <h2>Questions</h2>
+      <details><summary>Most common question?</summary><p class="muted">Direct answer.</p></details>
+      <details><summary>Second question?</summary><p class="muted">Direct answer.</p></details>
+    </div>
+  </section>
+
+  <section id="cta" class="section">
+    <div class="container">
+      <div class="cta">
+        <h2>Ready to start?</h2>
+        <p>One line removing the last objection.</p>
+        <a class="btn" href="#">Primary action</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <span>&copy; <span id="year"></span> Brand</span>
+    <span><a href="#">Privacy</a> · <a href="#">Contact</a></span>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+const t = document.querySelector('.nav-toggle'), n = document.getElementById('nav');
+t.addEventListener('click', () => { const o = n.classList.toggle('open'); t.setAttribute('aria-expanded', o); });
+n.addEventListener('click', e => { if (e.target.closest('a')) { n.classList.remove('open'); t.setAttribute('aria-expanded', false); } });
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

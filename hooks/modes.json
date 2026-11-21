@@ -1,0 +1,21 @@
+{
+  "pcOnly": [
+    "^mcp__Roblox_Studio__",
+    "^mcp__blender__",
+    "^mcp__computer-use__",
+    "^mcp__claude-in-chrome__",
+    "^mcp__Claude_Browser__",
+    "^mcp__ghidra__",
+    "^mcp__rea__",
+    "^mcp__terminal__",
+    "^mcp__agent-audio__",
+    "^mcp__scheduled-tasks__"
+  ],
+  "fallbacks": [
+    { "match": "Roblox", "use": "edit .luau files in the Rojo layout in the repo and queue Studio steps in queue/pc.md" },
+    { "match": "blender", "use": "prototype as a three.js artifact and save a bpy script for PC, queue the run" },
+    { "match": "browser|chrome|Browser|computer-use", "use": "preview as an Artifact" },
+    { "match": "agent-audio", "use": "procedural WebAudio SFX in code" },
+    { "match": ".*", "use": "use Claude's own tools or an Artifact and queue the PC step" }
+  ]
+}

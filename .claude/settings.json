@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "deny": ["Bash(git push --force:*)", "Bash(git reset --hard:*)"]
+  },
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/hooks/session-start.mjs\"", "timeout": 30 }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/hooks/prompt-router.mjs\"", "timeout": 10 }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash|Write|Edit|MultiEdit|mcp__.*", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/hooks/pre-tool.mjs\"", "timeout": 10 }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write|MultiEdit", "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/hooks/post-tool-lint.mjs\"", "timeout": 20 }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/hooks/stop-gate.mjs\"", "timeout": 60 }] }
+    ]
+  }
+}

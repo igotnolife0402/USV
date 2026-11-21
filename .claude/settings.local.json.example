@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(rojo:*)",
+      "Bash(blender:*)",
+      "mcp__Roblox_Studio",
+      "mcp__blender",
+      "mcp__claude-in-chrome",
+      "mcp__computer-use"
+    ],
+    "additionalDirectories": ["C:/Users/YOU/Projects"]
+  },
+  "env": {
+    "VAULT_MACHINE": "pc"
+  }
+}

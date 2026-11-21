@@ -1,0 +1,57 @@
+{
+  "routes": [
+    {
+      "id": "roblox",
+      "words": ["roblox", "luau", "lua", "studio", "rojo", "obby", "tycoon", "simulator", "roblox game", "datastore", "remoteevent", "remote event", "humanoid", "leaderstats", "gamepass", "rbxl", "rbxm", "wally", "modulescript", "localscript", "serverscript"],
+      "notes": ["domains/roblox/index.md", "domains/roblox/playbook.md"],
+      "checklist": "checklists/roblox.md",
+      "skill": "roblox"
+    },
+    {
+      "id": "web",
+      "words": ["website", "site", "web page", "webpage", "landing page", "landing", "html", "css", "javascript", "react", "next.js", "nextjs", "vite", "tailwind", "portfolio", "outline", "homepage", "blog", "form", "navbar", "responsive", "deploy", "github pages", "vercel", "netlify"],
+      "notes": ["domains/web/index.md", "domains/web/playbook.md"],
+      "checklist": "checklists/web.md",
+      "skill": "website"
+    },
+    {
+      "id": "games",
+      "words": ["browser game", "web game", "html5 game", "canvas", "phaser", "three.js game", "threejs game", "platformer", "shooter", "arcade", "puzzle game", "runner", "snake", "tetris", "pong", "breakout", "game loop", "sprite", "tilemap", "collision", "game"],
+      "notes": ["domains/games/index.md", "domains/games/playbook.md"],
+      "checklist": "checklists/game.md",
+      "skill": "browser-game"
+    },
+    {
+      "id": "3d",
+      "words": ["blender", "bpy", "model", "3d model", "mesh", "3d", "gltf", "glb", "fbx", "obj", "editor", "mini-blender", "mini blender", "3d editor", "three.js", "threejs", "uv", "texture", "rig", "low poly", "lowpoly", "sculpt", "explorer panel"],
+      "notes": ["domains/3d/index.md", "domains/3d/playbook.md"],
+      "checklist": "checklists/3d.md",
+      "skill": "3d-editor"
+    },
+    {
+      "id": "vfx",
+      "words": ["vfx", "particle", "particles", "particleemitter", "beam", "trail", "shader", "glsl", "effect", "effects", "aura", "slash", "explosion", "impact", "sparkle", "glow", "bloom", "fire", "smoke", "lightning", "shockwave"],
+      "notes": ["domains/vfx/index.md", "domains/vfx/playbook.md"],
+      "checklist": "checklists/vfx.md",
+      "skill": "vfx"
+    },
+    {
+      "id": "audio",
+      "words": ["sound", "sounds", "sfx", "audio", "music", "jsfxr", "sfxr", "webaudio", "web audio", "tone.js", "synth", "beep", "footstep", "soundtrack", "loop", "wav", "ogg", "mp3", "agent-audio"],
+      "notes": ["domains/audio/index.md", "domains/audio/playbook.md"],
+      "checklist": "checklists/audio.md",
+      "skill": "sfx"
+    },
+    {
+      "id": "vault",
+      "words": ["vault", "lesson", "lessons", "note", "notes", "index", "lint", "rollup", "memory", "router", "checklist", "hook", "hooks", "queue", "frontmatter", "claude.md"],
+      "notes": ["index.md", "lessons.md"],
+      "checklist": "checklists/vault.md",
+      "skill": "vault-upkeep"
+    }
+  ],
+  "tiers": {
+    "simple": ["outline", "list", "explain", "rename", "quick", "what is", "how do i", "fix typo", "typo", "one line", "summarize", "tweak", "change color", "small", "snippet", "single"],
+    "complex": ["editor", "engine", "full app", "multiplayer", "pipeline", "mini-blender", "mini blender", "explorer", "inspector", "tool suite", "toolkit", "framework", "system", "save system", "level editor", "complete game", "full game", "swarm", "refactor all"]
+  }
+}

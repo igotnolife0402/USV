@@ -1,0 +1,438 @@
+<title>Vault Upgrade Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a working desk — sticky score rail on the right, the finding ledger on the left; charts and reference tables below. */
+:root{
+  --bg:#f6f6f9; --surface:#ffffff; --sunk:#eeeef4; --ink:#16151d; --ink2:#4d4b5c; --muted:#85839a;
+  --line:#e2e1ea; --accent:#5b3fd0; --accent-soft:#ece8fc; --accent-ink:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --pick:#5b3fd0; --base:#b9b7c8;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b; --goodtext:#006300;
+  --grid:#e8e7ef; --axis:#c3c2cf;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111117; --surface:#1a1a22; --sunk:#22222c; --ink:#f0eff6; --ink2:#c4c2d3; --muted:#8f8da3;
+  --line:#2e2d3a; --accent:#a592ff; --accent-soft:#2a2442; --accent-ink:#14121f;
+  --s1:#3987e5; --s2:#d95926; --pick:#a592ff; --base:#55536a;
+  --grid:#2a2935; --axis:#3d3c4a; --goodtext:#0ca30c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111117; --surface:#1a1a22; --sunk:#22222c; --ink:#f0eff6; --ink2:#c4c2d3; --muted:#8f8da3;
+  --line:#2e2d3a; --accent:#a592ff; --accent-soft:#2a2442; --accent-ink:#14121f;
+  --s1:#3987e5; --s2:#d95926; --pick:#a592ff; --base:#55536a;
+  --grid:#2a2935; --axis:#3d3c4a; --goodtext:#0ca30c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);}
+.wrap{max-width:1320px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(30px,4.6vw,52px);font-weight:800;line-height:1.02}
+h2{font-size:24px;font-weight:700}
+h3{font-size:16px;font-weight:700}
+a{color:var(--accent)}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font:600 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--ink2);max-width:68ch;font-size:16px;margin:12px 0 0}
+.wl{font-family:var(--f-mono);color:var(--accent);font-weight:600}
+header.top{display:grid;gap:18px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;font:500 13px/1.3 var(--f-mono);color:var(--ink2)}
+.facts b{color:var(--ink);font-weight:600}
+.desk{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;margin-top:26px;align-items:start}
+@media (max-width:1020px){.desk{grid-template-columns:1fr}.rail{position:static!important;order:-1}}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 14px);display:grid;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.score-hero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.score-hero .big{font:800 56px/1 var(--f-display)}
+.score-hero .from{color:var(--muted);font:500 13px var(--f-mono)}
+.delta{font:600 14px var(--f-mono);color:var(--goodtext)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:999px;padding:6px 12px;font:500 13px var(--f-body);cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:8px 14px;font:600 13px var(--f-body);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+input[type=search],select{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;font:14px var(--f-body);min-width:0}
+input[type=search]{flex:1 1 220px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.count{font:500 13px var(--f-mono);color:var(--muted)}
+.ledger{display:grid;gap:10px}
+.card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.card.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.card input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);margin-top:3px;cursor:pointer}
+.card .name{font:700 16px/1.25 var(--f-display)}
+.card .what{color:var(--ink2);margin:4px 0 6px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font:500 12px/1.4 var(--f-mono);color:var(--muted)}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink2);font:500 11.5px var(--f-mono)}
+.rate{text-align:right;min-width:64px}
+.rate .n{font:800 26px/1 var(--f-display)}
+.rate .of{font:500 11px var(--f-mono);color:var(--muted)}
+.pips{display:inline-flex;gap:2px;vertical-align:middle}
+.pips i{width:7px;height:7px;border-radius:2px;background:var(--line)}
+.pips i.f{background:var(--ink2)}
+.pips.imp i.f{background:var(--accent)}
+details.more{margin-top:6px}
+details.more summary{cursor:pointer;font:500 12.5px var(--f-mono);color:var(--accent)}
+details.more .body{margin-top:8px;font-size:14px;color:var(--ink2);display:grid;gap:6px}
+details.more .body a{word-break:break-all}
+.caveat{color:var(--ink2)}
+.caveat b{color:var(--crit)}
+.chart{width:100%;display:block;overflow:visible}
+.chart text{fill:var(--ink2);font:500 11px var(--f-mono)}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.chart .gr{stroke:var(--grid);stroke-width:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font:500 12px var(--f-mono);color:var(--ink2);margin:6px 0 2px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.legend i.ln{height:2px;width:16px;border-radius:2px}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:8px;font:500 12px/1.4 var(--f-body);max-width:260px;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.tip b{font:700 14px var(--f-display);display:block}
+.section{margin-top:44px;display:grid;gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+td.num{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--f-mono)}
+tr:last-child td{border-bottom:0}
+.plan{display:grid;gap:6px;max-height:260px;overflow:auto;font-size:13.5px}
+.plan div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:4px}
+.plan span:last-child{font:500 12px var(--f-mono);color:var(--muted);white-space:nowrap}
+.slider{display:flex;align-items:center;gap:10px;font:500 13px var(--f-mono);color:var(--ink2)}
+.slider input{flex:1;accent-color:var(--accent)}
+.note{font-size:13px;color:var(--muted)}
+.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font:600 13px var(--f-body);z-index:60}
+textarea{width:100%;min-height:120px;font:12px var(--f-mono);border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink);padding:8px}
+.quote{border-left:3px solid var(--accent);padding:2px 0 2px 12px;color:var(--ink2)}
+@media (max-width:560px){.card{grid-template-columns:auto minmax(0,1fr)}.rate{grid-column:2;text-align:left;display:flex;gap:6px;align-items:baseline}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s, box-shadow .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Obsidian vault research · compiled <span id="asof"></span></div>
+    <h1>Vault Upgrade Atlas</h1>
+    <p class="lede" id="lede">The plan for an AI-only super vault: a private GitHub repo that Claude runs from your PC and your phone, gets smarter every session and never fills its context. Simple tasks under 1 minute, a website under 5, a mini-Blender under 30. On /pc it uses every tool and MCP; on /mobile it switches to the next-best tool and queues PC-only steps. Claude tools only, nothing built for human reading. Each finding is rated 1 to 10 for this goal; tick what you want and the projections on the right update. The blueprint further down shows the finished design.</p>
+    <div class="facts" id="facts"></div>
+  </header>
+
+  <div class="desk">
+    <main>
+      <div class="controls" role="toolbar" aria-label="Presets">
+        <span class="eyebrow" style="margin-right:4px">Quick picks</span>
+        <button class="btn ghost" data-preset="ai">Full Claude-run vault</button>
+        <button class="btn ghost" data-preset="fast">Speed targets only</button>
+        <button class="btn ghost" data-preset="essentials">Essentials</button>
+        <button class="btn ghost" data-preset="top">Everything rated 8+</button>
+        <button class="btn ghost" data-preset="clear">Clear all</button>
+      </div>
+      <div class="controls">
+        <input type="search" id="q" placeholder="Search findings, e.g. context, claude, backup" aria-label="Search findings">
+        <select id="sort" aria-label="Sort findings">
+          <option value="rating">Sort: highest rated</option>
+          <option value="impact">Sort: biggest impact</option>
+          <option value="effort">Sort: easiest first</option>
+          <option value="ratio">Sort: best value (impact per effort)</option>
+          <option value="name">Sort: A to Z</option>
+        </select>
+        <select id="show" aria-label="Show">
+          <option value="all">Show: all</option>
+          <option value="picked">Show: my picks</option>
+          <option value="unpicked">Show: not picked</option>
+        </select>
+        <select id="mode" aria-label="Device">
+          <option value="all">Device: all</option>
+          <option value="phone">Device: works on phone</option>
+          <option value="pc">Device: PC only</option>
+        </select>
+      </div>
+      <div class="controls" id="cats" role="group" aria-label="Filter by category"></div>
+      <div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="count" id="count"></span></div>
+      <div class="ledger" id="ledger"></div>
+    </main>
+
+    <aside class="rail" aria-label="Projected vault score">
+      <div class="panel">
+        <div class="eyebrow">Projected vault score</div>
+        <div class="score-hero"><span class="big" id="scoreNow">0</span><span class="from" id="scoreFrom"></span></div>
+        <div class="delta" id="scoreDelta"></div>
+        <div class="legend"><span><i style="background:var(--base)"></i>Fresh default vault</span><span><i style="background:var(--pick)"></i>With your picks</span></div>
+        <svg class="chart" id="dimChart" viewBox="0 0 340 250" role="img" aria-label="Score by dimension"></svg>
+      </div>
+      <div class="panel">
+        <div class="eyebrow">Projected task time</div>
+        <div class="legend"><span><i style="background:var(--base)"></i>Fresh vault</span><span><i style="background:var(--pick)"></i>With your picks</span><span><i class="ln" style="background:var(--s2)"></i>Your target</span></div>
+        <svg class="chart" id="timeChart" viewBox="0 0 340 150" role="img" aria-label="Projected task time by task size"></svg>
+        <p class="note" style="margin:6px 0 0" id="timeNote"></p>
+      </div>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between"><div class="eyebrow">Your plan</div><span class="count" id="planHours"></span></div>
+        <div class="plan" id="plan"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="copyPlan">Copy picks as checklist</button>
+        </div>
+        <p class="note" style="margin:8px 0 0">Paste the checklist back to Claude to build the new vault from it.</p>
+        <textarea id="planText" hidden readonly aria-label="Checklist text"></textarea>
+      </div>
+    </aside>
+  </div>
+
+  <section class="section">
+    <div><div class="eyebrow">Growth model</div><h2>How good the vault could get, week by week</h2>
+    <p class="lede">Picks are applied best-value first at the hours per week you set. Setup hours come from each finding's effort rating. This is a model built from the ratings, not a measurement.</p></div>
+    <div class="panel">
+      <div class="slider"><label for="hrs">Hours per week</label><input type="range" id="hrs" min="1" max="15" value="3"><span id="hrsV">3 h</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--base)"></i>Fresh default vault</span><span><i class="ln" style="background:var(--pick)"></i>Your picks</span><span><i class="ln" style="background:var(--s2)"></i>Everything in this atlas</span></div>
+      <svg class="chart" id="growth" viewBox="0 0 860 300" role="img" aria-label="Projected score over 16 weeks"></svg>
+    </div>
+  </section>
+
+  <section class="section">
+    <div><div class="eyebrow">Where the value is</div><h2>Impact against effort, every finding</h2>
+    <p class="lede">Top-left is the sweet spot: big impact, little work. Your picks are filled; hover any dot for its name. Click a dot to tick or untick it.</p></div>
+    <div class="panel">
+      <div class="legend"><span><i style="background:var(--pick);border-radius:50%"></i>Picked</span><span><i style="background:var(--base);border-radius:50%"></i>Not picked</span></div>
+      <svg class="chart" id="scatter" viewBox="0 0 860 380" role="img" aria-label="Impact versus effort scatter"></svg>
+    </div>
+  </section>
+
+  <section class="section" id="refs"></section>
+
+  <section class="section">
+    <div><div class="eyebrow">How the ratings work</div><h2>Method</h2></div>
+    <div class="panel" style="color:var(--ink2);display:grid;gap:8px">
+      <p style="margin:0">Twelve research passes ran in two rounds: seven across source families (Anthropic, Obsidian, Reddit, YouTube and TikTok, GitHub and Hugging Face, sync, learning science), then five on devices, memory, checks, speed and capability packs. Each returned findings with sources, evidence, an impact score (1 to 10) and an effort score (1 to 5). Duplicates were merged and the evidence pooled.</p>
+      <p style="margin:0"><b>AI-only</b>: anything that only helps a human use Obsidian (themes, reading plugins, calendars, spaced repetition, publishing) was removed. Every finding is tagged PC only, Phone, or PC + phone.</p>
+      <p style="margin:0"><b>Rating</b> = impact, nudged up for strong evidence (official docs, huge download counts, peer-reviewed studies, broad Reddit consensus) and down for high effort, risk or abandoned plugins.</p>
+      <p style="margin:0"><b>Claude-only</b>: outside AI tools (Copilot, Smart Connections, Ollama, Khoj, Text Generator, Whisper, embedding models and their plumbing) were removed.</p>
+      <p style="margin:0"><b>Projected score</b>: eight dimensions start at a fresh, empty vault's level. Each pick closes part of the remaining gap in the dimensions it helps, so gains shrink as a dimension fills up and nothing reaches 100. Overall = the average of the eight.</p>
+      <p style="margin:0"><b>Task time</b>: a fresh vault is assumed to take about 3 min for a simple task, 15 for a medium one and 100 for a complex one. Time shrinks in proportion to the Task speed gap your picks close. The "Speed targets only" pick is tuned to just meet 1 / 5 / 30 min. It is a model from the ratings, not a stopwatch.</p>
+    </div>
+  </section>
+</div>
+<div class="tip" id="tip" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DIMS=[["speed","Task speed"],["quality","Output quality"],["context","Context headroom"],["grow","Self-improving"],["last","Lasts for years"],["find","Never misses a note"],["safe","Safety & undo"],["devices","PC + phone"]];
+let BASE={speed:20,quality:40,context:35,grow:5,last:45,find:25,safe:20,devices:15};
+const MODE={pc:"PC only",mobile:"Phone",both:"PC + phone"};
+const HOURS=[0,0.5,2,5,12,25];
+const KEY="vault-atlas-picks-v2";
+const fullSet=f=>["essentials","ai","fast"].some(p=>(f.presets||[]).includes(p));
+let D=null, picked=new Set(), cat="All";
+const $=s=>document.querySelector(s);
+const el=(t,a={},...kids)=>{const e=document.createElement(t);for(const k in a){if(k==="text")e.textContent=a[k];else if(k==="html")e.innerHTML=a[k];else e.setAttribute(k,a[k]);}kids.forEach(c=>c&&e.append(c));return e;};
+const svgEl=(t,a={})=>{const e=document.createElementNS("http://www.w3.org/2000/svg",t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+function save(){try{localStorage.setItem(KEY,JSON.stringify([...picked]))}catch(e){}}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(Array.isArray(v))return new Set(v)}catch(e){}return null}
+
+function scoreOf(ids){
+  const out={};for(const [k] of DIMS){let gap=100-BASE[k];for(const id of ids){const f=D.byId[id];const w=(f.dims||{})[k]||0;gap*=1-w;}out[k]=100-gap;}
+  out.total=DIMS.reduce((s,[k])=>s+out[k],0)/DIMS.length;return out;
+}
+const value=f=>f.rating/(HOURS[f.effort]+0.5);
+
+const tip=$("#tip");
+function showTip(ev,title,lines){tip.replaceChildren(el("b",{text:title}),...lines.map(l=>el("div",{text:l})));tip.hidden=false;moveTip(ev);}
+function moveTip(ev){const x=Math.min(ev.clientX+14,innerWidth-tip.offsetWidth-8),y=Math.min(ev.clientY+14,innerHeight-tip.offsetHeight-8);tip.style.left=x+"px";tip.style.top=y+"px";}
+function hideTip(){tip.hidden=true}
+function bindTip(node,title,lines){node.addEventListener("pointerenter",e=>showTip(e,title,lines));node.addEventListener("pointermove",moveTip);node.addEventListener("pointerleave",hideTip);node.addEventListener("focus",()=>{const r=node.getBoundingClientRect();showTip({clientX:r.right,clientY:r.top},title,lines)});node.addEventListener("blur",hideTip);}
+
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,1800)}
+
+function renderCats(){
+  const cats=["All",...D.cats];const box=$("#cats");box.replaceChildren();
+  for(const c of cats){const n=c==="All"?D.items.length:D.items.filter(f=>f.cat===c).length;
+    const b=el("button",{class:"chip","aria-pressed":String(c===cat),text:`${c} · ${n}`});b.onclick=()=>{cat=c;renderCats();renderLedger();};box.append(b);}
+}
+function pips(n,max,cls){const s=el("span",{class:"pips "+(cls||""),"aria-hidden":"true"});for(let i=1;i<=max;i++)s.append(el("i",{class:i<=n?"f":""}));return s;}
+
+function renderLedger(){
+  const q=$("#q").value.trim().toLowerCase(),sort=$("#sort").value,show=$("#show").value;
+  const md=$("#mode").value;
+  let list=D.items.filter(f=>(cat==="All"||f.cat===cat)&&(md==="all"||(md==="phone"?(f.mode||"both")!=="pc":(f.mode||"both")==="pc"))&&(!q||(f.name+" "+f.what+" "+(f.ev||"")+" "+f.cat).toLowerCase().includes(q))&&(show==="all"||(show==="picked")===picked.has(f.id)));
+  const cmp={rating:(a,b)=>b.rating-a.rating||b.impact-a.impact,impact:(a,b)=>b.impact-a.impact||b.rating-a.rating,effort:(a,b)=>a.effort-b.effort||b.rating-a.rating,ratio:(a,b)=>value(b)-value(a),name:(a,b)=>a.name.localeCompare(b.name)}[sort];
+  list.sort(cmp);
+  $("#count").textContent=`${list.length} shown · ${picked.size} picked of ${D.items.length}`;
+  const box=$("#ledger");box.replaceChildren();
+  if(!list.length){box.append(el("div",{class:"empty",text:"Nothing matches. Clear the search or pick another category."}));return;}
+  for(const f of list){
+    const on=picked.has(f.id);
+    const cb=el("input",{type:"checkbox",id:"cb-"+f.id,"aria-label":"Pick "+f.name});cb.checked=on;cb.onchange=()=>toggle(f.id);
+    const meta=el("div",{class:"meta"},el("span",{class:"tag",text:f.cat}),el("span",{class:"tag",text:MODE[f.mode||"both"]}),
+      el("span",{},document.createTextNode("Impact "),pips(Math.round(f.impact/2),5,"imp"),document.createTextNode(" "+f.impact+"/10")),
+      el("span",{},document.createTextNode("Effort "),pips(f.effort,5),document.createTextNode(" ~"+(HOURS[f.effort]<1?"30 min":HOURS[f.effort]+" h"))),
+      f.from?el("span",{text:"Found via "+f.from}):null);
+    const more=el("details",{class:"more"},el("summary",{text:"Evidence, sources and caveats"}));
+    const body=el("div",{class:"body"});
+    if(f.ev)body.append(el("div",{},el("b",{text:"Evidence: "}),document.createTextNode(f.ev)));
+    if(f.caveat)body.append(el("div",{class:"caveat"},el("b",{text:"Watch out: "}),document.createTextNode(f.caveat)));
+    if(f.src&&f.src.length){const s=el("div",{},el("b",{text:"Sources: "}));f.src.forEach((u,i)=>{if(i)s.append(document.createTextNode(" · "));const a=el("a",{href:u,target:"_blank",rel:"noopener",text:u.replace(/^https?:\/\/(www\.)?/,"").slice(0,70)});s.append(a)});body.append(s);}
+    more.append(body);
+    const mid=el("div",{},el("label",{for:"cb-"+f.id,class:"name",text:f.name}),el("div",{class:"what",text:f.what}),meta,more);
+    const rate=el("div",{class:"rate"},el("div",{class:"n",text:f.rating.toFixed(1)}),el("div",{class:"of",text:"/ 10"}));
+    box.append(el("article",{class:"card"+(on?" on":"")},cb,mid,rate));
+  }
+}
+
+function toggle(id){picked.has(id)?picked.delete(id):picked.add(id);save();refresh();}
+function refresh(){renderLedger();renderScore();renderTimes();renderPlan();renderGrowth();renderScatter();}
+
+const fmtMin=m=>m<1?Math.round(m*60)+" s":(m<10?m.toFixed(1):Math.round(m))+" min";
+function renderTimes(){
+  const sp=scoreOf([...picked]).speed,f=(100-sp)/(100-BASE.speed);
+  const svg=$("#timeChart");svg.replaceChildren();
+  const rows=[["simple","Simple task"],["medium","Medium (a website)"],["complex","Complex task"]],W=220,rowH=48;
+  rows.forEach(([k,lab],i)=>{const y=i*rowH,t0=D.times[k],tp=t0*f,tg=D.target[k],ok=tp<=tg+1e-9;
+    const t=svgEl("text",{x:0,y:y+12});t.textContent=lab;svg.append(t);
+    svg.append(svgEl("rect",{x:0,y:y+18,width:W,height:14,rx:4,fill:"var(--base)"}));
+    const pw=Math.max(W*tp/t0,2);svg.append(svgEl("rect",{x:0,y:y+18,width:pw,height:14,rx:4,fill:"var(--pick)"}));
+    if(W-pw>1)svg.append(svgEl("rect",{x:pw,y:y+18,width:2,height:14,fill:"var(--surface)"}));
+    const tx=W*tg/t0;svg.append(svgEl("line",{x1:tx,x2:tx,y1:y+14,y2:y+36,stroke:"var(--s2)","stroke-width":2}));
+    const v=svgEl("text",{x:W+10,y:y+30});v.textContent=fmtMin(tp)+(ok?" ✓":"");svg.append(v);
+    const hit=svgEl("rect",{x:0,y,width:340,height:rowH,fill:"transparent",tabindex:0});
+    bindTip(hit,lab,[`With your picks: ${fmtMin(tp)}`,`Fresh vault: ${fmtMin(t0)}`,`Target: under ${fmtMin(tg)}`,ok?"On target":"Not there yet: add speed picks"]);svg.append(hit);});
+  const met=rows.filter(([k])=>D.times[k]*f<=D.target[k]+1e-9).length;
+  $("#timeNote").textContent=`${met} of 3 targets met. Targets: under 1 min, 5 min and 30 min.`;
+}
+
+function renderScore(){
+  const b=scoreOf([]),s=scoreOf([...picked]);
+  $("#scoreNow").textContent=Math.round(s.total);
+  $("#scoreFrom").textContent=`/ 100 · default vault ${Math.round(b.total)}`;
+  const d=Math.round(s.total-b.total);$("#scoreDelta").textContent=d>0?`+${d} points from ${picked.size} pick${picked.size===1?"":"s"}`:"Tick findings to see your projected score";
+  const svg=$("#dimChart");svg.replaceChildren();
+  const L=118,W=200,rowH=29,top=8;
+  [0,50,100].forEach(v=>{const x=L+W*v/100;svg.append(svgEl("line",{x1:x,x2:x,y1:top-2,y2:top+rowH*DIMS.length,class:"gr"}));const t=svgEl("text",{x,y:top+rowH*DIMS.length+14,"text-anchor":"middle"});t.textContent=v;svg.append(t);});
+  DIMS.forEach(([k,lab],i)=>{const y=top+i*rowH;
+    const t=svgEl("text",{x:L-8,y:y+14,"text-anchor":"end"});t.textContent=lab;svg.append(t);
+    const bw=W*b[k]/100,sw=W*s[k]/100;
+    svg.append(svgEl("rect",{x:L,y:y+3,width:Math.max(sw,1),height:16,rx:4,fill:"var(--pick)"}));
+    svg.append(svgEl("rect",{x:L,y:y+3,width:Math.max(bw,1),height:16,rx:4,fill:"var(--base)"}));
+    if(sw-bw>0.5)svg.append(svgEl("rect",{x:L+bw,y:y+3,width:2,height:16,fill:"var(--surface)"}));
+    const v=svgEl("text",{x:L+sw+5,y:y+15});v.textContent=Math.round(s[k]);svg.append(v);
+    const hit=svgEl("rect",{x:0,y,width:340,height:rowH,fill:"transparent",tabindex:0});
+    bindTip(hit,lab,[`With your picks: ${Math.round(s[k])}`,`Fresh default vault: ${Math.round(b[k])}`]);svg.append(hit);
+  });
+}
+
+function orderedPicks(){return [...picked].map(id=>D.byId[id]).sort((a,b)=>value(b)-value(a));}
+function renderPlan(){
+  const list=orderedPicks(),box=$("#plan");box.replaceChildren();
+  const h=list.reduce((s,f)=>s+HOURS[f.effort],0);
+  $("#planHours").textContent=list.length?`${list.length} picks · ~${Math.round(h)} h setup`:"";
+  if(!list.length){box.append(el("div",{class:"note",text:"Nothing picked yet. Try a quick pick above, or tick findings one by one."}));}
+  list.forEach((f,i)=>box.append(el("div",{},el("span",{text:`${i+1}. ${f.name}`}),el("span",{text:f.rating.toFixed(1)}))));
+  $("#planText").value=planMarkdown(list);
+}
+function planMarkdown(list){
+  return "## Claude vault build plan\n"+list.map(f=>`- [ ] ${f.name} (rated ${f.rating.toFixed(1)}, ${f.cat}) — ${f.what}`).join("\n");
+}
+
+function curve(ids,hpw){
+  const list=ids.map(id=>D.byId[id]).sort((a,b)=>value(b)-value(a));
+  const pts=[];let done=[],t=0,i=0;const weeks=16;
+  for(let w=0;w<=weeks;w++){const budget=w*hpw;while(i<list.length&&t+HOURS[list[i].effort]<=budget+1e-9){t+=HOURS[list[i].effort];done.push(list[i].id);i++;}pts.push([w,scoreOf(done).total]);}
+  return pts;
+}
+function renderGrowth(){
+  const hpw=+$("#hrs").value;$("#hrsV").textContent=hpw+" h";
+  const svg=$("#growth");svg.replaceChildren();
+  const L=44,R=840,T=12,B=262,X=w=>L+(R-L)*w/16,Y=v=>B-(B-T)*v/100;
+  for(let v=0;v<=100;v+=25){svg.append(svgEl("line",{x1:L,x2:R,y1:Y(v),y2:Y(v),class:v?"gr":"ax"}));const t=svgEl("text",{x:L-8,y:Y(v)+4,"text-anchor":"end"});t.textContent=v;svg.append(t);}
+  for(let w=0;w<=16;w+=2){const t=svgEl("text",{x:X(w),y:B+18,"text-anchor":"middle"});t.textContent=w===0?"now":"wk "+w;svg.append(t);}
+  const base=scoreOf([]).total;
+  const all=curve(D.items.map(f=>f.id),hpw),mine=curve([...picked],hpw);
+  const path=(pts)=>pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join(" ");
+  svg.append(svgEl("line",{x1:L,x2:R,y1:Y(base),y2:Y(base),stroke:"var(--base)","stroke-width":2}));
+  svg.append(svgEl("path",{d:path(all),fill:"none",stroke:"var(--s2)","stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  svg.append(svgEl("path",{d:path(mine)+` L${X(16)} ${Y(0)} L${X(0)} ${Y(0)} Z`,fill:"var(--pick)",opacity:.1}));
+  svg.append(svgEl("path",{d:path(mine),fill:"none",stroke:"var(--pick)","stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  const lastM=mine[16],lastA=all[16];
+  svg.append(svgEl("circle",{cx:X(16),cy:Y(lastM[1]),r:5,fill:"var(--pick)",stroke:"var(--surface)","stroke-width":2}));
+  const lm=svgEl("text",{x:X(16)-8,y:Y(lastM[1])+(Math.abs(lastM[1]-lastA[1])<6?16:-9),"text-anchor":"end"});lm.textContent=`You: ${Math.round(lastM[1])}`;svg.append(lm);
+  const la=svgEl("text",{x:X(16)-8,y:Y(lastA[1])-9,"text-anchor":"end"});la.textContent=`All: ${Math.round(lastA[1])}`;svg.append(la);
+  const cross=svgEl("line",{y1:T,y2:B,stroke:"var(--axis)","stroke-width":1,visibility:"hidden"});svg.append(cross);
+  const hit=svgEl("rect",{x:L,y:T,width:R-L,height:B-T,fill:"transparent"});svg.append(hit);
+  hit.addEventListener("pointermove",e=>{const r=svg.getBoundingClientRect();const sx=(e.clientX-r.left)*860/r.width;const w=Math.max(0,Math.min(16,Math.round((sx-L)/(R-L)*16)));cross.setAttribute("x1",X(w));cross.setAttribute("x2",X(w));cross.setAttribute("visibility","visible");showTip(e,w===0?"Now":"Week "+w,[`Your picks: ${Math.round(mine[w][1])}`,`Everything: ${Math.round(all[w][1])}`,`Default vault: ${Math.round(base)}`]);});
+  hit.addEventListener("pointerleave",()=>{cross.setAttribute("visibility","hidden");hideTip();});
+}
+
+function renderScatter(){
+  const svg=$("#scatter");svg.replaceChildren();
+  const L=48,R=840,T=14,B=330,X=e=>L+(R-L)*(e-0.5)/5,Y=i=>B-(B-T)*(i-0)/10.5;
+  for(let i=0;i<=10;i+=2){svg.append(svgEl("line",{x1:L,x2:R,y1:Y(i),y2:Y(i),class:i?"gr":"ax"}));const t=svgEl("text",{x:L-8,y:Y(i)+4,"text-anchor":"end"});t.textContent=i;svg.append(t);}
+  ["","Trivial","Easy","Medium","Hard","Big project"].forEach((s,e)=>{if(!e)return;const t=svgEl("text",{x:X(e),y:B+18,"text-anchor":"middle"});t.textContent=s;svg.append(t);});
+  const ty=svgEl("text",{x:L,y:B+36});ty.textContent="Effort →   (vertical: impact out of 10)";svg.append(ty);
+  const groups={};D.items.forEach(f=>{const k=f.effort+"|"+f.impact;(groups[k]=groups[k]||[]).push(f)});
+  const sorted=[...D.items].sort((a,b)=>picked.has(a.id)-picked.has(b.id));
+  for(const f of sorted){const g=groups[f.effort+"|"+f.impact],idx=g.indexOf(f),n=g.length;
+    const cols=Math.ceil(Math.sqrt(n*2)),rows=Math.ceil(n/cols);const dx=((idx%cols)-(cols-1)/2)*11,dy=(Math.floor(idx/cols)-(rows-1)/2)*11;
+    const cx=X(f.effort)+dx,cy=Y(f.impact)+dy,on=picked.has(f.id);
+    const c=svgEl("circle",{cx,cy,r:5,fill:on?"var(--pick)":"var(--base)",stroke:"var(--surface)","stroke-width":2});
+    const hit=svgEl("circle",{cx,cy,r:9,fill:"transparent",tabindex:0,role:"button","aria-label":f.name,style:"cursor:pointer"});
+    bindTip(hit,f.name,[`Rated ${f.rating.toFixed(1)} · impact ${f.impact} · effort ${f.effort}`,on?"Picked · click to remove":"Click to pick"]);
+    hit.addEventListener("click",()=>{hideTip();toggle(f.id)});hit.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle(f.id)}});
+    svg.append(c,hit);}
+}
+
+function barChart(svg,rows,fmt){
+  svg.replaceChildren();const n=rows.length,rowH=26,L=200,W=Math.max(...rows.map(r=>r[1])),R=760,T=6;
+  svg.setAttribute("viewBox",`0 0 860 ${T+n*rowH+26}`);
+  const ticks=niceTicks(W);ticks.forEach(v=>{const x=L+(R-L)*v/ticks[ticks.length-1];svg.append(svgEl("line",{x1:x,x2:x,y1:T,y2:T+n*rowH,class:v?"gr":"ax"}));const t=svgEl("text",{x,y:T+n*rowH+16,"text-anchor":"middle"});t.textContent=fmt(v);svg.append(t);});
+  const max=ticks[ticks.length-1];
+  rows.forEach(([lab,v,extra],i)=>{const y=T+i*rowH;const t=svgEl("text",{x:L-8,y:y+16,"text-anchor":"end"});t.textContent=lab.length>28?lab.slice(0,27)+"…":lab;svg.append(t);
+    const w=(R-L)*v/max;svg.append(svgEl("rect",{x:L,y:y+5,width:Math.max(w,2),height:16,rx:4,fill:"var(--s1)"}));
+    const vt=svgEl("text",{x:L+w+6,y:y+17});vt.textContent=fmt(v);svg.append(vt);
+    const hit=svgEl("rect",{x:0,y,width:860,height:rowH,fill:"transparent",tabindex:0});bindTip(hit,lab,[fmt(v)+(extra?" · "+extra:"")]);svg.append(hit);});
+}
+function niceTicks(max){const raw=max/4,mag=Math.pow(10,Math.floor(Math.log10(raw))),step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=raw);const out=[];for(let v=0;v<=max+step*0.999;v+=step)out.push(+v.toFixed(6));return out;}
+const compact=v=>v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace(/\.0$/,"")+"M":v>=1e3?(v/1e3).toFixed(v>=1e4?0:1).replace(/\.0$/,"")+"K":String(v);
+
+function renderRefs(){
+  const box=$("#refs");box.replaceChildren();
+  for(const r of D.refs||[]){
+    const sec=el("div",{class:"section",style:"margin-top:8px"});
+    sec.append(el("div",{},el("div",{class:"eyebrow",text:r.eyebrow||"Reference"}),el("h2",{text:r.title}),r.lede?el("p",{class:"lede",text:r.lede}):null));
+    if(r.type==="bars"){const p=el("div",{class:"panel"});const s=svgEl("svg",{class:"chart",role:"img","aria-label":r.title});p.append(s);sec.append(p);barChart(s,r.rows,compact);
+      if(r.note)p.append(el("p",{class:"note",text:r.note}));
+      const det=el("details",{class:"more"},el("summary",{text:"Show as table"}));const tw=el("div",{class:"tbl",style:"margin-top:8px"});const tb=el("table");tb.append(el("tr",{},el("th",{text:r.cols?r.cols[0]:"Name"}),el("th",{text:r.cols?r.cols[1]:"Value"})));r.rows.forEach(x=>tb.append(el("tr",{},el("td",{text:x[0]}),el("td",{class:"num",text:x[1].toLocaleString()}))));tw.append(tb);det.append(tw);p.append(det);}
+    if(r.type==="table"){const tw=el("div",{class:"tbl"});const tb=el("table");tb.append(el("tr",{},...r.cols.map(c=>el("th",{text:c}))));r.rows.forEach(row=>tb.append(el("tr",{},...row.map(c=>{if(typeof c==="string"&&/^https?:\/\//.test(c)){const td=el("td");td.append(el("a",{href:c,target:"_blank",rel:"noopener",text:"link"}));return td;}return el("td",{text:String(c)})}))));tw.append(tb);sec.append(tw);if(r.note)sec.append(el("p",{class:"note",text:r.note}));}
+    if(r.type==="list"){const p=el("div",{class:"panel",style:"display:grid;gap:10px"});r.rows.forEach(x=>p.append(el("div",{class:"quote"},el("b",{text:x[0]}),document.createTextNode(x[1]?" — "+x[1]:""))));sec.append(p);}
+    box.append(sec);
+  }
+}
+
+function preset(p){
+  const I=D.items;let ids;
+  if(p==="clear")ids=[];
+  else if(p==="essentials")ids=I.filter(f=>(f.presets||[]).includes("essentials")).map(f=>f.id);
+  else if(p==="ai")ids=I.filter(fullSet).map(f=>f.id);
+  else if(p==="fast")ids=I.filter(f=>(f.presets||[]).includes("fast")).map(f=>f.id);
+  else if(p==="minimal")ids=I.filter(f=>(f.presets||[]).includes("minimal")).map(f=>f.id);
+  else if(p==="top")ids=I.filter(f=>f.rating>=8).map(f=>f.id);
+  picked=new Set(ids);save();refresh();toast(p==="clear"?"Cleared all picks":`Picked ${ids.length} findings`);
+}
+
+async function init(){
+  try{D=await (await fetch("data.json")).json();}catch(e){$("#ledger").append(el("div",{class:"empty",text:"The findings file did not load. Reload the page to try again."}));return;}
+  D.byId={};D.items.forEach(f=>D.byId[f.id]=f);if(D.base)BASE=D.base;
+  D.cats=[...new Set(D.items.map(f=>f.cat))];
+  $("#asof").textContent=D.asof;
+  const fx=$("#facts");(D.facts||[]).forEach(([a,b])=>fx.append(el("span",{},el("b",{text:a}),document.createTextNode(" "+b))));
+  const saved=load();picked=saved||new Set(D.items.filter(fullSet).map(f=>f.id));
+  picked=new Set([...picked].filter(id=>D.byId[id]));
+  renderCats();renderRefs();refresh();
+  ["q","sort","show","mode"].forEach(id=>$("#"+id).addEventListener("input",renderLedger));
+  $("#hrs").addEventListener("input",renderGrowth);
+  document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>preset(b.dataset.preset));
+  $("#copyPlan").onclick=async()=>{const txt=$("#planText").value;try{await navigator.clipboard.writeText(txt);toast("Checklist copied");}catch(e){const ta=$("#planText");ta.hidden=false;ta.focus();ta.select();toast("Select all and copy the text below");}};
+}
+init();
+</script>

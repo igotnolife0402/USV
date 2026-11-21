@@ -1,0 +1,26 @@
+---
+summary: Roblox domain entry: Luau, Studio MCP, Rojo, play-test loop; links to playbook, errors, pipeline, snippets
+updated: 2026-11-21
+status: current
+triggers: [roblox, luau, studio, rojo, obby, tycoon, simulator, rbxl, rbxm, datastore, remoteevent]
+---
+# Roblox
+
+Luau games built with Roblox Studio's built-in MCP server (PC) or Rojo-layout repo files (mobile).
+
+## Read in this order
+1. [Playbook](domains/roblox/playbook.md): fastest path, PC vs mobile, quality bar.
+2. [Errors](domains/roblox/errors.md): symptom → fix table. Check before debugging.
+3. [Pipeline](domains/roblox/pipeline.md): Rojo layout, asset limits, publish.
+4. [Snippets](domains/roblox/snippets/README.md): known-good Luau.
+
+## Skill and done
+- Skill: [roblox](.claude/skills/roblox/SKILL.md)
+- Done: [checklists/roblox.md](checklists/roblox.md)
+- Modes: [profiles/pc.md](profiles/pc.md), [profiles/mobile.md](profiles/mobile.md); PC-only leftovers → [queue/pc.md](queue/pc.md)
+
+## Related domains
+- [3D](domains/3d/index.md): meshes for Roblox (FBX/OBJ/glTF import, triangle limits).
+- [Audio](domains/audio/index.md): SFX files before Roblox upload.
+- [VFX](domains/vfx/index.md): ParticleEmitter/Beam parallels to web particles.
+- [Games](domains/games/index.md): game-feel and loop design carry over.

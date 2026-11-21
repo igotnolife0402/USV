@@ -1,0 +1,19 @@
+# CLAUDE.local.md (PC only, gitignored). Copy to CLAUDE.local.md and fill the <placeholders>.
+Loaded on the PC only; phone sessions never see it. Machine paths and PC-only notes go here, never in shared notes. Forward slashes.
+
+## Apps
+- Blender exe: <C:/Program Files/Blender Foundation/Blender X.Y/blender.exe>
+- Roblox Studio: <C:/Users/USER/AppData/Local/Roblox/Versions/VERSION/RobloxStudioBeta.exe>
+- Test browser: <Chrome path or "built-in preview">
+
+## Project folders
+- Roblox (Rojo projects): <C:/path/to/roblox>
+- Websites: <C:/path/to/web>
+- Browser games: <C:/path/to/games>
+- 3D assets (.blend, exports; not in git): <C:/path/to/3d>
+- Audio (generated wav/ogg; not in git): <C:/path/to/audio>
+
+## PC-only notes
+- Blender MCP addon: <how to enable / port>
+- Roblox Studio MCP: <where the toggle is>
+- Secrets: <env var names only, never values>
