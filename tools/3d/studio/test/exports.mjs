@@ -21,6 +21,11 @@ export default async function (t) {
       return { clips: c.length, tracks: c[0]?.tracks.length, first: c[0]?.tracks.slice(0, 6).map(x => x.name), names }
     })))
     const out = join(process.env.SCRATCH || '.', 'exports'); mkdirSync(out, { recursive: true })
+    if (process.env.EXPORT_MESH_ASSETS) {   // the .rbxmx with uploaded mesh ids already in its MeshParts (no placeholders)
+      const meshAssets = JSON.parse(readFileSync(process.env.EXPORT_MESH_ASSETS, 'utf8'))
+      const r = await s.eval(a => window.studio.app.exec('roblox.rbxmx', a), { meshAssets })
+      writeFileSync(join(out, 'linked.rbxmx'), r.xml); t.log(`linked.rbxmx ${r.xml.length} bytes, counts ${JSON.stringify(r.counts)}`)
+    }
     const fmts = (process.env.EXPORT_FORMATS || 'glb,gltf,fbx,dae,obj,stl,ply,3mf,usdz,json,rbxmx,lua').split(',')
     const report = {}
     for (const f of fmts) {

@@ -114,6 +114,7 @@ export function robloxModel(scene, opts = {}) {
   if (opts.merge) mergeMeshes(ctx, root)
   ctx.meshes.forEach((me, i) => { me.key = 'UMB' + String(i + 1).padStart(5, '0'); me.node.mesh = me.key; propOf(me.node.kids.find(k => k.cls === 'StringValue' && propOf(k, 'Name')[2] === 'UmbrioMesh'), 'Value')[2] = me.key })
   ctx.counts.meshes = ctx.meshes.length
+  if (opts.meshAssets) linkUploaded(root, ctx.meshes, opts.meshAssets)
   return { root, meshes: ctx.meshes, notes: ctx.notes, counts: ctx.counts }
 }
 
@@ -159,6 +160,32 @@ function partNode(ctx, o, F, name) {
   const n = node(cls, name, [...(cls === 'Part' ? [['Shape', 'enum', type]] : []), ...baseProps(o, size, R, r.t)])
   if (o.negate) n.kids.push(note('Umbrio Sandbox negative part: select it, press Negate, then Union it with the parts it cuts.'))
   return n
+}
+
+// Meshes already uploaded (meshAssets: key -> {id, size, rot}, read back from the uploaded -meshes .fbx model, keys as that
+// export numbered them): each placeholder becomes the finished MeshPart pointing at its mesh asset, so the .rbxmx imports
+// whole, no link script. The importer's axis turn `rot` goes into the part's frame; joints holding the part absorb it in
+// their C0/C1, so every pose and animation stays exactly as exported.
+function linkUploaded(root, meshes, assets) {
+  const turned = new Map()
+  for (const me of meshes) {
+    const up = assets[me.key]; if (!up) continue
+    const n = me.node, cf = propOf(n, 'CFrame')[2]
+    setProp(n, 'CFrame', 'cf', { R: mm(cf.R, up.rot), t: cf.t }); setProp(n, 'Size', 'v3', up.size)
+    n.props.push(['MeshId', 'content', up.id], ['InitialSize', 'v3', up.size])
+    n.kids = n.kids.filter(k => !(k.cls === 'StringValue' && propOf(k, 'Name')[2] === 'UmbrioMesh'))
+    me.linked = n.linked = true; turned.set(n, up.rot)
+  }
+  const tp3 = R => [R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8]]
+  const walk = n => {
+    if (n.cls === 'Motor6D' || n.cls === 'Weld') for (const [part, c] of [['Part0', 'C0'], ['Part1', 'C1']]) {
+      const rot = turned.get(propOf(n, part)?.[2]); if (!rot) continue
+      const v = propOf(n, c)?.[2] || { R: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] }, T = tp3(rot)
+      setProp(n, c, 'cf', { R: mm(T, v.R), t: [0, 1, 2].map(i => T[i * 3] * v.t[0] + T[i * 3 + 1] * v.t[1] + T[i * 3 + 2] * v.t[2]) })
+    }
+    n.kids.forEach(walk)
+  }
+  walk(root)
 }
 
 function meshNode(ctx, o, F, geo, name) {
@@ -249,7 +276,7 @@ function mergeMeshes(ctx, root) {
   const pools = new Map()
   for (const me of ctx.meshes) {
     const o = ctx.objs[me.id] || {}
-    if (!me.parent || propOf(me.node, 'Anchored')[2] === false || me.tris > MERGE_TRIS) continue
+    if (!me.parent || me.linked || propOf(me.node, 'Anchored')[2] === false || me.tris > MERGE_TRIS) continue   // an uploaded mesh keeps its own asset
     const k = [o.texture || '', o.color, o.material, +o.transparency || 0, +o.smooth || 0].join('|')
     if (!pools.has(k)) pools.set(k, []); pools.get(k).push(me)
   }
@@ -354,8 +381,26 @@ function rigify(ctx, gid, model, rig) {
     C0[k] = c0
     nodes.Torso.kids.push(node('Motor6D', JOINT[k], [['Part0', 'ref', nodes.Torso], ['Part1', 'ref', nodes[k]], ['C0', 'cf', c0], ['C1', 'cf', rmul(rinv(L), rmul(T, c0))], ['MaxVelocity', 'num', 0.1]]))
   }
+  // Everything else in the rig (armor, gear, eyes) rides the limb whose joint group holds it: a Motor6D to that limb,
+  // unanchored, so it follows every animation instead of floating where it was built.
+  const limbOf = {}; for (const k in rig) limbOf[ctx.objs[rig[k]]?.parent] ??= k
+  const extra = [], taken = new Set(['HumanoidRootPart', ...Object.keys(rig)])
+  for (const id of desc(ctx.kids, gid)) {
+    const n = ctx.nodeOf.get(id)
+    if (!n || Object.values(rig).includes(id) || !/Part$/.test(n.cls) || !propOf(n, 'CFrame')) continue
+    let p = ctx.objs[id]?.parent, k = null
+    while (p && p !== ctx.objs[gid]?.parent && !k) { k = limbOf[p] || null; p = ctx.objs[p]?.parent }
+    k = k || 'Torso'
+    const nm = propOf(n, 'Name'); let u = nm[2], i = 2   // poses find their part by name: names in a rig must be unique
+    while (taken.has(u)) u = `${nm[2]} ${i++}`
+    nm[2] = u; taken.add(u)
+    const c0 = rmul(rinv(fr(nodes[k])), fr(n))
+    setProp(n, 'Anchored', 'bool', false)
+    nodes[k].kids.push(node('Motor6D', u, [['Part0', 'ref', nodes[k]], ['Part1', 'ref', n], ['C0', 'cf', c0], ['C1', 'cf', ID], ['MaxVelocity', 'num', 0.1]]))
+    extra.push({ id, k, n, c0 })
+  }
   const seqs = []
-  for (const [aid, a] of Object.entries(ctx.scene.anims || {})) { const s = a && keyframeSeq(ctx, a, aid, gid, rig, nodes, C0); if (s) seqs.push(s) }
+  for (const [aid, a] of Object.entries(ctx.scene.anims || {})) { const s = a && keyframeSeq(ctx, a, aid, gid, rig, nodes, C0, extra); if (s) seqs.push(s) }
   if (seqs.length) { model.kids.push(node('ObjectValue', 'AnimSaves', [['Value', 'ref', null]], seqs)); ctx.counts.anims += seqs.length }
 }
 
@@ -379,7 +424,7 @@ export function sampleTrack(keys, t) {
 const sampleObj = (tr, t) => { if (!tr) return undefined; const v = {}; for (const ch of ['pos', 'rot', 'scale']) if (tr[ch]?.length) v[ch] = sampleTrack(tr[ch], t); return v }
 const easeAt = (tr, t) => { let e = 'linear'; for (const ch of ['rot', 'pos']) for (const k of tr?.[ch] || []) if (k[0] <= t + 1e-6) e = k[2] || 'linear'; return e }
 
-function keyframeSeq(ctx, a, aid, gid, rig, nodes, C0) {
+function keyframeSeq(ctx, a, aid, gid, rig, nodes, C0, extra = []) {
   const tracks = a.tracks || {}, involved = new Set([gid, ...desc(ctx.kids, gid)])
   const used = Object.keys(tracks).filter(id => involved.has(id) && tracks[id])
   if (!used.length) return null
@@ -388,6 +433,7 @@ function keyframeSeq(ctx, a, aid, gid, rig, nodes, C0) {
   for (const id of used) for (const ch of Object.values(tracks[id])) if (Array.isArray(ch)) for (const k of ch) if (Number.isFinite(+k?.[0])) times.add(+k[0])
   const rest = {}, off = {}
   for (const k in rig) { rest[k] = propOf(nodes[k], 'CFrame')[2]; const o = rigid(ctx.world(rig[k])); off[k] = rmul(rinv({ R: o.R, t: o.t }), rest[k]) }
+  for (const e of extra) { const o = rigid(ctx.world(e.id)); e.off = rmul(rinv({ R: o.R, t: o.t }), propOf(e.n, 'CFrame')[2]) }
   const seq = node('KeyframeSequence', a.name || aid, [['Loop', 'bool', a.loop !== false], ['Priority', 'enum', ['AnimationPriority', 'Action', 2]]])
   const pose = (name, cf, e = 'linear') => { const p = POSE_EASE[e] || POSE_EASE.linear; return node('Pose', name, [['CFrame', 'cf', cf], ['EasingDirection', 'enum', ['PoseEasingDirection', p[2], p[3]]], ['EasingStyle', 'enum', ['PoseEasingStyle', p[0], p[1]]], ['Weight', 'num', 1]]) }
   for (const t of [...times].sort((x, y) => x - y)) {
@@ -395,9 +441,15 @@ function keyframeSeq(ctx, a, aid, gid, rig, nodes, C0) {
     for (const k in rig) { const o = rigid(pw(rig[k])); P[k] = rmul({ R: o.R, t: o.t }, off[k]) }
     const Tr = rest.Torso, Tp = P.Torso
     const torso = pose('Torso', rmul(rinv(ROOT), rmul(rmul(rinv(Tr), Tp), ROOT)), easeAt(tracks[rig.Torso] || tracks[gid], t))
+    const limbPose = { Torso: torso }
     for (const k of Object.keys(JOINT)) {
       const D = rmul(rmul(rinv(Tp), P[k]), rinv(rmul(rinv(Tr), rest[k])))
-      torso.kids.push(pose(k, rmul(rinv(C0[k]), rmul(D, C0[k])), easeAt(tracks[rig[k]], t)))
+      torso.kids.push(limbPose[k] = pose(k, rmul(rinv(C0[k]), rmul(D, C0[k])), easeAt(tracks[rig[k]], t)))
+    }
+    for (const e of extra) {   // armor and gear: their own moves (fly in, bob) relative to the limb they ride
+      const o = rigid(pw(e.id)), W = rmul({ R: o.R, t: o.t }, e.off)
+      let tr = null; for (let p = e.id; p && !tr; p = ctx.objs[p]?.parent) tr = tracks[p] || null
+      limbPose[e.k].kids.push(pose(propOf(e.n, 'Name')[2], rmul(rinv(e.c0), rmul(rinv(P[e.k]), W)), easeAt(tr, t)))
     }
     seq.kids.push(node('Keyframe', 'Keyframe', [['Time', 'num', t]], [node('Pose', 'HumanoidRootPart', [['CFrame', 'cf', ID], ['Weight', 'num', 1]], [torso])]))
   }
@@ -420,6 +472,7 @@ function xmlProp([k, t, v], ref) {
     case 'rgb': return `<Color3 name="${n}"><R>${num(v[0] / 255)}</R><G>${num(v[1] / 255)}</G><B>${num(v[2] / 255)}</B></Color3>`
     case 'enum': return `<token name="${n}">${v[2]}</token>`
     case 'ref': return `<Ref name="${n}">${v ? ref(v) : 'null'}</Ref>`
+    case 'content': return `<Content name="${n}"><url>${esc(v)}</url></Content>`
   }
   return ''
 }
@@ -810,7 +863,7 @@ export function exportReadme(name, res) {
         : `2. All ${res.counts.meshes} meshes are in ONE file, ${res.meshFiles?.[0] || 'the meshes .fbx'}. In Studio: Home tab > Import 3D (or File > Import 3D), pick that file, press Import once. Studio uploads every mesh in it together. Do not upload meshes one by one (Asset Manager, Bulk Import or the Creator Dashboard): that is the slow way and is not needed.`,
       `3. View > Command Bar: paste link-meshes.lua and press Enter. Each imported mesh moves into its placeholder in ${safeName(name)}.rbxmx (position, size, colour, material) and the placeholders go away.`,
       ...(res.big?.length ? [`   Over ${RB_TRI_LIMIT} triangles, Studio may refuse or simplify: ${res.big.join(', ')}.`] : [])] : ['2. No meshes: nothing else to import.']),
-    res.counts.anims ? `${res.counts.meshes ? 4 : 3}. ${res.counts.anims} animations are KeyframeSequences in the rig's AnimSaves: select the rig and open the Animation Editor.` : '',
+    res.counts.anims ? `${res.counts.meshes ? 4 : 3}. ${res.counts.anims} animations are KeyframeSequences in the rig's AnimSaves: select the rig and open the Animation Editor. Armor and gear are Motor6D'd to their limb and animate with it; Roblox poses carry position and turn only, so scale pops and show/hide keys are not in the Roblox clip.` : '',
     '', ...res.notes.map(n => '- ' + n)].filter((l, i, a) => l || a[i - 1]).join('\n') + '\n'
 }
 
@@ -946,7 +999,7 @@ async function build(app, fmt, args = {}) {
     }
     catch (e) { app.toast?.('Polygon reduction unavailable (' + e.message + '): exporting full detail', 'error') }
   }
-  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate, merge: args.separate !== true, simplify }
+  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate, merge: args.separate !== true, simplify, meshAssets: args.meshAssets }
   return fmt === 'lua' ? toLua(scene, opts) : toRbxmx(scene, opts)
 }
 // Each mesh's look as the viewport draws it: material colour, its texture (PNG, shared) and the texture's uv transform.
@@ -1000,7 +1053,7 @@ async function packFor(app, fmt, args = {}) {
   const res = await build(app, fmt, args), name = safeName(app.scene?.name || 'Umbrio Sandbox model')
   const files = {}
   if (fmt === 'lua') files[name + '.lua'] = res.lua
-  else if (!args.link && res.meshes.length) {
+  else if (!args.link && !args.meshAssets && res.meshes.length && !res.counts.rigs) {   // a rig needs its meshes in placeholders (joints, animation): link mode
     // default: no script. One .fbx holds the whole build already in place, so Import 3D alone gives the finished model;
     // what an .fbx can't carry (lights, plain parts, rigs) goes in a small .rbxmx at the same coordinates.
     const fbxs = await fbxFor(app, res.meshes, true)
@@ -1016,7 +1069,7 @@ async function packFor(app, fmt, args = {}) {
   }
   else {
     files[name + '.rbxmx'] = res.xml
-    if (res.meshes.length) {
+    if (res.meshes.some(m => !m.linked)) {
       const fbxs = await fbxFor(app, res.meshes)
       fbxs.forEach((f, i) => { files[meshFile(name, i, fbxs.length)] = f })
       files['link-meshes.lua'] = LINK_LUA

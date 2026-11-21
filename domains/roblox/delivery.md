@@ -49,3 +49,12 @@ Generators that produce these files live in the 3D domain ([domains/3d/index.md]
 ## Mobile fallback (/mobile)
 - Build the files in the repo, run checks 1-3 (Node runs in cloud sessions), report "files checked, untested in Roblox".
 - Queue: `- [ ] YYYY-MM-DD import <file> into Studio, paste asset ids into SheetAssetIds, playtest — <branch>` in [queue/pc.md](queue/pc.md).
+
+## Umbrio Sandbox model -> Roblox, imported whole (verified 2026-11-22, Venomreaver)
+Never rebuild in Studio by script (owner rule). Route that imports meshes + R6 rig + armor joints + animation as ONE asset:
+1. Export the project with `roblox.export {link: true}` (rigs force this): `<name>.rbxmx` + `<name>-meshes.fbx`.
+2. Open Cloud `POST /assets/v1/assets` assetType Model with the `-meshes.fbx` (upload folder must be approved in Studio: Assistant Settings > MCP Permissions). Poll the operation.
+3. Read mesh ids without inserting: `game:GetObjects("rbxassetid://<id>")[1]`, calibrate with the UMBCAL cubes, JSON `{UMB00001: {id, size, rot}}` (importer turn was Ry180, scale 1).
+4. Export again with `roblox.rbxmx {meshAssets}`: MeshParts carry MeshId + InitialSize, joints absorb the turn in C0/C1, no placeholders.
+5. Upload that `.rbxmx` as Model with file `contentType: "model/x-rbxm"` (`model/x-rbxmx` is rejected "not supported yet"), then `insert_asset`.
+Still open: in-game animation playback needs an Animation asset (upload the KeyframeSequence .rbxmx as assetType Animation); flipbook VFX need ParticleEmitters + uploaded sheet images.

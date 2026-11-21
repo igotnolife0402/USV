@@ -11,6 +11,7 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = mkdtempSync(join(tmpdir(), 'vault learn '));
 process.env.VAULT_ROOT = join(BASE, 'unit');
 const L = await import('../hooks/learn.mjs');
+const { today } = await import('../hooks/lib.mjs');
 const { rollupMetrics } = await import('../scripts/rollup.mjs');
 
 const put = (root, rel, text) => { mkdirSync(dirname(join(root, rel)), { recursive: true }); writeFileSync(join(root, rel), text); };
@@ -107,7 +108,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   const V = join(BASE, 'stop learn vault');
   const g = (...a) => spawnSync('git', a, { cwd: V, encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))) });
   mkdirSync(V, { recursive: true }); g('init', '-q'); g('config', 'user.name', 't'); g('config', 'user.email', 't@t');
-  put(V, 'log.md', `# Log\n## [${new Date().toISOString().slice(0, 10)}] test / x\n`);
+  put(V, 'log.md', `# Log\n## [${today()}] test / x\n`);   // the hook's own (local) date, not UTC
   const FM = '---\nsummary: l\nupdated: 2026-11-21\nstatus: current\n---\n';
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n`);
   g('add', '-A'); g('commit', '-qm', 'init');

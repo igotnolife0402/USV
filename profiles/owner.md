@@ -23,6 +23,9 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Effects punctuate, they don't repeat: never a big effect on every small step (each armor piece, each hit of a combo, each UI tap). Pick ONE of: one big moment when the whole thing completes (all armor on, the combo ends), or a small, subtle continuous effect (drips, faint glow) that runs throughout.
 - Small steps get at most a tiny cue (a glint, a few drops), never a full burst. Nothing extra that wasn't asked for; when unsure, use less.
 
+## Imports, never rebuilds (owner rule 2026-11-22)
+- A model made in Umbrio Sandbox reaches Roblox (or any app) as an IMPORT of the exported file(s), intact: meshes, rig, animation, effects. Never rebuild it instance by instance in Studio with scripts as a substitute; if the export can't carry something, fix the exporter.
+
 ## Quality and scope
 - Maximum quality by default, expert-level, matching the owner's references; all effort up front.
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".

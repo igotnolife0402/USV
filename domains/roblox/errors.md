@@ -37,3 +37,4 @@ triggers: [roblox error, luau error, studio crash, rojo error, datastore error]
 | Imported kit does nothing / effects blank | Mesh names changed on import, or `SheetAssetIds` empty | Keep importer names; owner uploads sheets and pastes ids ([delivery](domains/roblox/delivery.md)) | 2026-11-13 |
 | Exported sphere/cylinder arrives as mesh placeholder | Non-uniform scale on round parts | Keep spheres/cylinders round; bake scale, no scaled groups | 2026-11-13 |
 | Tool script ENOENT `C:\C:\...` on Windows | `new URL(...).pathname` used as a file path | `fileURLToPath(new URL(...))`; main guard `pathToFileURL(process.argv[1]).href` | 2026-11-21 |
+| Open Cloud Model upload of .rbxmx: 'Creating Model from a model/x-rbxmx file is not supported yet' | the file part was sent as model/x-rbxmx; the API wants model/x-rbxm for both .rbxm and .rbxmx | pass contentType model/x-rbxm on the file | 2026-11-22 |
