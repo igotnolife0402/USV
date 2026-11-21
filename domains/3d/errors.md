@@ -45,3 +45,4 @@ triggers: [blender error, gltf error, three.js black, model invisible, normals]
 | GUI text wraps before web fonts load | Box sized for the web font | Size for the widest fallback, plus `tsc` (scale to fit) | 2026-11-19 |
 | beast build: `No such file 'sheets/...png'` | VFX flipbook sheets not passed | `--sheets DIR` built from the VFX sheet library ([vfx](domains/vfx/index.md)) | 2026-11-21 |
 | Artifact asset upload refused scratchpad files (outside allowed read paths) | the asset uploader only reads the working directory | copy into the gitignored .worktrees/ folder of the vault, upload from there | 2026-11-21 |
+| ArtifactData out_dir / Artifact upload refused a scratchpad path (file-edit safety rules / outside allowed read paths) | the 8.3 short path the 8.3 short home path (NAME~1) is not matched as the allowed scratchpad, and uploads only read the working dir | out_dir: use the long path home path with spaces; uploads: copy into .worktrees/ | 2026-11-21 |

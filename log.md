@@ -31,3 +31,6 @@ Owner: 100% honest, no excuses; always improve even when goals are met. Stop hoo
 
 ## [2026-11-21] build / Venomreaver poison armor in Umbrio Sandbox
 New poison set in tools/3d/armor/sets.py (62 meshes), 28 liquid flipbooks (7 pops x 4 layers) on the dragon equip clip, hub project venomreaver-p01s. Checked: local shots + 1080p render, db read-back matches. liquid.py: zero RGB under zero alpha (sheets ~30% smaller). Not checked in the live hub page (browser pane not signed in).
+
+## [2026-11-21] fix / Venomreaver liquid VFX blends in mid-air
+Owner: splash landed on an invisible floor mid-air, looked pasted on, odd light. liquid.py --air (no floor, radial, half gravity), camera-lit translucent soft shading, 3-frame fade-in; hub tex swapped, splashes 0.8x. Checked: studio shots harness. Not checked in the signed-in hub page.

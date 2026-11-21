@@ -9,7 +9,8 @@ Render, per frame, four layers that stack in Umbrio Sandbox (same start, same si
   glow    wide bloom of the body in the liquid's emissive colour                                           blend add
 Output: <out>/<name>_<layer>.png (8x8 grid, 64 frames), <name>_preview.png, <name>.json (manifest for import).
 
-Usage: python liquid.py OUT [preset] [--cell 256] [--seed 1] [--check]
+Usage: python liquid.py OUT [preset] [--air] [--cell 256] [--seed 1] [--check]
+--air: mid-air burst (no floor: drops fall out of frame), for effects on a body or in the air.
 Presets: poison, water, blood, slime, lava.
 """
 import json, math, os, sys, time
@@ -32,8 +33,8 @@ def emit(p, rng):
     n = p['n']
     if p['shape'] == 'burst':                       # radial blast from the centre
         a = rng.uniform(0, 2 * math.pi, n); s = rng.gamma(3.0, 0.33, n) * p['speed']
-        vel = np.stack([np.cos(a), np.sin(a) * 0.8 + 0.6], 1) * s[:, None]
-        pos = rng.normal(0, 0.02, (n, 2)) + [0.5, 0.45]
+        vel = np.stack([np.cos(a), np.sin(a) * 0.8 + p.get('lift', 0.6)], 1) * s[:, None]
+        pos = rng.normal(0, 0.02, (n, 2)) + [0.5, p.get('cy', 0.45)]
     elif p['shape'] == 'splash':                    # crown splash from an impact on the floor
         a = rng.uniform(0.15 * math.pi, 0.85 * math.pi, n); s = rng.gamma(4.0, 0.25, n) * p['speed']
         vel = np.stack([np.cos(a) * 1.2, np.sin(a) * 1.4], 1) * s[:, None]
@@ -98,37 +99,40 @@ def simulate(p, seed):
                 va[:, 1] -= p['g'] * dt * 1.6
                 va *= (1 - 0.2 * dt)
                 pa = pa + va * dt * 0.8
-                floor = pa[:, 1] < 0.08                 # bounce + spread on the ground
-                va[floor, 1] = np.abs(va[floor, 1]) * 0.25; va[floor, 0] *= 0.85; pa[floor, 1] = 0.08
+                if p.get('floor', True):                # bounce + spread on the ground (off for mid-air bursts)
+                    floor = pa[:, 1] < 0.08
+                    va[floor, 1] = np.abs(va[floor, 1]) * 0.25; va[floor, 0] *= 0.85; pa[floor, 1] = 0.08
                 pos[alive], vel[alive] = pa, va
-        alive = (born <= t) & (pos[:, 0] > 0.01) & (pos[:, 0] < 0.99) & (pos[:, 1] < 0.99)   # off-frame drops leave, never pile on the edge
+        alive = (born <= t) & (pos[:, 0] > 0.01) & (pos[:, 0] < 0.99) & (pos[:, 1] < 0.99) & (pos[:, 1] > 0.01)   # off-frame drops leave, never pile on an edge
         out.append((pos[alive].copy(), vel[alive].copy()))
     return out
 
 
 def shade(dens, p, cell, life):
-    """Metaball body: alpha from density, normal from its gradient, light from the upper left."""
-    a = np.clip((dens - 0.35) / 0.5, 0, 1); a = a * a * (3 - 2 * a)
+    """Metaball body: alpha from density, normal from its gradient. Lit from the front (camera) so it never fights the
+    scene's own light direction; mostly self-lit (inner glow), translucent where thin, soft edges, so it sits in the scene."""
+    a = np.clip((dens - 0.3) / 0.9, 0, 1); a = a * a * (3 - 2 * a)
     ripple = blur(RIPPLE[:cell, :cell], max(1, cell // 48)) * 6.0 * np.clip(dens - 0.8, 0, 1)   # surface ripples on thick pools
     gy, gx = np.gradient(blur(dens, max(1, cell // 64)) + ripple)
     nz = np.full_like(dens, 0.35); n = np.stack([-gx, gy, nz], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True) + 1e-6
-    L = np.array([-0.45, 0.6, 0.66], np.float32); L /= np.linalg.norm(L)
+    L = np.array([0.0, 0.25, 1.0], np.float32); L /= np.linalg.norm(L)
     diff = np.clip((n * L).sum(-1), 0, 1)
     H = L + np.array([0, 0, 1], np.float32); H /= np.linalg.norm(H)
     nh = np.clip((n * H).sum(-1), 0, 1)
-    spec = nh ** 40 * 0.7 + nh ** 400 * 1.2                  # broad sheen + sharp wet hotspot
+    spec = nh ** 120 * 0.55                                  # small wet glint only: no big baked hotspot
     rim = (1 - n[..., 2]) ** 2 * a                           # fresnel: edges catch the emissive colour
     thick = np.clip(dens / 2.5, 0, 1)
-    col = np.array(p['deep'])[None, None] * (0.5 + thick[..., None]) + np.array(p['bright'])[None, None] * (diff[..., None] * (1 - thick[..., None] * 0.6))
-    col = col + spec[..., None] + np.array(p['glow'])[None, None] * ((1 - thick[..., None]) * 0.25 * a[..., None] + rim[..., None] * 0.6)
-    return np.concatenate([np.clip(col, 0, 1), (a * life)[..., None]], -1)
+    col = np.array(p['deep'])[None, None] * thick[..., None] + np.array(p['bright'])[None, None] * (0.55 + 0.45 * diff[..., None]) * (1 - thick[..., None] * 0.5)
+    col = col + spec[..., None] + np.array(p['glow'])[None, None] * ((1 - thick[..., None]) * 0.35 * a[..., None] + rim[..., None] * 0.5)
+    alpha = a * (0.5 + 0.45 * thick) * life                  # thin liquid is see-through, the core is near opaque
+    return np.concatenate([np.clip(col, 0, 1), alpha[..., None]], -1)
 
 
 def render(frames, p, cell, seed):
     rng = np.random.default_rng(seed + 7)
     layers = {k: [] for k in ('body', 'drops', 'mist', 'glow')}
     for i, (pos, vel) in enumerate(frames):
-        life = 1.0 - max(0.0, (i - FRAMES * 0.72) / (FRAMES * 0.28)) ** 1.5      # ends by thinning into drops/mist, never a cut
+        life = (1.0 - max(0.0, (i - FRAMES * 0.72) / (FRAMES * 0.28)) ** 1.5) * min(1.0, (i + 1) / 3)   # 3-frame fade in, thins out at the end, never a cut
         if len(pos) == 0:
             for k in layers: layers[k].append(np.zeros((cell, cell, 4), np.float32))
             continue
@@ -184,20 +188,22 @@ def composite(layers):
     return out
 
 
-def build(out, preset='poison', cell=256, seed=1):
+def build(out, preset='poison', cell=256, seed=1, air=False):
     t0 = time.time()
-    p = PRESETS[preset]
+    p = {**PRESETS[preset], **({'floor': False, 'shape': 'burst', 'cy': 0.56, 'lift': 0.2} if air else {})}
+    if air: p['g'] *= 0.5                                  # hangs in the air, breaks up, drops fall away instead of the whole mass landing   # --air: a mid-air burst, no ground
+    name = preset + ('-air' if air else '')
     os.makedirs(out, exist_ok=True)
     layers = render(simulate(p, seed), p, cell, seed)
     files = []
     for k, blend in (('mist', 'add'), ('body', 'normal'), ('drops', 'normal'), ('glow', 'add')):
-        f = f'{preset}_{k}.png'; sheet(layers[k], os.path.join(out, f)); files.append({'file': f, 'layer': k, 'blend': blend})
-    sheet(composite(layers), os.path.join(out, f'{preset}_preview.png'))
+        f = f'{name}_{k}.png'; sheet(layers[k], os.path.join(out, f)); files.append({'file': f, 'layer': k, 'blend': blend})
+    sheet(composite(layers), os.path.join(out, f'{name}_preview.png'))
     alpha = np.array([[fr[..., 3].mean() for fr in layers[k]] for k in ('body', 'drops')])
-    manifest = {'name': f'liquid {preset}', 'preset': preset, 'grid': GRID, 'frames': FRAMES, 'fps': FPS, 'life': round(FRAMES / FPS, 3),
+    manifest = {'name': f'liquid {name}', 'preset': preset, 'grid': GRID, 'frames': FRAMES, 'fps': FPS, 'life': round(FRAMES / FPS, 3),
                 'cell': cell, 'layers': files,
                 'import': 'Umbrio Sandbox: add each sheet as a flipbook effect with the same start and size, in this order (mist, body, drops, glow); drag onto the animation row.'}
-    with open(os.path.join(out, f'{preset}.json'), 'w') as fh: json.dump(manifest, fh, indent=2)
+    with open(os.path.join(out, f'{name}.json'), 'w') as fh: json.dump(manifest, fh, indent=2)
     stats = {'seconds': round(time.time() - t0, 1), 'empty_frames': int((alpha.sum(0) < 1e-4).sum()),
              'max_step_jump': round(float(np.abs(np.diff(alpha, axis=1)).max() / (alpha.max() + 1e-6)), 3)}
     return manifest, stats
@@ -210,7 +216,7 @@ if __name__ == '__main__':
     pos = [x for i, x in enumerate(a) if not x.startswith('--') and (i == 0 or not a[i - 1].startswith('--'))]
     preset = pos[1] if len(pos) > 1 else 'poison'
     if preset not in PRESETS: print(f'unknown preset {preset}; have {", ".join(PRESETS)}'); sys.exit(1)
-    m, s = build(pos[0], preset, opt('--cell', 256), opt('--seed', 1))
+    m, s = build(pos[0], preset, opt('--cell', 256), opt('--seed', 1), '--air' in a)
     print(json.dumps({'out': pos[0], **s, 'layers': [l['file'] for l in m['layers']]}))
     if '--check' in a and (s['seconds'] > 60 or s['empty_frames'] > 2 or s['max_step_jump'] > 0.5):
         print('CHECK FAILED: over 60 s, empty frames or choppy motion'); sys.exit(2)

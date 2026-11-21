@@ -57,3 +57,4 @@ Run [checklists/vfx.md](checklists/vfx.md). Add new failures to [errors](domains
 - Shade every liquid layer, droplets included: normal from the density gradient, a broad + a sharp specular (`^40` and `^400`) and a fresnel rim `(1-n.z)^2` in the emissive colour. Flat-coloured drops read as blobs.
 - Normalise splat density by blur width (`w*w`) so one droplet clears the surface threshold at any cell size.
 - Thick flat pools need detail: add fixed (not per-frame) noise to the height before the gradient, or they flicker.
+- Flipbook cards in a 3D scene: never bake a side light (it fights the scene light as the camera turns); light from the camera, mostly emissive, thin parts translucent, soft alpha edges. Physics must match where it plays: a floor bounce only on the ground (`liquid.py --air` for bodies/mid-air).
