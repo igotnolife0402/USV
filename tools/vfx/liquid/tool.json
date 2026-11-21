@@ -1,0 +1,6 @@
+{
+ "name": "liquid",
+ "what": "VFX Generator: liquid simulation (burst, splash, spray) as 4 stacked flipbook layers (mist, body, drops, glow), 64 frames, ~2 s per effect, imported into Umbrio Sandbox",
+ "run": "python tools/vfx/liquid/liquid.py OUT <poison|water|blood|slime|lava> --check",
+ "prompt": "Follow README Steps; build to scratch; import the 4 sheets into Umbrio Sandbox in manifest order and attach to the animation."
+}

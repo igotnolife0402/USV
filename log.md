@@ -22,3 +22,6 @@ New /vault, /learn, /queue skills on one CLI (scripts/vault.mjs); router-named s
 
 ## [2026-11-21] fix / tool registry
 Owner tools/artifacts registry (profiles/tools.md) + `vault.mjs tool find|add`, injected at session start, routed by 'artifact/sandbox/generator'; never ask twice.
+
+## [2026-11-21] build / Umbrio Sandbox default + liquid VFX generator
+Umbrio Sandbox is the enforced default (hooks/prefer.json blocks Blender/generators unless named); new tools/vfx/liquid generator (4 layers, ~2 s) registered as VFX Generator.

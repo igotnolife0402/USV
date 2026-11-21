@@ -13,6 +13,11 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Never claim a look you did not see. No screenshot possible → say "not visually verified" and queue the visual check in [queue/pc.md](queue/pc.md).
 - Replies: short (aim 10 words or fewer). Errors, questions and requested reports are exempt.
 
+## Default tool: Umbrio Sandbox (owner rule 2026-11-21)
+- UI, models, animation, textures, sound effects and VFX on animations are made in the owner's own **Umbrio Sandbox** (Claude-Hub tile, code `tools/3d/studio`; [profiles/tools.md](profiles/tools.md)). The owner rates it above Blender.
+- Never reach for Blender, Customuse or Roblox AI generators unless the owner names them; `hooks/prefer.json` blocks them otherwise.
+- VFX: make layered sheets with `tools/vfx/liquid` (liquid) or `tools/vfx/flipbook`, then import into Umbrio Sandbox and attach to the animation (Animate tab → Effects list → drag onto the part row).
+
 ## Quality and scope
 - Maximum quality by default, expert-level, matching the owner's references; all effort up front.
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".

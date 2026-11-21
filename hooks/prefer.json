@@ -1,0 +1,10 @@
+{
+  "_": "Owner-preferred tools. A matching tool call is denied unless the owner's prompt names that tool (unless regex). Owner rule 2026-11-21: Umbrio Sandbox is better than Blender and generators.",
+  "rules": [
+    {
+      "match": "^mcp__blender__|^mcp__[0-9a-f-]+__customuse_|^mcp__Roblox_Studio__generate_(mesh|procedural_model|animation|scene|avatar|texture|material)",
+      "unless": "blender|customuse|meshy|tripo|rodin|roblox (ai|generat)|generate_mesh",
+      "use": "Umbrio Sandbox (Claude-Hub tile, code in tools/3d/studio) for UI, models, animation, textures and VFX on animations; VFX sheets from tools/vfx/liquid or tools/vfx/flipbook imported into it"
+    }
+  ]
+}

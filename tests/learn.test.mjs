@@ -125,3 +125,15 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   assert.equal(ok.stdout, '');
   assert.equal(g('status', '--porcelain').stdout.trim(), '', 'committed');
 });
+
+test('owner-preferred tools: Blender is denied unless the owner names it (Umbrio Sandbox instead)', () => {
+  const root = join(BASE, 'prefer vault'); mkdirSync(join(root, 'hooks'), { recursive: true });
+  writeFileSync(join(root, 'hooks', 'modes.json'), '{}');
+  writeFileSync(join(root, 'hooks', 'prefer.json'), readFileSync(join(REPO, 'hooks', 'prefer.json'), 'utf8'));
+  const run = (prompt) => {
+    const f = join(BASE, `prefer ${prompt.length}.jsonl`); writeFileSync(f, transcript(prompt, []));
+    return node([join(REPO, 'hooks', 'pre-tool.mjs')], { tool_name: 'mcp__blender__execute_blender_code', tool_input: {}, transcript_path: f, session_id: 'p' }, { VAULT_ROOT: root }).stdout;
+  };
+  assert.match(run('make a poison armor model'), /Umbrio Sandbox/);
+  assert.equal(run('make it in blender please'), '');
+});

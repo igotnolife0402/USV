@@ -102,6 +102,11 @@ if (isMain(import.meta.url)) safe(() => {
   // 3-try cap: the exact same call already failed 3 times this turn -> change approach instead of looping.
   if (transcript_path && /^(Bash|PowerShell|mcp__)/.test(tool)) {
     const turn = parseTurn(readTail(transcript_path, 1_500_000));
+    // Owner-preferred tools (hooks/prefer.json): e.g. Umbrio Sandbox over Blender unless the owner names Blender.
+    let prefer = { rules: [] };
+    try { prefer = JSON.parse(readIf(join(ROOT, 'hooks', 'prefer.json')) || '{"rules":[]}'); } catch { /* keep empty */ }
+    const p = (prefer.rules || []).find(r => new RegExp(r.match).test(tool) && !new RegExp(r.unless, 'i').test(turn.prompt));
+    if (p) return deny(`Owner rule: use ${p.use} instead of ${tool}. Only use ${tool.split('__')[1] || tool} when the owner names it.`);
     if (retryCapHit(turn, tool, ti)) {
       const last = turn.errors.filter(e => e.tool === tool).at(-1);
       return deny(`3-try cap: this exact call already failed 3 times this turn${last ? ` (last error: ${last.text.slice(0, 160)})` : ''}. Change approach: read the domain's errors.md, try a different method, or log it (lessons.md / queue/pc.md) and move on.`);

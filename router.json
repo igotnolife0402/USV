@@ -183,7 +183,9 @@
         "flicker",
         "studio tab",
         "catalog",
-        "shots check"
+        "shots check",
+        "umbrio",
+        "equip animation"
       ],
       "notes": [
         "domains/3d/index.md",
@@ -291,7 +293,13 @@
         "lightsaber",
         "dragon vfx",
         "layers",
-        "crystal burst"
+        "crystal burst",
+        "liquid",
+        "splash",
+        "poison",
+        "vfx generator",
+        "drip",
+        "goo"
       ],
       "notes": [
         "domains/vfx/index.md",
