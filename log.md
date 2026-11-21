@@ -10,3 +10,6 @@ QA sync: queue-first, queue sync, lessons append-only rules unified across CLAUD
 
 ## [2026-11-21] build / auto-learning loop
 Stop hook now analyses each turn (errors, retries, slowness, owner complaints, router misses) and blocks once until a lesson + note fix exist; 3-try cap in PreToolUse; per-turn metrics + PERF/PROMOTE digest at start; monthly metric rollup. 28 tests pass.
+
+## [2026-11-21] build / learn on every task
+Learning now triggers on any real error for every task size; new math domain + route + checklist; images get their own checklist.

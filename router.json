@@ -218,7 +218,7 @@
         "domains/images/index.md",
         "domains/images/playbook.md"
       ],
-      "checklist": "checklists/simple.md",
+      "checklist": "checklists/images.md",
       "skill": "3d-editor"
     },
     {
@@ -363,6 +363,45 @@
       "notes": [
         "profiles/owner.md"
       ]
+    },
+    {
+      "id": "math",
+      "words": [
+        "math",
+        "calculate",
+        "calculation",
+        "equation",
+        "formula",
+        "solve",
+        "percent",
+        "percentage",
+        "probability",
+        "odds",
+        "chance",
+        "drop rate",
+        "vector",
+        "matrix",
+        "angle",
+        "trig",
+        "cframe math",
+        "physics",
+        "damage formula",
+        "balance",
+        "curve",
+        "interpolation",
+        "lerp",
+        "average",
+        "convert",
+        "conversion",
+        "how many",
+        "how much"
+      ],
+      "notes": [
+        "domains/math/index.md",
+        "domains/math/playbook.md"
+      ],
+      "checklist": "checklists/math.md",
+      "skill": ""
     }
   ],
   "tiers": {
@@ -402,7 +441,14 @@
       "swarm",
       "refactor all",
       "lobby",
-      "full build"
+      "full build",
+      "hook",
+      "hooks",
+      "learning loop",
+      "self-improving",
+      "self improve",
+      "automate",
+      "automation"
     ]
   }
 }

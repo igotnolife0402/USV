@@ -44,6 +44,8 @@ test('signals: errors, slow, correction, router miss; relays give none', () => {
   const t = L.parseTurn(transcript('still broken, the build fails', failing).split('\n'));
   const kinds = L.signals({ ...t, secs: 400 }, { tier: 'medium', routes: ['web'] }).map(s => s.kind);
   assert.deepEqual(kinds, ['errors', 'slow', 'correction', 'router']);
+  const one = L.parseTurn(transcript('make an icon', failing.slice(0, 2)).split('\n'));
+  assert.deepEqual(L.signals(one, { tier: 'simple', routes: ['images'] }).map(s => s.kind), ['errors'], 'one error on a tiny task still teaches');
   const task = L.parseTurn(transcript('make it learn from every error and when it was super slow', []).split('\n'));
   assert.equal(L.signals(task, { tier: 'medium', routes: [] }).length, 0, 'a task description is not a correction');
   const relay = L.parseTurn(transcript('<task-notification> done', failing).split('\n'));

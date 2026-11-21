@@ -65,7 +65,7 @@ On any error, failed check or owner correction, in the same task:
 3. Add the trigger words that should have routed here to [router.json](router.json) (route `words` or `tiers`).
 4. Lesson seen twice (h >= 2 or same root cause twice) → promote to a rule in the domain playbook or a hook; leave the lesson bullet, add `→ promoted: path`.
 On success with a reusable trick: add it to the domain playbook or snippets, link it from the index.
-Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on >= 2 tool errors, a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly.
+Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on any real tool error (every task, however small: pictures, models, math, vault upkeep), a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly.
 
 ## 6. Speed levers
 - Simple: effort low, no sub-agents, no plan, answer from routed notes.
@@ -77,7 +77,7 @@ Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's tra
 - Reuse skills in `.claude/skills/` before writing from scratch: pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep. Engineering skills (review, debug, TDD, spec, plan, perf, security, git) load on match; reuse tools in `tools/` (see [index.md](index.md)).
 
 ## 7. Definition of done
-1. Open the checklist the router names ([checklists/](checklists/simple.md): simple, web, game, roblox, 3d, vfx, audio, vault).
+1. Open the checklist the router names ([checklists/](checklists/simple.md): simple, web, game, roblox, 3d, vfx, audio, images, math, vault).
 2. Run its ONE verification (an outside check: script, measurement or screenshot, never self-judgment). Pass → stop. Fail → fix, re-run (3-try cap).
 3. Complex: run the `qa-gate` agent ([.claude/agents/qa-gate.md](.claude/agents/qa-gate.md)) before merge.
 4. Log to log.md; lessons/router updates per section 5. Then stop: no extra polish, no unrequested features.

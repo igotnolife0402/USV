@@ -76,7 +76,8 @@ export function signals(turn, state = {}) {
   const out = [];
   if (turn.relay) return out; // agent/system relays are not owner tasks
   const tier = state.tier || 'medium';
-  if (turn.errors.length >= 2 || turn.maxRetry >= 2)
+  // Any real error counts, on any task however small (pictures, models, math, vault upkeep).
+  if (turn.errors.length >= 1)
     out.push({ kind: 'errors', text: `${turn.errors.length} tool error(s), worst retry x${turn.maxRetry}: ${turn.errors.slice(0, 3).map(e => `${e.tool} \`${e.what}\` → ${e.text}`).join(' | ')}` });
   const target = TARGET_S[tier];
   if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s vs ${tier} target ${target}s` });
