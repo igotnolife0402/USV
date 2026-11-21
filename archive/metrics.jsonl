@@ -7,3 +7,4 @@
 {"t":"2026-11-21T22:04:35.382Z","tier":"medium","secs":195,"ok":true,"errors":0,"retry":0,"routes":["vfx","tools"],"touched":[],"signals":["skill"],"mode":"pc"}
 {"t":"2026-11-21T22:09:28.917Z","tier":"medium","secs":6,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-21T22:12:47.044Z","tier":"medium","secs":255,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-21T22:28:12.406Z","tier":"medium","secs":211,"ok":true,"errors":2,"retry":1,"routes":["vfx"],"touched":[],"signals":["errors"],"mode":"pc"}
