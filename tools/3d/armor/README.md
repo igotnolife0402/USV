@@ -18,6 +18,16 @@ Blocky, high-detail dragon armor (an original ember-wyrm design) fitted to the s
 ## More sets (`sets.py`)
 `python3 sets.py OUT <frost|solar|storm|poison> <stage>`: the same rig, groups and stages. poison = Venomreaver (moss-green plate, toxin vials and canisters, plague-mask helm with glowing lenses and a respirator snout, acid drips; built 2026-11-21, hub project `venomreaver-p01s`). frost = Rimeguard (ice-steel knight, crystal clusters, T-visor great helm, ice crown); solar = Dawnbringer (white-and-gold paladin, sunbursts, feather wings, cross-slit helm, halo); storm = Storm Ronin (laced lamellar samurai, sode, kabuto with horns and a lightning maedate, oni mask). Each set is its own new tab: the first batch sets the project (rig + equip clip + cuirass) and `meta` with `building: true`; two more batches add pauldrons+arms and legs+helm, the last sets `building: false`.
 
+## Max-quality kit (`hq.py`, 2026-11-22): use this for every new or remade set
+Owner rule: an older set is identity reference, never the quality bar. `hq.py` replaces the flat `solids.py` blocks with smooth,
+curved, bevelled pieces: `plate` (curved shell, bulge, centre ridge, flare, rolled rim; `Plate.at/curve` put rivets and trims on
+the face), `rbox`, `lathe`, `disc`, `sphere` (dome via cut), `rivet`, `torus`, `tube` (parallel-transport sweep), `horn`, `drip`,
+`extrude`. Meshes are welded quads marked `smooth: 40` (angle), so curves shade smooth and creases stay crisp. Same groups/frames/
+writer as `Kit`, docs split under 190 KB.
+- Build: `python venomreaver.py OUT <stage>` (Venomreaver at max quality: `vhq_torso.py`, `vhq_limbs.py`, `vhq_helm.py`).
+- Audit: `python hq.py OUT` must print `clean` (no holes, no flipped faces). Preview: `python preview.py OUT x.png --focus CP`
+  (painter-sorted flat preview with the rig boxes; the studio shots render is the real look check).
+
 ## Files
 | File | Does |
 |---|---|

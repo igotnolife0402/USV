@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Venomreaver HQ: the poison set rebuilt at maximum quality with hq.py (curved shell plates, rolled rims, lathed vials and
+"""Venomreaver: the poison set rebuilt at maximum quality with hq.py (curved shell plates, rolled rims, lathed vials and
 lenses, swept hoses and horns, rivets, smooth shading by angle) on the same rig, groups and stages as sets.py poison.
-  python venom_hq.py OUT <cuirass|pauldrons|arms|legs|helm>     then: python hq.py OUT (audit), python preview.py OUT x.png
+  python venomreaver.py OUT <cuirass|pauldrons|arms|legs|helm>     then: python hq.py OUT (audit), python preview.py OUT x.png
 Pieces live in vhq_torso.py (cuirass, pauldrons), vhq_limbs.py (arms, legs), vhq_helm.py (helm); each has build(stage, K)."""
 import json, sys
 from hq import Kit
