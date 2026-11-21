@@ -140,6 +140,7 @@ function convert(ctx, id, parent) {
   else if (o.type === 'light') n = lightNode(ctx, o, F, name)
   else if (o.type === 'stroke') n = strokeNode(ctx, o, F, name)
   else if (o.type === 'model') n = meshNode(ctx, o, F, ctx.opts.modelGeo?.(id), name)
+  else if (o.type === 'flipbook') n = flipNode(ctx, o, F, name)
   else { ctx.notes.push(`${name}: ${o.type} has no Roblox form, skipped`); ctx.counts.skipped++ }
   if (n) { parent.kids.push(n); ctx.nodeOf.set(id, n); if (n.entry) n.entry.parent = parent }
   for (const c of ctx.kids.get(id) || []) convert(ctx, c, parent) // Roblox parts do not carry children: they become siblings
@@ -321,6 +322,23 @@ function mergeMeshes(ctx, root) {
   let models = 0; const count = n => { for (const k of n.kids) if (k.cls === 'Model') { models++; count(k) } }; count(root); ctx.counts.models = models
 }
 
+// Flipbook effect -> an invisible holder part with a ParticleEmitter playing the same sheet (Grid8x8/4x4/2x2, one particle
+// of the card's size). Sheet image ids come from opts.textureAssets (tex id -> rbxassetid of the uploaded image). Rate 0: the
+// model's UmbrioPlay script Emits it at its StartTime on the animation; in a rig the holder rides its limb like armor does.
+const FLIP_GRID = { 2: ['Grid2x2', 1], 4: ['Grid4x4', 2], 8: ['Grid8x8', 3] }
+function flipNode(ctx, o, F, name) {
+  const r = rigid(F), img = ctx.opts.textureAssets?.[o.tex], g = FLIP_GRID[o.grid || 4] || FLIP_GRID[4], size = Math.max(0.1, (o.size ?? 8) * (Math.abs(r.s[0]) + Math.abs(r.s[1])) / 2)
+  if (!img) { ctx.notes.push(`${name}: flipbook sheet ${o.tex} not uploaded (opts.textureAssets), skipped`); ctx.counts.skipped++; return null }
+  const life = +(o.loop ? o.dur : o.life) || 1   // ZOffset below: drawn over the body it bursts from, like the Sandbox card
+  const pe = node('ParticleEmitter', name, [['Texture', 'content', img], ['FlipbookLayout', 'enum', ['ParticleFlipbookLayout', g[0], g[1]]],
+    ['FlipbookMode', 'enum', ['ParticleFlipbookMode', o.loop ? 'Loop' : 'OneShot', o.loop ? 0 : 1]], ['Lifetime', 'nrange', [life, life]], ['Rate', 'num', 0],
+    ['Speed', 'nrange', [0, 0]], ['Size', 'nseq', size], ['LightEmission', 'num', o.blend === 'add' ? 1 : 0], ['LightInfluence', 'num', 0],
+    ['LockedToPart', 'bool', true], ['Enabled', 'bool', true], ['ZOffset', 'num', Math.min(4, size * 0.35)]], [node('NumberValue', 'StartTime', [['Value', 'num', +o.start || 0]])])
+  ctx.counts.effects = (ctx.counts.effects || 0) + 1
+  return node('Part', name, [['Shape', 'enum', PT.Block], ['Size', 'v3', [0.2, 0.2, 0.2]], ['CFrame', 'cf', { R: r.R, t: r.t }], ['Transparency', 'num', 1],
+    ['Anchored', 'bool', true], ['CanCollide', 'bool', false], ['CanQuery', 'bool', false], ['CanTouch', 'bool', false], ['Massless', 'bool', true], ['CastShadow', 'bool', false]], [pe])
+}
+
 function lightNode(ctx, o, F, name) {
   if (o.kind === 'directional') { ctx.notes.push(`${name}: directional light skipped (Roblox uses Lighting for the sun)`); ctx.counts.skipped++; return null }
   const r = rigid(F)
@@ -399,8 +417,23 @@ function rigify(ctx, gid, model, rig) {
     nodes[k].kids.push(node('Motor6D', u, [['Part0', 'ref', nodes[k]], ['Part1', 'ref', n], ['C0', 'cf', c0], ['C1', 'cf', ID], ['MaxVelocity', 'num', 0.1]]))
     extra.push({ id, k, n, c0 })
   }
+  // Show/hide keys (Roblox poses can't carry them): each part gets ShowAt / HideAt from the first visibility track on it or a
+  // group above it; UmbrioPlay hides it until ShowAt (pieces appear one at a time) and hides it at HideAt (the head under the helm).
+  const firstAnim = Object.values(ctx.scene.anims || {}).find(Boolean)
+  if (firstAnim) for (const id of [...Object.values(rig), ...extra.map(e => e.id)]) {
+    const n = ctx.nodeOf.get(id); let vis = null
+    for (let p = id; p && !vis; p = ctx.objs[p]?.parent) vis = firstAnim.tracks?.[p]?.visible || null
+    if (!n || !vis?.length) continue
+    const on = t => { let v = true; for (const k of vis) if (k[0] <= t + 1e-6) v = !!k[1]; return v }
+    const flip = vis.find(k => !!k[1] !== on(0))
+    if (!flip) continue
+    n.kids.push(node('NumberValue', on(0) ? 'HideAt' : 'ShowAt', [['Value', 'num', flip[0]]]))
+  }
   const seqs = []
   for (const [aid, a] of Object.entries(ctx.scene.anims || {})) { const s = a && keyframeSeq(ctx, a, aid, gid, rig, nodes, C0, extra); if (s) seqs.push(s) }
+  const anims = ctx.opts.animAssets || {}, playable = seqs.filter(q => anims[propOf(q, 'Name')[2]])
+  for (const q of playable) model.kids.push(node('Animation', propOf(q, 'Name')[2], [['AnimationId', 'content', anims[propOf(q, 'Name')[2]]]]))
+  if (playable.length) model.kids.push(node('Script', 'UmbrioPlay', [['Source', 'src', PLAY_LUA]]))
   if (seqs.length) { model.kids.push(node('ObjectValue', 'AnimSaves', [['Value', 'ref', null]], seqs)); ctx.counts.anims += seqs.length }
 }
 
@@ -461,7 +494,7 @@ const XNAME = { Shape: 'shape', Size: 'size' }
 const esc = s => String(s).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 const R_KEYS = ['R00', 'R01', 'R02', 'R10', 'R11', 'R12', 'R20', 'R21', 'R22']
 function xmlProp([k, t, v], ref) {
-  const n = XNAME[k] || k
+  const n = t === 'nseq' || t === 'nrange' ? k : XNAME[k] || k   // only BasePart's Size/Shape use the lowercase XML names
   switch (t) {
     case 'str': return `<string name="${n}">${esc(v)}</string>`
     case 'bool': return `<bool name="${n}">${!!v}</bool>`
@@ -473,6 +506,9 @@ function xmlProp([k, t, v], ref) {
     case 'enum': return `<token name="${n}">${v[2]}</token>`
     case 'ref': return `<Ref name="${n}">${v ? ref(v) : 'null'}</Ref>`
     case 'content': return `<Content name="${n}"><url>${esc(v)}</url></Content>`
+    case 'nrange': return `<NumberRange name="${n}">${num(v[0])} ${num(v[1])} </NumberRange>`
+    case 'nseq': return `<NumberSequence name="${n}">0 ${num(v)} 0 1 ${num(v)} 0 </NumberSequence>`
+    case 'src': return `<ProtectedString name="${n}"><![CDATA[${String(v).replace(/]]>/g, ']]]]><![CDATA[>')}]]></ProtectedString>`
   }
   return ''
 }
@@ -842,7 +878,47 @@ pcall(function() game:GetService("ChangeHistoryService"):SetWaypoint("Umbrio lin
 print(("Umbrio: linked %d of %d meshes%s"):format(done, #holders, calOk and (" (import scale %.4g)"):format(s) or ""))
 if #missing > 0 then warn("Umbrio: no imported mesh for " .. table.concat(missing, ", ", 1, math.min(#missing, 20)) .. (#missing > 20 and " ..." or "")) end
 `
-export function toRbxmx(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, xml: writeRbxmx(m.root) } }
+const findCls = (n, c) => n.cls === c ? n : n.kids.reduce((f, k) => f || findCls(k, c), null)
+// animOnly: just the first KeyframeSequence, as an .rbxmx to upload as an Animation asset (then pass its id as animAssets).
+export function toRbxmx(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, xml: writeRbxmx(opts.animOnly ? findCls(m.root, 'KeyframeSequence') || m.root : m.root) } }
+// The model plays its own equip animation and fires its effects at their StartTime, every loop. Delete it to drive both yourself.
+export const PLAY_LUA = `--!strict
+-- Umbrio Sandbox: plays this model's animation, shows each piece at its equip time and fires the particle effects in time with it.
+local model = script.Parent
+local humanoid = model:FindFirstChildOfClass("Humanoid") :: Humanoid
+local animation = model:FindFirstChildOfClass("Animation") :: Animation
+if not humanoid or not animation then return end
+local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator")
+animator.Parent = humanoid
+local track = animator:LoadAnimation(animation)
+local function visibility()
+	for _, p in model:GetDescendants() do
+		if p:IsA("BasePart") then
+			local show = p:FindFirstChild("ShowAt") :: NumberValue?
+			local hide = p:FindFirstChild("HideAt") :: NumberValue?
+			if show or hide then
+				local base = p:GetAttribute("UmbrioTransparency")
+				if base == nil then base = p.Transparency p:SetAttribute("UmbrioTransparency", base) end
+				p.Transparency = if show then 1 else base
+				if show then task.delay(show.Value, function() p.Transparency = base end) end
+				if hide then task.delay(hide.Value, function() p.Transparency = 1 end) end
+			end
+		end
+	end
+end
+local function effects()
+	for _, e in model:GetDescendants() do
+		if e:IsA("ParticleEmitter") then
+			local t = e:FindFirstChild("StartTime") :: NumberValue?
+			task.delay(t and t.Value or 0, function() e:Emit(1) end)
+		end
+	end
+end
+visibility()
+track:Play()
+effects()
+track.DidLoop:Connect(function() visibility() effects() end)
+`
 export function toLua(scene, opts = {}) { const m = robloxModel(scene, opts); return { ...m, lua: writeLua(m.root, m.counts) } }
 export function importReadme(name, res) {
   const many = res.meshFiles.length > 1
@@ -999,7 +1075,7 @@ async function build(app, fmt, args = {}) {
     }
     catch (e) { app.toast?.('Polygon reduction unavailable (' + e.message + '): exporting full detail', 'error') }
   }
-  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate, merge: args.separate !== true, simplify, meshAssets: args.meshAssets }
+  const opts = { ...exportCtx(id => app.geo.peek(id)), ids, baseplate: !!args.baseplate, merge: args.separate !== true, simplify, meshAssets: args.meshAssets, textureAssets: args.textureAssets, animAssets: args.animAssets, animOnly: args.animOnly }
   return fmt === 'lua' ? toLua(scene, opts) : toRbxmx(scene, opts)
 }
 // Each mesh's look as the viewport draws it: material colour, its texture (PNG, shared) and the texture's uv transform.

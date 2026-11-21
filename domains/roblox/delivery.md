@@ -57,4 +57,6 @@ Never rebuild in Studio by script (owner rule). Route that imports meshes + R6 r
 3. Read mesh ids without inserting: `game:GetObjects("rbxassetid://<id>")[1]`, calibrate with the UMBCAL cubes, JSON `{UMB00001: {id, size, rot}}` (importer turn was Ry180, scale 1).
 4. Export again with `roblox.rbxmx {meshAssets}`: MeshParts carry MeshId + InitialSize, joints absorb the turn in C0/C1, no placeholders.
 5. Upload that `.rbxmx` as Model with file `contentType: "model/x-rbxm"` (`model/x-rbxmx` is rejected "not supported yet"), then `insert_asset`.
-Still open: in-game animation playback needs an Animation asset (upload the KeyframeSequence .rbxmx as assetType Animation); flipbook VFX need ParticleEmitters + uploaded sheet images.
+6. Animation for in-game play: `roblox.rbxmx {animOnly: true}` -> upload as assetType Animation (contentType model/x-rbxm) -> pass `animAssets: {"<clip name>": "rbxassetid://<id>"}`.
+7. VFX: upload each flipbook sheet .png as assetType Decal, read the image id via `game:GetObjects("rbxassetid://<decal>")[1].Texture`, pass `textureAssets: {<tex id>: image id}`: flipbooks become ParticleEmitters (Grid8x8, OneShot, Rate 0, ZOffset over the body, StartTime NumberValue).
+8. The model then carries an Animation + Script UmbrioPlay: plays the clip, shows each piece at its ShowAt (Roblox poses can't hide parts), hides at HideAt, Emits effects at StartTime, every loop. Verified in play mode 2026-11-22: bare rig -> boots 2 s -> full armor + poison burst 4.1 s.

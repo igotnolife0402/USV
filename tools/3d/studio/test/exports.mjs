@@ -22,9 +22,12 @@ export default async function (t) {
     })))
     const out = join(process.env.SCRATCH || '.', 'exports'); mkdirSync(out, { recursive: true })
     if (process.env.EXPORT_MESH_ASSETS) {   // the .rbxmx with uploaded mesh ids already in its MeshParts (no placeholders)
-      const meshAssets = JSON.parse(readFileSync(process.env.EXPORT_MESH_ASSETS, 'utf8'))
-      const r = await s.eval(a => window.studio.app.exec('roblox.rbxmx', a), { meshAssets })
-      writeFileSync(join(out, 'linked.rbxmx'), r.xml); t.log(`linked.rbxmx ${r.xml.length} bytes, counts ${JSON.stringify(r.counts)}`)
+      const rd = k => process.env[k] ? JSON.parse(readFileSync(process.env[k], 'utf8')) : undefined
+      const args = { meshAssets: rd('EXPORT_MESH_ASSETS'), textureAssets: rd('EXPORT_TEX_ASSETS'), animAssets: rd('EXPORT_ANIM_ASSETS') }
+      const r = await s.eval(a => window.studio.app.exec('roblox.rbxmx', a), args)
+      writeFileSync(join(out, 'linked.rbxmx'), r.xml); t.log(`linked.rbxmx ${r.xml.length} bytes, counts ${JSON.stringify(r.counts)} notes ${JSON.stringify(r.notes)}`)
+      const a = await s.eval(a => window.studio.app.exec('roblox.rbxmx', a), { ...args, animOnly: true })
+      writeFileSync(join(out, 'anim.rbxmx'), a.xml); t.log(`anim.rbxmx ${a.xml.length} bytes`)
     }
     const fmts = (process.env.EXPORT_FORMATS || 'glb,gltf,fbx,dae,obj,stl,ply,3mf,usdz,json,rbxmx,lua').split(',')
     const report = {}
