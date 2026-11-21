@@ -52,3 +52,6 @@ Owner: pieces appeared instantly in Roblox, no grow-in. Added PopScale data + Um
 
 ## [2026-11-22] add / crew skill (main model = brain, 3 Sonnet 5.5 medium workers)
 .claude/skills/crew + .claude/agents/crew-worker.md (model claude-sonnet-5-5, effort medium), also copied to ~/.claude for every folder; router route crew. Not yet verified that the worker runs on Sonnet: agent files load next session; fallback in the skill if the model errors.
+
+## [2026-11-22] check / crew-worker runs on Sonnet 5.5
+Test spawn: worker ran node, reported model claude-sonnet-5-5 (full id in agent frontmatter works; the sonnet alias does not).
