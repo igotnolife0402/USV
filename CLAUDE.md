@@ -74,6 +74,7 @@ Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's tra
 - Sub-agents: give file lists, a contract, the owner rules and the routed playbook (they don't load this file's context); omit `model` (inherit); replies <= 2k tokens; <= 40 tool calls, one review round, a stop line. 10 calls without a write: stop reading, write.
 - `/clear` between unrelated tasks. Long task state goes in `state/<task>.md`, not in context ([state/README.md](state/README.md)).
 - 3-try cap per failing approach, then change approach or queue/log it.
+- Owner names a tool/artifact ("umbrio sandbox", "vfx generator"): `node scripts/vault.mjs tool find <words>` → Artifact list scope `all` (match title words, typos ok) → only then ask for the link ONCE. Owner teaches/shows a tool → `tool add` the same turn ([profiles/tools.md](profiles/tools.md)). Never give up after one empty search.
 - Talk to the vault only through its skills (never guess paths): `/vault` find|route|status|words, `/learn` lessons + errors rows, `/queue` PC steps. All run `scripts/vault.mjs`.
 - Reuse skills in `.claude/skills/` before writing from scratch: pc, mobile, website, browser-game, 3d-editor, roblox, vfx, sfx, swarm, vault-upkeep. Engineering skills (review, debug, TDD, spec, plan, perf, security, git) load on match; reuse tools in `tools/` (see [index.md](index.md)).
 

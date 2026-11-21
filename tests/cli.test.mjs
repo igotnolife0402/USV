@@ -83,3 +83,11 @@ test('personal skill copies call the CLI by absolute path', () => {
     assert.match(txt, /^---\nname: /);
   }
 });
+
+test('tool registry: add once, find by fuzzy words, update in place', () => {
+  C.toolAdd('Umbrio Sandbox', { where: 'https://claude.ai/artifact/TEST', how: '3D character sandbox' });
+  assert.equal(C.toolFind(['umbrio', 'sandbox'])[0].where, 'https://claude.ai/artifact/TEST');
+  assert.equal(C.toolFind(['umbro'])[0]?.name, 'Umbrio Sandbox', 'typo still finds it');
+  assert.equal(C.toolAdd('Umbrio Sandbox', { where: 'https://claude.ai/artifact/NEW' }).updated, true);
+  assert.equal(C.toolFind(['umbrio']).filter(t => t.name === 'Umbrio Sandbox').length, 1);
+});

@@ -7,6 +7,7 @@
 //   node scripts/vault.mjs words <routeId> <word...>   add trigger words to a route (warns on clashes)
 //   node scripts/vault.mjs queue add "<step>" [--context ""] | queue list | queue done <n>
 //   node scripts/vault.mjs status                      lint, performance, lessons to promote, queue, last commit
+//   node scripts/vault.mjs tool find <words> | tool add "<name>" --where <url|path> [--kind artifact|cli|mcp|app] [--how ""]
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -105,6 +106,26 @@ export function queue(op, arg, context) {
   return open().map((x, n) => `${n + 1}. ${x.l.slice(6)}`);
 }
 
+// Tool / artifact registry (profiles/tools.md): the owner teaches once, every session knows it.
+const TOOLS = 'profiles/tools.md';
+const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+export function toolFind(words) {
+  const q = norm(words.join(' ')).split(' ').filter(Boolean);
+  return readIf(P(TOOLS)).split('\n').filter(l => /^\| (?!Name |---)/.test(l)).map(l => l.split('|').slice(1, -1).map(c => c.trim()))
+    .map(([name, kind, where, how]) => ({ name, kind, where, how, score: q.filter(w => norm(`${name} ${how}`).includes(w) || norm(name).split(' ').some(n => n.startsWith(w.slice(0, 4)))).length }))
+    .filter(t => t.score).sort((a, b) => b.score - a.score);
+}
+export function toolAdd(name, { where, kind = 'artifact', how = '' }) {
+  if (!name || !where) throw new Error('tool add needs a name and --where <url or path>');
+  const cell = (s) => String(s).replace(/\|/g, '/').replace(/\s+/g, ' ').trim();
+  const text = readIf(P(TOOLS)), rows = text.split('\n');
+  const i = rows.findIndex(l => l.startsWith(`| ${cell(name)} |`));
+  const row = `| ${cell(name)} | ${cell(kind)} | ${cell(where)} | ${cell(how)} | ${today()} |`;
+  if (i >= 0) rows[i] = row; else rows.splice(rows.reduce((last, l, n) => (l.startsWith('|') ? n : last), rows.length - 1) + 1, 0, row);
+  writeFileSync(P(TOOLS), rows.join('\n'));
+  return { name, where, updated: i >= 0 };
+}
+
 export function status() {
   const lint = lintAll(VAULT), errs = lint.filter(r => r.level === 'error');
   const g = spawnSync('git', ['log', '-1', '--format=%h %cr %s'], { cwd: VAULT, encoding: 'utf8' });
@@ -126,6 +147,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     else if (cmd === 'words') show(addWords(a[0], a.slice(1)));
     else if (cmd === 'queue') show(queue(a[0] || 'list', a[1], flag(a, 'context')));
     else if (cmd === 'status') show(status());
-    else { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 10).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exitCode = cmd ? 1 : 0; }
+    else if (cmd === 'tool' && a[0] === 'add') show(toolAdd(a[1], { where: flag(a, 'where'), kind: flag(a, 'kind'), how: flag(a, 'how') }));
+    else if (cmd === 'tool') show(toolFind(a.slice(a[0] === 'find' ? 1 : 0)));
+    else { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 11).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exitCode = cmd ? 1 : 0; }
   } catch (e) { console.error(`vault: ${e.message}`); process.exitCode = 1; }
 }

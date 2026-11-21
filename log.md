@@ -19,3 +19,6 @@ User-level hooks (hooks/global.mjs via scripts/install-global.mjs) route any ses
 
 ## [2026-11-21] build / vault skills
 New /vault, /learn, /queue skills on one CLI (scripts/vault.mjs); router-named skills are now enforced (skill-miss learning signal); personal copies installed so they work in every folder. 40 tests.
+
+## [2026-11-21] fix / tool registry
+Owner tools/artifacts registry (profiles/tools.md) + `vault.mjs tool find|add`, injected at session start, routed by 'artifact/sandbox/generator'; never ask twice.

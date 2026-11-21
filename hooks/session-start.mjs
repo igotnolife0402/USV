@@ -47,6 +47,9 @@ safe(() => {
   const perf = perfDigest(readIf(join(ROOT, METRICS)));
   const promote = toPromote(readIf(join(ROOT, 'lessons.md')));
   if (perf) warn.push(perf);
+  // The owner's tools and artifacts are always known by name (profiles/tools.md); never ask for one listed there.
+  const tools = readIf(join(ROOT, 'profiles', 'tools.md')).split('\n').filter(l => /^\| (?!Name |---)/.test(l)).map(l => l.split('|')[1].trim());
+  if (tools.length) warn.push(`OWNER TOOLS (links in profiles/tools.md; \`node scripts/vault.mjs tool find <words>\`): ${tools.join(', ').slice(0, 900)}`);
   if (promote.length) warn.push(`PROMOTE NOW (seen twice): ${promote.slice(0, 8).join(', ')}: move each rule into its domain playbook/checklist or a hook, then append "→ promoted: <path>" to the bullet.`);
   const banner = [`MODE=${mode} | remote=${remote ? 'yes' : 'no'}\n${what}`, ...warn].join('\n');
 

@@ -1,6 +1,29 @@
 {
   "routes": [
     {
+      "id": "tools",
+      "words": [
+        "artifact",
+        "artifacts",
+        "sandbox",
+        "generator",
+        "my tool",
+        "my tools",
+        "my artifact",
+        "launcher",
+        "customizer",
+        "hub",
+        "teach",
+        "new tool",
+        "use my"
+      ],
+      "notes": [
+        "profiles/tools.md"
+      ],
+      "checklist": "checklists/simple.md",
+      "skill": "vault"
+    },
+    {
       "id": "roblox",
       "words": [
         "roblox",
