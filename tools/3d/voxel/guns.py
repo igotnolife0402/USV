@@ -201,7 +201,36 @@ def main(out):
         print(f'{name}: {vox} voxels -> {parts} parts, bodies {comp}, size {size[0]:.1f}x{size[1]:.1f}x{size[2]:.1f} studs',
               'OK' if good else 'FAIL')
     open(os.path.join(out, 'guns.rbxmx'), 'w').write('\n'.join(allx + ['</roblox>']))
+    live(out)
     return 0 if ok else 1
+
+
+def live(out):
+    """Umbrio Sandbox live build (owner rule: always): stage i = guns 1..i, cumulative project + tab meta in OUT/live/."""
+    import json, time
+    os.makedirs(os.path.join(out, 'live'), exist_ok=True)
+    objs, n = {}, 0
+    for si, (name, fn) in enumerate(GUNS.items()):
+        g = fn(); nz = np.nonzero(g)
+        cx, cz, y0 = (nz[0].min() + nz[0].max() + 1) / 2, (nz[2].min() + nz[2].max() + 1) / 2, nz[1].min()
+        dy = (2 - si) * 5.5
+        objs[f'g{si}'] = {'type': 'group', 'name': name}
+        for k, lo, hi in greedy(g):
+            pn, rgb, kind = PAL[k]
+            o = {'type': 'part', 'parent': f'g{si}', 'name': pn,
+                 'pos': [round(((lo[0] + hi[0]) / 2 - cx) * VS, 3), round(((lo[1] + hi[1]) / 2 - y0) * VS + dy, 3),
+                         round(((lo[2] + hi[2]) / 2 - cz) * VS, 3)],
+                 'size': [round((hi[i] - lo[i]) * VS, 3) for i in range(3)], 'color': '#%02x%02x%02x' % rgb}
+            if kind == 'n': o['material'] = 'Neon'
+            if kind == 'g': o['material'] = 'Glass'; o['transparency'] = .3
+            objs[f'p{n}'] = o; n += 1
+        t = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+        doc = {'name': 'Voxel Guns', 'v': 1, 'updated': t, 'objects': objs, 'anims': {}, 'textures': {},
+               'env': {'bg': '#bcd7ee', 'grid': False, 'fog': None, 'light': 'studio'},
+               'camera': {'pos': [6, 9, 22], 'target': [0, 6, 0], 'fov': 50, 'ortho': False}}
+        meta = {'name': 'Voxel Guns', 'updated': t, 'count': len(objs), 'ai': True}
+        for f, d in ((f'p{si + 1}.json', doc), (f'm{si + 1}.json', meta)):
+            json.dump(d, open(os.path.join(out, 'live', f), 'w'), separators=(',', ':'))
 
 
 if __name__ == '__main__':

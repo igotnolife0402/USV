@@ -53,6 +53,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - No z-fighting: phones resolve depth coarsely, so stacked or coplanar surfaces flicker even 4-12 cm apart. A clean desktop render proves nothing.
 
 ## Live builds and test helpers
+- ALWAYS (owner 2026-11-22, no exceptions): every 3D build/model is live-built in Umbrio Sandbox (hub https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF, studio tab) stage by stage, even when the deliverable is a file (.rbxmx, glb). Voxel: `guns.py OUT` writes `OUT/live/p<i>.json` + `m<i>.json`; one ArtifactData batch per stage (`meta/<id>`, `projects/<id>`).
 - When the owner watches a live target (Studio place, editor tab), build in it from the first step, in batches per stage (not one write per part); verify by reading the target back, not local files.
 - Test helpers (a projectile, a probe) are marked temporary and never exported or shipped.
 

@@ -103,3 +103,4 @@ Owner: low detail vs the Venomreaver armor; floating spikes. Crew (3 workers) wr
 
 ## [2026-11-22] build / 3 voxel guns
 tools/3d/voxel/guns.py -> PlasmaPistol, AssaultRifle, SniperRifle .rbxmx in ~/RobloxImports/voxel-guns; gate: one connected body each (caught floating bipod). Not visually verified.
+- 2026-11-22 Voxel Guns live-built in Umbrio Sandbox (hub meta/projects voxel-guns, 3 stages, read back v3).
