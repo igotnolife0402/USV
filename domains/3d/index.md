@@ -1,5 +1,5 @@
 ---
-summary: 3D domain entry: Blender MCP modelling, glTF/GLB assets, three.js scenes and the browser mini-Blender editor
+summary: 3D domain entry: Umbrio Sandbox models (default), tools/3d generators, Blender only when named, GLB assets
 updated: 2026-11-21
 status: current
 triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, voxel, props, 3d, blender, model, mesh, gltf, glb, three.js, threejs, scene, editor, mini-blender, render, low poly]

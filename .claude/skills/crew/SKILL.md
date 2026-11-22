@@ -18,6 +18,7 @@ Measured: 4 brain reads (32 s) + 80 s silent design + 3 long literal briefs writ
 
 ## 1. Brain decides everything, fast
 - No long deliberation: take the template's defaults, change only what the request needs. Max 2 reads of your own.
+- The router's injected OWNER MUST block (profiles/must.md) is binding: paste it verbatim at the top of every worker spec (workers never see it otherwise).
 - Template must match the asked style; no style named = realistic (profiles/owner.md), never toon/low-poly by default.
 - Decide every name, value, size, color, position and file path; nothing left for a worker to choose.
 - Split into exactly 3 pieces, one owner per file. Fewer natural pieces: split one file's work into sections in separate files, or give the spare worker a variant you name and keep the best. Never let a worker wait on another's output in the same round.

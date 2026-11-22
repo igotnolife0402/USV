@@ -1,0 +1,16 @@
+---
+summary: The owner's hard rules, injected by the prompt router into every build prompt so they can never be skipped; detail lives in owner.md.
+updated: 2026-11-22
+status: current
+---
+OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule):
+1. Honest: done only after an outside check (script, read-back, screenshot); else "Failed: <what>".
+2. Tool = Umbrio Sandbox. No Blender, Customuse or Roblox AI generators unless the owner names them.
+3. Every 3D model: live-built stage by stage into a fresh Umbrio tab, then read back. A PNG or local files is NOT done.
+4. Style: realistic unless the owner names one (toon, low-poly, voxel only when asked).
+5. Custom meshes + textures + real thickness, many parts, detail floor gate; never placeholders or plain primitives.
+6. Scope = exactly what was asked: the model only, no ground or scenery, no extras.
+7. No z-fighting: zfight check on the tab read-back.
+8. Never move, script or capture the camera in Roblox Studio.
+9. No overkill: one big effect at completion or small subtle ones; less when unsure.
+10. Replies short; never claim a look you did not see.

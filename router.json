@@ -202,7 +202,8 @@
         "sandbox fly",
         "selection box",
         "realistic",
-        "make me a house"
+        "make me a house",
+        "sword","weapon","gun","shield","house","building","cottage","car","vehicle","tree","plant","chair","table","furniture","item","object","statue","tower","castle","boat"
       ],
       "notes": [
         "domains/3d/index.md",

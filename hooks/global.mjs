@@ -28,6 +28,8 @@ export function startContext() {
     perf, lessons.length ? `NEWEST LESSONS\n${lessons.join('\n')}` : ''].filter(Boolean).join('\n').slice(0, 3000);
 }
 
+const BUILD = /\b(make|build|create|model|design|generate|remake|redo|add)\b/i;
+const must = () => (readIf(join(ROOT, 'profiles/must.md')) || '').replace(/^---[\s\S]*?---\s*/, '').trim();
 export function promptContext(prompt, sid) {
   if (RELAY.test(prompt)) return '';
   const router = routerJson();
@@ -42,7 +44,8 @@ export function promptContext(prompt, sid) {
     lines.push(`Read first: ${uniq(routes.flatMap(r => r.notes || [])).slice(0, 4).map(n => {
       const s = fm(readIf(join(ROOT, n))).data?.summary; return `${V}/${n}${s ? ` (${s})` : ''}`; }).join('; ')}`);
   }
-  return lines.join('\n').slice(0, 1200);
+  if (BUILD.test(prompt) || routes.some(r => r.id !== 'vault')) lines.push(must());
+  return lines.join('\n').slice(0, 2800);
 }
 
 function stop(input) {

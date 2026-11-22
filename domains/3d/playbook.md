@@ -1,5 +1,5 @@
 ---
-summary: Fastest proven path to quality 3D: Blender MCP with asset libraries first, three.js editor base for mini-Blender, mobile Artifacts
+summary: Fastest path to quality 3D: Umbrio Sandbox mesh builds by default (realistic, live tab), tools/3d generators as templates
 updated: 2026-11-21
 status: current
 triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, avatar, creature, voxel, props, rig, catalog, zfight]
@@ -40,7 +40,8 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Armor sets fitted to the R6 rig + equip | [armor](tools/3d/armor/README.md) |
 | Z-fighting / flicker check and fix | [zfight](tools/3d/zfight/README.md) |
 | Editing by hand, export, render, MP4 | [studio](tools/3d/studio/README.md) |
-| Realistic default (house, furniture, anything with no named style) or none fits | Blender MCP (asset libraries first, PBR) (PC) below, or a new generator modelled on the closest tool |
+| Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build: custom meshes + PBR textures, live-built into a fresh tab; closest generator in tools/3d as the code template |
+| None fits and the owner names Blender | Blender MCP (PC) below |
 
 ## PC (/pc)
 ### Blender MCP (github.com/ahujasid/blender-mcp)

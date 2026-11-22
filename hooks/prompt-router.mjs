@@ -36,6 +36,8 @@ export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes
 
 const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
 
+const BUILD = /\b(make|build|create|model|design|generate|remake|redo|add)\b/i;
+const must = () => (readIf(join(ROOT, 'profiles/must.md')) || '').replace(/^---[\s\S]*?---\s*/, '').trim();
 function buildContext(prompt, mode, router) {
   if (RELAY.test(prompt)) return `MODE=${mode}`;
   const tier = classify(prompt, router.tiers);
@@ -56,7 +58,11 @@ function buildContext(prompt, mode, router) {
     lines.push(`Read first: ${notes.join('; ')}`);
     lines.push('Before working: state in one line which of these apply, read them, then work. Mobile: never call PC-only tools; use the fallback and append PC-only steps to queue/pc.md.');
   }
-  return lines.join('\n').slice(0, 1500);
+  if (BUILD.test(prompt) || routes.some(r => r.id !== 'vault')) {
+    if (!routes.length) lines.push('NO ROUTE: run `node scripts/vault.mjs find <main noun>`, then read that domain playbook + checklist before building.');
+    lines.push(must());
+  }
+  return lines.join('\n').slice(0, 3000);
 }
 
 if (isMain(import.meta.url)) safe(() => {

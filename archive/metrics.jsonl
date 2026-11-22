@@ -43,3 +43,4 @@
 {"t":"2026-11-22T13:10:12.713Z","tier":"medium","secs":398,"ok":false,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":["slow"],"mode":"pc"}
 {"t":"2026-11-22T13:17:56.649Z","tier":"medium","secs":26,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-22T13:19:52.959Z","tier":"medium","secs":56,"ok":true,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-22T13:21:53.262Z","tier":"medium","secs":129,"ok":true,"errors":2,"retry":1,"routes":["vault","crew"],"touched":[],"signals":["errors"],"mode":"pc"}
