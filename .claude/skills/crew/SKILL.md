@@ -29,6 +29,7 @@ Never write "find and fix", "make it good", "figure out", "research" or "improve
 Write the integration, the merge and your review check. Never edit a worker's files while it runs.
 
 ## 4. Review each report (brain only)
+- Visual check = ONE look at the existing output (Umbrio tab / Artifact). Never build a viewer, start a server or loop captures; never run heavy checks in parallel (PC lags).
 - Open the files / run the check yourself. Read the GUESSED line: each guess is a hole in your spec.
 - Good → reply nothing more, TaskStop the worker.
 - Wrong → SendMessage the same worker ONE exact instruction: the defect and the literal fix ("line 40: size 2→1.5; rename Foo→Bar"). Never "try again" or "fix it".

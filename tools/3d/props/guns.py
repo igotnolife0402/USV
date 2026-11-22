@@ -252,27 +252,36 @@ def combine(out):
         json.dump(d, open(os.path.join(tab, f), "w"), separators=(",", ":"))
 
 
-def attach(name, tol=0.05, step=0.035):
-    """No floating or gapped pieces: dense surface samples of every part must form ONE cluster (gaps > tol fail)."""
+def attach(name, tol=0.05, step=0.1):
+    """No floating or gapped pieces: every mesh shell (faces sharing vertices) must touch the rest (gap > ~tol+step fails).
+    Shells come from shared vertices, so samples only need to find shell-to-shell contacts: coarse step, ~1 s per gun
+    (was 0.035 step over all points: 1M samples, 75 s, 100% CPU)."""
     from scipy.sparse import coo_matrix
     from scipy.sparse.csgraph import connected_components
     from scipy.spatial import cKDTree
-    pts = []
+    pts, sid, base = [], [], 0
     for p in P.PROPS[name][1](None)[0]:
         m = p["mesh"]
+        e = [(f[0], f[k]) for f in m.f for k in range(1, len(f))]
+        e = np.array(e)
+        _, vlab = connected_components(coo_matrix((np.ones(len(e)), (e[:, 0], e[:, 1])), shape=(len(m.v), len(m.v))), directed=False)
         for f in m.f:
             for k in range(1, len(f) - 1):
                 a, b, c = m.v[f[0]], m.v[f[k]], m.v[f[k + 1]]
                 n = max(1, int(math.ceil(max(np.linalg.norm(b - a), np.linalg.norm(c - a), np.linalg.norm(c - b)) / step)))
                 i, j = np.meshgrid(np.arange(n + 1), np.arange(n + 1))
                 keep = i + j <= n
-                pts.append(a + np.outer(i[keep] / n, b - a) + np.outer(j[keep] / n, c - a))
-    V = np.unique(np.round(np.vstack(pts), 4), axis=0)
-    pr = cKDTree(V).query_pairs(tol, output_type="ndarray")
-    k, lab = connected_components(coo_matrix((np.ones(len(pr)), (pr[:, 0], pr[:, 1])), shape=(len(V), len(V))), directed=False)
+                q = a + np.outer(i[keep] / n, b - a) + np.outer(j[keep] / n, c - a)
+                pts.append(q)
+                sid.append(np.full(len(q), base + vlab[f[0]]))
+        base += vlab.max() + 1
+    V, S = np.vstack(pts), np.concatenate(sid)
+    pr = cKDTree(V).query_pairs(tol + 0.75 * step, output_type="ndarray")  # ponytail: coarse step lets gaps up to ~tol+step pass; lower step if hairline gaps matter
+    pr = pr[S[pr[:, 0]] != S[pr[:, 1]]]
+    k, lab = connected_components(coo_matrix((np.ones(len(pr)), (S[pr[:, 0]], S[pr[:, 1]])), shape=(base, base)), directed=False)
     big = np.bincount(lab).argmax()
     for r in set(lab.tolist()) - {big}:
-        print("ATTACH FAIL %s: piece at %s detached" % (name, np.round(V[lab == r].mean(0), 2).tolist()))
+        print("ATTACH FAIL %s: piece at %s detached" % (name, np.round(V[lab[S] == r].mean(0), 2).tolist()))
     print("ATTACH %s %s (%d pieces, %d samples)" % ("PASS" if k == 1 else "FAIL", name, k, len(V)))
     return int(k != 1)
 

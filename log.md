@@ -121,3 +121,6 @@ Easy builds: one template read, router notes deferred to review, spawn within 60
 
 ## [2026-11-22] build / tactical shotgun (crew)
 - tools/3d/props/shotgun.py: brain wrote template + checks; 3 crew workers made palette variants in ~25 s each, all passed detail/attach/zfight; kept tactical, built live in Umbrio (project tactical-shotgun, 27 writes).
+
+## [2026-11-22] fix / guns attach gate CPU
+attach() 1M samples 75 s -> shell-level 0.1 step 2.4 s for 3 guns; detached-part negative still fails. Killed runaway shotgun --check + http.server 8765.

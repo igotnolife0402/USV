@@ -37,7 +37,7 @@ def shotgun(rng):
         mk("receiver-top", S(3.0, 4.9, 2.45, 2.55, W - 0.2), DARK, "metal", metalness=0.6),
         mk("port", B(3.6, 4.5, 1.95, 2.3, W / 2, W / 2 + 0.05), "#24272C", "metal", metalness=0.5),
         mk("loading-gate", S(3.4, 4.6, 1.45, 1.56, W - 0.2), DARK, "metal", metalness=0.6),
-        mk("guard", P.merge(S(3.0, 4.0, 1.0, 1.1, 0.2), S(3.9, 4.0, 1.1, 1.55, 0.2)), GUNM, "metal", metalness=0.6),
+        mk("trigger-guard", P.merge(S(3.0, 4.0, 1.0, 1.1, 0.2), S(3.9, 4.0, 1.1, 1.55, 0.2), S(3.0, 3.1, 1.1, 1.55, 0.2)), GUNM, "metal", metalness=0.6),
         mk("trigger", poly([(3.4, 1.55), (3.53, 1.55), (3.51, 1.22), (3.43, 1.2)], 0.12, 0.015), STEEL, "metal", metalness=0.8),
         mk("barrel", tube(5.0, BE, 2.2, [(0.17, 0), (0.17, BE - 5.0)], seg=32), STEEL, "metal", metalness=0.8, roughness=0.3),
         mk("muzzle", tube(BE, BE + 0.25, 2.2, [(0.21, 0), (0.21, 0.12), (0.19, 0.14), (0.19, 0.25)], seg=32), DARK, "metal", metalness=0.7),
