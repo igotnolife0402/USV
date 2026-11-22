@@ -115,3 +115,6 @@ Config deltas: retries 3->0, tool cap 15->8, web tools 2->0, effort medium->low.
 
 ## [2026-11-22] fix / lint vs ACE clash
 repo-check lesson 400-char cap now ignores allowed " → promoted/dup of" suffixes; L-084 text restored per ACE delta-only.
+
+## [2026-11-22] fix / crew brain pre-spawn cap
+Easy builds: one template read, router notes deferred to review, spawn within 60 s; no pre-built check. L-091.

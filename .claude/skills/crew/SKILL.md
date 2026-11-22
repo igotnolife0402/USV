@@ -10,10 +10,11 @@ Owner rule (2026-11-22, replaces the old size gate): ALWAYS 3 Sonnet workers. Wo
 ## The loop (per worker)
 brain spec → worker one pass (~1-2 min) → report → brain reviews → `OK` (TaskStop) or new exact instruction (SendMessage) → repeat. Max 3 rounds per worker, then the brain does that piece itself.
 
-## 1. Brain decides everything first
-- Read only what you need (routed notes, the files touched). Decide the result, every name, value, size, color, position, signature and file path. Nothing is left for a worker to choose.
+## 1. Brain decides everything first (workers spawned within 60 s)
+- Owner 2026-11-22: 1.5 min of brain reading before a gun model was too slow. Easy builds (props, guns, small models, edits): read ONE template file (or a grep of it, not the whole thing), skip the router's "Read first" notes, index, playbook and checklist until the review step, no deliberation. Max 2 reads before spawning.
+- Decide the result, every name, value, size, color, position, signature and file path. Nothing is left for a worker to choose.
 - Split into exactly 3 pieces, one owner per file. Fewer natural pieces: split one file's work into sections that land in separate files, or give the spare worker(s) a variant of the hardest piece (different spec values you name) and keep the best. Never let a worker wait on another's output in the same round.
-- Make the check command (if any) and run it once on an existing example so it is known to work.
+- Check command: reuse the template's own (e.g. its `--check`); never build or test-run one before spawning.
 
 ## 2. Brief = a spec to copy, not a problem to solve
 Spawn all 3 `crew-worker` agents in ONE message, run_in_background. Each brief:
