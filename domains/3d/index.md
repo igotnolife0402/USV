@@ -12,6 +12,7 @@ Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.
 
 ## Read in this order
 - FIRST for any model: [Umbrio build in one read](domains/3d/umbrio-build.md): template, units, textures, z-fight-safe layout, gates, write format. Usually the only note needed.
+- Quality bar: [ref-quality.md](domains/3d/ref-quality.md) owner reference photos as 8 build rules (rounded silhouettes, assemblies, contact, palette, materials, glow, props, proportions); read before any realistic model.
 - Template lookup: [tools/3d/styles/](tools/3d/styles/) one catalog per style (every model, run, api/constants with line numbers); read one, never open templates one by one. Regenerate: `node tools/3d/styles/build.mjs --check`.
 0. [Detail floor](domains/3d/detail.md): EVERY model meets it (meshes, textures, many parts) + gate. Read before any model.
 1. [Playbook](domains/3d/playbook.md): fastest path, PC vs mobile, quality bar.

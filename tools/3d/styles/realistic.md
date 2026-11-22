@@ -57,7 +57,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L113 EYE_LAB = 6`
 
 ## house | Realistic two-storey brick and siding house, 8 x 6 m footprint
-- file: `tools/3d/props/house.py` (355 lines)
+- file: `tools/3d/props/house.py` (453 lines)
 - run: `python3 house.py OUT --check`
 - api:
   - L47 def box(x0, x1, y0, y1, z0, z1)
@@ -65,20 +65,22 @@ Read this file instead of opening templates. Then read only the line range you c
   - L71 def wall(L, y0, y1, w0, w1, ops)
   - L87 def bars(x0, x1, y0, y1, w, z0, z1, hs=()
   - L104 def window(cu, w, ya, yb, wo, lintel)
-  - L134 def deck_y(z)
-  - L138 def slope_pt(s, o)
-  - L143 def roof_side()
-  - L163 def cyl(p0, p1, r, seg=8)
-  - L181 def tex(pat, cols, sc, **kw)
-  - L195 def house(rng)
-  - L310 def live(out)
-  - L329 def main(argv=None)
+  - L138 def interior()
+  - L205 def deck_y(z)
+  - L209 def slope_pt(s, o)
+  - L214 def roof_side()
+  - L234 def cyl(p0, p1, r, seg=8)
+  - L252 def tex(pat, cols, sc, **kw)
+  - L266 def house(rng)
+  - L395 def live(out)
+  - L424 def main(argv=None)
 - constants:
   - `L37 STAGES = [  # Umbrio live build: part ids per stage`
   - `L125 SIDES = [("front", 0, HX - T, HZ), ("back", 180, HX - T, HZ), ("right", 90, HZ, HX), ("left", -90,`
-  - `L126 GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.2, 1.2, 1.15, 2.`
+  - `L126 GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.6, 1.2, 1.15, 2.`
   - `L128 UPPER = {"front": [(-2.5, 1.1, 3.75, 5.15), (0.0, 1.1, 3.75, 5.15), (2.5, 1.1, 3.75, 5.15)],`
   - `L131 DOOR = (0.0, 1.0, Y_PL, 2.75)`
+  - `L135 RISE = (F1 - F0) / NR`
 
 ## computer-setup | desk + monitor + keyboard + mouse + PC tower, 1.40 x 0.70 m desk
 - file: `tools/3d/props/setup.py` (89 lines)
@@ -91,23 +93,22 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L25 PIECES = [setup_desk, setup_tower, setup_screen]   # one Umbrio live stage per piece, in this order`
   - `L26 STAGES = []`
 
-## desk | 1.40 x 0.70 m oak desk on black steel frame
-- file: `tools/3d/props/setup_desk.py` (34 lines)
+## standing desk, riser, mat | 1.40 x 0.70 m butcher-block standing desk, walnut monitor riser, felt desk mat
+- file: `tools/3d/props/setup_desk.py` (40 lines)
 - run: `python3 setup.py OUT --check`
 - api:
-  - L15 def parts()
+  - L13 def parts()
 
-## monitor, keyboard, mouse | 27 in monitor on stand, TKL keyboard, mouse
-- file: `tools/3d/props/setup_screen.py` (76 lines)
+## monitor, light bar, speakers, keyboard, wrist rest, mouse | 27 in thin-bezel monitor on riser, 75% two-tone keyboard
+- file: `tools/3d/props/setup_screen.py` (83 lines)
 - run: `python3 setup.py OUT --check`
 - api:
-  - L19 def frame_xy(x0, x1, y0, y1, z0, z1, wl, wr, wt, wb)
-  - L26 def frame_xz(x0, x1, y0, y1, z0, z1, w)
-  - L32 def keys()
-  - L47 def parts()
+  - L19 def rbox(s, r, c)
+  - L23 def keys()
+  - L40 def parts()
 
-## pc-tower | mid tower, tempered glass side, 3 fans, GPU
-- file: `tools/3d/props/setup_tower.py` (51 lines)
+## pc-tower, plant | glass-front RGB tower on the desk, potted plant
+- file: `tools/3d/props/setup_tower.py` (82 lines)
 - run: `python3 setup.py OUT --check`
 - api:
   - L13 def parts()

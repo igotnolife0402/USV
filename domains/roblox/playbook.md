@@ -55,3 +55,5 @@ Run [checklists/roblox.md](checklists/roblox.md). Delivered files:  must PASS an
 
 ## Uploads folder (promoted 2026-11-22)
 - Every Roblox upload (models, meshes, animation, VFX, audio) is exported into the one owner-approved folder `~/RobloxImports` (exact path in CLAUDE.local.md); never a fresh per-build folder, which Studio MCP refuses until approved (L-076).
+- Whole game from Umbrio (verified 2026-11-22, Minigame Mayhem): world scene JSON → studio CLI export to rbxmx (box/sphere/cylinder/wedge = real Parts, no mesh upload) → tools/roblox pack-scripts adds the Luau → one Model upload (open_cloud_invoke, model/x-rbxm) → `game:GetObjects` in execute_luau, move Scripts to services. SFX: tools/audio sfx → Audio uploads; VFX sheets → Decal uploads → read `.Texture` via GetObjects.
+- Playtest only what is new or changed; long loops get a dev attribute (e.g. `SkipToDuel` on the config) to jump to the untested part. `HumanoidDescription` has no `.new` global: `Instance.new("HumanoidDescription")` (L-116).

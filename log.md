@@ -213,3 +213,7 @@ improved: clearance gate catches overlaps and blocked windows; Umbrio upload 3 b
 Owner: models leave gaps (inside the bed, under the PC to the floor). Cause: zfight fix moved pieces 1.5 cm apart and cut covered faces to the cover's exact edge (desk-top hole under the PC); bed had no base. New tools/3d/zfight/seethru.py gate in house.py/setup.py --check; fix = cut first, exact only where sealed, inset over air gaps, separation fallback; bed base board. setup: zfight PASS, seethru 0.37% -> 0.00%; house: all gates PASS, seethru 0.09%. Not uploaded to Umbrio, not visually verified (queued).
 improved: seethru gate (3 s) catches holes; zfight fix no longer cuts holes; zfight separation no longer opens slits; bed base + mattress fit; router words for gaps; checklist row
 learn: L-115 measure-first A/B rule for fixer bugs in 3d playbook speed section
+
+## [2026-11-22] build / Minigame Mayhem (crew, Roblox)
+Lobby + 10 minigames + duel world from Umbrio scene JSON (1267 parts, tab mm-world-1122), exported rbxmx + packed server/client Luau, uploaded as one Model, inserted; 10 SFX + 6 VFX sheets uploaded. Solo playtest: games 1-10 complete via finish/coins/buttons, duel bot fights, win +1. Fixed HumanoidDescription crash.
+improved: pack-scripts tool (code ships inside the Umbrio rbxmx); procedural sfx tool; SkipToDuel dev hook; playbook whole-game route; router words minigame/round system; L-116

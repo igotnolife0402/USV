@@ -14,6 +14,7 @@ triggers: [index, map, where, vault]
 - [vfx](domains/vfx/index.md): particles, beams, trails, shaders, auras, slashes (Roblox and web).
 - [audio](domains/audio/index.md): SFX, music, jsfxr, WebAudio, procedural sound, agent-audio.
 - [animation](domains/animation/index.md): key poses, clips, motion specs for Studio, Roblox and video.
+- Audio tool: [tools/audio/sfx.mjs](tools/audio/sfx.mjs): procedural game SFX (coin, hit, win...) → 16-bit WAV, no deps; `node tools/audio/sfx.mjs OUT`.
 - [images](domains/images/index.md): the owner's 20 style prompts, add-ons, Roblox thumbnails rendered in Studio.
 - [math](domains/math/index.md): calculations, formulas, game balance curves, probability, vectors/CFrame (compute with code, check twice).
 - Tools (runnable, each with a README): [tools/3d](tools/3d/README.md), [tools/roblox](tools/roblox/README.md), [tools/vfx](tools/vfx/README.md), [tools/art](tools/art/README.md).
