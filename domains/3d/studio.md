@@ -27,7 +27,7 @@ Docs (open only the one you need): [scene format](tools/3d/studio/docs/scene-for
 2. One batch per stage (main shape → structure → details); stage only when the owner wants to watch, else the finished model in one go, fastest way.
 3. A write the tab refuses (doc > 225 KB) is fixed by the next write, not a hidden trial run.
 4. Every build ends with the [zfight gate](tools/3d/zfight/README.md) on the tab's read-back (never on local files), then the shots check.
-5. Publishing the hub: another session may have published since; merge onto the live version.
+5. Publishing the hub: another session may have published since; merge onto the live version. Publish = `file_path` (the hub page index.html read from the artifact) + `files` for changed code; only when the owner names publishing (auto-mode refuses otherwise): ask first (2026-11-22).
 
 ## Speed rules (lock each with a test cap)
 - Boot is one round trip: every module loaded at boot has a `<link rel="modulepreload">` in `index.html`, nothing preloaded unused (`core › boot`); own boot code ≤ 800 KB; one-feature code loads on first use (`import()`).

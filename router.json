@@ -196,7 +196,11 @@
         "cheap model",
         "more detail",
         "textures and meshes",
-        "polished model"
+        "polished model",
+        "fly mode",
+        "studio fly",
+        "sandbox fly",
+        "selection box"
       ],
       "notes": [
         "domains/3d/index.md",
