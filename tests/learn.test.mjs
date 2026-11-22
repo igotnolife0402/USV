@@ -145,9 +145,10 @@ test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays
   assert.deepEqual(sigs.map(s => s.kind), ['improve', 'improve'], 'fixes not logged + backlog not listed');
   assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
   assert.match(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, knowChanged: true, nextId: 'L-1' }), /at least 3/, 'a note change alone is not 3 fixes');
-  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['improvements not listed in the reply (`Improved: a; b; c`)', 'reply lacks `Still to improve:` with >= 3 concrete items'], 'logged but not told to the owner');
-  assert.equal(L.signals({ ...clean, lastText: 'Done.\nImproved: a; b; c\nStill to improve:\n1. d\n2. e\n3. f' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0);
-  assert.ok(L.signals({ ...clean, lastText: 'Improved: a; b; c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Still to improve/.test(s.text)), 'backlog list required');
+  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['fixes not listed in the reply footer (`Fixed: a, b, c`)', 'reply footer lacks `Next: a, b, c` (>= 3 items)'], 'logged but not told to the owner');
+  assert.equal(L.signals({ ...clean, lastText: 'Fixed: sub-agent delay, realistic style, candy now kills\nNext: house rebuild, old plugin, spec template\nDone' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0, 'tiny footer passes');
+  assert.equal(L.signals({ ...clean, lastText: 'Improved: a; b; c\nStill to improve:\n1. d\n2. e\n3. f' }, { tier: 'simple' }, { improved: 3 }).length, 0, 'long form still accepted');
+  assert.ok(L.signals({ ...clean, lastText: 'Fixed: a, b, c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Next/.test(s.text)), 'backlog list required');
   assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
   assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
   const crew = { ...clean, skills: ['crew'], agentSecs: 45, specSecs: 120 };

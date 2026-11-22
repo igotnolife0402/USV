@@ -12,7 +12,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Always improve (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.
 - Never claim a look you did not see. No screenshot possible → say "not visually verified" and queue the visual check in [queue/pc.md](queue/pc.md).
-- Replies: short (aim 10 words or fewer). Errors, questions, requested reports and the closing `Improved:` and `Still to improve:` lists are exempt.
+- Replies: short (aim 10 words or fewer). Errors, questions, requested reports and the tiny `Fixed:` / `Next:` footer (2-5 word phrases) are exempt.
 
 ## Default tool: Umbrio Sandbox (owner rule 2026-11-21)
 - UI, models, animation, textures, sound effects and VFX on animations are made in the owner's own **Umbrio Sandbox** (Claude-Hub tile, code `tools/3d/studio`; [profiles/tools.md](profiles/tools.md)). The owner rates it above Blender.

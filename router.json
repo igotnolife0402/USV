@@ -203,7 +203,26 @@
         "selection box",
         "realistic",
         "make me a house",
-        "sword","weapon","gun","shield","house","building","cottage","car","vehicle","tree","plant","chair","table","furniture","item","object","statue","tower","castle","boat"
+        "sword",
+        "weapon",
+        "gun",
+        "shield",
+        "house",
+        "building",
+        "cottage",
+        "car",
+        "vehicle",
+        "tree",
+        "plant",
+        "chair",
+        "table",
+        "furniture",
+        "item",
+        "object",
+        "statue",
+        "tower",
+        "castle",
+        "boat"
       ],
       "notes": [
         "domains/3d/index.md",
@@ -472,14 +491,12 @@
       "id": "crew",
       "words": [
         "crew",
-        "sub agents",
-        "subagents",
-        "sub-agents",
-        "agents",
-        "manager",
-        "brain",
-        "helpers",
-        "workers"
+        "/crew",
+        "use sub agents",
+        "use subagents",
+        "use workers",
+        "with sub agents",
+        "with workers"
       ],
       "notes": [
         ".claude/skills/crew/SKILL.md"
