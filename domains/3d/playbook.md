@@ -19,7 +19,8 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Start from the closest tool below and reuse its README Steps and code; look once, never a render-rate-fix quality loop.
 - Every finished piece goes in a fresh [Studio](domains/3d/studio.md) tab, the exact model, written the fastest way; live stages only when asked. Renders come from the Studio (Render image, shots check).
 - Roblox items (avatars, hair, clothing): real catalog assets ([avatar](tools/3d/avatar/README.md) `catalog.py`), never guessed colours or shapes.
-- Detail: build huge, ship at size (0.125-stud blocks on a 20-stud figure: orc 315k blocks → 108k tris); mixed block sizes, never a smooth base.
+- Models = many separate parts (owner 2026-11-22, refs: bunk bed, wardrobe): spheres, capsules, cones, cylinders, wedges, each its own Studio part in joint groups, Neon parts for glow; never one fused mesh. Template: [beast/shadow_parts.py](../../tools/3d/beast/shadow_parts.py) (674 parts, 126 KB, one project write). Blocks/voxels only when the owner asks.
+- Block builds (only when asked): build huge, ship at size (0.125-stud blocks on a 20-stud figure: orc 315k blocks → 108k tris); mixed block sizes.
 - Ship meshes, not thousands of parts: ≤ 19k tris per MeshPart (Roblox cap 20k); neon glow stays as Neon parts (a mesh texture can't glow).
 - Voxel builds: vary colour per window/patch/stripe, never per voxel (per-voxel shades blocked greedy merging: 3,338 parts vs 2,243).
 - No z-fighting: [zfight](tools/3d/zfight/README.md) `check` passes on the tab read-back before a build is live or finished; never stack rugs, trims, glass or decals on a surface (one plane, or cut what's under); judge on phone depth (`SHOTS_DEPTH16=1`), never a desktop render.

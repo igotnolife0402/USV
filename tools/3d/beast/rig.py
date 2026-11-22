@@ -140,6 +140,52 @@ def greedy(K, order=(2, 0, 1)):
         out.append((int(k), lo, hi))
     return out
 
+def smooth_quads(C, S, segs, bounds, V, NEON, step=1, sigma=0.8, level=0.42, glow_level=0.22, sleeve=2, reach=1.1):
+    """Smooth skin (owner default; blocks only when asked): per segment a blurred occupancy field -> marching cubes.
+    Each segment also takes a sleeve of its neighbours' blocks round the shared joint, eroded so it stays inside their skin:
+    joints never open a gap. Skin faces take the colour of the nearest painted non-glow block. Glow colours get their own
+    smooth surface per (segment, colour), meshed at a lower level so it stands just proud of the skin: clean curved edges,
+    no sawtooth. Returns {seg_index | (seg_index, col): [(corner coords x3, 0, 1, col, vertex normals x3)]} in grid-corner units."""
+    from scipy import ndimage as ndi
+    from skimage.measure import marching_cubes
+    occ = C > 0; N = np.array(C.shape); glowm = np.isin(C, list(NEON))
+    _, near = ndi.distance_transform_edt(~(occ & ~glowm), return_indices=True)
+    org = np.array((bounds[0], bounds[2], bounds[4]))
+    out = {}
+    def surf(m, lvl):
+        ix = np.argwhere(m); lo = np.maximum(0, ix.min(0) - 4); hi = np.minimum(N, ix.max(0) + 5)
+        f = ndi.gaussian_filter(m[lo[0]:hi[0], lo[1]:hi[1], lo[2]:hi[2]].astype(np.float32), sigma)
+        if f.max() <= lvl: return None
+        v, fc, nr, _ = marching_cubes(f, lvl, step_size=step, allow_degenerate=False)
+        v += lo
+        if (v[fc[:, 0]] * np.cross(v[fc[:, 1]], v[fc[:, 2]])).sum() < 0: fc = fc[:, ::-1]   # signed volume > 0: faces wind outward
+        fn_ = np.cross(v[fc[:, 1]] - v[fc[:, 0]], v[fc[:, 2]] - v[fc[:, 0]])
+        if (fn_ * nr[fc].sum(1)).sum() < 0: nr = -nr                          # vertex normals agree with the faces
+        return v, fc, nr
+    for si, (n, par, piv) in enumerate(segs, 1):
+        m = occ & (S == si)
+        if not m.any(): continue
+        for col in sorted(set(np.unique(C[m])) & NEON):                       # glow pieces
+            r = surf(m & (C == col), glow_level)
+            if r is None: continue
+            v, fc, nr = r
+            out[(si, int(col))] = [((v[f3] + 0.5).tolist(), 0, 1, int(col), nr[f3].tolist()) for f3 in fc]
+        for sj, (n2, par2, piv2) in enumerate(segs, 1):
+            if sj == si or not (par == n2 or par2 == n): continue
+            jp = (np.array(piv if par == n2 else piv2) - org) / V - 0.5
+            lo = np.maximum(0, (jp - reach / V).astype(int)); hi = np.minimum(N, (jp + reach / V).astype(int) + 2)
+            sl = tuple(slice(a, b) for a, b in zip(lo, hi))
+            gx, gy, gz = np.ogrid[sl]
+            ball = (gx - jp[0]) ** 2 + (gy - jp[1]) ** 2 + (gz - jp[2]) ** 2 <= (reach / V) ** 2
+            m[sl] |= ball & ndi.binary_erosion(occ[sl] & (S[sl] == sj), iterations=sleeve)
+        v, fc, nr = surf(m, level)
+        ci = np.clip(np.rint(v).astype(int), 0, N - 1)
+        vc = C[tuple(near[k][ci[:, 0], ci[:, 1], ci[:, 2]] for k in range(3))]
+        a_, b_, c_ = vc[fc[:, 0]], vc[fc[:, 1]], vc[fc[:, 2]]
+        col = np.where(b_ == c_, b_, a_)
+        out[si] = [((v[f3] + 0.5).tolist(), 0, 1, int(col[k]), nr[f3].tolist()) for k, f3 in enumerate(fc)]
+    return out
+
 def faces(K, SEGK):
     """Exposed faces (neighbour is air or another segment), greedy-merged per colour+segment, as grid-corner quads."""
     quads = {}
@@ -314,7 +360,7 @@ def flipbook(p):
     return Node('ParticleEmitter', e['id'], pr, [Node('NumberValue', 'Burst', [F('Value', p.get('count', 1))])])
 
 # ---------------------------------------------------------------- the build
-def make(name, segs, pal, bounds, sc, shape, anim, fx, out, cams, glow=('Glow', 'GlowCore'), fx_scale=1.0, studio_cam=None, block=0.5, fx_lib_dir=None):
+def make(name, segs, pal, bounds, sc, shape, anim, fx, out, cams, glow=('Glow', 'GlowCore'), fx_scale=1.0, studio_cam=None, block=0.5, fx_lib_dir=None, smooth=False):
     """segs: [(seg, parent, pivot design)], pal: [None, (name, '#hex', 's'|'n'), ...], shape(g, stud): paints into Grid g,
     anim: spec above (degrees in the design frame: Y up, faces +Z), fx: {attachment: {'seg', 'pos' design, 'pack': [preset names]}}."""
     os.makedirs(out, exist_ok=True); t0 = time.time()
@@ -331,22 +377,26 @@ def make(name, segs, pal, bounds, sc, shape, anim, fx, out, cams, glow=('Glow', 
     gpos = lambda c: (X0 + c[0] * V, Y0 + c[1] * V, Z0 + c[2] * V)
     meshc = (C > 0) & ~np.isin(C, list(NEON))
     K = np.where(meshc, C.astype(np.uint16) | (S.astype(np.uint16) << 8), 0).astype(np.uint16)
-    quads = faces(K, np.where(meshc, S, 0))
+    quads = smooth_quads(C, S, segs, bounds, V, NEON) if smooth else faces(K, np.where(meshc, S, 0))
     NP = 16
     pimg = Image.new('RGB', (NP * 8, 8))
     for i, e in enumerate(pal):
         if e: pimg.paste(tuple(int(e[1][j:j + 2], 16) for j in (1, 3, 5)), (i * 8, 0, i * 8 + 8, 8))
     pb = io.BytesIO(); pimg.save(pb, 'PNG'); PNG = pb.getvalue(); pimg.save(os.path.join(out, 'palette.png'))
     chunks = []
-    for si, qs in sorted(quads.items()):
-        seg = segs[si - 1][0]
-        for ci in range(0, len(qs), 9500):                         # <= 19k triangles per MeshPart
+    skey = lambda k: k if isinstance(k, int) else k[0]
+    for key, qs in sorted(quads.items(), key=lambda kv: (skey(kv[0]), str(kv[0]))):
+        seg = segs[skey(key) - 1][0]; per = 19000 if smooth else 9500
+        for ci in range(0, len(qs), per):                          # <= 19k triangles per MeshPart
             P, Nn, UV, I = [], [], [], []
-            for cs, a, sg, col in qs[ci:ci + 9500]:
-                b = len(P); n = [0.0, 0.0, 0.0]; n[a] = float(sg); n = [-n[0], n[1], -n[2]]
-                for c in cs: P.append(to_rb(gpos(c))); Nn.append(n); UV.append(((col + 0.5) / NP, 0.5))
-                I += [b, b + 1, b + 2, b, b + 2, b + 3]
-            chunks.append((seg if ci == 0 else f'{seg}_{ci // 9500 + 1}', seg, np.array(P, np.float32), np.array(Nn, np.float32), np.array(UV, np.float32), np.array(I, np.uint32)))
+            for q in qs[ci:ci + per]:
+                cs, a, sg, col = q[:4]; b = len(P)
+                if len(q) > 4: ns = [[-n[0], n[1], -n[2]] for n in q[4]]
+                else: n = [0.0, 0.0, 0.0]; n[a] = float(sg); ns = [[-n[0], n[1], -n[2]]] * 4
+                for c, n in zip(cs, ns): P.append(to_rb(gpos(c))); Nn.append(n); UV.append(((col + 0.5) / NP, 0.5))
+                I += [b, b + 1, b + 2] if len(cs) == 3 else [b, b + 1, b + 2, b, b + 2, b + 3]
+            nm = seg + ('' if isinstance(key, int) else 'Glow') + ('' if ci == 0 else f'_{ci // per + 1}')
+            chunks.append((nm, seg, np.array(P, np.float32), np.array(Nn, np.float32), np.array(UV, np.float32), np.array(I, np.uint32)))
     blob = bytearray(); views, acc, meshes, nodes, INFO = [], [], [], [], {}
     def view(data, tgt=None):
         off = len(blob); blob.extend(data + b'\0' * ((-len(data)) % 4))
@@ -377,7 +427,7 @@ def make(name, segs, pal, bounds, sc, shape, anim, fx, out, cams, glow=('Glow', 
     # ---- glow blocks: Neon parts (a mesh texture can't glow) ----
     G = np.where(np.isin(C, list(NEON)), C.astype(np.uint16) | (S.astype(np.uint16) << 8), 0).astype(np.uint16)
     GL = []
-    for k, lo, hi in greedy(G):
+    for k, lo, hi in ([] if smooth else greedy(G)):
         seg = segs[(k >> 8) - 1][0]; c = to_rb(gpos([(lo[i] + hi[i]) / 2 for i in range(3)]))
         GL.append((seg, [round(c[j] - PRB[seg][j], 3) for j in range(3)], [round((hi[i] - lo[i]) * V * sc, 3) for i in range(3)], pal[k & 255][1]))
 
@@ -439,11 +489,13 @@ def make(name, segs, pal, bounds, sc, shape, anim, fx, out, cams, glow=('Glow', 
         open(os.path.join(out, 'stages', f'stage{si + 1}.json'), 'w').write(json.dumps(st, separators=(',', ':')))
     open(os.path.join(out, 'stages', f'stage{len(cuts) + 1}.json'), 'w').write(txt)
     print(f'kit + rig.json written; studio copy {stud}-stud blocks, {len(bx)} parts, {len(txt) // 1000} KB; {time.time() - t0:.0f} s')
-    gp = build(block * 2); mp = (gp.C > 0) & ~np.isin(gp.C, list(NEON))     # shadow stand-in: 2x blocks, faces without colour
-    pquads = faces(np.where(mp, gp.S.astype(np.uint16) << 8, 0).astype(np.uint16), np.where(mp, gp.S, 0))
-    studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, studio_cam or cams[0], doc, PNG, out, sheets_dir=fx_lib_dir, proxy=(pquads, gp.V))
+    proxy = None
+    if not smooth:                                       # shadow stand-in: 2x blocks, faces without colour
+        gp = build(block * 2); mp = (gp.C > 0) & ~np.isin(gp.C, list(NEON))
+        proxy = (faces(np.where(mp, gp.S.astype(np.uint16) << 8, 0).astype(np.uint16), np.where(mp, gp.S, 0)), gp.V)
+    studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, studio_cam or cams[0], doc, PNG, out, sheets_dir=fx_lib_dir, proxy=proxy, smooth=smooth, **({"limit": 210_000} if smooth else {}))
 
-def studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, cam, partdoc, PNG, out, limit=430_000, sheets_dir=None, proxy=None):   # estimate units (~2x bytes)
+def studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, cam, partdoc, PNG, out, limit=430_000, sheets_dir=None, proxy=None, smooth=False):   # estimate units (~2x bytes)
     """The exact export in the studio: one mesh object per segment chunk (palette texture, flat faces), geometry in the
     project's geo store (<= 225 KB per doc), glow blocks as Neon parts, plus the same clip and VFX stand-ins as the part copy.
     Writes out/studio/: project.json, geo/<id>.json, tex/pal.json and plan.json (live-build batches, bottom-up by segment)."""
@@ -453,14 +505,18 @@ def studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, cam, partdo
     PIV = {n: tuple(v * sc for v in p) for n, _, p in segs}; sid = {n: f'S{i}' for i, (n, _, _) in enumerate(segs)}
     objs = {k: o for k, o in partdoc['objects'].items() if o['type'] == 'group' or k.startswith('F')}   # segment groups + VFX stand-ins
     geos = {}                                          # seg -> [geo ids]
-    for si, qs in sorted(quads.items()):
+    glow = {}                                          # geo id -> glow colour (Neon mesh)
+    for gkey, qs in sorted(quads.items(), key=lambda kv: ((kv[0] if isinstance(kv[0], int) else kv[0][0]), str(kv[0]))):
+        si = gkey if isinstance(gkey, int) else gkey[0]
         seg = segs[si - 1][0]; px, py, pz = PIV[seg]; chunk = None
         def flush():
             if chunk and chunk['faces']:
                 gid = f'{name.lower()}-{seg.lower()}-{len(geos.get(seg, []))}'
+                if not isinstance(gkey, int): glow[gid] = pal[gkey[1]][1]
                 json.dump({'verts': chunk['verts'], 'faces': chunk['faces'], 'uvs': chunk['uvs']}, open(os.path.join(d, 'geo', gid + '.json'), 'w'), separators=(',', ':'))
                 geos.setdefault(seg, []).append(gid)
-        for cs, a, sg, col in qs:
+        for q in qs:
+            cs, col = q[0], q[3]
             if chunk is None or chunk['size'] > limit:
                 flush(); chunk = {'verts': [], 'faces': [], 'uvs': [], 'map': {}, 'size': 0}
             f = []
@@ -475,7 +531,8 @@ def studio_mesh(name, segs, pal, sc, bounds, V, quads, GL, anim, fx, cam, partdo
         flush()
     shadow = proxy is not None
     for seg, ids in geos.items():
-        for gid in ids: objs['M' + gid.split('-', 1)[1].replace('-', '')] = {'type': 'mesh', 'name': seg, 'geo': gid, 'parent': sid[seg], 'pos': [0, 0, 0], 'color': '#ffffff', 'texture': 't-pal', 'smooth': False,
+        for gid in ids: objs['M' + gid.split('-', 1)[1].replace('-', '')] = {'type': 'mesh', 'name': seg, 'geo': gid, 'parent': sid[seg], 'pos': [0, 0, 0], 'smooth': smooth,
+                                                                       **({'color': glow[gid], 'material': 'Neon'} if gid in glow else {'color': '#ffffff', 'texture': 't-pal', **({'rough': 0.42} if smooth else {})}),
                                                                        **({'castShadow': False} if shadow else {})}
     pgeos = {}
     if shadow:                                         # the shadow comes from a 2x-coarser stand-in: the per-frame shadow pass draws ~1/4 of the triangles
