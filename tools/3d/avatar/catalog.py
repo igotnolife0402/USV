@@ -6,6 +6,7 @@
 
 KIT/kit.json: parts (R15 MeshParts: name, mesh file, CFrame, size, rig attachments), accessories (mesh, texture,
 scale, offset, attachment), shirt/pants template and face image files. KIT/refs/: catalog thumbnails to check colours."""
+# @style: helper
 import json, os, sys, time, urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rbx

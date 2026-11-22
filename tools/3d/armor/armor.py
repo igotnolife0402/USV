@@ -11,6 +11,9 @@ Writes OUT/geo/<id>.json (each <= 200 KB, split as needed) and OUT/<stage>.json 
 on the arm pivots (+-1.5,3.9); LG/RG (0,-0.85,0) and LB/RB (0,-1.66,0.06) on the hip pivots (+-0.5,2); HM (0,0.62,0) on the
 neck (0,4). Rig: torso 2x2x1, arms and legs 1x2x1, head 1.2 cube, faces +z, the rig's right is -x. Left pieces are built,
 right pieces are their mirror."""
+# @style: lowpoly
+# @model: Ember Wyrm dragon armor | blocky red dragon plate set on R6 rig (torso 2x2x1 studs)
+# @run: python3 armor.py OUT <cuirass|pauldrons|arms|legs|helm>
 import json, math, os, sys
 import numpy as np
 from solids import B, Kit, bez, rot, nz, X, Y, Z

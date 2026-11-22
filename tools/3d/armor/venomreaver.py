@@ -3,6 +3,9 @@
 lenses, swept hoses and horns, rivets, smooth shading by angle) on the same rig, groups and stages as sets.py poison.
   python venomreaver.py OUT <cuirass|pauldrons|arms|legs|helm>     then: python hq.py OUT (audit), python preview.py OUT x.png
 Pieces live in vhq_torso.py (cuirass, pauldrons), vhq_limbs.py (arms, legs), vhq_helm.py (helm); each has build(stage, K)."""
+# @style: stylized-hq
+# @model: Venomreaver | curved bevelled plague-mask poison armor set on R6 rig
+# @run: python venomreaver.py OUT <cuirass|pauldrons|arms|legs|helm>
 import json, sys
 from hq import Kit
 

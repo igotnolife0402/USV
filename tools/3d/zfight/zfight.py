@@ -12,6 +12,8 @@ far coarser than desktops: layers even 4-12 cm apart flicker there). `fix`:
      when mostly hidden, else kept.
 Works in world space over every mesh object (pos/scale of the object and its groups; rotated objects are skipped).
 Mirrored objects that share a geo doc with an unmirrored one are cut only against their own doc."""
+# @style: tool
+# @run: python3 zfight.py check project.json geo/
 import collections, json, os, sys
 import numpy as np
 

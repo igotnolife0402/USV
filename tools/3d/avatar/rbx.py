@@ -3,6 +3,7 @@
 
   python3 rbx.py dump model.rbxm        # instance tree with string, Vector3 and CFrame properties
   python3 rbx.py mesh file.mesh out.obj"""
+# @style: helper
 import gzip, re, struct, sys
 
 

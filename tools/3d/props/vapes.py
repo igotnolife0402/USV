@@ -5,6 +5,9 @@ python3 vapes.py OUT [--check] [--preview]
 Builders live in vape_a.py, vape_b.py, vape_c.py (registered into props.PROPS).
 Writes OUT/geo/*.json, OUT/<name>.json per vape and OUT/vapes.json (all five in a row, one project).
 """
+# @style: toon
+# @model: pod-vape, box-mod, disposable-vape, vape-pen, mech-mod | Five toon vape props in a row, 1.6 studs apart
+# @run: python3 vapes.py OUT --check
 import json
 import os
 import shutil

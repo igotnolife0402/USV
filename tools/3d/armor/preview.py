@@ -2,6 +2,7 @@
   python preview.py OUT out.png [--focus CP|LS|LV|LG|LB|HM] [--size 520] [--views front,q34,side,back]
 Reads every OUT/*.json stage file (objects: geo, parent, color, material) and OUT/geo/*.json; the dark rig boxes show the fit.
 A preview, not the final look: the hub/Studio render is the real check."""
+# @style: helper
 import glob, json, math, os, sys
 import numpy as np
 from PIL import Image, ImageDraw

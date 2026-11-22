@@ -2,6 +2,7 @@
 A creature file (dragon.py, orc.py) defines SEG, PAL, shape(g), ANIM, FX and calls make(...). See README.md.
 Outputs into the out dir: <Name>.glb (meshes), <Name>Kit.rbxmx (rig + animation + VFX pack), rig.json (video.html),
 project.json + meta.json (studio tab copy, coarser blocks to fit its 250 KB doc), palette.png."""
+# @style: helper
 import io, json, math, os, struct, time
 import numpy as np
 from PIL import Image

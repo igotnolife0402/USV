@@ -1,6 +1,7 @@
 """Low-poly convex solids for blocky armor: boxes, chamfered plates, shield scale tiles, frustums, stepped horns, pyramid spikes,
 triangular fins, merged into one flat-shaded mesh per material per group, plus the writer that turns a group into studio geo docs
 (each <= 200 KB) and mesh objects. numpy only; used by armor.py (the dragon set) and sets.py (the other sets)."""
+# @style: helper
 import json, math, os
 import numpy as np
 

@@ -224,7 +224,10 @@
         "statue",
         "tower",
         "castle",
-        "boat"
+        "boat",
+        "template",
+        "templates",
+        "style catalog"
       ],
       "notes": [
         "domains/3d/playbook.md",

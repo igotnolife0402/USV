@@ -5,6 +5,9 @@ a cracked glowing core feeding purple veins down the limbs, ribs, spine spikes, 
 shoulders with faint glowing tips, a tattered smoke skirt, a spiked tail, long clawed hands and clawed feet.
 Idle sway + breathing; every 5-9 s it lunges with a screech (jaw open, arms spread). No VFX (model only).
 Usage: python3 shadow.py <outdir>"""
+# @style: voxel
+# @model: Shadow Monster | rigged smooth-meshed block shadow monster, ~23 studs tall
+# @run: python3 shadow.py <outdir>
 import sys
 import numpy as np
 from rig import make

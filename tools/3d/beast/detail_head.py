@@ -1,4 +1,5 @@
 """Maximum-detail layer for the Shadow Monster head and jaw (adds pieces on top of shadow_parts.build())."""
+# @style: helper
 
 def build(K):
     np, math, SP = K.np, K.math, K.SP

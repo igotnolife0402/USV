@@ -4,6 +4,7 @@ brows, an open mouth with teeth and tongue. Replaces a head's face texture, so t
 
   python3 faces.py OUT.png shocked|scared|grin|cry|smirk [--skin #f2f3f3] [--size 512]
 """
+# @style: helper
 import sys
 from PIL import Image, ImageDraw
 

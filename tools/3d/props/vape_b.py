@@ -1,3 +1,6 @@
+# @style: toon
+# @model: disposable-vape, vape-pen | Toon vape props (builders registered into props.PROPS)
+# @run: python3 vapes.py OUT --check
 import math
 import numpy as np
 import props as P

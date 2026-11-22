@@ -68,5 +68,5 @@ Metal is #C9CED6, metalness 0.7, roughness 0.3.
 - `guns.py OUT --check` (2026-11-22): 3 voxel-look guns (pistol 3.5k, rifle 3.5k, sniper 3k tris), textured chamfered mesh parts; gates: mesh check, detail --class prop, zfight --prop; writes OUT/live stages for the Umbrio build. Also `attach()`: no floating/gapped piece (one surface cluster per gun).
 - `shotgun.py OUT --check [--preview]` (2026-11-22): tactical pump shotgun, 25 textured parts, 3k tris; palette = 4 constant lines at the top (variants change only those); writes OUT/live/p1+m1 for a one-batch Umbrio build (Umbrio project `tactical-shotgun`). Check ~1-3 min (attach sampling).
 
-## House (2026-11-22)
-`python3 house.py OUT --check [--preview]`: toon cottage 12.8 x 12.2 x 14 studs (front +Z), three aligned props `house-body` (house_a.py), `house-roof` (house_b.py), `house-trim` (house_c.py) combined at the origin in `OUT/house.json` + `OUT/studio/`. 19.4k tris total; `--check` runs mesh gates + building-scale zfight (passes).
+## House (2026-11-22, realistic)
+`python3 house.py OUT --check`: realistic 2-storey house, 1 unit = 1 m, 8 x 6 m footprint, 39 textured parts (stone plinth, brick ground floor, lap siding, stepped shingle roof, chimney, gutters, 6-over-6 sash windows, panelled oak door, canopy, steps). Writes OUT/live/p1-3 (shell, roof, details) for the Umbrio build (project `realistic-house`). Recipe: [umbrio-build.md](../../../domains/3d/umbrio-build.md). The toon cottage (house_a/b/c.py) was removed.

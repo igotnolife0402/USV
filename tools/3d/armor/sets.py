@@ -5,6 +5,9 @@ sunburst emblems, feather wings, halo), storm (Storm Ronin: navy lacquer lamella
 oni mask, lightning glow). Same solids, same fit, one stage per call, written straight into a live tab.
 
   python3 sets.py OUT <frost|solar|storm> <cuirass|pauldrons|arms|legs|helm>"""
+# @style: lowpoly
+# @model: Rimeguard frost, Dawnbringer solar, Storm Ronin storm | three blocky armor sets on R6 rig (torso 2x2x1 studs)
+# @run: python3 sets.py OUT <frost|solar|storm> <cuirass|pauldrons|arms|legs|helm>
 import json, math, sys
 import numpy as np
 from solids import B, Kit, bez, rot, nz, X, Y, Z

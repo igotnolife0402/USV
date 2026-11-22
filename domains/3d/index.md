@@ -1,6 +1,6 @@
 ---
 summary: 3D domain entry: Umbrio Sandbox models (default), tools/3d generators, Blender only when named, GLB assets
-updated: 2026-11-21
+updated: 2026-11-22
 status: current
 triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, voxel, props, 3d, blender, model, mesh, gltf, glb, three.js, threejs, scene, editor, mini-blender, render, low poly]
 ---
@@ -11,6 +11,8 @@ triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, vox
 Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.js Artifacts + procedural geometry in repo files.
 
 ## Read in this order
+- FIRST for any model: [Umbrio build in one read](domains/3d/umbrio-build.md): template, units, textures, z-fight-safe layout, gates, write format. Usually the only note needed.
+- Template lookup: [tools/3d/styles/](tools/3d/styles/) one catalog per style (every model, run, api/constants with line numbers); read one, never open templates one by one. Regenerate: `node tools/3d/styles/build.mjs --check`.
 0. [Detail floor](domains/3d/detail.md): EVERY model meets it (meshes, textures, many parts) + gate. Read before any model.
 1. [Playbook](domains/3d/playbook.md): fastest path, PC vs mobile, quality bar.
 2. [Errors](domains/3d/errors.md): symptom → fix table.

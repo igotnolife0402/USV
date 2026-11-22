@@ -5,6 +5,9 @@ python3 shotgun.py OUT [--check] [--preview]
 Writes OUT/geo/*.json, OUT/<NAME>.json, OUT/live/p1.json + m1.json (Umbrio one-stage build).
 --check: mesh check, detail floor (--class prop), attach (one piece), prop z-fight. Exit 0 = all pass.
 """
+# @style: voxel
+# @model: tactical-shotgun | Voxel-look pump shotgun, textured studio meshes
+# @run: python3 shotgun.py OUT --check
 import json
 import os
 import subprocess

@@ -12,11 +12,12 @@ spawn + prep (parallel with brain design) → brain spec → worker one pass (~1
 
 ## 0. Spawn FIRST, design after (owner 2026-11-22: house run took 2m45s before any worker started)
 Measured: 4 brain reads (32 s) + 80 s silent design + 3 long literal briefs written one by one (40 s). Fix:
-- The brain's FIRST tool message (with update_plan) spawns all 3 `crew-worker`s, run_in_background, each with a <= 5 line prep brief: their piece in one line, the template path + API lines to read, "paste the function signatures/patterns you will use, then wait for the spec". New task with no template: name the closest one (`ls` result is enough).
+- The brain's FIRST tool message (with update_plan) spawns all 3 `crew-worker`s, run_in_background, each with a <= 5 line prep brief: their piece in one line, the style catalog `tools/3d/styles/<style>.md` (one file = every model of that style with api/constant line numbers) + the exact line range to read, "paste the function signatures/patterns you will use, then wait for the spec". New task with no template: name the closest one (`ls` result is enough).
 - Fetch questions (when the brain needs facts) go in that same prep brief: "in X, paste the lines that define Y". Literal excerpts, no opinions.
 - While they prep, the brain designs; then sends each spec with SendMessage (same worker keeps its context).
 
 ## 1. Brain decides everything, fast
+- Find templates by reading ONE style catalog (`tools/3d/styles/<style>.md`), never by opening template files one by one.
 - No long deliberation: take the template's defaults, change only what the request needs. Max 2 reads of your own.
 - The router's injected OWNER MUST block (profiles/must.md) is binding: paste it verbatim at the top of every worker spec (workers never see it otherwise).
 - Template must match the asked style; no style named = realistic (profiles/owner.md), never toon/low-poly by default.

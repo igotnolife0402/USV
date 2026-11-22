@@ -1,0 +1,7 @@
+{
+ "name": "styles",
+ "what": "One catalog per 3D style (realistic, toon, lowpoly, voxel, ...): every tools/3d model of that style with run command, functions and constants by line, generated from # @style/@model/@run tags",
+ "run": "node tools/3d/styles/build.mjs --check",
+ "prompt": "Find a template: read tools/3d/styles/<style>.md",
+ "url": ""
+}

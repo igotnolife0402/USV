@@ -1,3 +1,4 @@
+# @style: helper
 # Usage: python3 post.py <hero.png> <hero_depth.png> <focus_m> <out.jpg>
 # 2x downsample, depth-of-field from the depth pass, vignette, grain; JPEG kept under 400 KB.
 import sys, io, numpy as np

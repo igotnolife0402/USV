@@ -1,0 +1,210 @@
+---
+summary: Every toon model template in tools/3d in one file: what, run command, functions and constants with line numbers. Generated; do not edit.
+updated: 2026-11-22
+status: current
+---
+# toon models (6)
+Read this file instead of opening templates. Then read only the line range you copy. Regenerate: `node tools/3d/styles/build.mjs`.
+
+## Roblox avatar | posed animated avatar from real catalog items (R15 meshes)
+- file: `tools/3d/avatar/avatar.py` (629 lines)
+- run: `python3 avatar.py KIT OUT [--name Bacon] [--skin #F2F3F3] [--pose wave|stand|kamehameha|saber_guard] [--clip kamehameha|lightsaber]`
+- api:
+  - L94 def blend(A, B, s, shoulder=(-0.92, 0, 1.65)
+  - L108 def arc_keys(path, n=5)
+  - L134 def composite(layers, path, color, tshirt=None)
+  - L161 def rects(group)
+  - L173 def box_uv(p, n, lo, hi, plo, phi, sl, rc)
+  - L203 def mesh_obj(name, P, F, uvs, tex, rough=0.5)
+  - L207 def box(c, sz)
+  - L220 def head_mesh(w, bev, sides=48, seg=8)
+  - L275 def pivot(part)
+  - L283 def attach(o, part)
+  - L325 def frame(x, pole)
+  - L328 def ik_arm(side, target, pole)
+  - L344 def set_pose(P)
+  - L365 def grip()
+  - L375 def srot(e)
+  - L381 def cam_view()
+  - L390 def studio_rig(cards=()
+  - L618 def hand_point(side)
+  - L623 def hands_aim()
+- constants:
+  - `L26 POSES = {'wave': {'Root': (0, 0, 8), 'Waist': (0, 0, -3), 'Neck': (2, -6, -3),`
+  - `L48 STANCE = {'RightHip': (14, 8, 0), 'RightKnee': (16, 0, 0), 'RightAnkle': (-6, 0, 0), 'LeftHip': (-1`
+  - `L64 GS_LEGS = {'RightHip': (16, 10, 0), 'RightKnee': (22, 0, 0), 'RightAnkle': (-8, 0, 0), 'LeftHip': (-`
+  - `L65 GS_LOW = dict(GS_LEGS, RightKnee=(44, 0, 0), LeftKnee=(56, 0, 0), RightHip=(26, 12, 0), LeftHip=(-3`
+  - `L80 CLIPS = {'kamehameha': [(0, 'ready'), (0.8, 'charge'), (2.4, 'charge2'), (2.75, 'kamehameha'), (4.`
+  - `L86 EASES = {'linear': lambda x: x, 'smooth': lambda x: (1 - math.cos(math.pi * x)) / 2, 'in': lambda `
+  - `L121 CLIP = opt('--clip', '')`
+  - `L122 POSE = POSES[opt('--pose', 'wave')]`
+  - `L125 FXDIR = os.path.dirname(os.path.abspath(opt('--fx', '.')))`
+  - `L130 RIG = kit.get('rig', 'R15')`
+  - `L131 COL = {k[:-6]: '#' + v.lstrip('#') for k, v in (kit.get('colors') or {}).items()}      # headCol`
+  - `L154 TORSO = {'F': (231, 74, 128, 128), 'B': (427, 74, 128, 128), 'R': (165, 74, 64, 128), 'L': (361, 7`
+  - ...14 more
+
+## traffic-cone, steering-wheel, dashboard, car-hood, road-sign, rock-1, rock-2, rock-3, cliff, tree, bush, cloud, palm-tree, crate, barrel | detailed Roblox-thumbnail props, 0.78 to 12 x 40 studs
+- file: `tools/3d/props/props.py` (1980 lines)
+- run: `python3 props.py OUT <name|all> [--seed N] [--style lowpoly|toon] --check`
+- api:
+  - L41 def unit(a)
+  - L47 def rot(rx=0, ry=0, rz=0)
+  - L71 def merge(*ms)
+  - L82 def volume(m)
+  - L91 def orient(m)
+  - L98 def grid_mesh(P, wrap_rows=False, pole0=None, pole1=None)
+  - L119 def dedupe(pts, closed=False, eps=2e-3)
+  - L130 def fillet(pts, rad, n=4, closed=False)
+  - L157 def lathe(profile, seg=32, closed=False, rmod=None)
+  - L175 def frames(path, closed=False, ref=None)
+  - L194 def sweep(path, rad, seg=16, closed=False, caps="round", ref=None,
+  - L235 def rbox(size, r, seg=3, div=(1, 1, 1)
+  - L270 def rrect(hw, hh, rad, n=6)
+  - L280 def slab(hw, hh, depth, rad, bevel, nb=3, n=6)
+  - L290 def outline3d(pts2, y=0.0)
+  - L298 def icosphere(sub)
+  - L358 def smoothstep(e0, e1, x)
+  - L363 def facets(v, rng, k=7, depth=0.82, strength=0.85)
+  - L380 def blob(rng, noise, center, radius, scale=(1, 1, 1)
+  - L396 def box_uv(m, s=1.0)
+  - L407 def part(pid, mesh, color, **kw)
+  - L419 def prop(name, title)
+  - L427 def cone_r(t)
+  - L434 def band_profile(fn, t0, t1, proud=0.012, sink=0.01, n=5)
+  - L449 def traffic_cone(rng)
+  - L470 def torus_profile(R, r, n=16)
+  - L475 def gauss_wrap(th, centers, w)
+  - L484 def steering_wheel(rng)
+  - L524 def dial(x, needle_deg)
+  - L546 def vent()
+  - L558 def dashboard(rng)
+  - L622 def ground(parts, y=0.0)
+  - L631 def car_hood(rng)
+  - L671 def hex_bolt(r=0.05, h=0.04)
+  - L681 def road_sign(rng)
+  - L707 def rock_tex(key="rock", scale=3)
+  - L711 def cubeish(n, p=0.55)
+  - L716 def boulder(rng, noise, sub, scale, cube=0.0, rough=0.15, cuts=8, depth=0.8)
+  - L728 def rock_prop(rng, scale, color)
+  - L740 def rock1(rng)
+  - L745 def rock2(rng)
+  - L750 def rock3(rng)
+  - L755 def cliff(rng)
+  - L795 def blobs(rng, specs, sub=3, **kw)
+  - L804 def flat_bottom(m, y, keep=0.2)
+  - L810 def tree(rng)
+  - L841 def bush(rng)
+  - L851 def cloud(rng)
+  - L864 def frond(base, az, L=3.2, W=0.42, rng=None)
+  - L878 def palm_tree(rng)
+  - L904 def wood_tex(scale=2)
+  - L908 def nail(p, n)
+  - L921 def crate(rng)
+  - L965 def barrel(rng)
+  - L1004 def low(name)
+  - L1011 def face_normals(v, faces)
+  - L1023 def flat(m, deg=9.9)
+  - L1062 def face_uv(m, s=1.0)
+  - L1087 def lptex(*keys)
+  - L1092 def lpart(pid, mesh, color, tex=None, uv=1.0, **kw)
+  - L1105 def ccw(idx, P, n)
+  - L1114 def cbox(size, r=0.04)
+  - L1147 def offset_poly(P, d)
+  - L1157 def prism(poly, hw, ch=0.04)
+  - L1169 def plane_cuts(v, rng, k, depth, snap=0.12)
+  - L1186 def chunk(rng, sub, scale, jitter=0.15, cuts=4, cube=0.0, depth=0.8)
+  - L1198 def ring_profile(r0, r1, y0, y1, out=0.012, sink=0.01, ch=0.006)
+  - L1204 def box(size)
+  - L1217 def ring_rect(r0, r1, y0, y1, ch=0.006)
+  - L1222 def frame_ring(P2, outer, inner, z0, z1, ch=0.006)
+  - L1229 def lp_nail(p, n, r=0.03)
+  - L1239 def floor_cut(m, y)
+  - L1246 def lp_cone(rng)
+  - L1263 def lp_wheel(rng)
+  - L1295 def lp_dial(deg)
+  - L1309 def lp_vent()
+  - L1319 def lp_dash(rng)
+  - L1373 def lp_hood(rng)
+  - L1411 def lp_sign(rng)
+  - L1435 def lp_rock(rng, scale, color)
+  - L1444 def lp_rock1(rng)
+  - L1449 def lp_rock2(rng)
+  - L1454 def lp_rock3(rng)
+  - L1459 def lp_cliff(rng)
+  - L1495 def clumps(rng, specs, jitter=0.1, cuts=2)
+  - L1505 def lp_tree(rng)
+  - L1525 def lp_bush(rng)
+  - L1534 def lp_cloud(rng)
+  - L1546 def lp_frond(base, az, L, W, rng)
+  - L1557 def lp_palm(rng)
+  - L1586 def lp_crate(rng)
+  - L1624 def lp_barrel(rng)
+  - L1649 def geo_doc(m)
+  - L1658 def build(name, seed, style="lowpoly")
+  - L1667 def write_prop(out, name, seed, style="lowpoly")
+  - L1701 def check_mesh(gid, m, size)
+  - L1728 def check_flat(gid, m)
+  - L1743 def run(out, names, seed, check, preview, style="lowpoly")
+  - L1795 def hexrgb(h)
+  - L1799 def tris_of(m)
+  - L1804 def shade_part(p, M)
+  - L1830 def raster(V, C, ids, W, H)
+  - L1882 def render(parts, W, H, az=32, el=20)
+  - L1921 def label(img, text, x, y, s=3)
+  - L1932 def write_png(path, img)
+  - L1945 def contact_sheet(shots, path, tile=300, cols=5)
+  - L1959 def main(argv=None)
+- constants:
+  - `L20 GEO_CAP = 225 * 1024  # studio doc limit (prompt cap 240 KB, guide 225 KB)`
+  - `L21 TRI_CAP = 12000`
+  - `L22 LOW_TRI_CAP = 3000  # owner: low-poly props well under the toon ones`
+  - `L23 FLAT_DEG = 20.0`
+  - `L413 METAL = dict(color="#C9CED6", metalness=0.7, roughness=0.3)`
+  - `L416 PROPS = {}`
+  - `L480 FACE_Z = (90, 0, 0)  # lathe axis +Y -> +Z (front)`
+  - `L704 ROCK = ("#D99A5E", "#C4854D")`
+  - `L792 GREENS = ("#3FC24A", "#2FA83A")`
+  - `L901 WOOD = ("#B9773E", "#A0632F")`
+  - `L1001 LOW = {}`
+  - `L1075 LPTEX = {`
+  - ...4 more
+
+## pod-vape, box-mod | Toon vape props, original designs, no logos
+- file: `tools/3d/props/vape_a.py` (165 lines)
+- run: `python3 vapes.py OUT --check`
+- api:
+  - L9 def cyl(r, h, y0=0.0, f=0.012, seg=32, rmod=None, t=(0, 0, 0)
+  - L26 def tex(pid, mesh, color, key, sc=1.0, **kw)
+  - L35 def knurl(n, depth=0.012)
+  - L40 def pod_vape(rng)
+  - L96 def box_mod(rng)
+
+## disposable-vape, vape-pen | Toon vape props (builders registered into props.PROPS)
+- file: `tools/3d/props/vape_b.py` (150 lines)
+- run: `python3 vapes.py OUT --check`
+- api:
+  - L12 def tex(pat, base, dark, light, scale=2)
+  - L20 def disc(r, h, t, seg=16, bev=0.004, uv=None)
+  - L27 def ring(r_in, r_out, h, y, seg=48, bev=0.008)
+  - L32 def cyl(r, y0, y1, seg, bev, uv)
+  - L39 def disposable(rng)
+  - L89 def vape_pen(rng)
+
+## mech-mod | Toon mech-mod tube vape with rebuildable dripping atomiser
+- file: `tools/3d/props/vape_c.py` (112 lines)
+- run: `python3 vapes.py OUT --check`
+- api:
+  - L18 def knurl(n, y0, y1, amp=0.011)
+  - L22 def radial(m, a, r, y)
+  - L28 def mech_mod(rng)
+
+## pod-vape, box-mod, disposable-vape, vape-pen, mech-mod | Five toon vape props in a row, 1.6 studs apart
+- file: `tools/3d/props/vapes.py` (67 lines)
+- run: `python3 vapes.py OUT --check`
+- api:
+  - L24 def combine(out)
+  - L46 def main(argv=None)
+- constants:
+  - `L20 NAMES = ["pod-vape", "box-mod", "disposable-vape", "vape-pen", "mech-mod"]`
+  - `L21 GAP = 1.6  # studs between vape centres`

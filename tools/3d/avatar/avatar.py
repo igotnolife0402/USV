@@ -6,6 +6,9 @@
 Needs only numpy and pillow (3D maths in `vmath.py`). Writes
 OUT/studio/{project,meta}.json + geo/*.json, OUT/studio/uploads.json, OUT/batches.json, OUT/writes.json; render it with the
 studio's shots check (README). Poses use the rig frame (Z up, the avatar faces -Y, its right is -X) so every POSES entry stays as written."""
+# @style: toon
+# @model: Roblox avatar | posed animated avatar from real catalog items (R15 meshes)
+# @run: python3 avatar.py KIT OUT [--name Bacon] [--skin #F2F3F3] [--pose wave|stand|kamehameha|saber_guard] [--clip kamehameha|lightsaber]
 import math, os, sys, json, time
 import numpy as np
 from vmath import Vector, Matrix, Euler

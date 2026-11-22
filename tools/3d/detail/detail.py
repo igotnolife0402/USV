@@ -3,6 +3,7 @@
 
   python detail.py check project.json geo/ [--class prop|hero|scene] [--json]
 Exit 0 pass, 1 fail, 2 bad input."""
+# @style: helper
 import argparse, collections, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))

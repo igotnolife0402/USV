@@ -1,6 +1,7 @@
 """Venomreaver HQ helm: closed plague-mask helm. Skull = rounded-square (superellipse) rings under a domed top, curved mask plate with
 centre ridge, two bezelled goggle lenses, long curved beak with bands and vent slits, cheek respirator canisters with hoses,
 layered neck lames, crest of curved spikes, bronze trims, rivets, acid drips. Symmetric: details built per side."""
+# @style: helper
 import math
 import numpy as np
 from hq import H, X, Y, Z, rot, perp, bez, nz

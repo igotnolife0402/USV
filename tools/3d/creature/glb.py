@@ -1,3 +1,6 @@
+# @style: realistic
+# @model: tiger-glb | Roblox-ready tiger GLB, <=20k tris, 1024 texture, 3.57 studs/m
+# @run: python3 glb.py final/tiger.glb
 # Usage: python3 glb.py [out.glb]  — Roblox-ready tiger: QEM-decimated mesh (<=20k tris), box-chart UVs, baked 1024 texture, one GLB.
 import sys, io, json, heapq, struct, time, numpy as np
 from PIL import Image, ImageDraw

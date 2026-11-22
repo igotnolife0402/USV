@@ -40,7 +40,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Armor sets fitted to the R6 rig + equip | [armor](tools/3d/armor/README.md) |
 | Z-fighting / flicker check and fix | [zfight](tools/3d/zfight/README.md) |
 | Editing by hand, export, render, MP4 | [studio](tools/3d/studio/README.md) |
-| Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build: custom meshes + PBR textures, live-built into a fresh tab; closest generator in tools/3d as the code template |
+| Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build per [umbrio-build.md](domains/3d/umbrio-build.md) (one read: template tools/3d/props/house.py, units, textures, gates, write format) |
 | None fits and the owner names Blender | Blender MCP (PC) below |
 
 ## PC (/pc)
@@ -82,7 +82,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Geometry Nodes scatter for nature instead of hand placement.
 - In three.js, `OrbitControls` + `RoomEnvironment` + ACES = instant good look.
 
-- Building props (house, cottage): copy tools/3d/props/house.py; rbox seg=1 for trim, same-facing layers >= 15 cm proud or embedded, frames as 4 non-overlapping bars, so zfight passes first run (L-097).
+- Building props (house, cottage): copy tools/3d/props/house.py (realistic since 2026-11-22); layout rules in [umbrio-build.md](domains/3d/umbrio-build.md) so zfight passes first run (L-097).
 
 ## Done
 Run [checklists/3d.md](checklists/3d.md). Add new failures to [errors](domains/3d/errors.md).

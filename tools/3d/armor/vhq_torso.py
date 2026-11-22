@@ -1,5 +1,6 @@
 """Venomreaver HQ torso pieces: cuirass (group CP) and pauldrons (LS/RS). build(stage, K) from venomreaver.py.
 Frames: CP torso x+-1 y+-1 z+-0.5 (+z front); LS arm x -0.62..0.38, top y 0.08, z+-0.5 (torso side toward -x)."""
+# @style: helper
 import math
 import numpy as np
 from hq import H, X, Y, Z, rot, perp, bez, nz

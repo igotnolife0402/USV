@@ -3,6 +3,9 @@
 ~23 studs tall, rigged by the same SEG/ANIM as shadow.py (groups per joint, key-pose clip from rig.studio_doc).
 Parts: spheres, capsules, cones, cylinders, wedges; Neon parts for the glow (eyes, mouth, core, cracks, veins, wisp tips).
 Usage: python3 shadow_parts.py <outdir>  -> <outdir>/project.json + meta.json (one studio project doc, no geo docs)."""
+# @style: stylized-hq
+# @model: Shadow Monster parts | shadow monster from separate primitive Studio parts, ~23 studs tall
+# @run: python3 shadow_parts.py <outdir>
 import json, math, os, sys, time
 import numpy as np
 from rig import studio_doc

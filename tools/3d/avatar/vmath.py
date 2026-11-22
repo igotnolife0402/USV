@@ -1,6 +1,7 @@
 """Small 3D maths for the avatar rig, numpy only: Vector, Matrix (3x3 / 4x4) and Euler (XYZ or ZYX order).
 Conventions: Euler order 'XYZ' = Rz @ Ry @ Rx (X applied first), 'ZYX' = Rx @ Ry @ Rz; matrices act on column vectors; a 4x4 acting
 on a Vector treats it as a point (w = 1). to_euler returns the one of the two solutions with the smaller sum of angles."""
+# @style: helper
 import math
 import numpy as np
 

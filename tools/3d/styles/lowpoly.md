@@ -1,0 +1,187 @@
+---
+summary: Every lowpoly model template in tools/3d in one file: what, run command, functions and constants with line numbers. Generated; do not edit.
+updated: 2026-11-22
+status: current
+---
+# lowpoly models (4)
+Read this file instead of opening templates. Then read only the line range you copy. Regenerate: `node tools/3d/styles/build.mjs`.
+
+## Ember Wyrm dragon armor | blocky red dragon plate set on R6 rig (torso 2x2x1 studs)
+- file: `tools/3d/armor/armor.py` (198 lines)
+- run: `python3 armor.py OUT <cuirass|pauldrons|arms|legs|helm>`
+- constants:
+  - `L22 MAT = {'plate': dict(color='#b3121b', metalness=0.72, roughness=0.3),`
+
+## Rimeguard frost, Dawnbringer solar, Storm Ronin storm | three blocky armor sets on R6 rig (torso 2x2x1 studs)
+- file: `tools/3d/armor/sets.py` (447 lines)
+- run: `python3 sets.py OUT <frost|solar|storm> <cuirass|pauldrons|arms|legs|helm>`
+- api:
+  - L35 def ngon(b, mat, base, d, r0, r1, h, n=6, up=None)
+  - L40 def crystal(b, base, d, h, r, mat='ice')
+  - L44 def disc(b, mat, c, N, r, t, n=12)
+  - L45 def band(b, mat, c, w, d, h, t)
+  - L49 def feather(b, mat, c, U, V, N, l, w, t)
+  - L51 def bolt(b, mat, pts, w, t, N=Z)
+  - L55 def lames(b, mats, c, w, h, d, n, step, tilt, trim=None, axis=Y)
+  - L60 def laced(b, plate, lace, c, w, h, rows, N=Z, U=X, t=0.06, cols=None, tilt=8)
+  - L72 def frost()
+  - L165 def solar()
+  - L258 def storm()
+  - L343 def vial(b, c, d, h, r)
+  - L347 def drip(b, c, l, w)
+  - L349 def rivets(b, a, c, n, s=0.045)
+  - L352 def poison()
+- constants:
+  - `L16 MATS = {`
+
+## traffic-cone, steering-wheel, dashboard, car-hood, road-sign, rock-1, rock-2, rock-3, cliff, tree, bush, cloud, palm-tree, crate, barrel | detailed Roblox-thumbnail props, 0.78 to 12 x 40 studs
+- file: `tools/3d/props/props.py` (1980 lines)
+- run: `python3 props.py OUT <name|all> [--seed N] [--style lowpoly|toon] --check`
+- api:
+  - L41 def unit(a)
+  - L47 def rot(rx=0, ry=0, rz=0)
+  - L71 def merge(*ms)
+  - L82 def volume(m)
+  - L91 def orient(m)
+  - L98 def grid_mesh(P, wrap_rows=False, pole0=None, pole1=None)
+  - L119 def dedupe(pts, closed=False, eps=2e-3)
+  - L130 def fillet(pts, rad, n=4, closed=False)
+  - L157 def lathe(profile, seg=32, closed=False, rmod=None)
+  - L175 def frames(path, closed=False, ref=None)
+  - L194 def sweep(path, rad, seg=16, closed=False, caps="round", ref=None,
+  - L235 def rbox(size, r, seg=3, div=(1, 1, 1)
+  - L270 def rrect(hw, hh, rad, n=6)
+  - L280 def slab(hw, hh, depth, rad, bevel, nb=3, n=6)
+  - L290 def outline3d(pts2, y=0.0)
+  - L298 def icosphere(sub)
+  - L358 def smoothstep(e0, e1, x)
+  - L363 def facets(v, rng, k=7, depth=0.82, strength=0.85)
+  - L380 def blob(rng, noise, center, radius, scale=(1, 1, 1)
+  - L396 def box_uv(m, s=1.0)
+  - L407 def part(pid, mesh, color, **kw)
+  - L419 def prop(name, title)
+  - L427 def cone_r(t)
+  - L434 def band_profile(fn, t0, t1, proud=0.012, sink=0.01, n=5)
+  - L449 def traffic_cone(rng)
+  - L470 def torus_profile(R, r, n=16)
+  - L475 def gauss_wrap(th, centers, w)
+  - L484 def steering_wheel(rng)
+  - L524 def dial(x, needle_deg)
+  - L546 def vent()
+  - L558 def dashboard(rng)
+  - L622 def ground(parts, y=0.0)
+  - L631 def car_hood(rng)
+  - L671 def hex_bolt(r=0.05, h=0.04)
+  - L681 def road_sign(rng)
+  - L707 def rock_tex(key="rock", scale=3)
+  - L711 def cubeish(n, p=0.55)
+  - L716 def boulder(rng, noise, sub, scale, cube=0.0, rough=0.15, cuts=8, depth=0.8)
+  - L728 def rock_prop(rng, scale, color)
+  - L740 def rock1(rng)
+  - L745 def rock2(rng)
+  - L750 def rock3(rng)
+  - L755 def cliff(rng)
+  - L795 def blobs(rng, specs, sub=3, **kw)
+  - L804 def flat_bottom(m, y, keep=0.2)
+  - L810 def tree(rng)
+  - L841 def bush(rng)
+  - L851 def cloud(rng)
+  - L864 def frond(base, az, L=3.2, W=0.42, rng=None)
+  - L878 def palm_tree(rng)
+  - L904 def wood_tex(scale=2)
+  - L908 def nail(p, n)
+  - L921 def crate(rng)
+  - L965 def barrel(rng)
+  - L1004 def low(name)
+  - L1011 def face_normals(v, faces)
+  - L1023 def flat(m, deg=9.9)
+  - L1062 def face_uv(m, s=1.0)
+  - L1087 def lptex(*keys)
+  - L1092 def lpart(pid, mesh, color, tex=None, uv=1.0, **kw)
+  - L1105 def ccw(idx, P, n)
+  - L1114 def cbox(size, r=0.04)
+  - L1147 def offset_poly(P, d)
+  - L1157 def prism(poly, hw, ch=0.04)
+  - L1169 def plane_cuts(v, rng, k, depth, snap=0.12)
+  - L1186 def chunk(rng, sub, scale, jitter=0.15, cuts=4, cube=0.0, depth=0.8)
+  - L1198 def ring_profile(r0, r1, y0, y1, out=0.012, sink=0.01, ch=0.006)
+  - L1204 def box(size)
+  - L1217 def ring_rect(r0, r1, y0, y1, ch=0.006)
+  - L1222 def frame_ring(P2, outer, inner, z0, z1, ch=0.006)
+  - L1229 def lp_nail(p, n, r=0.03)
+  - L1239 def floor_cut(m, y)
+  - L1246 def lp_cone(rng)
+  - L1263 def lp_wheel(rng)
+  - L1295 def lp_dial(deg)
+  - L1309 def lp_vent()
+  - L1319 def lp_dash(rng)
+  - L1373 def lp_hood(rng)
+  - L1411 def lp_sign(rng)
+  - L1435 def lp_rock(rng, scale, color)
+  - L1444 def lp_rock1(rng)
+  - L1449 def lp_rock2(rng)
+  - L1454 def lp_rock3(rng)
+  - L1459 def lp_cliff(rng)
+  - L1495 def clumps(rng, specs, jitter=0.1, cuts=2)
+  - L1505 def lp_tree(rng)
+  - L1525 def lp_bush(rng)
+  - L1534 def lp_cloud(rng)
+  - L1546 def lp_frond(base, az, L, W, rng)
+  - L1557 def lp_palm(rng)
+  - L1586 def lp_crate(rng)
+  - L1624 def lp_barrel(rng)
+  - L1649 def geo_doc(m)
+  - L1658 def build(name, seed, style="lowpoly")
+  - L1667 def write_prop(out, name, seed, style="lowpoly")
+  - L1701 def check_mesh(gid, m, size)
+  - L1728 def check_flat(gid, m)
+  - L1743 def run(out, names, seed, check, preview, style="lowpoly")
+  - L1795 def hexrgb(h)
+  - L1799 def tris_of(m)
+  - L1804 def shade_part(p, M)
+  - L1830 def raster(V, C, ids, W, H)
+  - L1882 def render(parts, W, H, az=32, el=20)
+  - L1921 def label(img, text, x, y, s=3)
+  - L1932 def write_png(path, img)
+  - L1945 def contact_sheet(shots, path, tile=300, cols=5)
+  - L1959 def main(argv=None)
+- constants:
+  - `L20 GEO_CAP = 225 * 1024  # studio doc limit (prompt cap 240 KB, guide 225 KB)`
+  - `L21 TRI_CAP = 12000`
+  - `L22 LOW_TRI_CAP = 3000  # owner: low-poly props well under the toon ones`
+  - `L23 FLAT_DEG = 20.0`
+  - `L413 METAL = dict(color="#C9CED6", metalness=0.7, roughness=0.3)`
+  - `L416 PROPS = {}`
+  - `L480 FACE_Z = (90, 0, 0)  # lathe axis +Y -> +Z (front)`
+  - `L704 ROCK = ("#D99A5E", "#C4854D")`
+  - `L792 GREENS = ("#3FC24A", "#2FA83A")`
+  - `L901 WOOD = ("#B9773E", "#A0632F")`
+  - `L1001 LOW = {}`
+  - `L1075 LPTEX = {`
+  - ...4 more
+
+## Crystal (triangular pyramid), chrome ball, Voronoi shatter pieces | crystal shattered by a ball, live studio stages
+- file: `tools/3d/shatter/shatter.py` (165 lines)
+- run: `python3 shatter.py OUT [--pieces 100] [--seed 3] [--name Crystal]`
+- api:
+  - L29 def ring(y, r, rot=0.0)
+  - L34 def orient(f)
+  - L41 def clip(faces, n, d, eps=1e-7)
+  - L63 def ray_in(o, d)
+  - L83 def mesh(polys, origin)
+  - L130 def scene(objects=None, anims=None)
+  - L141 def put(name, data)
+  - L142 def geo_w(g)
+  - L143 def proj_w(op, f)
+- constants:
+  - `L21 OUT = a[0]`
+  - `L31 BASE = ring(0.0, 3.6); T = np.array([0.0, 10.0, 0.0])`
+  - `L32 FACES = [[BASE[0], BASE[1], BASE[2]]] + [[BASE[k], BASE[(k + 1) % 3], T] for k in range(3)]`
+  - `L33 CEN = np.mean([p for f in FACES for p in f], axis=0)`
+  - `L36 FACES = [orient(f) for f in FACES]`
+  - `L37 PLANES = [(np.cross(f[1] - f[0], f[2] - f[0]) / np.linalg.norm(np.cross(f[1] - f[0], f[2] - f[0])),`
+  - `L62 BALL_DIR = np.array([1.0, -0.03, 0.02]); BALL_DIR /= np.linalg.norm(BALL_DIR)`
+  - `L69 IMPACT = ray_in(np.array([-20.0, 3.6, 0.3]), BALL_DIR)   # on the crystal's surface, where the ball`
+  - `L97 BALL_R = 0.75`
+  - `L98 BALL_HIT = IMPACT - BALL_DIR * BALL_R; BALL_START = BALL_HIT - BALL_DIR * 18.0`
+  - `L99 BALL_V = 18.0 / (T_HIT - T_LAUNCH)`

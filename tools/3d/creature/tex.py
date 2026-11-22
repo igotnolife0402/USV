@@ -1,3 +1,4 @@
+# @style: helper
 # Ground (near + far), ground normal map, grit detail and background foliage textures.
 import numpy as np, time
 from PIL import Image

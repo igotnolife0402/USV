@@ -1,4 +1,5 @@
 """Maximum-detail layer for arms, hands, legs and feet (adds pieces on top of shadow_parts base)."""
+# @style: helper
 
 
 def build(K):

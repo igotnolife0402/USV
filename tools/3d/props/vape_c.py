@@ -1,4 +1,7 @@
 """Mech-mod vape: tube mod + rebuildable dripping atomiser (original design)."""
+# @style: toon
+# @model: mech-mod | Toon mech-mod tube vape with rebuildable dripping atomiser
+# @run: python3 vapes.py OUT --check
 import math
 
 import numpy as np

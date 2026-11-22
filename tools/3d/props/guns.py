@@ -6,6 +6,9 @@ Writes OUT/geo/*.json, OUT/<gun>.json, OUT/studio/{project,meta,uploads}.json + 
 and OUT/live/p<i>.json + m<i>.json (Umbrio live build: stage i = guns 1..i).
 --check runs every gate: mesh check, detail floor (--class prop), prop-scale z-fight. Exit 0 = all pass.
 """
+# @style: voxel
+# @model: plasma-pistol, assault-rifle, sniper-rifle | Three original voxel-style guns, chunky chamfered blocks
+# @run: python3 guns.py OUT --check
 import json
 import math
 import os
@@ -276,6 +279,9 @@ def attach(name, tol=0.05, step=0.1):
                 sid.append(np.full(len(q), base + vlab[f[0]]))
         base += vlab.max() + 1
     V, S = np.vstack(pts), np.concatenate(sid)
+    # one sample per (shell, step cell): within-shell pairs blew memory on a house (MemoryError, 2026-11-22)
+    _, keep = np.unique(np.column_stack([S, np.floor(V / step)]), axis=0, return_index=True)
+    V, S = V[keep], S[keep]
     pr = cKDTree(V).query_pairs(tol + 0.75 * step, output_type="ndarray")  # ponytail: coarse step lets gaps up to ~tol+step pass; lower step if hairline gaps matter
     pr = pr[S[pr[:, 0]] != S[pr[:, 1]]]
     k, lab = connected_components(coo_matrix((np.ones(len(pr)), (S[pr[:, 0]], S[pr[:, 1]])), shape=(base, base)), directed=False)

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Black dragon from the owner's concept sheet: ~165-stud wingspan, flight loop + purple fire breath every 5-9 s.
 Usage: python3 dragon.py <outdir>"""
+# @style: voxel
+# @model: Black Dragon | rigged block dragon, ~165-stud wingspan, flight loop and fire breath
+# @run: python3 dragon.py <outdir>
 import math, sys
 import numpy as np
 from rig import make

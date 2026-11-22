@@ -3,6 +3,7 @@
 python3 hub_batches.py OUT PROJECT_ID [OLD_GEO_DIR]  -> prints one JSON writes-array per line:
 geo docs packed to <= 960 KB / 49 writes per batch, then (optional) deletes of the old geo ids. The project + meta write
 goes last, by hand, pinned to the versions just read (if_version). file_path entries are relative to OUT."""
+# @style: helper
 import json, os, sys
 out, pid = sys.argv[1], sys.argv[2]; old = sys.argv[3] if len(sys.argv) > 3 else None
 col = f'projects/{pid}/geo'; gd = os.path.join(out, 'geo')

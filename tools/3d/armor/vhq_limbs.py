@@ -1,6 +1,7 @@
 """Venomreaver HQ limbs: vambraces + gauntlets (LV/RV), cuisses + knee cops + greaves (LG/RG), sabatons (LB/RB).
 Left (+x) pieces are built, K.pair mirrors them. Frames: LV arm y -0.5..1.5 (hand end -0.5), LG leg y -1.15..0.85 (armour y > -0.45),
 LB foot block y -0.34..0.36 z -0.56..0.44. build(stage, K) with stage 'arms' | 'legs'."""
+# @style: helper
 import math
 import numpy as np
 from hq import H, X, Y, Z, rot, perp, bez, nz

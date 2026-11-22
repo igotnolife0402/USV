@@ -1,4 +1,7 @@
 """Vape props A: pod-vape, box-mod. Original designs, no logos. Toon style."""
+# @style: toon
+# @model: pod-vape, box-mod | Toon vape props, original designs, no logos
+# @run: python3 vapes.py OUT --check
 import numpy as np
 import props as P
 

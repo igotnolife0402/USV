@@ -3,6 +3,9 @@
 Idle breathing + a wind-shockwave roar and an overhead club slam (earth impact, rock spikes, ground cracks, dust) every 5-9 s.
 Effects are flipbook sheets from a VFX sheet library (metadata below; PNGs from --sheets DIR, built from that library).
 Usage: python3 orc.py <outdir> --sheets <dir holding earth/, sand/, wind/ sheets>"""
+# @style: voxel
+# @model: Orc | rigged block orc brute with club, ~20 studs tall, roar and slam VFX
+# @run: python3 orc.py <outdir> --sheets <dir holding earth/, sand/, wind/ sheets>
 import sys
 import numpy as np
 from rig import make

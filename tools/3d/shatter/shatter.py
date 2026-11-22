@@ -11,6 +11,9 @@ Physics: pieces are Voronoi cells of the convex crystal (each cell = the crystal
 neighbour seeds: no gaps, no overlaps), seeds denser near the impact so pieces there are small; at contact each piece leaves
 with an impulse away from the contact point that falls off with distance, plus the ball's push, under gravity, spinning at a
 constant rate (torque-free); the ball keeps 30 % of its speed and drops."""
+# @style: lowpoly
+# @model: Crystal (triangular pyramid), chrome ball, Voronoi shatter pieces | crystal shattered by a ball, live studio stages
+# @run: python3 shatter.py OUT [--pieces 100] [--seed 3] [--name Crystal]
 import json, math, os, sys
 import numpy as np
 

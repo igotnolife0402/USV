@@ -1,6 +1,9 @@
 """Tiger by hand: signed-distance anatomy -> surface-nets meshes, painted stripes.
 Writes: render mesh (bins + meta.json) for render.html, and tiger.glb (Roblox-ready, <=20k tris, one texture).
 World: metres, X forward, Y left, Z up. glTF/three: x=Y, y=Z, z=X."""
+# @style: realistic
+# @model: tiger | Realistic SDF-anatomy tiger with painted stripes and fur, ~3.57 studs per metre
+# @run: python3 geo.py out
 import numpy as np, json, sys, os, struct, io
 from PIL import Image
 

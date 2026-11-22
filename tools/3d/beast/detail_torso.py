@@ -1,4 +1,5 @@
 """Maximum-detail layer for TORSO, HIPS and TAIL (Chest / Hips segments). build(K) only adds pieces on top of the base."""
+# @style: helper
 import numpy as np, math
 
 RC, RR = np.array((0.0, 13.9, 0.5)), np.array((2.3, 2.95, 1.95))     # ribcage ellipsoid (base layout)

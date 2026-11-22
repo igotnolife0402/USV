@@ -2,6 +2,9 @@
 """50x50-stud voxel city -> Roblox .rbxmx (1 voxel = 1 stud, anchored, greedy-merged Parts, one Model per area)
 plus studio scene stages (projects/<id> docs, each under 250 KB) for a live build in the studio.
 Usage: python3 city.py city.rbxmx [stage_dir]     Needs only numpy."""
+# @style: voxel
+# @model: voxel city | 50x50-stud voxel city with roads, parks, trees, 1 voxel = 1 stud
+# @run: python3 city.py city.rbxmx [stage_dir]
 import sys, os, json, math
 import numpy as np
 from xml.sax.saxutils import escape

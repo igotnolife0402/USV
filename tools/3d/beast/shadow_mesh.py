@@ -5,6 +5,9 @@ muscle bulges, sinew ridges, horn rings, flattened sharp claws); skull, jaw, tor
 with organic displacement. Skin, horn and claw surfaces carry procedural textures (rock skin, brushed horn). Glow parts
 are Neon meshes. Rig + clip from rig.studio_doc (joint groups), so it animates like the other beasts.
 Usage: python3 shadow_mesh.py <outdir>  -> <outdir>/project.json, meta.json, geo/<id>.json (one doc per mesh)."""
+# @style: stylized-hq
+# @model: Shadow Monster HQ | shadow monster, custom swept-tube meshes with textures, ~23 studs tall
+# @run: python3 shadow_mesh.py <outdir>
 import json, math, os, sys, time
 import numpy as np
 import shadow_parts as SP

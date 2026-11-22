@@ -6,6 +6,7 @@ contract as solids.Kit, so the hub, Studio and Roblox exporters work unchanged. 
 
 Frames (from armor.py): CP torso x+-1 y+-1 z+-0.5; LS arm x -0.62..0.38, top y 0.08; LV arm x+-0.5 y -0.5..1.5; LG leg x+-0.5
 y -1.15..0.85; LB foot y -0.34..0.36 z -0.56..0.44; HM head x+-0.6 y -0.62..0.58 z+-0.6. +z faces forward, left side is +x."""
+# @style: helper
 import json, math, os
 import numpy as np
 

@@ -5,6 +5,7 @@
                                         meta <- live/mfinal.json.
   python3 stamp.py <out> <i> --mesh     live stage i of out/studio/plan.json (only when the owner wants to watch it grow)
   python3 stamp.py <out> <i>            coarse part-only copy, stage i of out/stages/"""
+# @style: helper
 import json, os, sys, time
 out, i = sys.argv[1], sys.argv[2]; mesh = '--mesh' in sys.argv; now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 plan = json.load(open(os.path.join(out, 'studio', 'plan.json'))) if mesh else None
