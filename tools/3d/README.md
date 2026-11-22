@@ -1,7 +1,7 @@
 # tools/3d
 
 Generators and the Studio web editor, ported from the old vault (2026-11-21). Rules and which-tool table: [3d playbook](../../domains/3d/playbook.md); Studio facts: [studio note](../../domains/3d/studio.md).
-Find a template fast: read ONE style catalog [styles/](styles/) (`realistic.md`, `toon.md`, `lowpoly.md`, `voxel.md`, ...: every model of that style, run command, api + constants with line numbers), then read only the lines you copy. New/changed .py: add `# @style:`, `# @model:`, `# @run:` tags under the docstring and run `node tools/3d/styles/build.mjs --check` (new style value = new catalog file).
+Find a template fast: read ONE style catalog [styles/](styles/) (`realistic.md`, `toon.md`, `lowpoly.md`, `voxel.md`, ...: every model of that style, run command, api + constants with line numbers), then read only the lines you copy. New/changed .py: add `# @style:`, `# @model:`, `# @run:` tags under the docstring (multi-style file: `# @prefix: lowpoly=lp_` keeps lp_ functions out of other catalogs) and run `node tools/3d/styles/build.mjs --check` (new style value = new catalog file).
 Outputs never go in the vault: copy a tool or pass an OUT folder in the scratchpad. Deps: Python 3 + numpy + Pillow (both on the PC); browser steps need Playwright + `three@0.186.1` from a scratch folder (never committed).
 
 | Tool | What | Run / test | Where |

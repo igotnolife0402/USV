@@ -35,9 +35,12 @@ for (const file of walk(ROOT).sort()) {
     else if ((m = l.match(/^([A-Z][A-Z0-9_]{2,})\s*=\s*(.+)$/))) consts.push(`L${i + 1} ${m[1]} = ${m[2].slice(0, 90)}`);
   });
   const entry = { file: rel(file), n: lines.length, model: tag('model'), run: tag('run'), api, consts };
+  // `# @prefix: lowpoly=lp_` in a multi-style file: lp_ defs only show in the lowpoly catalog
+  const prefixes = tag('prefix').split(',').map((x) => x.trim().split('=')).filter((p) => p.length === 2);
   for (const s of style.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean)) {
     if (!styles.has(s)) styles.set(s, []);
-    styles.get(s).push(entry);
+    const other = prefixes.filter(([ps]) => ps !== s).map(([, p]) => p);
+    styles.get(s).push({ ...entry, api: api.filter((a) => !other.some((p) => a.split(' ')[2].startsWith(p))) });
   }
 }
 

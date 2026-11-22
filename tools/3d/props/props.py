@@ -7,6 +7,7 @@ Writes OUT/geo/<geoId>.json per mesh and OUT/<name>.json per prop.
 # @style: lowpoly, toon
 # @model: traffic-cone, steering-wheel, dashboard, car-hood, road-sign, rock-1, rock-2, rock-3, cliff, tree, bush, cloud, palm-tree, crate, barrel | detailed Roblox-thumbnail props, 0.78 to 12 x 40 studs
 # @run: python3 props.py OUT <name|all> [--seed N] [--style lowpoly|toon] --check
+# @prefix: lowpoly=lp_
 import argparse
 import json
 import math
