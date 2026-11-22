@@ -77,6 +77,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Lit to read form: environment + key light, shadows on, tone mapping ACES/AgX, sRGB output.
 
 ## Speed tricks
+- Gate/fixer bugs (gaps, z-fight, holes): measure first (`zfight/seethru.py`), then A/B each fixer step by disabling it on one build; edit only the step that flips the gate (2026-11-22: 8 guess loops cost ~6 min).
 - Library asset + material tweak beats modelling from scratch 10x.
 - Kitbash: arrays, mirror, bevel modifiers; low-poly style hides detail cost.
 - Geometry Nodes scatter for nature instead of hand placement.
