@@ -1,6 +1,6 @@
 ---
 summary: Roblox domain entry: Luau, Studio MCP, Rojo, play-test loop; links to playbook, errors, pipeline, snippets
-updated: 2026-11-21
+updated: 2026-11-22
 status: current
 triggers: [roblox, luau, studio, rojo, obby, tycoon, simulator, rbxl, rbxm, datastore, remoteevent, rbxmx, lobby, roblox ui, asset id]
 ---
@@ -19,6 +19,8 @@ Luau games built with Roblox Studio's built-in MCP server (PC) or Rojo-layout re
 6. [UI](domains/roblox/ui.md): shop/HUD quality bar, palette and overlap checks.
 7. [Game design](domains/roblox/game-design.md): first minute, feel, 15 playtest simulations.
 8. [Maps](domains/roblox/maps.md): lobbies, spawn/walk rules, detail floors, budgets.
+9. [Game post-mortem](domains/roblox/game-postmortem.md): every Minigame Mayhem mistake as a rule; read before planning any game.
+10. [Bots](domains/roblox/bots.md): bot AI rules (pathfinding, variety, dodging, human feel) and the bot-watch targets.
 
 ## Tools
 - [tools/roblox/README.md](tools/roblox/README.md): rbxmx-check, lobby generator+validator, shop GUI pipeline.

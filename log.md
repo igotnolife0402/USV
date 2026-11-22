@@ -237,3 +237,11 @@ improved: kit pivot from world AABB (L-123); contract marker rule in swarm skill
 ## [2026-11-22] owner / camera rule narrowed
 Owner OK: in-game camera code in game scripts (spectate, cutscenes) allowed; Studio/MCP camera still never touched (owner.md, must.md).
 improved: camera rule matches owner intent; state file unblocked; L-122 gate followed (asked before editing)
+
+## [2026-11-22] crew / minigame-mayhem bot pathfinding
+New BotNav (path follow, jump links, per-bot lane offset + random agent radius/material costs, stuck ladder: jump, sidestep, repath, hop to next safe waypoint) + BotSense (moving-platform wait/ride, conveyors and obstacles excluded, lava/void/gap probes). Studio: BoulderPeak race 75 s, 9 bots: 0 stalled 10 s+, 0 hops, nearest-bot avg 21.8 studs; KeyMaze route test 1/6 bots took another route; 0 errors; saved.
+improved: execute_luau long-test rule (L-125); crew Read-before-Edit spec rule (L-126); crowd near goal no longer counted as stuck
+
+## [2026-11-22] roblox / minigame-mayhem bots watched + post-mortem
+Built tools/roblox/bot-watch.luau (per-round knocks, outs, dodges, stalls, idle, sharp turns, conga) plus sim counters and a Studio-only MMForce game pick. Watched 5 hazard games over 6 builds (v5h-v5n): bots now dodge (hub-rotation prediction, closest-point threat list, adaptive sampling, hard/soft look-ahead, dash, miss re-roll), cut corners, steer, drift and shuffle. Knocks per bot-minute: ObstacleRush 13.9->10.1, SpinSweep 12.2->8.1 (falls 68->2, idle 21->2), HotPotato idle 29->7; BoulderPeak and BombRain unchanged. Spinners made crossable (85 deg/s). New notes: domains/roblox/game-postmortem.md (every Minigame Mayhem mistake as a rule) and domains/roblox/bots.md.
+improved: shared motion-cache bug (2nd bot read 0); persistent miss roll; uncrossable spinner design; maps.md rule conflict with owner floor look; post-mortem + bots notes linked from index/checklist; router words for bots; L-127..L-131

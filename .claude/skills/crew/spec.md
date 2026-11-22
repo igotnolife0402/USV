@@ -10,7 +10,7 @@ Prep brief (no files to write yet). Piece: <one line>.
 In the vault root (absolute path) paste: <exact commands, e.g. `sed -n A,Bp file`, `grep -n "x" file`>. Then wait for the spec.
 
 ## Build (SendMessage, <= 15 lines)
-Build spec. Files (absolute paths under the vault root): <paths>. Use the Edit/Write tools only. One pass, no retries, no research of your own, ~8 tool calls.
+Build spec. Files (absolute paths under the vault root): <paths>. Use the Edit/Write tools only. Editing an existing file: Read its anchor lines (offset/limit) before the first Edit (L-126). One pass, no retries, no research of your own, ~8 tool calls.
 <OWNER MUST block, only for builds/models>
 1. <file>: <insert/replace exact text, anchored on an exact existing line>
 2. <file>: <...>

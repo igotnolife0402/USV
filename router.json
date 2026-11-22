@@ -83,7 +83,13 @@
         "cutscene",
         "cutscenes",
         "tutorial world",
-        "dash and roll"
+        "dash and roll",
+        "bot ai",
+        "robotic",
+        "dodge obstacles",
+        "pathfinding",
+        "post-mortem",
+        "mistakes of this game"
       ],
       "notes": [
         "domains/roblox/playbook.md",

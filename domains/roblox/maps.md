@@ -1,6 +1,6 @@
 ---
 summary: Roblox maps and lobbies: spawn/walkability rules, hero-piece and scene detail floors, budgets, live chunked builds, lobby generator tool
-updated: 2026-11-21
+updated: 2026-11-22
 status: current
 triggers: [lobby, roblox map, spawn, spawnlocation, hero piece, blueprint, meadow, level design, walkable]
 ---
@@ -28,7 +28,7 @@ Hero pieces (spawn, centrepiece, gates, anything the camera frames):
 - 10x method: model at 0.1-stud working units, bake to final size (no scaled groups).
 Whole scene:
 - >= 3 effect kinds; >= 1 detail part per 60 sq studs of walkable area.
-- No plain slab > 8x8 studs; walkable slabs need >= 1 part on top per 12x12 cell, terrain per 32x32.
+- Lobbies and scenic areas: no plain slab > 8x8 studs; walkable slabs need >= 1 part on top per 12x12 cell, terrain per 32x32. Game platforms are the exception: single slabs with the baseplate grid texture (owner 2026-11-22, [playbook](domains/roblox/playbook.md)); detail goes into the arena decor instead.
 - Props >= 6 parts; repeats vary ±6% lightness, ±10% size, rotation. Each colour family >= 3 shades.
 
 ## Budgets
