@@ -33,6 +33,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".
 - Every model meets the [detail floor](domains/3d/detail.md) (custom meshes + textures + many combined parts, gate-checked); the owner rated cheap few-primitive builds "Haiku quality" (2026-11-22).
 - Models are built from many separate parts (spheres, capsules, cones, cylinders, wedges; owner 2026-11-22), with real detail; never one big fused mesh, never voxels/blocks unless asked.
+- ALWAYS textures + custom meshes + real 3D thickness, any style (owner 2026-11-22, repeated): "voxel" = a voxel LOOK built from chunky textured mesh parts, never plain untextured Parts or a flat 1-stud slab; size readable (rifle ~9 studs). Gate: detail.py must pass before showing. Template: tools/3d/props/guns.py.
 - Scope = what was asked. A model is only that model: no ground, scenery or props unless asked. A named theme (e.g. "grassy meadow") is built first, everywhere the camera sees.
 - "Build me X" means the built thing in the target tool (Studio, editor, page), not code that describes it, unless scripts are asked for.
 - Asked to go faster: offer only lossless speedups (parallel work, fewer reads, reuse, batched fixes). Never silently drop a requested feature or check; over budget → ship the working subset and list exactly what is left.

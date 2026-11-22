@@ -65,3 +65,4 @@ Metal is #C9CED6, metalness 0.7, roughness 0.3.
 - `zfight --prop` = prop-scale bands (level < 4 mm, layered < 1 cm, fail > 0.02 m2): the default 12 cm band is for buildings and fails every proud detail on a 1-stud prop.
 - Build it fault-free the first time: every proud detail >= 1.2 cm in front of what it sits on (stacked bezel → screen → digits too); no hidden core inside sleeves; no ring/plate lying on a face at < 1 cm; glass `transparency >= 0.5` (zfight ignores see-through parts, liquid stays).
 - Small props are medium tier: one thread, no crew/sub-agents (spawning + merging cost more than the models).
+- `guns.py OUT --check` (2026-11-22): 3 voxel-look guns (pistol 3.5k, rifle 3.5k, sniper 3k tris), textured chamfered mesh parts; gates: mesh check, detail --class prop, zfight --prop; writes OUT/live stages for the Umbrio build.
