@@ -1679,7 +1679,7 @@ def write_prop(out, name, seed, style="lowpoly"):
              "smooth": p.get("smooth", True),
              "roughness": p.get("roughness", 0.6),
              "metalness": p.get("metalness", 0.0)}
-        for k in ("emissive", "emissiveIntensity"):
+        for k in ("emissive", "emissiveIntensity", "transparency"):
             if k in p:
                 o[k] = p[k]
         if "texture" in p:

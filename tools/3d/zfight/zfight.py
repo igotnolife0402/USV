@@ -30,6 +30,7 @@ def load(project, gdir):
     global OBJS; OBJS = objs
     for k, o in objs.items():
         if o.get('type') != 'mesh' or not o.get('geo') or o.get('shadowOnly'): continue   # shadow stand-ins never draw colour
+        if (o.get('transparency') or 0) >= 0.5: continue   # see-through glass hides nothing; cutting behind it would delete the liquid
         s, p, rot = world(k)
         if rot: print('skipped (rotated):', o.get('name', k)); continue
         f = os.path.join(gdir, o['geo'] + '.json')
@@ -163,8 +164,8 @@ def check(docs, inst):
         if B[3] - A[3] < SEP: level += ar
         else: layered += ar
         worst[(A[0], B[0])] += ar
-    print(f'level overlaps (< {SEP * 100:.1f} cm): {level:.1f} m2 · layered (< {CUT * 100:.0f} cm): {layered:.1f} m2')
-    for (a, b), ar in worst.most_common(8): print(f'  {ar:8.1f} m2  {a} | {b}')
+    print(f'level overlaps (< {SEP * 100:.1f} cm): {level:.2f} m2 · layered (< {CUT * 100:.0f} cm): {layered:.2f} m2')
+    for (a, b), ar in worst.most_common(8): print(f'  {ar:8.2f} m2  {a} | {b}')
     ok = level + layered < AREA_FAIL
     print('PASS' if ok else f'FAIL: over {AREA_FAIL} m2 of surfaces will z-fight on a phone; run `fix`')
     return ok
@@ -253,6 +254,8 @@ def fix(docs, inst):
 
 
 if __name__ == '__main__':
+    if '--prop' in sys.argv:   # hand-held prop seen from ~3 studs: 16-bit depth step there is ~2.3 mm (z^2 / (near * 65536), near 2% of orbit)
+        sys.argv.remove('--prop'); SEP, CUT, AREA_FAIL = 0.004, 0.01, 0.02   # ~2 and ~4 depth steps
     if len(sys.argv) < 4 or sys.argv[1] not in ('check', 'fix'): print(__doc__); sys.exit(2)
     cmd, project, gdir = sys.argv[1:4]
     docs, inst, refs = load(project, gdir)
