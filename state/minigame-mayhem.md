@@ -1,43 +1,57 @@
 ---
-summary: Minigame Mayhem crew contract (world JSON names, server/client Luau, remotes, VFX names)
+summary: Minigame Mayhem v2 crew contract: 3 Umbrio kits, Studio-built map via MapBuilder, 14 varied minigames, HUD/VFX upgrade
 updated: 2026-11-22
 status: current
 ---
-# Minigame Mayhem: shared contract (brain-owned, workers copy exactly)
+# Minigame Mayhem v2 contract (brain-owned; workers copy exactly)
+OUT = %USERPROFILE%/RobloxImports/MinigameMayhem. Style: polished stylized-realistic, Roblox materials, rich detail. v1 (single Umbrio world) superseded by this kit + Studio-built map contract.
 
-OUT dir (all outputs): %USERPROFILE%/RobloxImports/MinigameMayhem/ (the Roblox upload folder from CLAUDE.local.md)
-Studio place: "minigame mayhem" (placeId 105467394921819). Style: bright realistic-stylized arena game, Roblox materials.
+## 1. Kits (worker A) -> Umbrio scene JSON, NOT a map
+- OUT/kits/gen/kits.mjs writes OUT/kits/kit-env.json, kit-mech.json, kit-props.json (scene: name, v:1, objects, env). One top-level group per model, exact name below.
+- Every model built at x=z=0, base on y=0 (lowest point y 0), group pos [0,0,0], world coords on parts. Shapes box/sphere(equal xyz)/cylinder(x==z)/wedge only. Nested groups allowed.
+- Detail floor (min parts) in brackets. Bevels from wedges, trims, bolts, insets, 2-3 tone colors, no plain blocks. Decor parts offset >= 0.04 (no coplanar faces).
+- Required named parts in "quotes" (runtime finds them).
+ENV: Tile16 16x2x16 "Top" [12]; Tile8 8x2x8 "Top" [10]; Beam32 4x2x32 "Top" [8]; Ramp16 16w x16 long, rise 8, "Top" wedge [10]; Wall16 16x10x2 [14]; Pillar 4x16x4 [10]; FinishArch 20w x16h, "FinishZone" 16x10x2 [22]; StartPad 20x2x20 "Top","Spawn" 4x1x4 [14]; Oak 18 tall [14]; Pine 20 tall [10]; RockCluster 8w [6]; Crystal 6w [7]; Lamp 10 tall "Bulb" [12]; Bench [12]; Fence16 [7]; Banner 12 tall "Cloth" [6]; Torch 6 tall "Flame" [7]; Fountain 20 dia "Water" [30]; MainSign 44w x22h "Board" 30x6 [40]; Podium "Step1","Step2","Step3" [15]; RoundBoard 30x16 "Screen" [12]; Cloud [6]; FlowerBed 8x8 [10]; Bush [5]; Crate 6x6x6 [14]; Barrel [8].
+MECH: JumpPad 8 dia "Pad" [12]; BouncePad 12 dia "Pad" [16]; BoostPad 8x12 "Pad" [10]; Conveyor 8x24 "Belt" (top, runs along +Z) [16]; Spinner: "Hub" + group "Arm" (bar 30 long, "Bar") [14]; Sweeper: tower 6 dia + group "Arm" (bar 44 long, center y 1.6, 1.2 tall, through center) [16]; Hammer: frame 26 tall, beam 12w, "Pivot" at (0,24,0), group "Swing" (shaft 1x14x1 + head 8x5x5 at y 7) [22]; MovingPlatform 10x1.5x10 "Top" [10]; GlassPanel 8x0.8x8 "Glass" [6]; ColorTile 6x1x6 "Top" [6]; Boulder 8 dia "Core" [6]; Bomb 3 dia "Body" [8]; Target 6 dia board facing +Z on 5-tall post "Board" [10]; Ring 14 dia vertical in XY plane (16 box segments) + "Trigger" cylinder 12 dia x1, rot [90,0,0], transparency 1 [17]; Gate 12w x12h "Door" 10x10x1, "Lock1".."Lock3" [14]; Checkpoint flag + "Zone" 12x8x12 transparency 1 [8]; LavaTile 32x1x32 all parts named "Lava" [8]; WaterTile 32x1x32 all parts named "Water" [4]; LavaRock [6].
+PROPS: Sword standing, pommel at y 0, blade up (+Y), 5.6 long, grip cylinder "Handle" 1.2 long [28]; Blaster barrel along -Z, grip "Handle" vertical at origin, "Muzzle" at barrel tip [24]; Coin 3 dia face ±Z "Body" [6]; GoldCoin 4.5 dia "Body" [7]; Star 3 tall face ±Z [11]; Key 3 long [14]; Flag 10 tall "Cloth" [7]; Gem 2 tall [6]; Button pedestal 4 tall "Cap" [10]; Trophy 5 tall [18]; MagnetOrb 3 dia [8]; HealthOrb 3 dia [5]; SpeedOrb 3 dia [6].
+- Check: `node OUT/kits/gen/kits.mjs` prints per-model part counts (fail if under floor); studio.mjs validate each json; `python tools/3d/zfight/zfight.py check <json>` 0 fights.
 
-## World (worker A) -> OUT/world.json (Umbrio scene JSON, docs: tools/3d/studio/docs/scene-format.md)
-- Generator: OUT/gen/world.mjs (node, no deps) writes OUT/world.json `{name:"MinigameMayhem",v:1,objects:{...},env:{bg:"#87b5e8",grid:false}}`. No baseplate object.
-- Part shapes ONLY: box, sphere (equal size xyz), cylinder (size x == z, runs along Y), wedge. Every part `anchored:true`. World coords in every part `pos`; groups have `pos:[0,0,0]`.
-- Materials (Roblox names): Grass, Slate, Concrete, Wood, WoodPlanks, Brick, Cobblestone, Metal, DiamondPlate, Neon, Glass, Ice, Sand, Marble, SmoothPlastic, Rock, Foil.
-- Top groups (type group, parent null): Lobby, Arena01 .. Arena11. Arena i center X = i*400, Z = 0. Lobby center (0,0,0).
-- Named parts the server finds by name inside each group (exact names, case-sensitive):
-  - Every arena: `Start` (box 20x1x20, top surface = spawn floor), `FinishZone` (box, transparency 0.6, Neon #39ff7a) except Arena04, Arena09, Arena11.
-  - Lobby: `LobbySpawn` (box 12x1x12 at y 1), `RoundBoard` (box 30x14x1 Neon? no: SmoothPlastic #1b1f2e, at (0,14,-70) facing +Z), `WinnerPodium` group (3 steps), `MainSign` group.
-  - Arena01 LavaLeap: `Lava` floor (box 220x1x80, Neon #ff5a1f, y 0); Start at (X-90,10,0) on a pillar; 12 `Hop` tiles 6x1x6 zig-zag y 10..16; finish platform (X+90,12,0) with FinishZone 16x10x2 above it.
-  - Arena02 SpinnerSprint: path box 160x2x30 at y 10 (top y 11); Start X-70; FinishZone at X+72; 3 groups `Spinner` each: `SpinHub` cylinder 4x4x4 at (x,13,0) and `SpinArm` box 28x1.5x1.5 Neon #ff2d55 centered on hub, at x = X-35, X, X+35. Lava floor `Lava` 220x1x80 at y -10.
-  - Arena03 TileFall: 6 rows x 4 cols `FallTile` boxes 7x1x7 Glass #9be7ff transparency 0.3 at y 20, spacing 8, between Start (X-50,20,0) and finish platform (X+50,20,0); `Lava` box 200x1x80 Neon #ff5a1f at y 0.
-  - Arena04 CoinRush: floor box 140x2x140 Grass; 15 `Coin` cylinders size [3,0.5,3] rot [0,0,90] Neon #ffd23f, y 4, scattered (fixed list); Start at (X,1,-60).
-  - Arena05 TowerClimb: central cylinder pillar 12 dia, 120 tall; 14 platforms 8x1x8 spiralling from y 8 to y 112 radius 14; Start at (X,1,-25); top platform 16x1x16 at y 118 with FinishZone 12x8x2.
-  - Arena06 HammerHall: corridor floor 170x2x22 at y 0 + side walls 170x14x2; 5 groups `Hammer`: `HammerPivot` box 2x2x2 at (x,24,0), `HammerArm` box 1x16x1 hanging below, `HammerHead` box 8x5x5 Metal #c9ccd6 at y 14; Start X-75, FinishZone X+80.
-  - Arena07 JumpPadSky: 5 islands (cylinder 18 dia, 4 tall, y 40) at x X-100, X-50, X, X+50, X+100; `JumpPad1`..`JumpPad4` (cylinder 5x0.6x5 Neon #3dff9b) on islands 1-4 near +X edge; `Land2`..`Land5` (box 4x0.2x4 transparency 1) centered on islands 2-5 top; Start on island 1; FinishZone on island 5. `Lava` at y 0 200x1x80? no: `Void` not needed (server respawns when y < arena Start.Y - 30).
-  - Arena08 MazeRun: floor 104x2x104; hedge walls box 2 wide 8 tall Grass #3f8f3a on a 10x10 cell grid (cell 10), fixed maze; Start in cell (0,0), FinishZone in cell (9,9).
-  - Arena09 ButtonSmash: floor 110x2x110 Marble; `Button1`..`Button10` cylinders 6x1x6 Neon #ff3df2 on 3-tall pedestals in a ring radius 40; Start at center.
-  - Arena10 IceSlide: ramp path of 10 Ice boxes 24 wide rising from y 0 to y 60 over 220 studs (x from X-110 to X+110), side rails; `BoulderSpawn` box 4x4x4 transparency 1 at top; `Boulder` sphere 8x8x8 Rock (template, server clones); Start at bottom; FinishZone top.
-  - Arena11 Duel: floor cylinder 90 dia 2 tall Cobblestone; 8 pillars ring; `DuelSpawnA` (X-25,2,0), `DuelSpawnB` (X+25,2,0) boxes 6x1x6; group `SwordModel` at (X,50,0): `Handle` box 0.4x1.4x0.4 Wood, `Guard` box 1.6x0.3x0.4 Metal, `Blade` box 0.3x4x0.15 Metal #e8ecf4 (sword points +Y).
-- Scenery every arena: themed backdrop around (rocks, trees, crystals, banners, lights) >= 25 parts; Lobby >= 150 parts (trees, lamps, fountain, benches, fences, rocks, flowers, sign letters as boxes not needed).
-- Check: `node OUT/gen/world.mjs && node tools/3d/studio/cli/studio.mjs validate OUT/world.json` (NODE_PATH = OUT/deps/node_modules).
+## 2. Map is built in Studio by code (worker A writes MapBuilder)
+- OUT/src/server/MapBuilder.luau (ModuleScript under RoundServer). Kit lives at ReplicatedStorage.MMKit.<Name> (Models; WorldPivot = bottom-center, normalised at import).
+- API passed to every game build as `kit`:
+  kit.place(name, cf, parent, opts?) -> Model  (clone, PivotTo(cf), opts.name rename, opts.top = {Color, Material} recolors "Top")
+  kit.tile(name, cf0, nx, nz, step, parent, opts?) -> {Model}
+  kit.decor(name, cf, parent) -> Model? (skips if its bounding box overlaps anything in arena.Gameplay or arena.Start: spacing check; counts skips)
+  kit.light(part, color, range, brightness); kit.ambient(part, preset) presets "embers","sparkle","fire","steam","mist" (enabled ParticleEmitter); kit.tag(model, "Spin"|"Bob"|"Pulse")
+- MapBuilder.build(): destroys workspace.MinigameMayhem, rebuilds Lobby (at origin: plaza, MainSign, Fountain, Podium, RoundBoard, 16 Oaks, Lamps, Benches, Fences, Flowers, Banners, LobbySpawn = StartPad) and every game arena: Model workspace.MinigameMayhem.Arenas.<id> at origin CFrame.new(k*500,0,0) (k = index in games list; Duel at 15*500), each with Folders Gameplay + Decor, calls def.build(arena, origin, kit), then prints "BUILD <id> parts=<n> decorSkipped=<n>". Returns summary string.
+- Lighting/ambient emitters for lava, torches, lamps, pickups are added by builds through kit.light/kit.ambient.
 
-## Luau (workers B server, C client) -> OUT/src/
-- B: OUT/src/server/Config.luau (ModuleScript, goes in ReplicatedStorage as `MMConfig`), OUT/src/server/RoundServer.server.luau (Script), OUT/src/server/Minigames.luau (ModuleScript under RoundServer).
-- C: OUT/src/client/HUD.client.luau (LocalScript in StarterPlayerScripts), OUT/src/client/FX.luau (ModuleScript under HUD).
-- `--!strict`, task.*, GetService, FindFirstChild + IsA (never bare-name index on Workspace).
-- World lives at `workspace.MinigameMayhem.World.<Lobby|ArenaNN>` (models). VFX emitters at `ReplicatedStorage.MMVFX.<Burst|Sparkle|Smoke|Slash|Fireworks|Confetti>` (ParticleEmitter templates; client clones into an Attachment and :Emit(n)). Missing emitter -> skip silently.
-- Remotes (created by server in ReplicatedStorage.MMRemotes): RemoteEvent `State` (server->client: phase:string, data:table), RemoteEvent `Fx` (server->client: kind:string, pos:Vector3), RemoteEvent `Progress` (server->client: done:number, total:number), RemoteFunction none.
-- Phases sent via State: "Lobby" {countdown}, "Intro" {index, total, id, title, desc, icon, color}, "Countdown" {n}, "Race" {endsAt (workspace:GetServerTimeNow()), alive}, "Finished" {place, time} (to the finisher only), "Results" {order = {{name,time,eliminated}}}, "Duel" {a, b}, "Winner" {name, wins}.
-- Fx kinds: "finish", "coin", "button", "jump", "hit", "eliminate", "respawn", "win".
-- Config: TEST_MODE = true (solo: MIN_PLAYERS 1, nobody eliminated, plays all 10 games in order 1..10 then Duel vs a bot), MAX_PLAYERS 10, RACE_TIME 90, INTERMISSION 15, leaderstats `Wins`.
-- Real mode: random game order, last finisher (or non-finisher) eliminated each round, until 2 remain -> Duel (sword, 100 HP, last alive wins). Winner +1 Wins, back to lobby, restart.
-- Respawn rule (no lose): touching a part named `Lava`, falling below Start.Y-30, or dying mid-race -> teleport to Start + (0,4,0).
+## 3. Games (B: OUT/src/server/GamesA.luau G01-G07; C: OUT/src/server/GamesB.luau G08-G14)
+Each module returns { [id] = {id, title, icon, color, desc, objective, build(arena, origin, kit), setup(arena, ctx), stop()} }. build must place a StartPad named "Start" (kit.place(...,{name="Start"})). Every arena: themed floors from kit tiles, >= 20 decor via kit.decor, no single straight lane.
+ctx (from RoundServer): finish(p); respawn(p); setCheckpoint(p, cf); penalty(p, sec); progress(p, done, total, label, icon); fx(kind, pos, data?, p?); target(p, pos?); hud(p?, data); players(); giveTool(p, kitName) -> Tool; knock(p, vel); clone(kitName) -> Model.
+Lava/Water parts (by name) and falling below Start.Y-40 call respawn (checkpoint or Start); death mid-race -> respawn. No lose condition in TEST_MODE.
+- G01 LavaRise 🌋 "Lava Rising": tower (Pillar stack) with 18 platforms in 3 spiral branches + 2 MovingPlatforms; LavaTiles plane cycles y -4..30 (sine, 16 s); respawn platform "SafeSpawn" y 34; FinishArch at y 110. Objective "Climb above the rising lava!". progress = height %.
+- G02 CoinFrenzy 🪙: 120x120 plaza, 4 raised platforms + ramps + center tower; 25 Coins live at random of 60 spawn points, collected -> respawn elsewhere 2 s; GoldCoin (5 pts) every 8 s; MagnetOrb every 15 s (pulls coins within 14 for 6 s). Goal 30 points.
+- G03 ColorCrash 🎨: 8x8 ColorTiles (6 colors) over WaterTiles; 7 rounds: hud banner "STAND ON <COLOR>" + swatch, 3.0 s shrinking to 1.6 s, other tiles drop 2 s; fall = respawn on side ledge + penalty 3 s. Finish after round 7.
+- G04 KeyMaze 🗝️: 12x12 maze (cell 10, Wall16 scaled pieces/hedges), 3 Keys at dead ends, Gate at exit; client hides Door locally when keys==3; FinishZone behind gate counts only with 3 keys. hud slots keys; target nearest key.
+- G05 ButtonHunt 🔘: multi-level playground (towers, ramps, Conveyor, Crates); 10 Buttons any order; target nearest unpressed per player.
+- G06 SkyIslands 🏝️: center island + 6 outer islands (radius 70, y 60) with JumpPads both ways; Flag on each outer island; grab 6 then FinishZone on center.
+- G07 ObstacleRush 🏃: two-route obby: Conveyors, Spinners, Hammers, MovingPlatforms over LavaTiles, 3 Checkpoints (setCheckpoint), routes split after CP1 (short beams vs long ramps), FinishArch.
+- G08 TargetBlast 🎯: giveTool "Blaster"; 16 Targets pop up (tween up from ground) on pillars and 4 sliding rails; client sends Shoot(aimPos); server raycasts from head (range 220, 0.25 s cd); 15 hits = finish; hud crosshair on.
+- G09 RingRush 💫: trampoline park: 12 BouncePads (launch 120 up), platforms, 10 Rings at y 30-85 any order (touch Trigger); target nearest.
+- G10 GlassBridge 🪟: 12 rows x 2 GlassPanels over WaterTiles; one fake per row (random per round), fake breaks on touch (fx break, stays broken), FinishArch at end.
+- G11 BoulderPeak ⛰️: wide slope 3 lanes with ledges/cover, Boulders roll every 1.6 s random lane, hit = knock (no respawn), FinishArch on summit.
+- G12 SpeedLaps 🏁: oval track of Tile16 + Ramp16 jump shortcut, 6 BoostPads (WalkSpeed 42 for 1.6 s, fx boost), 4 Checkpoints in order, 2 laps; progress "Lap".
+- G13 BombRain 💣: 100 dia arena; bombs drop at random spots every 0.7 s with fx telegraph (radius 8, 1.2 s) then boom (knock 70 + 1 s slow); collect 12 Stars spawning around; finish at 12.
+- G14 SpinSweep 🌀: round platform 70 dia over WaterTiles, Sweeper arm spinning (40 deg/s, +6 deg/s every 5 s); 8 Stars appear one at a time; fall = respawn + penalty 3 s.
+- DUEL (B, in RoundServer): arena colosseum at 15*500 built by MapBuilder (B supplies DuelBuild in GamesA as id "Duel"), Sword from kit (welded, Grip so blade points forward-up), swing 20 dmg cd 0.45, every 3rd hit within 1.5 s = heavy 35 + knock 60, fx damage{amount}; HealthOrb/SpeedOrb spawn every 8 s at 4 points; TEST bot holds a Sword clone.
+
+## 4. Round core (B: RoundServer + Config)
+Config: TEST_MODE=true, MIN_PLAYERS 1, MAX_PLAYERS 10, RACE_TIME 120, INTERMISSION 10, PICK_TIME 3.5, INTRO_TIME 4, COUNTDOWN 3, RESULTS_TIME 5, WINNER_TIME 7, PENALTY 3. Games = GamesA + GamesB merged.
+Order: shuffle bag (TEST: every game once in random order, then Duel; real: random without repeats, last finisher eliminated, until 2 -> Duel). Remotes MMRemotes: State, Fx, Progress, Hud, Target (RemoteEvents), Shoot (client->server, validate Vector3, rate 5/s).
+Phases (State): Lobby{countdown}, Pick{options = 8 {id,title,icon,color}, chosen index}, Intro{index,total,id,title,desc,objective,icon,color}, Countdown{n}, Race{endsAt,alive}, RaceUpdate{finished,total}, Finished{place,time,penalty}, Results{order={{name,time,penalty,eliminated}}}, Duel{a,b}, Winner{name,wins}.
+Fx kinds: finish collect gold hit heavy jump bounce boost break boom telegraph checkpoint penalty eliminate respawn win damage shoot.
+
+## 5. Client (C: HUD.client.luau + FX.luau)
+Pick roulette (icon strip decelerating 3 s, Tick per step, Whoosh on land); objective bar; progress widget pop; timer red pulse < 10 s; "+3s" penalty popup; checkpoint toast; finished counter; waypoint BillboardGui (AlwaysOnTop diamond + distance) from Target; Hud kinds banner{text,color,dur}, crosshair{on}, slots{icon,have,total}; blaster: Activated -> Shoot(mouse.Hit.Position) + local Beam laser 0.15 s + hitmarker; damage numbers; ambient anim of tags Spin(90 deg/s)/Bob(0.4 studs, 1.6 s)/Pulse(neon transparency 0..0.35) re-basing when the server moves a model; boost Trail on HRP. Never touch CurrentCamera.
+Sounds (ReplicatedStorage.MMSounds): Coin Button Finish Hit Jump Tick Go Eliminate Win Whoosh Shoot Break Boom Checkpoint Penalty Land.
