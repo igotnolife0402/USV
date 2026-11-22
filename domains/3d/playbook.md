@@ -81,5 +81,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Geometry Nodes scatter for nature instead of hand placement.
 - In three.js, `OrbitControls` + `RoomEnvironment` + ACES = instant good look.
 
+- Building props (house, cottage): copy tools/3d/props/house.py; rbox seg=1 for trim, same-facing layers >= 15 cm proud or embedded, frames as 4 non-overlapping bars, so zfight passes first run (L-097).
+
 ## Done
 Run [checklists/3d.md](checklists/3d.md). Add new failures to [errors](domains/3d/errors.md).
