@@ -136,3 +136,6 @@ Plain build requests are realistic; toon/low-poly/voxel only when asked. owner.m
 
 ## [2026-11-22] build / crew house
 - tools/3d/props/house.py + house_a/b/c.py (crew, 3 Sonnet workers). Mesh + zfight checks pass; flat-shaded preview seen, not seen in Studio/Umbrio.
+
+## [2026-11-22] fix / 3d done requires Umbrio save
+House crew run ended on a PNG, never saved to Umbrio. Added to checklists/3d.md and crew close step.

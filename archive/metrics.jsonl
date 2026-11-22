@@ -41,3 +41,4 @@
 {"t":"2026-11-22T12:52:45.369Z","tier":"medium","secs":456,"ok":false,"errors":9,"retry":2,"routes":["3d","crew"],"touched":[],"signals":["errors","slow"],"mode":"pc"}
 {"t":"2026-11-22T13:11:45.695Z","tier":"medium","secs":22,"ok":true,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-22T13:10:12.713Z","tier":"medium","secs":398,"ok":false,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":["slow"],"mode":"pc"}
+{"t":"2026-11-22T13:17:56.649Z","tier":"medium","secs":26,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"pc"}

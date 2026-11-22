@@ -45,6 +45,7 @@ Write the integration, the merge and your review check. Never edit a worker's fi
 The agent file pins claude-sonnet-5-5 at effort low. If the spawn errors on the model (this desktop app maps the `sonnet` alias to "auto"), re-spawn with no model override and tell the owner it ran on the main model.
 
 ## 6. Close
+3D/model tasks: the merged model is live-built into a fresh Umbrio Sandbox tab and read back before close (checklists/3d.md); a preview PNG is not done.
 Verify the merged result yourself (owner rule: 100% honest; a worker's DONE is a claim). Log to log.md, lesson for anything that failed, answer the owner: result, what you checked, what was not verified.
 
 ## Not for
