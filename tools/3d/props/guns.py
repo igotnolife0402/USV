@@ -14,6 +14,8 @@ import subprocess
 import sys
 import time
 
+import numpy as np
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props as P  # noqa: E402
 
@@ -108,12 +110,12 @@ def pistol(rng):
            STEEL, "metal", metalness=0.8, roughness=0.3),
         glow("emitter", tube(4.2, 4.28, 2.02, [(0.17, 0), (0.17, 0.08)]), "#3CE6FF"),
         mk("front-sight", S(3.2, 3.36, 2.46, 2.6, 0.1), DARK, "metal", metalness=0.5),
-        mk("rear-sight", S(0.72, 0.95, 2.46, 2.58, 0.34), DARK, "metal", metalness=0.5),
+        mk("rear-sight", S(0.72, 0.95, 2.36, 2.58, 0.34), DARK, "metal", metalness=0.5),
         mk("grip", poly([(0.68, 1.38), (1.5, 1.38), (1.22, 0.12), (0.36, 0.12)], W - 0.1), DARK, "carbon", roughness=0.6),
         mk("grip-panels", side([(0.8, 1.25), (1.38, 1.25), (1.16, 0.35), (0.56, 0.35)], (W - 0.1) / 2 + 0.02),
            "#2A2C31", "grip", roughness=0.9),
         mk("mag-base", S(0.28, 1.3, 0.0, 0.14, W - 0.04), GUNM, "metal", metalness=0.6, roughness=0.4),
-        mk("guard", P.merge(S(1.45, 2.2, 0.86, 0.96, 0.22), S(2.1, 2.2, 0.96, 1.36, 0.22)), DARK, "carbon"),
+        mk("guard", P.merge(S(1.15, 2.2, 0.86, 0.96, 0.22), S(2.1, 2.2, 0.96, 1.36, 0.22)), DARK, "carbon"),
         mk("trigger", poly([(1.62, 1.36), (1.76, 1.36), (1.74, 1.02), (1.66, 1.0)], 0.12, 0.015), STEEL, "metal", metalness=0.8),
         mk("vents", row(lambda x: S(x, x + 0.1, 2.46, 2.5, 0.3, 0.012), [1.25 + i * 0.2 for i in range(9)]), DARK, "carbon"),
         mk("comp", tube(3.46, 3.62, 2.02, [(0.22, 0), (0.24, 0.03), (0.24, 0.11), (0.22, 0.14)]), GUNM, "metal", metalness=0.7),
@@ -133,9 +135,10 @@ def pistol(rng):
 def rifle(rng):
     W = 0.72
     OL, OLD, TAN = "#5E6B47", "#4A5537", "#BDA275"
-    mag = [mk("mag", P.merge(*[S(4.0 + i * 0.04 + i * i * 0.006, 4.62 + i * 0.04 + i * i * 0.006,
-                                 1.36 - (i + 1) * 0.2, 1.36 - i * 0.2, W - 0.24, 0.02) for i in range(7)]),
-              "#26282D", "polymer", roughness=0.7)]
+    mag = [mk("mag", poly([(4.0, 1.38), (4.62, 1.38), (4.98, 0.14), (4.36, 0.14)], W - 0.24), "#26282D", "polymer", roughness=0.7),
+           mk("mag-ribs", P.merge(*[pair(4.06 + t * 0.29, 4.5 + t * 0.29, 1.2 - t, 1.24 - t, (W - 0.24) / 2 - 0.01, (W - 0.24) / 2 + 0.04)
+                                    for t in (0.2, 0.45, 0.7)]), "#1B1D21", "polymer"),
+           mk("mag-base", poly([(4.3, 0.2), (5.04, 0.2), (5.06, 0.06), (4.32, 0.06)], W - 0.18), GUNM, "metal", metalness=0.6)]
     p = [
         mk("buttpad", S(0.0, 0.18, 1.0, 2.5, W - 0.06), "#17181B", "grip", roughness=0.9),
         mk("stock", poly([(0.18, 1.2), (1.9, 1.75), (1.9, 2.3), (0.18, 2.42)], W - 0.14), TAN, "tan", roughness=0.7),
@@ -161,12 +164,12 @@ def rifle(rng):
         P.part("sight-lens", S(2.86, 2.9, 2.96, 3.26, 0.3, 0.01), "#6FA8DC", smooth=False, transparency=0.5, roughness=0.05),
         glow("red-dot", S(4.86, 4.92, 3.06, 3.16, 0.1, 0.01), "#FF3B30"),
         mk("grip", poly([(2.7, 1.3), (3.25, 1.3), (2.95, 0.2), (2.4, 0.2)], W - 0.22), "#26282D", "grip", roughness=0.9),
-        mk("guard", P.merge(S(3.25, 4.0, 0.92, 1.02, 0.2), S(3.9, 4.0, 1.02, 1.3, 0.2)), OLD, "olive"),
+        mk("guard", P.merge(S(2.95, 4.0, 0.92, 1.02, 0.2), S(3.9, 4.0, 1.02, 1.3, 0.2)), OLD, "olive"),
         mk("trigger", poly([(3.45, 1.3), (3.58, 1.3), (3.56, 1.02), (3.48, 1.0)], 0.12, 0.015), STEEL, "metal", metalness=0.8),
         mk("stripes", P.merge(pair(5.7, 7.8, 2.24, 2.32, (W - 0.04) / 2, (W - 0.04) / 2 + 0.05),
                               pair(0.6, 1.6, 2.08, 2.16, (W - 0.14) / 2, (W - 0.14) / 2 + 0.05)), "#F07A24", None, roughness=0.5),
         mk("screws", screws([(2.6, 2.3), (5.4, 2.3), (5.8, 2.25), (7.7, 2.25)], W / 2 + 0.04), STEEL, "metal", metalness=0.8),
-        mk("sling", P.merge(S(0.6, 0.8, 1.02, 1.3, 0.12), S(7.2, 7.4, 1.32, 1.52, 0.12)), STEEL, "metal", metalness=0.8),
+        mk("sling", P.merge(S(0.6, 0.8, 1.2, 1.42, 0.12), S(7.2, 7.4, 1.36, 1.54, 0.12)), STEEL, "metal", metalness=0.8),
     ] + mag
     P.ground(p)
     return p, {"olive": tex("noise", [OL, OLD, "#6E7B55"], 5), "tan": tex("noise", [TAN, "#A68B5F", "#D2BA8E"], 5),
@@ -192,12 +195,12 @@ def sniper(rng):
         mk("bolt", P.merge(S(5.3, 5.7, 2.05, 2.25, 0.2), B(5.42, 5.56, 2.08, 2.2, 0.1, 0.62)), STEEL, "metal", metalness=0.85),
         mk("bolt-knob", B(5.36, 5.62, 2.0, 2.28, 0.62, 0.86), "#17181B", "grip"),
         mk("mag", S(4.6, 5.4, 1.0, 1.62, W - 0.3), "#1E2127", "carbon"),
-        mk("guard", P.merge(S(3.4, 4.3, 1.18, 1.28, 0.2), S(4.2, 4.3, 1.28, 1.62, 0.2)), GUNM, "metal", metalness=0.6),
+        mk("guard", P.merge(S(3.1, 4.3, 1.18, 1.28, 0.2), S(4.2, 4.3, 1.28, 1.62, 0.2)), GUNM, "metal", metalness=0.6),
         mk("trigger", poly([(3.6, 1.62), (3.72, 1.62), (3.7, 1.32), (3.62, 1.3)], 0.12, 0.015), STEEL, "metal", metalness=0.8),
         mk("barrel", tube(6.4, 11.2, 2.15, [(0.16, 0), (0.16, 2.0), (0.13, 2.4), (0.13, 4.8)]), STEEL, "metal",
            metalness=0.8, roughness=0.3),
         mk("suppressor", tube(11.2, 13.4, 2.15, [(0.3, 0), (0.3, 2.2)]), "#1A1C20", "carbon"),
-        mk("supp-rings", P.merge(*[tube(x, x + 0.1, 2.15, [(0.33, 0), (0.33, 0.1)]) for x in (11.4, 12.2, 13.0)]),
+        mk("supp-rings", P.merge(*[tube(x, x + 0.1, 2.15, [(0.33, 0), (0.33, 0.1)]) for x in (11.4, 11.9, 12.4, 12.9)]),
            GUNM, "metal", metalness=0.7),
         mk("bipod-hinge", S(7.8, 8.2, 1.4, 1.62, 0.4), GUNM, "metal", metalness=0.6),
         mk("bipod-legs", P.merge(*[P.xf(S(0, 1.6, -0.05, 0.05, 0.08, 0.015), r=(0, 0, -8), t=(8.1, 1.42, z)) for z in (-0.16, 0.16)]),
@@ -205,7 +208,7 @@ def sniper(rng):
         mk("bipod-feet", P.merge(*[B(9.55, 9.75, 1.12, 1.26, z - 0.06, z + 0.06) for z in (-0.16, 0.16)]), "#17181B", "grip"),
         mk("top-rail", P.merge(S(3.7, 6.3, 2.42, 2.5, 0.34), row(lambda x: S(x, x + 0.08, 2.5, 2.56, 0.3, 0.012),
                                                                 [3.75 + i * 0.17 for i in range(15)])), DARK, "metal", metalness=0.6),
-        mk("scope-bands", P.merge(*[tube(x, x + 0.08, 3.0, [(0.245, 0), (0.245, 0.08)]) for x in (3.6, 6.6, 7.3)]),
+        mk("scope-bands", P.merge(*[tube(x, x + 0.08, 3.0, [(0.245, 0), (0.245, 0.08)]) for x in (3.6, 6.6)]),
            "#17181B", "metal", metalness=0.6),
         mk("scope-rings", P.merge(*[S(x, x + 0.26, 2.47, 2.82, 0.5) for x in (4.0, 5.9)]), "#17181B", "metal", metalness=0.6),
         mk("scope", tube(3.3, 6.9, 3.0, [(0.22, 0), (0.22, 3.6)]), "#2A2E35", "carbon"),
@@ -219,8 +222,8 @@ def sniper(rng):
                               P.xf(tube(0, 0.32, 0, [(0.12, 0), (0.12, 0.32)]), r=(0, -90, 0), t=(5.05, 3.0, 0.18))),
            "#17181B", "metal", metalness=0.6),
         glow("marker", S(7.2, 7.6, 3.36, 3.42, 0.08, 0.01), "#FF3B30"),
-        mk("screws", screws([(1.0, 1.9), (3.0, 2.15), (7.0, 1.78)], (W - 0.08) / 2 + 0.04), STEEL, "metal", metalness=0.8),
-        mk("sling", P.merge(S(1.0, 1.2, 1.0, 1.24, 0.12), S(8.6, 8.8, 1.44, 1.62, 0.12)), STEEL, "metal", metalness=0.8),
+        mk("screws", screws([(1.0, 1.9), (6.0, 1.78), (7.0, 1.78)], (W - 0.08) / 2 + 0.04), STEEL, "metal", metalness=0.8),
+        mk("sling", P.merge(S(1.0, 1.2, 1.12, 1.32, 0.12), S(7.2, 7.4, 1.46, 1.66, 0.12)), STEEL, "metal", metalness=0.8),
     ]
     P.ground(p)
     return p, {"wood": tex("woodgrain", [WD, WDD, "#9A6A44"], 3), "metal": tex("brushed", [STEEL, "#7E858F", "#E1E5EA"], 4),
@@ -249,6 +252,31 @@ def combine(out):
         json.dump(d, open(os.path.join(tab, f), "w"), separators=(",", ":"))
 
 
+def attach(name, tol=0.05, step=0.035):
+    """No floating or gapped pieces: dense surface samples of every part must form ONE cluster (gaps > tol fail)."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    from scipy.spatial import cKDTree
+    pts = []
+    for p in P.PROPS[name][1](None)[0]:
+        m = p["mesh"]
+        for f in m.f:
+            for k in range(1, len(f) - 1):
+                a, b, c = m.v[f[0]], m.v[f[k]], m.v[f[k + 1]]
+                n = max(1, int(math.ceil(max(np.linalg.norm(b - a), np.linalg.norm(c - a), np.linalg.norm(c - b)) / step)))
+                i, j = np.meshgrid(np.arange(n + 1), np.arange(n + 1))
+                keep = i + j <= n
+                pts.append(a + np.outer(i[keep] / n, b - a) + np.outer(j[keep] / n, c - a))
+    V = np.unique(np.round(np.vstack(pts), 4), axis=0)
+    pr = cKDTree(V).query_pairs(tol, output_type="ndarray")
+    k, lab = connected_components(coo_matrix((np.ones(len(pr)), (pr[:, 0], pr[:, 1])), shape=(len(V), len(V))), directed=False)
+    big = np.bincount(lab).argmax()
+    for r in set(lab.tolist()) - {big}:
+        print("ATTACH FAIL %s: piece at %s detached" % (name, np.round(V[lab == r].mean(0), 2).tolist()))
+    print("ATTACH %s %s (%d pieces, %d samples)" % ("PASS" if k == 1 else "FAIL", name, k, len(V)))
+    return int(k != 1)
+
+
 def main(argv=None):
     a = sys.argv[1:] if argv is None else argv
     if not a:
@@ -262,6 +290,8 @@ def main(argv=None):
         for n in NAMES:
             rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
                                    os.path.join(out, n + ".json"), os.path.join(out, "geo"), "--class", "prop"])
+        for n in NAMES:
+            rc |= attach(n)
         rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "check",
                                os.path.join(out, "studio", "project.json"), os.path.join(out, "studio", "geo"), "--prop"])
     return rc

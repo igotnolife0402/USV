@@ -28,3 +28,13 @@
 {"t":"2026-11-22T00:21:22.115Z","tier":"medium","secs":2,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-22T00:22:02.613Z","tier":"medium","secs":78,"ok":true,"errors":1,"retry":1,"routes":["roblox"],"touched":[],"signals":["errors"],"mode":"pc"}
 {"t":"2026-11-22T00:23:42.437Z","tier":"medium","secs":11,"ok":true,"errors":1,"retry":1,"routes":[],"touched":[],"signals":["errors"],"mode":"pc"}
+{"t":"2026-11-22T00:30:25.112Z","tier":"medium","secs":109,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-22T01:04:53.895Z","tier":"complex","secs":216,"ok":true,"errors":0,"retry":0,"routes":["owner","3d"],"touched":[],"signals":["skill"],"mode":"pc"}
+{"t":"2026-11-22T01:10:00.285Z","tier":"medium","secs":213,"ok":true,"errors":3,"retry":1,"routes":["roblox","crew"],"touched":[],"signals":["errors","skill"],"mode":"pc"}
+{"t":"2026-11-22T01:14:03.241Z","tier":"medium","secs":50,"ok":true,"errors":2,"retry":2,"routes":[],"touched":[],"signals":["errors"],"mode":"pc"}
+{"t":"2026-11-22T01:30:49.905Z","tier":"simple","secs":30,"ok":true,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-22T01:35:17.476Z","tier":"medium","secs":34,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-22T01:36:22.928Z","tier":"medium","secs":74,"ok":true,"errors":0,"retry":0,"routes":["3d","crew"],"touched":[],"signals":["skill"],"mode":"pc"}
+{"t":"2026-11-22T01:38:35.115Z","tier":"medium","secs":552,"ok":false,"errors":2,"retry":1,"routes":["3d","owner"],"touched":[],"signals":["errors","slow","correction"],"mode":"pc"}
+{"t":"2026-11-22T12:47:05.801Z","tier":"medium","secs":93,"ok":true,"errors":0,"retry":0,"routes":["crew","3d"],"touched":[],"signals":[],"mode":"pc"}
+{"t":"2026-11-22T12:50:05.967Z","tier":"medium","secs":38,"ok":true,"errors":0,"retry":0,"routes":["math","crew"],"touched":[],"signals":[],"mode":"pc"}
