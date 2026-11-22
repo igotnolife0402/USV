@@ -25,11 +25,11 @@ def B(size, t, r=0.06, seg=3):
 def house_body(rng):
     found = P.box_uv(B((12.8, 0.6, 10.8), (0, 0.3, 0), 0.1), 0.5)
     walls = P.box_uv(B((12, 6, 10), (0, 3.6, 0), 0.05, 2), 0.5)
-    gable = P.box_uv(prism([(-5, 6.5), (5, 6.5), (0, 9.9)], -6, 6), 0.5)
-    posts = P.merge(*[B((0.5, 6, 0.5), (sx * 6, 3.6, sz * 5)) for sx in (-1, 1) for sz in (-1, 1)])
+    gable = P.box_uv(prism([(-5, 6.6), (5, 6.6), (0, 9.9)], -6, 6), 0.5)
+    posts = P.merge(*[B((0.5, 5.95, 0.5), (sx * 6, 3.425, sz * 5)) for sx in (-1, 1) for sz in (-1, 1)])
     chim = P.box_uv(B((1.4, 5, 1.4), (3.5, 9.5, -1.8)), 1)
     ccap = B((1.7, 0.3, 1.7), (3.5, 12.15, -1.8), 0.05)
-    deck = P.box_uv(B((5, 0.4, 2.2), (0, 0.4, 6.1)), 1)
+    deck = P.box_uv(B((5, 0.4, 2.2), (0, 0.55, 6.1)), 1)
     step = P.box_uv(B((3, 0.2, 0.8), (0, 0.1, 7.6), 0.04), 1)
     parts = [
         P.part("foundation", P.merge(found, step), STONE, texture="stone", roughness=0.9),

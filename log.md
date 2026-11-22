@@ -130,3 +130,6 @@ Owner: workers research first. Crew now opens with a fetch round (3 workers past
 
 ## [2026-11-22] fix / crew spawn-first
 House run spent 2m45s pre-spawn (reads 32 s, design 80 s, serial briefs 40 s). Crew now spawns 3 prep workers in the first message, brain designs in parallel, specs <= 15 lines via SendMessage.
+
+## [2026-11-22] rule / default style realistic
+Plain build requests are realistic; toon/low-poly/voxel only when asked. owner.md, 3d playbook table, crew skill updated.

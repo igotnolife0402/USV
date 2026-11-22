@@ -28,9 +28,9 @@ def house_roof(rng):
             c = (0, 6.14 + 3.96 * t + 0.03 * 0.834, sz * (6 - 6 * t + 0.03 * 0.551))
             rows.append(P.xf(P.rbox((13.6, 0.12, 0.5), 0.04, 2), r=(sz * ANG, 0, 0), t=c))
     rows = P.box_uv(P.merge(*rows), 0.5)
-    ridge = P.sweep(np.array([(-6.9, 10.1, 0), (6.9, 10.1, 0)]), 0.22, 12, caps="flat")
+    ridge = P.sweep(np.array([(-7.15, 10.1, 0), (7.15, 10.1, 0)]), 0.22, 12, caps="flat")
     bz = [(6.1, 5.64), (6.1, 6.2), (0, 10.22), (-6.1, 6.2), (-6.1, 5.64), (0, 9.6)]
-    barge = P.merge(prism(bz, 6.75, 6.95), prism(bz, -6.95, -6.75))
+    barge = P.merge(prism(bz, 6.8, 7.0), prism(bz, -7.0, -6.8))
     parts = [
         P.part("roof", slab, TILE, texture="tiles", roughness=0.8),
         P.part("shingles", rows, TILE2, texture="tiles", roughness=0.8),

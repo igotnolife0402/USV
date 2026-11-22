@@ -35,12 +35,12 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Roblox avatar from catalog items, weapons, clips, faces | [avatar](tools/3d/avatar/README.md) |
 | Realistic animal render or GLB | [creature](tools/3d/creature/README.md) (tiger: 19,552 tris, 741 KB, 3.57 studs/m, feet y=0) |
 | Block build (city, buildings) as Parts | [voxel](tools/3d/voxel/README.md) (50x50 city: 2,243 Parts, 1.46 MB rbxmx) |
-| Low-poly/cartoon props as meshes | [props](tools/3d/props/README.md) (≤ 3k tris lowpoly, 12k toon) |
+| Low-poly/cartoon props as meshes (ONLY when that style is asked; plain requests are realistic, see owner.md) | [props](tools/3d/props/README.md) (≤ 3k tris lowpoly, 12k toon) |
 | Something that breaks (Voronoi pieces) | [shatter](tools/3d/shatter/README.md) |
 | Armor sets fitted to the R6 rig + equip | [armor](tools/3d/armor/README.md) |
 | Z-fighting / flicker check and fix | [zfight](tools/3d/zfight/README.md) |
 | Editing by hand, export, render, MP4 | [studio](tools/3d/studio/README.md) |
-| None fits | Blender MCP (PC) below, or a new generator modelled on the closest tool |
+| Realistic default (house, furniture, anything with no named style) or none fits | Blender MCP (asset libraries first, PBR) (PC) below, or a new generator modelled on the closest tool |
 
 ## PC (/pc)
 ### Blender MCP (github.com/ahujasid/blender-mcp)

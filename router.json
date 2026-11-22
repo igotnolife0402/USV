@@ -200,7 +200,9 @@
         "fly mode",
         "studio fly",
         "sandbox fly",
-        "selection box"
+        "selection box",
+        "realistic",
+        "make me a house"
       ],
       "notes": [
         "domains/3d/index.md",
