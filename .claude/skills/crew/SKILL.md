@@ -8,25 +8,26 @@ description: 'Use for /crew <task> or when the owner wants sub agents with the m
 Owner rule (2026-11-22, replaces the old size gate): ALWAYS 3 Sonnet workers. Workers never think for themselves: they copy the brain's spec in one fast pass, report, and the brain says OK or gives a new exact instruction. Slowness came from workers designing, researching and retrying a self-check for ~7 min; that is now banned on both sides.
 
 ## The loop (per worker)
-brain spec → worker one pass (~1-2 min) → report → brain reviews → `OK` (TaskStop) or new exact instruction (SendMessage) → repeat. Max 3 rounds per worker, then the brain does that piece itself.
+spawn + prep (parallel with brain design) → brain spec → worker one pass (~1-2 min) → report → brain reviews → `OK` (TaskStop) or new exact instruction (SendMessage) → repeat. Max 3 rounds per worker, then the brain does that piece itself.
 
-## 0. Fetch round first (owner 2026-11-22: 4 readers beat 1)
-When the task needs more than ONE template read: in the first message, spawn the 3 workers as fetchers while the brain reads its own slice. Each fetch brief = exact questions + where to look ("in X, paste the lines that define Y"; "list the files under Z that do W"). Fetchers paste literal excerpts and paths, max ~6 tool calls, NO opinions, NO decisions, no writing files. Then the SAME workers get the build spec via SendMessage (they keep the context). Easy builds with one known template skip this round.
+## 0. Spawn FIRST, design after (owner 2026-11-22: house run took 2m45s before any worker started)
+Measured: 4 brain reads (32 s) + 80 s silent design + 3 long literal briefs written one by one (40 s). Fix:
+- The brain's FIRST tool message (with update_plan) spawns all 3 `crew-worker`s, run_in_background, each with a <= 5 line prep brief: their piece in one line, the template path + API lines to read, "paste the function signatures/patterns you will use, then wait for the spec". New task with no template: name the closest one (`ls` result is enough).
+- Fetch questions (when the brain needs facts) go in that same prep brief: "in X, paste the lines that define Y". Literal excerpts, no opinions.
+- While they prep, the brain designs; then sends each spec with SendMessage (same worker keeps its context).
 
-## 1. Brain decides everything (workers spawned within 60 s)
-- Owner 2026-11-22: 1.5 min of brain reading before a gun model was too slow. Easy builds (props, guns, small models, edits): read ONE template file (or a grep of it, not the whole thing), skip the router's "Read first" notes, index, playbook and checklist until the review step, no deliberation. Max 2 reads before spawning.
-- Decide the result, every name, value, size, color, position, signature and file path. Nothing is left for a worker to choose.
-- Split into exactly 3 pieces, one owner per file. Fewer natural pieces: split one file's work into sections that land in separate files, or give the spare worker(s) a variant of the hardest piece (different spec values you name) and keep the best. Never let a worker wait on another's output in the same round.
-- Check command: reuse the template's own (e.g. its `--check`); never build or test-run one before spawning.
+## 1. Brain decides everything, fast
+- No long deliberation: take the template's defaults, change only what the request needs. Max 2 reads of your own.
+- Decide every name, value, size, color, position and file path; nothing left for a worker to choose.
+- Split into exactly 3 pieces, one owner per file. Fewer natural pieces: split one file's work into sections in separate files, or give the spare worker a variant you name and keep the best. Never let a worker wait on another's output in the same round.
+- Check command: reuse the template's own (e.g. its `--check`); never build or test-run one first.
 
-## 2. Brief = a spec to copy, not a problem to solve
-Spawn all 3 `crew-worker` agents in ONE message, run_in_background. Each brief:
-1. One line goal, then their piece.
-2. Files they write (absolute paths) and the ONE template file to copy (closest working example). No "look around".
-3. The exact spec: literal code, values, numbers, lists, or "copy template X, change only A→B, C→D". The more literal, the faster and more correct. Contract (shared names/paths/shapes) verbatim.
-4. The check command to run once, or "no check".
-5. "One pass, no retries, no research of your own, ~8 tool calls; report in the format from your agent file."
-Never write "find and fix", "make it good", "figure out", "research" or "improve" in a brief: those turn a 1-min copy into a 7-min hunt.
+## 2. Spec (SendMessage) = values to copy, <= 15 lines each
+1. Files they write (absolute paths) + the shared contract (names, origin, units) verbatim, identical in all 3.
+2. A values list: part → size, position, color, material, count. "copy template fn X, change A→B". No geometry code written by the brain: the worker has the template's patterns from prep.
+3. The check command to run once, or "no check".
+4. "One pass, no retries, no research of your own, ~8 tool calls; report in the format from your agent file."
+Never write "find and fix", "make it good", "figure out", "research" or "improve": those turn a 1-min copy into a 7-min hunt.
 
 ## 3. While they work
 Write the integration, the merge and your review check. Never edit a worker's files while it runs.

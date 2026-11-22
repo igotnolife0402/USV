@@ -127,3 +127,6 @@ attach() 1M samples 75 s -> shell-level 0.1 step 2.4 s for 3 guns; detached-part
 
 ## [2026-11-22] change / crew fetch round
 Owner: workers research first. Crew now opens with a fetch round (3 workers paste literal excerpts to brain questions while brain reads), then same workers get the build spec via SendMessage. Easy one-template builds skip it.
+
+## [2026-11-22] fix / crew spawn-first
+House run spent 2m45s pre-spawn (reads 32 s, design 80 s, serial briefs 40 s). Crew now spawns 3 prep workers in the first message, brain designs in parallel, specs <= 15 lines via SendMessage.
