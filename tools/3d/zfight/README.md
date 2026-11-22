@@ -21,6 +21,14 @@ A desktop render looking clean proves nothing.
 4. Upload the fixed docs under NEW geo ids (geometry is immutable: the page caches by id), point the objects at them in
    the same write, delete the old docs, then read the tab back and run `check` on that read-back, never on local files.
 
+## See-through gate (2026-11-22)
+`python seethru.py check project.json geo/` (~3 s for a furnished house): orthographic rays from 14 directions; a pixel whose
+first hit is a back face is a hole you can see into (missing side/bottom, or a cut that shows at an angle). Fails at 0.3 %.
+`fix` no longer opens holes: it cuts first, and only where the gap is sealed (the covered spot touches a solid within 2 mm,
+like a rug on a floor or books side by side) is the cut exact; over an open air gap (a PC on feet over a desk) the cover is
+shrunk by 1.5x the gap + 5 mm. The 1.5 cm separation now runs only as a fallback (moving pieces first opened slits into
+closed boxes). `--exact a,b` cuts those geo ids exactly (house.py passes the building-shell docs: sealed wall layers).
+
 ## Build rules that keep it passing
 - Never stack a decal, rug, runner, trim, panel or glass on a surface: make it one plane (inlay) or cut the surface
   under it. Floors: boards and tiles edge to edge, their base 10 cm under them with no top face.

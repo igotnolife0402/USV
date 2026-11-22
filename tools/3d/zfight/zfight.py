@@ -6,10 +6,9 @@
 
 A pair z-fights when two faces face the same way, overlap, and lie closer than a phone's depth step (phones resolve
 far coarser than desktops: layers even 4-12 cm apart flicker there). `fix`:
-  1. separate: exactly level overlaps (< 1.5 cm) -> the smaller piece (a connected part of a geo doc) moves 1.5 cm out;
-  2. cut: any face with a same-facing face less than 12 cm in front of it loses the covered part (convex difference),
-     so nothing hidden stays under a rug, carpet, trim or panel. Shredded faces (books on a shelf back) are dropped
-     when mostly hidden, else kept.
+  1. cut: any face with a same-facing face less than 12 cm in front of it loses the covered part shrunk by the gap + 5 mm (so no hole shows at an angle),
+     so nothing hidden stays under a rug, carpet, trim or panel.
+  2. separate (fallback): level overlaps (< 1.5 cm) the cut could not remove -> the smaller piece moves 1.5 cm out.
 Works in world space over every mesh object (pos/scale of the object and its groups; rotated objects are skipped).
 Mirrored objects that share a geo doc with an unmirrored one are cut only against their own doc."""
 # @style: tool
@@ -17,6 +16,7 @@ Mirrored objects that share a geo doc with an unmirrored one are cut only agains
 import collections, json, os, sys
 import numpy as np
 
+EXACT = ()   # geo id prefixes cut exactly (`--exact house-`): building shells whose wall layers are sealed by design
 SEP, CUT, AREA_FAIL = 0.015, 0.12, 0.5          # metres, metres, m2 of fighting overlap that fails `check`
 
 
@@ -110,6 +110,29 @@ def proj2(W, n):
 
 def area(p): return 0.5 * sum(p[i][0] * p[(i + 1) % len(p)][1] - p[(i + 1) % len(p)][0] * p[i][1] for i in range(len(p)))
 def ccw(p): return p if area(p) >= 0 else p[::-1]
+def inset(p, d):
+    """Convex CCW polygon shrunk by d (offset every edge inward, intersect consecutive offset lines); None if it vanishes."""
+    m = len(p); L = []
+    for i in range(m):
+        a, b = p[i], p[(i + 1) % m]
+        ln = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5
+        if ln < 1e-6: continue
+        nl = (-(b[1] - a[1]) / ln, (b[0] - a[0]) / ln)
+        L.append(((a[0] + d * nl[0], a[1] + d * nl[1]), (b[0] - a[0], b[1] - a[1])))
+    r = []
+    for i in range(len(L)):
+        (p0, d0), (p1, d1) = L[i - 1], L[i]
+        den = d0[0] * d1[1] - d0[1] * d1[0]
+        if abs(den) < 1e-12: r.append(p1); continue
+        t = ((p1[0] - p0[0]) * d1[1] - (p1[1] - p0[1]) * d1[0]) / den
+        r.append((p0[0] + t * d0[0], p0[1] + t * d0[1]))
+    if len(r) < 3: return None
+    for i in range(len(L)):          # an edge that flipped direction means d > the polygon's inradius: it vanished
+        q0, q1 = r[i], r[(i + 1) % len(r)]
+        if (q1[0] - q0[0]) * L[i][1][0] + (q1[1] - q0[1]) * L[i][1][1] < 0: return None
+    ar = area(r)
+    if ar <= 1e-6 or ar > area(p): return None
+    return r
 
 
 def clip(subj, c):
@@ -186,6 +209,12 @@ def components(g):
 
 
 def fix(docs, inst):
+    _cut(docs, inst)
+    _separate(docs, inst)
+
+
+def _separate(docs, inst):
+    """Fallback after _cut: only level overlaps the cut could not remove move apart (moving first opened 1.5 cm slits into closed boxes: see-through PC case, 2026-11-22)."""
     # 1. separate level overlaps: move the smaller piece out along the shared normal
     for _ in range(3):
         R = faces(docs, inst); comp = {gid: components(g) for gid, g in docs.items()}
@@ -206,6 +235,9 @@ def fix(docs, inst):
             for v in vs: V[v] += d
             g['verts'] = [round(float(x), 3) for x in V.ravel()]
         print(f'  separated {len(want)} pieces')
+
+
+def _cut(docs, inst):
     # 2. cut hidden faces (same doc, or docs that share every instance)
     R = faces(docs, inst); per = collections.defaultdict(lambda: collections.defaultdict(list))
     for A, B, n, ar in pairs(R, CUT):
@@ -223,6 +255,20 @@ def fix(docs, inst):
         if fr: cover[k] = fr
     cut = dropped = 0
     for k in cover: cover[k] = list({id(x): x for x in cover[k]}.values())
+    # world AABB of every shell: a back face whose covered spot touches a solid (rug on a floor, layers inside a wall) is
+    # sealed, so the exact cut never shows; a gap open to the air (PC on feet over a desk) gets the inset cut
+    lo, hi = [], []
+    for gid, g in docs.items():
+        V = np.asarray(g['verts'], float).reshape(-1, 3); vl = np.full(len(V), -1)
+        w = np.unique(np.round(V, 3), axis=0, return_inverse=True)[1].ravel()   # weld: boxes are often 6 unshared quads
+        for f, c in zip(g['faces'], components({'verts': [0] * (3 * (w.max() + 1)), 'faces': [[int(w[v]) for v in f] for f in g['faces']]})): vl[f] = c
+        keep = vl >= 0; labs, inv = np.unique(vl[keep], return_inverse=True)
+        for s, p in inst[gid]:
+            W = (V * np.asarray(s) + np.asarray(p))[keep]
+            a = np.full((len(labs), 3), np.inf); b = np.full((len(labs), 3), -np.inf)
+            np.minimum.at(a, inv, W); np.maximum.at(b, inv, W); lo += list(a); hi += list(b)
+    lo, hi = np.array(lo) + 5e-4, np.array(hi) - 5e-4
+    def sealed(q): return bool(np.any(np.all((lo < q) & (q < hi), 1)))
     for (gid, fi), fronts in cover.items():
         g = docs[gid]; V = np.asarray(g['verts'], float).reshape(-1, 3); f = g['faces'][fi]; P = V[f]
         uvs = g.get('uvs'); uv = None
@@ -234,12 +280,20 @@ def fix(docs, inst):
         cur = [to2(P)]; a0 = area(cur[0])
         if a0 <= 0: continue
         lim = max(64, a0 / 1.0)                  # pieces a face may become (1 per m2): no sliver storms
-        for fc in sorted((ccw(to2(F)) for F in fronts), key=lambda q: -abs(area(q))):   # big covers first
+        cs = []; shut = True                    # shut: every cover seals its gap, so dropping a shredded face shows nothing
+        for F in fronts:
+            F = np.asarray(F); d = abs(float((F[0] - o) @ n))
+            s0, p0 = inst[gid][0]; S0, P0 = np.asarray(s0), np.asarray(p0); spot = F.mean(0) - n * d   # covered spot on the back face
+            gap = next((t for t in (0.002, 0.005, 0.01, 0.02, 0.04, 0.08, d - 0.002) if t < d and sealed((spot + n * t) / S0 + P0)), d)
+            ex = gid.startswith(EXACT) or gap <= 0.002; shut &= ex   # gap = air gap to the solid in front: the hole shows only through it
+            c = ccw(to2(F)) if ex else inset(ccw(to2(F)), 1.5 * gap + 0.005)   # 1.5x: no hole up to ~56 deg off the normal
+            if c is not None: cs.append(c)
+        for fc in sorted(cs, key=lambda q: -abs(area(q))):   # big covers first
             nxt = [x for pc in cur for x in diff(pc, fc)]
             if len(nxt) > lim: break                  # shredding into slivers: stop here, small covers stay
             cur = nxt
             if not cur: break
-        if len(cur) > lim and sum(abs(area(c)) for c in cur) < 0.3 * a0: cur = []
+        if shut and len(cur) > lim and sum(abs(area(c)) for c in cur) < 0.3 * a0: cur = []   # books on a shelf back
         if uv is not None:                       # fit uv = [x, y, 1] @ M on the face, so cut pieces keep the texture (was: textured faces never cut)
             M = np.linalg.lstsq(np.column_stack([np.array(to2(P)), np.ones(len(P))]), uv, rcond=None)[0]
         new = []
@@ -255,6 +309,8 @@ def fix(docs, inst):
 
 
 if __name__ == '__main__':
+    if '--exact' in sys.argv:
+        i = sys.argv.index('--exact'); EXACT = tuple(sys.argv[i + 1].split(',')); del sys.argv[i:i + 2]
     if '--prop' in sys.argv:   # hand-held prop seen from ~3 studs: 16-bit depth step there is ~2.3 mm (z^2 / (near * 65536), near 2% of orbit)
         sys.argv.remove('--prop'); SEP, CUT, AREA_FAIL = 0.004, 0.01, 0.02   # ~2 and ~4 depth steps
     if len(sys.argv) < 4 or sys.argv[1] not in ('check', 'fix'): print(__doc__); sys.exit(2)

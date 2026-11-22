@@ -433,7 +433,10 @@ def main(argv=None):
     here = os.path.dirname(os.path.abspath(__file__))
     # nested frames/sashes/reveals leave hidden same-facing faces < 12 cm apart: cut them (~2 s), keep ids (fresh tab)
     fx = os.path.join(out, "fix")
-    rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "fix", proj,
+    import clear  # building shell docs: wall layers are sealed, cut exactly; furniture gets the hole-safe inset cut
+    shell = ",".join(f[:-5] for f in os.listdir(os.path.join(out, "geo"))
+                     if f.endswith(".json") and not f[6:].startswith(clear.PREFIX)) or "-"
+    rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "fix", "--exact", shell, proj,
                            os.path.join(out, "geo"), fx], stdout=subprocess.DEVNULL)
     for f in os.listdir(os.path.join(fx, "geo")):
         os.replace(os.path.join(fx, "geo", f), os.path.join(out, "geo", f))
@@ -444,6 +447,9 @@ def main(argv=None):
         import clear  # furniture: no overlaps between items, nothing blocking a window
         rc |= clear.check(P.PROPS[NAME][1](None)[0], sys.modules[__name__])
         rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "check",
+                               proj, os.path.join(out, "geo")])
+        # no see-through holes (missing faces, cut-away faces showing at an angle)
+        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "seethru.py"), "check",
                                proj, os.path.join(out, "geo")])
     return rc
 

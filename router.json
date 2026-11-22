@@ -227,7 +227,12 @@
         "boat",
         "template",
         "templates",
-        "style catalog"
+        "style catalog",
+        "gaps",
+        "see inside",
+        "see through",
+        "transparent",
+        "holes"
       ],
       "notes": [
         "domains/3d/playbook.md",

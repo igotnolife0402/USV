@@ -2,7 +2,7 @@
 
 usage: python3 setup.py OUT [--check] [--preview]
 Writes OUT/setup.json + OUT/geo/*.json (Studio meshes, metres) and OUT/live/p1..p3.json + m1..m3.json
-(Umbrio live stages: desk, tower, monitor + peripherals). --check = mesh check + detail floor + attach + zfight.
+(Umbrio live stages: desk, tower, monitor + peripherals). --check = mesh check + detail floor + attach + zfight + seethru.
 Pieces live in setup_desk.py, setup_tower.py, setup_screen.py (each `parts() -> (parts, textures)`).
 """
 # @style: realistic
@@ -81,6 +81,8 @@ def main(argv=None):
                                os.path.join(out, NAME + ".json"), os.path.join(out, "geo"), "--class", "prop"])
         rc |= G.attach(NAME)
         rc |= subprocess.call([sys.executable, zf, "check", proj, os.path.join(out, "geo")])
+        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "seethru.py"), "check",
+                               proj, os.path.join(out, "geo")])
     return rc
 
 
