@@ -133,3 +133,6 @@ House run spent 2m45s pre-spawn (reads 32 s, design 80 s, serial briefs 40 s). C
 
 ## [2026-11-22] rule / default style realistic
 Plain build requests are realistic; toon/low-poly/voxel only when asked. owner.md, 3d playbook table, crew skill updated.
+
+## [2026-11-22] build / crew house
+- tools/3d/props/house.py + house_a/b/c.py (crew, 3 Sonnet workers). Mesh + zfight checks pass; flat-shaded preview seen, not seen in Studio/Umbrio.
