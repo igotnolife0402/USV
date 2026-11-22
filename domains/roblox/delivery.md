@@ -43,7 +43,7 @@ Generators that produce these files live in the 3D domain ([domains/3d/index.md]
 4. Say which steps were not run in Roblox.
 
 ## PC (/pc)
-- After the checks, test for real: Studio open (Studio MCP connected), Insert from File / 3D Importer, start play, read console via MCP, stop. Fix, max 3 tries.
+- After the checks, test for real: Studio open (Studio MCP connected), insert, start play, read console and part state via MCP (never the camera: no screenshots/video, owner rule), stop. Looks are checked on the export render. Fix, max 3 tries.
 - Still record in the reply that ids are pending until the owner uploads.
 
 ## Mobile fallback (/mobile)

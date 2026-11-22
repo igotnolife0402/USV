@@ -99,6 +99,11 @@ export function outsideInstalls(cmd, allowed) {
 if (isMain(import.meta.url)) safe(() => {
   const { tool_name: tool = '', tool_input: ti = {}, session_id, transcript_path } = readInput();
 
+  // Owner rule (permanent, 2026-11-22): never touch the Roblox Studio camera: no screenshots, video or camera code. Look at an export instead.
+  if (/Roblox_Studio__(screen_capture|video_capture|character_navigation)$/.test(tool) ||
+      (/Roblox_Studio__(execute_luau|multi_edit)$/.test(tool) && /CurrentCamera|\.CameraType|BindToRenderStep|Camera\.CFrame|cam\.CFrame/.test(JSON.stringify(ti))))
+    return deny('Owner rule: never move or capture the Roblox Studio camera (no screenshots, videos, cinematics, camera code). Check looks from the export instead: Sandbox studio shots render (tools/3d/studio test/run.mjs shots) or the exported file.');
+
   // 3-try cap: the exact same call already failed 3 times this turn -> change approach instead of looping.
   if (transcript_path && /^(Bash|PowerShell|mcp__)/.test(tool)) {
     const turn = parseTurn(readTail(transcript_path, 1_500_000));
