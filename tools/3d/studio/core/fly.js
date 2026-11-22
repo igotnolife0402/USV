@@ -80,9 +80,12 @@ export function startFly(nav) {
     if (!MOVE.has(e.code) || e.ctrlKey || e.metaKey) return
     e.stopImmediatePropagation(); e.preventDefault(); keys.add(e.code); kick()
   }
-  const ku = e => { if (keys.delete(e.code)) e.stopImmediatePropagation() }
+  // a missed keyup kept the camera flying: Meta/Ctrl swallow keyups (macOS), focus can leave the page mid-press
+  const ku = e => { if (e.key === 'Meta' || e.key === 'Control') keys.clear(); if (keys.delete(e.code)) e.stopImmediatePropagation() }
   const blur = () => keys.clear()
+  const vis = () => { if (document.hidden) keys.clear() }
   addEventListener('keydown', kd, true); addEventListener('keyup', ku, true); addEventListener('blur', blur)
+  document.addEventListener('visibilitychange', vis); el.addEventListener('focusout', blur)
 
   // ---------- motion ----------
   const fwd = new THREE.Vector3(), right = new THREE.Vector3(), tmp = new THREE.Vector3()
@@ -98,8 +101,10 @@ export function startFly(nav) {
   }
   function step(_, metres) { basis(); nav.camera().position.addScaledVector(fwd, metres * speed * 0.25); apply() }
   function kick() { if (running || dead) return; running = true; loop(frame) }
+  let sdt = 1 / 60
   function frame(dt) {
     if (dead) { running = false; return false }
+    sdt += (Math.min(dt, 1 / 20) - sdt) * 0.25            // smoothed step: one slow frame no longer jumps the camera
     const k = (n, ...c) => c.some(x => keys.has(x)) ? n : 0
     const fast = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 4 : 1
     const f = k(1, 'KeyW', 'ArrowUp') - k(1, 'KeyS', 'ArrowDown') - joy.y
@@ -109,9 +114,10 @@ export function startFly(nav) {
     tmp.set(0, 0, 0).addScaledVector(fwd, f).addScaledVector(right, s); tmp.y += u
     if (tmp.lengthSq() > 1) tmp.normalize()
     tmp.multiplyScalar(speed * fast)
-    vel.lerp(tmp, 1 - Math.exp(-dt * 10))                 // ease in and out, no jerk
-    nav.camera().position.addScaledVector(vel, dt); apply()
-    if (!tmp.lengthSq() && vel.lengthSq() < 1e-4) { vel.set(0, 0, 0); running = false; return false }
+    const moving = tmp.lengthSq() > 0
+    vel.lerp(tmp, 1 - Math.exp(-sdt * (moving ? 12 : 30)))   // ease in; release stops in ~0.1 s (no drift)
+    nav.camera().position.addScaledVector(vel, sdt); apply()
+    if (!moving && vel.lengthSq() < speed * speed * 1e-4) { vel.set(0, 0, 0); running = false; return false }
   }
   apply()
 
@@ -121,6 +127,7 @@ export function startFly(nav) {
     el.removeEventListener('pointerup', upE, true); el.removeEventListener('pointercancel', upE, true)
     el.removeEventListener('wheel', wheel, true); el.removeEventListener('contextmenu', ctx, true)
     removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); removeEventListener('blur', blur)
+    document.removeEventListener('visibilitychange', vis); el.removeEventListener('focusout', blur)
     ui.remove()
     basis(); orbit.target.copy(nav.camera().position).addScaledVector(fwd, Math.max(look * 6, 2))
     orbit.enabled = true; orbit.update(); requestRender()

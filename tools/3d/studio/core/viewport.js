@@ -317,7 +317,7 @@ export function createViewport(app, el) {
     const dt = lastT ? Math.min(0.1, (t - lastT) / 1000) : 1 / 60
     lastT = loops.size ? t : 0
     for (const fn of [...loops]) { let keep; try { keep = fn(dt, t) } catch (e) { console.error(e); keep = false } if (keep === false) loops.delete(fn) }
-    if (!loops.size && renderer.getPixelRatio() < fullDpr) { renderer.setPixelRatio(fullDpr); frameEma = slowFrames = 0 }
+    if (!loops.size && !flyStop && renderer.getPixelRatio() < fullDpr) { renderer.setPixelRatio(fullDpr); frameEma = slowFrames = 0 }
     render()
     vp.stats.dpr = renderer.getPixelRatio()
     if (loops.size) requestRender()
@@ -647,7 +647,7 @@ export function createViewport(app, el) {
   }
   function activeTool() { const t = app.tools.get(app.tool); return t && !t.builtin && (t.onDown || t.onMove) ? t : null }
   el.addEventListener('pointerdown', e => {
-    if (e.target !== canvas) return
+    if (flyStop || e.target !== canvas) return             // fly mode owns the pointer: no select box, drag or pick
     canvas.focus({ preventScroll: true })
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
     app.ui?.closeMenus?.()
@@ -683,6 +683,7 @@ export function createViewport(app, el) {
   }, true)
   function cancelOrbit() { canvas.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1 })) }
   addEventListener('pointermove', e => {
+    if (flyStop) return                                     // no hover raycasts while flying (they lagged dense scenes)
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
     if (!gesture) { if (e.target === canvas && e.pointerType === 'mouse' && !e.buttons) hoverAt(e); return }
     const g = gesture
@@ -722,6 +723,7 @@ export function createViewport(app, el) {
   addEventListener('pointercancel', endPointer)
   canvas.addEventListener('contextmenu', e => e.preventDefault())
   canvas.addEventListener('dblclick', e => {
+    if (flyStop) return
     const hit = pick(e.clientX, e.clientY)
     if (hit && app.obj(hit.id)) { app.select([hit.id]); vp.frame([hit.id]) }
   })
@@ -952,6 +954,7 @@ export function createViewport(app, el) {
     if (flyBusy || !!on === !!flyStop) return !!flyStop
     if (!on) { const s = flyStop; flyStop = null; s(); flyBtn.classList.remove('on'); saveCam(); app.emit('camera', camState()); return false }
     flyBusy = true
+    clearTimeout(gesture?.timer); gesture = null; pointers.clear()
     try {
       if (camera === ortho) setOrtho(false)
       camAnim?.()
