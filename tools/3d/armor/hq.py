@@ -269,7 +269,7 @@ class Kit:                                          # writes OUT/geo/<prefix>-<g
             if cur: parts.append(cur)
             for k, fs in enumerate(parts):
                 used = sorted({v for f in fs for v in f}); rm = {v: i for i, v in enumerate(used)}
-                geo = {'verts': [x for v in used for x in W[v]], 'faces': [[rm[v] for v in f] for f in fs], 'uvs': [0] * (2 * len(used))}
+                geo = {'verts': [x for v in used for x in W[v]], 'faces': [[rm[v] for v in f] for f in fs], 'uvs': []}   # no uvs: the page box-projects material textures (brushed, corroded, fabric) in studs
                 gid = f'{s.prefix}-{g.lower()}-{mat}{k}'
                 with open(os.path.join(s.out, 'geo', gid + '.json'), 'w') as fh: json.dump(geo, fh, separators=(',', ':'))
                 s.docs.append(gid)
@@ -335,25 +335,35 @@ def _inside(pts, T):                                # ray parity along a skew di
     return hit.sum(1) % 2 == 1
 
 
+_OV = {}
+def _ov_init(P, depth, groups): _OV.update(P=P, depth=depth, groups=groups)
+
+
+def _ov_one(i):
+    P, depth, groups = _OV['P'], _OV['depth'], _OV['groups']; A = P[i]; bad = []
+    sa = A['V'] if len(A['V']) <= 160 else A['V'][np.linspace(0, len(A['V']) - 1, 160).astype(int)]
+    for j, B in enumerate(P):
+        if groups and A['grp'] not in groups and B['grp'] not in groups: continue
+        if i == j or np.any(A['hi'] < B['lo'] + depth) or np.any(A['lo'] > B['hi'] - depth): continue
+        m = np.all((sa > B['lo'] + depth) & (sa < B['hi'] - depth), 1)
+        if not m.any(): continue
+        pts = sa[m]; ins = _inside(pts, B['T'])
+        if not ins.any() or ins.sum() == len(sa): continue   # wholly inside (a core in its glass, a collar under the helm): hidden
+        S = np.concatenate([B['V'], B['T'].mean(1), (B['T'][:, 0] + B['T'][:, 1]) / 2, (B['T'][:, 1] + B['T'][:, 2]) / 2])
+        dd = np.sqrt(((pts[ins][:, None] - S[None]) ** 2).sum(-1)).min(1); deep = dd > depth
+        if deep.any(): bad.append(dict(a=A['name'], b=B['name'], n=int(deep.sum()), depth=round(float(dd.max()), 3),
+                                       at=[round(float(x), 2) for x in pts[ins][deep].mean(0)]))
+    return bad
+
+
 def overlaps(out, depth=0.02, limit=40, groups=None):
     """Parts sticking through other parts: a vertex of piece A deeper than `depth` studs inside closed piece B (rest pose,
     every group) while other vertices of A stay outside: a visible poke-through. Mounts (rivet heads, trims laid on a plate,
-    horn roots) sit shallower and pass; parts wholly inside another are hidden and pass. Returns the worst pairs."""
+    horn roots) sit shallower and pass; parts wholly inside another are hidden and pass. Runs on every CPU core."""
+    from concurrent.futures import ProcessPoolExecutor
     P = _pieces(out); bad = []
-    for i, A in enumerate(P):
-        sa = A['V'] if len(A['V']) <= 160 else A['V'][np.linspace(0, len(A['V']) - 1, 160).astype(int)]
-        for j, B in enumerate(P):
-            if groups and A['grp'] not in groups and B['grp'] not in groups: continue
-            if i == j or np.any(A['hi'] < B['lo'] + depth) or np.any(A['lo'] > B['hi'] - depth): continue
-            m = np.all((sa > B['lo'] + depth) & (sa < B['hi'] - depth), 1)
-            if not m.any(): continue
-            pts = sa[m]; ins = _inside(pts, B['T'])
-            if not ins.any(): continue
-            S = np.concatenate([B['V'], B['T'].mean(1), (B['T'][:, 0] + B['T'][:, 1]) / 2, (B['T'][:, 1] + B['T'][:, 2]) / 2])
-            dd = np.sqrt(((pts[ins][:, None] - S[None]) ** 2).sum(-1)).min(1); deep = dd > depth
-            if ins.sum() == len(sa): continue           # wholly inside (a core in its glass, a collar under the helm): hidden, fine
-            if deep.any(): bad.append(dict(a=A['name'], b=B['name'], n=int(deep.sum()), depth=round(float(dd.max()), 3),
-                                           at=[round(float(x), 2) for x in pts[ins][deep].mean(0)]))
+    with ProcessPoolExecutor(initializer=_ov_init, initargs=(P, depth, groups)) as ex:
+        for r in ex.map(_ov_one, range(len(P)), chunksize=8): bad += r
     bad.sort(key=lambda r: -r['depth'] * r['n']); return bad[:limit], len(bad)
 
 

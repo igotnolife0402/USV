@@ -11,6 +11,12 @@ The owner wants top quality with less load on the main model: you think, workers
 - Split into up to 3 independent pieces. One owner per file: two workers never touch the same file. Fewer real pieces than 3 → use fewer workers, never pad. A piece that needs another piece's output waits for the next round.
 - Things that must fit together (names, ids, function signatures, file paths, data shapes) go in a written contract you paste into every brief.
 
+## 1b. Speed (owner, 2026-11-22): workers exist to make the task FASTER
+- Cut work into small parallel pieces of <= 5 min each (research, one file, one fix list), never one long open-ended job per worker.
+- Every brief has a hard cap: "<= 15 tool calls, report by 5 min, partial is fine". Wall clock of the whole task stays in its tier.
+- The brain never waits idle: it writes the integration, the checks and the next step while workers run.
+- Give workers exact defect lists (from your check), not "find and fix everything".
+
 ## 2. Brief (one message, all workers in parallel)
 Spawn `crew-worker` agents in ONE message (run_in_background so you keep working). Each brief is complete on its own (workers can't see this conversation):
 1. Goal of the whole task in one line, then THEIR piece exactly.
