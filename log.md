@@ -118,3 +118,6 @@ repo-check lesson 400-char cap now ignores allowed " → promoted/dup of" suffix
 
 ## [2026-11-22] fix / crew brain pre-spawn cap
 Easy builds: one template read, router notes deferred to review, spawn within 60 s; no pre-built check. L-091.
+
+## [2026-11-22] build / tactical shotgun (crew)
+- tools/3d/props/shotgun.py: brain wrote template + checks; 3 crew workers made palette variants in ~25 s each, all passed detail/attach/zfight; kept tactical, built live in Umbrio (project tactical-shotgun, 27 writes).

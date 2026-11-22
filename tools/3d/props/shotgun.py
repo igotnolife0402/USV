@@ -16,10 +16,10 @@ import props as P  # noqa: E402
 import guns as G  # noqa: E402
 from guns import B, S, pair, poly, side, tube, screws, row, tex, mk, glow, STEEL, GUNM, DARK  # noqa: E402,F401
 
-NAME, TITLE = "pump-shotgun", "Pump Shotgun"
+NAME, TITLE = "tactical-shotgun", "Tactical Shotgun"
 # palette (variants change only these)
-BODY, BODYD, BODYL, BODYTEX = "#8A5A34", "#64401F", "#A8754A", "woodgrain"
-RECV, BEAD, SHELL, BRASS = GUNM, "#FFB020", "#C8322B", "#D9A63A"
+BODY, BODYD, BODYL, BODYTEX = "#2A2C30", "#1E2024", "#3A3D43", "noise"
+RECV, BEAD, SHELL, BRASS = "#5E6B47", "#3CFF6A", "#C8322B", "#D9A63A"
 BARREL_END, TUBE_END = 10.0, 9.4  # x where barrel / magazine tube end
 
 
@@ -35,16 +35,16 @@ def shotgun(rng):
            "#2A2C31", "grip", roughness=0.9),
         mk("receiver", S(2.9, 5.0, 1.55, 2.45, W), RECV, "metal", metalness=0.7, roughness=0.35),
         mk("receiver-top", S(3.0, 4.9, 2.45, 2.55, W - 0.2), DARK, "metal", metalness=0.6),
-        mk("port", pair(3.6, 4.5, 1.95, 2.3, W / 2, W / 2 + 0.05), "#24272C", "metal", metalness=0.5),
+        mk("port", B(3.6, 4.5, 1.95, 2.3, W / 2, W / 2 + 0.05), "#24272C", "metal", metalness=0.5),
         mk("loading-gate", S(3.4, 4.6, 1.45, 1.56, W - 0.2), DARK, "metal", metalness=0.6),
         mk("guard", P.merge(S(3.0, 4.0, 1.0, 1.1, 0.2), S(3.9, 4.0, 1.1, 1.55, 0.2)), GUNM, "metal", metalness=0.6),
         mk("trigger", poly([(3.4, 1.55), (3.53, 1.55), (3.51, 1.22), (3.43, 1.2)], 0.12, 0.015), STEEL, "metal", metalness=0.8),
-        mk("barrel", tube(5.0, BE, 2.2, [(0.17, 0), (0.17, BE - 5.0)]), STEEL, "metal", metalness=0.8, roughness=0.3),
-        mk("muzzle", tube(BE, BE + 0.25, 2.2, [(0.21, 0), (0.21, 0.25)]), DARK, "metal", metalness=0.7),
+        mk("barrel", tube(5.0, BE, 2.2, [(0.17, 0), (0.17, BE - 5.0)], seg=32), STEEL, "metal", metalness=0.8, roughness=0.3),
+        mk("muzzle", tube(BE, BE + 0.25, 2.2, [(0.21, 0), (0.21, 0.12), (0.19, 0.14), (0.19, 0.25)], seg=32), DARK, "metal", metalness=0.7),
         mk("rib", S(5.0, BE - 0.1, 2.36, 2.43, 0.16, 0.012), DARK, "metal", metalness=0.6),
         glow("bead", S(BE - 0.15, BE - 0.02, 2.42, 2.52, 0.08, 0.012), BEAD),
-        mk("mag-tube", tube(5.0, TE, 1.86, [(0.17, 0), (0.17, TE - 5.0)]), GUNM, "metal", metalness=0.7),
-        mk("mag-cap", tube(TE, TE + 0.25, 1.86, [(0.19, 0), (0.19, 0.18), (0.15, 0.25)]), STEEL, "metal", metalness=0.8),
+        mk("mag-tube", tube(5.0, TE, 1.86, [(0.17, 0), (0.17, TE - 5.0)], seg=32), GUNM, "metal", metalness=0.7),
+        mk("mag-cap", tube(TE, TE + 0.25, 1.86, [(0.19, 0), (0.19, 0.18), (0.15, 0.25)], seg=32), STEEL, "metal", metalness=0.8),
         mk("clamp", S(TE - 0.5, TE - 0.3, 1.66, 2.4, 0.4), DARK, "metal", metalness=0.6),
         mk("pump", S(5.6, 7.6, 1.6, 2.12, W - 0.08), BODY, "body", roughness=0.6),
         mk("pump-grooves", row(lambda x: pair(x, x + 0.08, 1.66, 2.06, (W - 0.08) / 2, (W - 0.08) / 2 + 0.04),
