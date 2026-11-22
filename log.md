@@ -97,3 +97,6 @@ Owner: low detail vs the Venomreaver armor; floating spikes. Crew (3 workers) wr
 ## [2026-11-22] build / 5 vapes
 - tools/3d/props/vape_a|b|c.py + vapes.py: pod-vape, box-mod, disposable-vape, vape-pen, mech-mod (toon, 19-25 parts, 7-12k tris). Mesh check ok, detail PASS x5, zfight --prop PASS; preview looked at; studio shots not run.
 - zfight.py: --prop mode (prop-scale bands), skips see-through parts; vapes.py --check runs every gate in one command; small-prop one-shot rules in props README.
+
+## [2026-11-22] skill / crew size gate
+- crew: size gate (0 workers when <= 3 min), haiku for mechanical pieces, one gate command made before briefing.

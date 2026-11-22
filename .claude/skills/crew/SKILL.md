@@ -1,10 +1,21 @@
 ---
 name: crew
-description: 'Use for /crew <task> or when the owner wants sub agents with the main model as manager, any task. Main model = brain (plan, brief, check, merge); 3 crew-worker agents (Sonnet 5.5, medium) = hands that do exactly their brief. Huge specced builds: swarm.'
+description: 'Use for /crew <task> or when the owner wants sub agents with the main model as manager, any task; size gate first (0 workers when small). Main model = brain (plan, brief, check, merge); 3 crew-worker agents (Sonnet 5.5, medium) = hands that do exactly their brief. Huge specced builds: swarm.'
 ---
 # crew: you are the brain, 3 workers are the hands
 
 The owner wants top quality with less load on the main model: you think, workers execute. Quality comes from YOUR briefs and YOUR checks, never from trusting a worker.
+
+## 0. Size gate (owner 2026-11-22: crew on 5 small vapes was slower and dearer than one thread)
+Decide workers by cost, not by the skill name. Each worker costs ~1 min spawn+brief+merge and ~50k tokens.
+- 0 workers: task fits in <= 3 min of your own work, or the pieces need ~the same reading (small models, one file, a few edits). Do it yourself in one thread, same gates, and say "crew: 0 workers (too small)".
+- 1-3 workers: only pieces that each take > 3 min AND need different reading/files. Fewest that cut wall clock.
+- Model per piece: mechanical pieces (follow a template, rename, port, run a fixed check) → `model: "haiku"`; design pieces → the agent default. Never main-model workers for mechanical work.
+
+## 0b. Gate first (kills the fix-up rounds)
+- BEFORE briefing, the brain makes ONE check command that runs every gate the result must pass (tests, lint, detail floor, zfight at the right scale, render) and runs it on an existing example so it is known to work.
+- Every brief names that exact command; a worker reports DONE only on its exit 0. The brain runs the same command once on the merge. No gate the workers did not run gets added after.
+- Give workers a template file to copy (closest existing working example) plus the known-pitfall list from the domain README/errors.md, so the first try passes.
 
 ## 1. Plan (you only, before any worker starts)
 - Read only what you need to understand the task (routed notes, the files it touches). Decide the result and how you will check it.
