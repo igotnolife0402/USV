@@ -26,3 +26,6 @@ Voxel build for Roblox from code: a 3D grid of colours → greedy-merged anchore
 - `three` must be at `$NODE_MODULES/three` (or `node_modules/` here, gitignored); never commit it.
 - `render.js` uses Mesa llvmpipe when present (several times faster than SwiftShader); `GL=swiftshader` forces the old one.
 - three 0.186 has no `PCFSoftShadowMap`: use `PCFShadowMap`.
+
+## Small voxel props
+`python3 guns.py OUT` (template for hand-held voxel items): 3 guns at 0.2 stud/voxel, one Model each, gate = one connected body per item.
