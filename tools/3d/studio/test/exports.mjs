@@ -21,6 +21,16 @@ export default async function (t) {
       return { clips: c.length, tracks: c[0]?.tracks.length, first: c[0]?.tracks.slice(0, 6).map(x => x.name), names }
     })))
     const out = join(process.env.SCRATCH || '.', 'exports'); mkdirSync(out, { recursive: true })
+    if (process.env.EXPORT_LINK) {   // link-mode zip (rbxmx with placeholders + meshes .fbx): step 1 of the Roblox import route
+      const r = await s.eval(async () => {
+        const A = window.studio.app; let cap = null; A.store.download = async (n, d) => { cap = { n, d } }
+        await A.exec('roblox.export', { link: true })
+        const b = cap.d; let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000))
+        return { filename: cap.n, b64: btoa(s) }
+      })
+      writeFileSync(join(out, r.filename), Buffer.from(r.b64, 'base64')); t.log(`link export: ${r.filename}`)
+      return
+    }
     if (process.env.EXPORT_MESH_ASSETS) {   // the .rbxmx with uploaded mesh ids already in its MeshParts (no placeholders)
       const rd = k => process.env[k] ? JSON.parse(readFileSync(process.env[k], 'utf8')) : undefined
       const args = { meshAssets: rd('EXPORT_MESH_ASSETS'), textureAssets: rd('EXPORT_TEX_ASSETS'), animAssets: rd('EXPORT_ANIM_ASSETS') }

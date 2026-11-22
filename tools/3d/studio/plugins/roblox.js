@@ -173,7 +173,8 @@ function linkUploaded(root, meshes, assets) {
     const up = assets[me.key]; if (!up) continue
     const n = me.node, cf = propOf(n, 'CFrame')[2]
     setProp(n, 'CFrame', 'cf', { R: mm(cf.R, up.rot), t: cf.t }); setProp(n, 'Size', 'v3', up.size)
-    n.props.push(['MeshId', 'content', up.id], ['InitialSize', 'v3', up.size])
+    n.props.push(['MeshId', 'content', up.id], ['InitialSize', 'v3', up.size], ['RenderFidelity', 'token', 1])   // 1 = Precise: full detail up close
+    if (up.tex) n.props.push(['TextureID', 'content', up.tex])           // the texture the mesh upload carried (procedural/image skins)
     n.kids = n.kids.filter(k => !(k.cls === 'StringValue' && propOf(k, 'Name')[2] === 'UmbrioMesh'))
     me.linked = n.linked = true; turned.set(n, up.rot)
   }
@@ -864,7 +865,7 @@ for _, h in ipairs(holders) do
 		m.Color, m.Material, m.Transparency = h.Color, h.Material, h.Transparency
 		m.Anchored, m.CanCollide = h.Anchored, h.CanCollide
 		-- speed: detail lowers its triangles with distance; small pieces (books, candles, trim) get box collision and no shadow
-		pcall(function() m.RenderFidelity = Enum.RenderFidelity.Automatic end)
+		pcall(function() m.RenderFidelity = Enum.RenderFidelity.Precise end)
 		local big = math.max(m.Size.X, m.Size.Y, m.Size.Z)
 		if big < SMALL then
 			pcall(function() m.CollisionFidelity = Enum.CollisionFidelity.Box end)

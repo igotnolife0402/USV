@@ -154,13 +154,13 @@ def legs():
     q, m2 = Ps['f'].at(0.34, 0.0); rv(g, 'bronze', q, m2, 0.017)
     # --- knee: one shell (front + outer, deep sleeve behind) -0.05..0.37 carrying the cop and the fan wing
     ring(g, 'deep', 0.16, 0.21, hx=0.44, g=0.03, t=0.05, bl=0.06, rim=0.026, sides='b', nu=12, nv=6)
-    K = ring(g, 'plate', 0.16, 0.21, hx=0.44, g=0.03, t=0.05, bl=0.06, flare=0.0, rim=0.026, sides='fo', nu=14, nv=8)
+    K = ring(g, 'plate', 0.16, 0.21, hx=0.44, g=0.03, t=0.05, bl=0.06, flare=0.0, rim=0.026, sides='foi', nu=14, nv=8)
     pk, nk = K['f'].at(0, 0); boss(g, pk, nk, 0.17)
     po, _ = K['o'].at(0, 0)
     fan(g, po, (-36, -12, 12, 36), 0.19, ('plate', 'iron'), 0.01, 0.042, True)
     g.disc('bronze', po + X * 0.08, X, 0.05, 0.05, n=32)
     # --- greave shell -0.45..-0.05 with front ridge, calf vial behind the fan
-    P = ring(g, 'plate', -0.25, 0.2, hx=0.44, g=0.03, t=0.05, bl=0.06, flare=0.035, rim=0.028, ridge=0.06, nu=20, nv=14)
+    P = ring(g, 'plate', -0.25, 0.2, hx=0.44, g=0.03, t=0.05, bl=0.06, flare=0.035, rim=0.028, ridge=0.06, nu=20, nv=14, sides='fboi')
     f, o = P['f'], P['o']
     trim(g, f, [(x, 0.8 * f.h) for x in np.linspace(-0.45, 0.45, 9)], 0.012)
     trim(g, f, [(0, y) for y in np.linspace(-0.6 * f.h, 0.6 * f.h, 6)], 0.008, 0.004, 'glow')
@@ -192,8 +192,8 @@ def sabaton():
     s.rbox('dark', (0, -0.285, -0.42), (0.9, 0.075, 0.4), 0.03, seg=2)           # raised heel block
     # side / heel shell + cuff
     ring(s, 'bronze', 0.33, 0.022, hx=0.44, cz=cz, g=0.04, t=0.035, bl=0.04, rim=0.02, nu=14, nv=3)
-    Pi = ring(s, 'iron', -0.17, 0.09, hx=0.44, cz=cz, g=0.025, t=0.045, bl=0.04, rim=0.024, sides='bo', nu=14, nv=6)
-    P = ring(s, 'plate', 0.12, 0.17, hx=0.44, cz=cz, g=0.03, t=0.05, bl=0.05, rim=0.027, flare=0.03, sides='bo', nu=16, nv=10)
+    Pi = ring(s, 'iron', -0.17, 0.09, hx=0.44, cz=cz, g=0.025, t=0.045, bl=0.04, rim=0.024, sides='boi', nu=14, nv=6)
+    P = ring(s, 'plate', 0.12, 0.17, hx=0.44, cz=cz, g=0.03, t=0.05, bl=0.05, rim=0.027, flare=0.03, sides='boi', nu=16, nv=10)
     o = P['o']
     studs(s, o, [(sx * 0.36, 0.55 * o.h) for sx in (-1, 1)], 0.026)
     # toe dome (inside the shell, front tip 0.59) + shingled instep lames riding down onto it

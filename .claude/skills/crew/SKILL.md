@@ -16,6 +16,8 @@ The owner wants top quality with less load on the main model: you think, workers
 - Every brief has a hard cap: "<= 15 tool calls, report by 5 min, partial is fine". Wall clock of the whole task stays in its tier.
 - The brain never waits idle: it writes the integration, the checks and the next step while workers run.
 - Give workers exact defect lists (from your check), not "find and fix everything".
+- Medium task = whole crew run under 5 min wall clock: 1 round of workers, then the brain finishes; no second worker round unless the owner asks.
+- The moment a worker reports (or the cap passes), TaskStop it: no worker or its background command may stay running after its report.
 
 ## 2. Brief (one message, all workers in parallel)
 Spawn `crew-worker` agents in ONE message (run_in_background so you keep working). Each brief is complete on its own (workers can't see this conversation):

@@ -53,9 +53,10 @@ Generators that produce these files live in the 3D domain ([domains/3d/index.md]
 ## Umbrio Sandbox model -> Roblox, imported whole (verified 2026-11-22, Venomreaver)
 Never rebuild in Studio by script (owner rule). Route that imports meshes + R6 rig + armor joints + animation as ONE asset:
 1. Export the project with `roblox.export {link: true}` (rigs force this): `<name>.rbxmx` + `<name>-meshes.fbx`.
-2. Open Cloud `POST /assets/v1/assets` assetType Model with the `-meshes.fbx` (upload folder must be approved in Studio: Assistant Settings > MCP Permissions). Poll the operation.
+2. Upload files only from `%USERPROFILE%/RobloxImports/<name>/` (the approved folder; any other path is refused). Headless steps: `EXPORT_TAB=<tab dir> EXPORT_LINK=1 node test/run.mjs exports` (step 1), `EXPORT_MESH_ASSETS=<json> EXPORT_FORMATS=none` (step 4). Open Cloud `POST /assets/v1/assets` assetType Model with the `-meshes.fbx`. EVERY Roblox upload (models, meshes, animations, VFX sheets, audio) goes from the ONE owner-approved folder `~/RobloxImports/ (the user profile folder)` (owner rule 2026-11-22; approved once in Studio: Assistant Settings > MCP Permissions). Never upload from any other folder. Poll the operation.
 3. Read mesh ids without inserting: `game:GetObjects("rbxassetid://<id>")[1]`, calibrate with the UMBCAL cubes, JSON `{UMB00001: {id, size, rot}}` (importer turn was Ry180, scale 1).
 4. Export again with `roblox.rbxmx {meshAssets}`: MeshParts carry MeshId + InitialSize, joints absorb the turn in C0/C1, no placeholders.
+   Read `m.TextureID` too and add it as `tex` per key: textured meshes (procedural skins) keep their texture (Shadow Monster 2026-11-22).
 5. Upload that `.rbxmx` as Model with file `contentType: "model/x-rbxm"` (`model/x-rbxmx` is rejected "not supported yet"), then `insert_asset`.
 6. Animation for in-game play: `roblox.rbxmx {animOnly: true}` -> upload as assetType Animation (contentType model/x-rbxm) -> pass `animAssets: {"<clip name>": "rbxassetid://<id>"}`.
 7. VFX: upload each flipbook sheet .png as assetType Decal, read the image id via `game:GetObjects("rbxassetid://<decal>")[1].Texture`, pass `textureAssets: {<tex id>: image id}`: flipbooks become ParticleEmitters (Grid8x8, OneShot, Rate 0, ZOffset over the body, StartTime NumberValue).

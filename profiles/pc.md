@@ -35,3 +35,5 @@ Everything connected is allowed. Order: Claude-native (own tools, repo skills) â
 - Log to [log.md](log.md); stop-gate auto-commits. Push so phone sessions see the change (`git push`).
 - Binaries stay local/out of git; commit the scripts that produce them.
 - Mobile rules and fallbacks: [profiles/mobile.md](profiles/mobile.md).
+
+- Roblox uploads: one fixed folder `~/RobloxImports/ (the user profile folder)` for everything (models, meshes, animation, VFX, audio); the owner approves it once in Studio MCP Permissions (2026-11-22).
