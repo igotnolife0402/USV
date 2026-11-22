@@ -30,7 +30,8 @@ for k, m in meshes do
 	local R = Q:Inverse() * m.CFrame.Rotation
 	local _, _, _, a, b, c, d, e, f, g, h, i = R:GetComponents()
 	out[k] = { id = m.MeshId, size = { r4(m.Size.X / s), r4(m.Size.Y / s), r4(m.Size.Z / s) },
-		rot = { math.round(a), math.round(b), math.round(c), math.round(d), math.round(e), math.round(f), math.round(g), math.round(h), math.round(i) } }
+		rot = { math.round(a), math.round(b), math.round(c), math.round(d), math.round(e), math.round(f), math.round(g), math.round(h), math.round(i) },
+		tex = m.TextureID ~= "" and m.TextureID or nil }
 	n += 1
 end
 root:Destroy()

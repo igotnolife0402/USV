@@ -14,6 +14,7 @@ Outputs never go in the vault: copy a tool or pass an OUT folder in the scratchp
 | [beast](beast/README.md) | Rigged block creatures (orc, dragon) → GLB + Roblox kit + Studio tab + MP4 | `python orc.py out --sheets DIR` (needs VFX sheets), `node video.mjs out` (ffmpeg) | PC |
 | [avatar](avatar/README.md) | Roblox avatar from real catalog items, posed/animated Studio tab, faces | `python catalog.py KIT ...`, `python avatar.py KIT OUT`, `python faces.py f.png grin` | both (catalog needs network) |
 | [armor](armor/README.md) | Blocky armor sets fitted to the R6 rig (dragon, frost, solar, storm) | `python armor.py OUT cuirass`; `python sets.py OUT frost helm` | both |
+| [detail](detail/README.md) | Detail-floor gate for every model (meshes, textures, parts, tris; thresholds floor.json) | `python detail/detail.py check project.json geo/ --class hero` (exit 1 = too cheap) | both |
 
 Browser env vars (render.js, video.mjs, studio test/run.mjs): `NODE_TOOLS` = folder whose `node_modules` holds playwright (cloud default `/opt/node-tools`), `CHROME` = browser exe when Playwright's own Chromium is missing (PC: `C:/Program Files/Google/Chrome/Application/chrome.exe`), `NODE_MODULES`/`DEPS` = folder holding `three`.
 Not ported (one-off project builds, knowledge moved to [3d errors](../../domains/3d/errors.md)): cathedral, skylight, conemap, borders, bamboo.

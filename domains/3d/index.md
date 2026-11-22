@@ -9,6 +9,7 @@ triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, vox
 Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.js Artifacts + procedural geometry in repo files.
 
 ## Read in this order
+0. [Detail floor](domains/3d/detail.md): EVERY model meets it (meshes, textures, many parts) + gate. Read before any model.
 1. [Playbook](domains/3d/playbook.md): fastest path, PC vs mobile, quality bar.
 2. [Errors](domains/3d/errors.md): symptom → fix table.
 3. [Pipeline](domains/3d/pipeline.md): Blender → GLB export, three.js load, Roblox export.

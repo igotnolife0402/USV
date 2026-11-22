@@ -8,6 +8,7 @@ triggers: [roblox, luau, studio, rojo, obby, tycoon]
 - [ ] `node tools/roblox/rbxmx-check.mjs <file>.rbxmx` passes for every .rbxmx handed over.
 - [ ] Used the [roblox skill](.claude/skills/roblox/SKILL.md); followed the [roblox playbook](domains/roblox/playbook.md).
 - [ ] Owner floor met ([profiles/owner.md](profiles/owner.md)): full detail, no placeholders, scope exactly as asked, original (no clones).
+- [ ] Models: [detail floor](domains/3d/detail.md) gate passes (`tools/3d/detail/detail.py` or `tools/roblox/detail-check.mjs`): custom meshes, textures, many combined parts.
 - [ ] 10-second test: a new player knows the goal within 10 s without reading; first win in minutes.
 - [ ] UI at phone 844x390: text >= 14 px, taps >= 38 px, no overlaps or clipped text; every shop item shows effect + price; no empty tabs.
 - [ ] UI and hero builds come from a decided palette + layout (+ type), references first; builds also pass [checklists/3d.md](checklists/3d.md).

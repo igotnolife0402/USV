@@ -31,6 +31,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Maximum quality by default, expert-level, matching the owner's references; all effort up front.
 - A previous build is an identity reference, never the quality ceiling: new or remade models use the best kit available (3d: tools/3d/armor/hq.py), not the older piece's detail level (2026-11-22).
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".
+- Every model meets the [detail floor](domains/3d/detail.md) (custom meshes + textures + many combined parts, gate-checked); the owner rated cheap few-primitive builds "Haiku quality" (2026-11-22).
 - Models are built from many separate parts (spheres, capsules, cones, cylinders, wedges; owner 2026-11-22), with real detail; never one big fused mesh, never voxels/blocks unless asked.
 - Scope = what was asked. A model is only that model: no ground, scenery or props unless asked. A named theme (e.g. "grassy meadow") is built first, everywhere the camera sees.
 - "Build me X" means the built thing in the target tool (Studio, editor, page), not code that describes it, unless scripts are asked for.

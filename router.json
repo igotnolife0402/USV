@@ -190,7 +190,13 @@
         "beast",
         "orc",
         "dragon",
-        "shadow monster"
+        "shadow monster",
+        "detail floor",
+        "haiku quality",
+        "cheap model",
+        "more detail",
+        "textures and meshes",
+        "polished model"
       ],
       "notes": [
         "domains/3d/index.md",

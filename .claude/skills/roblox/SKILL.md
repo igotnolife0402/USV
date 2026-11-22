@@ -55,6 +55,7 @@ Playtest via MCP + console shows zero errors/warnings from our scripts and the f
 - [ ] Repo files match Studio (Rojo synced or scripts exported).
 
 ## Domain notes and tools
+- Models/builds: [detail floor](../../../domains/3d/detail.md) + gate `tools/roblox/detail.luau` → `node tools/roblox/detail-check.mjs - --class hero`.
 - Imports/kits/asset ids: [delivery](domains/roblox/delivery.md); UI: [ui](domains/roblox/ui.md); game design + playtest sims: [game-design](domains/roblox/game-design.md); lobbies/maps: [maps](domains/roblox/maps.md).
 - Tools: `tools/roblox/rbxmx-check.mjs` (run before handing over any .rbxmx), `tools/roblox/lobby` (validator), `tools/roblox/shop` (palette/vivid checks). Index: `tools/roblox/README.md`.
 

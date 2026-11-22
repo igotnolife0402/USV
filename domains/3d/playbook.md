@@ -15,6 +15,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Asset for Roblox | Blender → FBX/GLB within [Roblox limits](domains/roblox/pipeline.md) |
 
 ## Owner rules (permanent, from the old vault)
+- **Detail floor first** ([detail.md](domains/3d/detail.md)): every model, every route; gate `tools/3d/detail/detail.py` must pass before done.
 - Maximum quality unless the owner says otherwise: real modelled detail (curved plates, individual scales, horns), PBR metal, never placeholder blocks. An owner reference is the target to match (e.g. [dragon armor](.claude/references/dragon-armor-reference.jpg): glossy deep-red scaled plate, horned closed helm, spiked pauldrons, clawed gauntlets).
 - Start from the closest tool below and reuse its README Steps and code; look once, never a render-rate-fix quality loop.
 - Every finished piece goes in a fresh [Studio](domains/3d/studio.md) tab, the exact model, written the fastest way; live stages only when asked. Renders come from the Studio (Render image, shots check).

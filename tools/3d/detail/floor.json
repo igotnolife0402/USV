@@ -1,0 +1,18 @@
+{
+  "_doc": "Detail floor thresholds (owner 2026-11-22). One source: read by tools/3d/detail/detail.py (Studio projects) and tools/roblox/detail-check.mjs (Roblox models). Rules: domains/3d/detail.md.",
+  "classes": {
+    "prop": {"min_parts": 15, "min_mesh_ratio": 0.5, "min_textured_ratio": 0.6, "min_colors": 4, "min_surfaces": 2, "min_tris": 3000, "max_same_size_ratio": 0.35},
+    "hero": {"min_parts": 40, "min_mesh_ratio": 0.6, "min_textured_ratio": 0.7, "min_colors": 6, "min_surfaces": 3, "min_tris": 15000, "max_same_size_ratio": 0.25},
+    "scene": {"min_parts": 120, "min_mesh_ratio": 0.4, "min_textured_ratio": 0.7, "min_colors": 8, "min_surfaces": 5, "min_tris": 40000, "max_same_size_ratio": 0.3}
+  },
+  "max_tris_per_mesh": 19000,
+  "definitions": {
+    "parts": "visible geometry objects (Studio part|mesh; Roblox BasePart incl. MeshPart/UnionOperation), not lights, groups, helpers, transparency >= 0.95",
+    "mesh_ratio": "custom meshes / parts (Studio type mesh; Roblox MeshPart or UnionOperation or SpecialMesh with MeshId)",
+    "textured_ratio": "textured / non-glow parts. Textured = Studio texture set; Roblox TextureID, SurfaceAppearance, Texture/Decal child, or Material not Plastic/SmoothPlastic. Glow = Neon material, excluded",
+    "colors": "distinct colours after rounding each RGB channel to 16 levels",
+    "surfaces": "distinct texture ids + distinct materials",
+    "tris": "total triangles (Studio from geo faces, quads = 2; Roblox: MeshPart TriangleCount if readable else skip the check)",
+    "same_size_ratio": "largest group of parts sharing an identical size (rounded to 0.01) / parts; catches even repetition"
+  }
+}

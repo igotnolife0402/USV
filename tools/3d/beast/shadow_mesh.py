@@ -19,9 +19,12 @@ TEX = {
     't-skin2': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#2f2349', '#17111f', '#46366a'], 'count': 18, 'detail': 0.55, 'seed': 9, 'res': 512, 'scale': 1},
     't-ridge': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#3d2e5d', '#211833', '#56437e'], 'count': 18, 'detail': 0.5, 'seed': 2, 'res': 512, 'scale': 1},
     't-horn': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#1d1827', '#0c0a11', '#3e3456'], 'count': 6, 'detail': 0.8, 'seed': 5, 'res': 512, 'scale': 1},
+    't-dark': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#110c1a', '#07050b', '#22193a'], 'count': 14, 'detail': 0.55, 'seed': 11, 'res': 512, 'scale': 1},
+    't-teeth': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#d8cfe8', '#a89cc0', '#f1ebfa'], 'count': 5, 'detail': 0.5, 'seed': 12, 'res': 512, 'scale': 1},
+    't-smoke': {'kind': 'procedural', 'pattern': 'fabric', 'colors': ['#2a2040', '#1a1428', '#45356a'], 'count': 10, 'detail': 0.4, 'seed': 13, 'res': 512, 'scale': 1},
     't-claw': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#0f0c15', '#050407', '#2a2338'], 'count': 8, 'detail': 0.8, 'seed': 6, 'res': 512, 'scale': 1},
 }
-SURF = {SP.BODY: ('t-skin', 0.55), SP.BODY2: ('t-skin2', 0.5), SP.RIDGE: ('t-ridge', 0.45), SP.HORN: ('t-horn', 0.35), SP.HORN2: ('t-horn', 0.3), SP.CLAW: ('t-claw', 0.25)}
+SURF = {SP.BODY: ('t-skin', 0.55), SP.BODY2: ('t-skin2', 0.5), SP.RIDGE: ('t-ridge', 0.45), SP.HORN: ('t-horn', 0.35), SP.HORN2: ('t-horn', 0.3), SP.CLAW: ('t-claw', 0.25), SP.DARK: ('t-dark', 0.6), SP.TEETH: ('t-teeth', 0.3), SP.SMOKE: ('t-smoke', 0.8), SP.SMOKE2: ('t-smoke', 0.8)}
 GLOW = {SP.EYE, SP.CORE, SP.VEIN, SP.MOUTH, SP.WISP}
 
 def emit(seg, V, F, UV, col, tr=0.0):

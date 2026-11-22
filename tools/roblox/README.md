@@ -6,6 +6,7 @@ Generated `out/` folders are not committed: rerun the build.
 | Tool | Does | Run | Mode |
 |---|---|---|---|
 | `rbxmx-check.mjs` | Pre-delivery check of any `.rbxmx`: tags balance, every `<Ref>` resolves, unique referents, every script has `Source` | `node tools/roblox/rbxmx-check.mjs file.rbxmx` (`--self-test` for its own test) | both |
+| `detail.luau` + `detail-check.mjs` | Detail-floor gate for models built in Studio: the chunk (swap `MODEL_NAME`, run via execute_luau, read-only) returns raw counts; the checker compares them to `tools/3d/detail/floor.json` | `node tools/roblox/detail-check.mjs <metrics.json \| -> [--class prop\|hero\|scene]` (exit 1 on fail, 2 bad input) | PC (Studio MCP); checker both |
 | `lobby/` | Deterministic lobby generator (meadow, hero spawn, Old Oak centrepiece) + validator: schema, budgets (6,000 objects, 24 lights, 4 shadows, 230 KB doc), hero and scene detail floors (spawn clearance, gates, framing are spec rules NOT yet automated) | `node tools/roblox/lobby/build.mjs && node tools/roblox/lobby/validate.mjs` (exit 1 on fail); tests `node --test tools/roblox/lobby/test/` | both |
 | `lobby/live.mjs`, `lobby/stage.mjs` | Split the build into ordered write batches (`live.mjs`: <= 750 KB per batch; `stage.mjs`: <= 150 objects per write) so the owner watches it grow | `node tools/roblox/lobby/live.mjs [--from "Stage"]` | both |
 | `lobby/blueprints/oak.md` | Blueprint example: references, dimensions, part counts before modelling | read | both |

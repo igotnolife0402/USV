@@ -1,0 +1,6 @@
+{
+ "name": "detail",
+ "what": "Detail-floor gate for every model: custom mesh ratio, textured ratio, part count, colours, surfaces, tris, repetition; thresholds in floor.json (prop/hero/scene)",
+ "run": "python detail.py check project.json geo/ --class hero",
+ "prompt": "Check my model meets the detail floor"
+}
