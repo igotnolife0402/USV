@@ -100,3 +100,6 @@ Owner: low detail vs the Venomreaver armor; floating spikes. Crew (3 workers) wr
 
 ## [2026-11-22] skill / crew size gate
 - crew: size gate (0 workers when <= 3 min), haiku for mechanical pieces, one gate command made before briefing.
+
+## [2026-11-22] build / 3 voxel guns
+tools/3d/voxel/guns.py -> PlasmaPistol, AssaultRifle, SniperRifle .rbxmx in ~/RobloxImports/voxel-guns; gate: one connected body each (caught floating bipod). Not visually verified.
