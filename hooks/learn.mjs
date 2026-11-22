@@ -82,10 +82,10 @@ const rel = (p) => (isAbsolute(p) ? relative(ROOT, p) : p).replace(/\\/g, '/').r
 export const domainsOf = (paths) => [...new Set(paths.map(p => rel(p).match(/^domains\/([a-z0-9-]+)\//)?.[1]).filter(Boolean))];
 
 // Turn facts + router state -> list of signals worth a lesson.
-export function improvedCount(logText = '') {
+export function improvedCount(logText = '', label = 'improved') {
   const last = String(logText).split(/\n(?=## \[)/).pop() || '';
   // `Improved: a; b; c` on one line, or `Improved:` followed by a numbered/bulleted list.
-  const m = last.match(/^improved:[ \t]*(.*)((?:\n[ \t]*(?:\d+[.)]|[-*])[ \t]+.+)*)/im);
+  const m = last.match(new RegExp(`^${label}:[ \\t]*(.*)((?:\\n[ \\t]*(?:\\d+[.)]|[-*])[ \\t]+.+)*)`, 'im'));
   if (!m) return 0;
   const inline = m[1].split(';').map(s => s.trim()).filter(Boolean).length;
   const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;
@@ -124,6 +124,8 @@ export function signals(turn, state = {}, extra = {}) {
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
   // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
   else if (imp != null && improvedCount(turn.lastText || '') < 3) out.push({ kind: 'improve', text: 'improvements not listed in the reply (`Improved: a; b; c`)' });
+  // ...and what is still left: >= 3 concrete next improvements, so the owner sees the backlog (owner 2026-11-22).
+  if (imp != null && improvedCount(turn.lastText || '', 'still to improve') < 3) out.push({ kind: 'improve', text: 'reply lacks `Still to improve:` with >= 3 concrete items' });
   return out;
 }
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
@@ -143,7 +145,7 @@ export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged =
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
-  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Vault edits (rules, routing, hooks, notes) count. Add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>` AND end your reply to the owner with the same `Improved: ...` line, one short reason each. Real fixes only, no filler.');
+  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Vault edits (rules, routing, hooks, notes) count. Add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>` AND end your reply to the owner with the same `Improved: ...` list, one short reason each, then a `Still to improve:` list of >= 3 concrete things not yet fixed (what, why, effort). Real fixes only, no filler.');
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',

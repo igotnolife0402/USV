@@ -113,7 +113,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n`);
   g('add', '-A'); g('commit', '-qm', 'init');
   const file = join(BASE, 'stop transcript.jsonl');
-  writeFileSync(file, transcript('build the site', [...failing.slice(0, 6), JSON.stringify({ type: 'assistant', timestamp: at(40), message: { content: [{ type: 'text', text: 'Improved: a; b; c' }] } })])); // errors only, no router miss
+  writeFileSync(file, transcript('build the site', [...failing.slice(0, 6), JSON.stringify({ type: 'assistant', timestamp: at(40), message: { content: [{ type: 'text', text: 'Improved: a; b; c\nStill to improve: d; e; f' }] } })])); // errors only, no router miss
   put(V, 'state/work.md', 'x\n');
   const run = (extra = {}) => node([join(REPO, 'hooks', 'stop-gate.mjs')], { session_id: 'learn-1', transcript_path: file, ...extra }, { VAULT_ROOT: V });
   const first = run();
@@ -142,11 +142,12 @@ test('honesty: claiming done after a failed last call is flagged; admitting it i
 test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays are slow signals', () => {
   const clean = L.parseTurn(transcript('make a landing page', [use('w', 'Write', { file_path: 'C:/x/site/index.html' }, 5), res('w', 'ok', false, 6)]).split('\n'));
   const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 1 });
-  assert.deepEqual(sigs.map(s => s.kind), ['improve']);
+  assert.deepEqual(sigs.map(s => s.kind), ['improve', 'improve'], 'fixes not logged + backlog not listed');
   assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
   assert.match(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, knowChanged: true, nextId: 'L-1' }), /at least 3/, 'a note change alone is not 3 fixes');
-  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['improvements not listed in the reply (`Improved: a; b; c`)'], 'logged but not told to the owner');
-  assert.equal(L.signals({ ...clean, lastText: 'Done.\nImproved: a; b; c' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0);
+  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['improvements not listed in the reply (`Improved: a; b; c`)', 'reply lacks `Still to improve:` with >= 3 concrete items'], 'logged but not told to the owner');
+  assert.equal(L.signals({ ...clean, lastText: 'Done.\nImproved: a; b; c\nStill to improve:\n1. d\n2. e\n3. f' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0);
+  assert.ok(L.signals({ ...clean, lastText: 'Improved: a; b; c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Still to improve/.test(s.text)), 'backlog list required');
   assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
   assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
   const crew = { ...clean, skills: ['crew'], agentSecs: 45, specSecs: 120 };

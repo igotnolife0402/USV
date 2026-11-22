@@ -156,3 +156,7 @@ improved: reply-side Improved check in learn.mjs signals; hook message says vaul
 
 ## [2026-11-22] fix / improve counter + complaint tier
 improved: owner complaints classify medium, never simple (prompt-router classify uses CORRECTION + "you still didnt"); improvedCount reads numbered/bulleted Improved lists, not only one-line; CORRECTION exported from learn.mjs for reuse instead of a copy
+
+## [2026-11-22] rule / reply lists what is still to improve
+Owner: tell me >= 3 things that can still be improved. Stop hook now requires a `Still to improve:` list (>= 3) in the reply besides `Improved:`.
+improved: learn.mjs requires a Still-to-improve list of 3+ in every reply; improvedCount takes a label so both lists share one parser; must.md 11 and owner.md reply rule name the list; tests cover missing backlog
