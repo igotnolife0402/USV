@@ -8,7 +8,7 @@ status: current
 Why this note: the 2026-11-22 house run spent ~9 min reading 8 files (playbook, studio.md, for-ais.md, zfight README + source, texture.js, props.py, guns.py) to collect the facts below. Read only this, then write code.
 
 ## Template
-- Building / big prop: copy `tools/3d/props/house.py` (realistic 2-storey house, 39 parts). Hand-held: `tools/3d/props/shotgun.py`.
+- Building / big prop: copy `tools/3d/props/house.py` (realistic furnished 2-storey house, 110 parts: shell + `interior()` + crew furniture files house_a/b/c.py, each `build(H)` returning parts). Long patches: Write a scratchpad .py and run it; bash heredocs break on nested quotes (L-106). Hand-held: `tools/3d/props/shotgun.py`.
 - Helpers already there: `box()` plain 6-quad box, `fuv()` per-face metre UVs (use it, never `P.box_uv`: that picks the axis from vertex position, wrong on long parts), `wall()` panels split around openings, `bars()` frame + muntins without overlaps, `window()`, `cyl(p0, p1, r)`, `slope_pt()`/`roof_side()` stepped shingle courses, `live()` stage files.
 - From props.py: `P.prism(convex (z,y) poly, hw, ch)` extrudes along X (convex only; orient CCW by area sign), `P.lathe(profile, seg, False)` around +Y, `P.cbox(size, r)` chamfered box, `P.xf(m, t, r, s)` (negative scale flips faces), `P.merge`, `P.part(id, mesh, color, smooth=False, transparency=..)`. From guns.py: `G.tube(x0, x1, yc, prof)` along +X, `G.poly(pts (x,y), width)`, `G.attach(name)`.
 
@@ -26,5 +26,6 @@ Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); l
 - One ArtifactData batch per stage: that stage's geo docs + project + meta (<= 50 writes, <= 1 MiB). Relative `file_path` under `.worktrees/` (scratchpad paths prompt the owner every write).
 - Multi-piece models (crew): copy `tools/3d/props/setup.py`: one `setup_<piece>.py` per worker exporting `parts() -> (parts, textures)`, one live stage per piece, gates in one run (2026-11-22: 28 parts, all gates first run after one texture round).
 - Spec gate before sending: grid extents fit their opening (rows x pitch <= opening) and every part except glass has a texture key (detail needs >= 60 % textured).
+- Polish floor (owner 2026-11-22 "gaps, unpolished"): touching parts embed 2-5 mm, solid body under any key/button grid, `P.rbox`/`P.slab` rounded edges on visible slabs, displays get a lit `gradient` texture; zoom the `--preview` PNG (PIL crop x2) before upload and fix any gap seen.
 - Visual check: the built-in browser pane is signed out of claude.ai (sign-in wall), so the look is a queued PC step for the owner; never claim it.
 - Read back with `out_dir` `.worktrees/hub` (never the scratchpad), count objects, run zfight on the read-back.

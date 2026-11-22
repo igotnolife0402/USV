@@ -124,11 +124,82 @@ def window(cu, w, ya, yb, wo, lintel):
 # walls: (name, rotation, half length, outside offset)
 SIDES = [("front", 0, HX - T, HZ), ("back", 180, HX - T, HZ), ("right", 90, HZ, HX), ("left", -90, HZ, HX)]
 GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.2, 1.2, 1.15, 2.75),
-          (2.2, 1.2, 1.15, 2.75), (0.0, 0.7, 1.6, 2.75)], "right": [(-0.8, 1.0, 1.15, 2.75)], "left": [(0.8, 1.0, 1.15, 2.75)]}
+          (2.2, 1.2, 1.15, 2.75), (0.0, 0.7, 1.6, 2.75)], "right": [(-0.8, 1.0, 1.15, 2.75)], "left": [(-1.8, 1.0, 1.15, 2.75)]}
 UPPER = {"front": [(-2.5, 1.1, 3.75, 5.15), (0.0, 1.1, 3.75, 5.15), (2.5, 1.1, 3.75, 5.15)],
          "back": [(-2.2, 1.1, 3.75, 5.15), (2.2, 1.1, 3.75, 5.15)],
          "right": [(0.0, 0.9, 3.85, 5.05)], "left": [(0.0, 0.9, 3.85, 5.05)]}
 DOOR = (0.0, 1.0, Y_PL, 2.75)
+F0, F1 = Y_PL + 0.02, Y_BD + 0.02          # finished floor tops (oak boards)
+SX0, SX1, SZ0, SZ1 = -HX + T, -2.85, -0.9, 2.6   # stairwell (runs along the left wall, rising toward -z)
+NR, GO = 15, 0.25                          # risers, going
+RISE = (F1 - F0) / NR
+
+
+def interior():
+    """Plaster linings, oak floors, ceiling, upstairs partition + doorway, stair with rails (finished interior)."""
+    p, I = [], HX - T
+    pl = {"ground": [], "upper": []}
+    for key, table, y0, y1 in (("ground", GROUND, F0, Y_BR), ("upper", UPPER, F1, Y_TOP)):
+        for n, ang, L, wo in SIDES:
+            ops = table[n] + ([DOOR] if n == "front" and key == "ground" else [])
+            Ln = 2 * (L - 0.02) if n in ("front", "back") else 2 * (HZ - T)
+            pl[key].append(ry(wall(Ln, y0, y1, wo - T - 0.02, wo - T, ops), ang))
+    p.append(mk("plaster-ground", P.merge(*pl["ground"]), "#EDE9E1", "plaster", roughness=0.9))
+    p.append(mk("plaster-upper", P.merge(*pl["upper"]), "#EDE9E1", "plaster", roughness=0.9))
+    p.append(mk("ceiling", box(-I, I, Y_TOP, Y_TOP + 0.06, -HZ + T, HZ - T), "#F3F1EC", "plaster", roughness=0.9))
+    i2, zi = I - 0.02, HZ - T - 0.02
+    p.append(mk("floor-ground", box(-i2, i2, Y_PL, F0, -zi, zi), "#A07850", "floor", roughness=0.55))
+    p.append(mk("floor-upper", P.merge(box(SX1, 0.75, Y_BD, F1, -zi, zi), box(-i2, SX1, Y_BD, F1, -zi, SZ0),
+                                       box(-i2, SX1, Y_BD, F1, SZ1, zi)), "#A07850", "floor", roughness=0.55))
+    # partition x 0.75..0.85 with a doorway z 1.6..2.5, door leaf swung open into the bedroom
+    p.append(mk("partition", ry(wall(2 * zi, F1, Y_TOP, 0.75, 0.85, [(-2.05, 0.9, F1, F1 + 2.05)]), 90),
+                "#EDE9E1", "plaster", roughness=0.9))
+    p.append(mk("int-door-frame", P.merge(box(0.74, 0.86, F1, F1 + 2.05, 1.6, 1.66), box(0.74, 0.86, F1, F1 + 2.05, 2.44, 2.5),
+                                          box(0.74, 0.86, F1 + 1.99, F1 + 2.05, 1.66, 2.44)), TRIM, "trim", roughness=0.45))
+    p.append(mk("int-door", box(-0.04, 0.73, F1 + 0.01, F1 + 1.98, 2.39, 2.43), "#E9E7E2", "trim", roughness=0.45))
+    knob = P.lathe([(0, 0), (0.03, 0), (0.03, 0.008), (0.01, 0.012), (0.009, 0.035), (0.026, 0.045), (0.025, 0.06), (0, 0.065)], 16, False)
+    p.append(P.part("int-door-knob", P.merge(P.xf(knob, r=(-90, 0, 0), t=(0.05, F1 + 1.0, 2.43)),
+                                             P.xf(knob, r=(90, 0, 0), t=(0.05, F1 + 1.0, 2.39))),
+                    "#B08D57", smooth=True, metalness=0.85, roughness=0.3))
+    # stair: solid painted steps, oak treads with nosing, stringer, newels, handrail, balusters; guard upstairs
+    x0, x1 = -i2, SX1 - 0.02
+    steps, treads, bal = [], [], []
+    for i in range(NR - 1):
+        zf, zb, top = SZ1 - i * GO, SZ1 - (i + 1) * GO, F0 + (i + 1) * RISE
+        steps.append(box(x0, x1, F0, top - 0.03, zb, zf))
+        treads.append(box(x0, x1 + 0.01, top - 0.03, top, zb, zf + 0.025))
+    p.append(mk("stair-steps", P.merge(*steps), "#E9E7E2", "trim", roughness=0.5))
+    p.append(mk("stair-treads", P.merge(*treads), "#8A6440", "oak", roughness=0.5))
+    k = RISE / GO
+
+    def yt(z):
+        return F0 + RISE + (SZ1 - z) * k + 0.06
+    q = [(SZ1, yt(SZ1)), (SZ1, yt(SZ1) - 0.32), (SZ0, yt(SZ0) - 0.32), (SZ0, yt(SZ0))]
+    if sum(q[i][0] * q[i - 1][1] - q[i - 1][0] * q[i][1] for i in range(4)) < 0:
+        q = q[::-1]
+    p.append(mk("stair-stringer", P.xf(P.prism(q, 0.02, 0.004), t=(SX1, 0, 0)), "#E9E7E2", "trim", roughness=0.5))
+    xr, rh = SX1, 0.9
+    newel = [box(xr - 0.045, xr + 0.045, F0, F0 + 1.05, SZ1 - 0.12, SZ1 - 0.03)]
+    rail = [cyl((xr, yt(SZ1 - 0.08) + rh - 0.06, SZ1 - 0.08), (xr, yt(0.2) + rh - 0.06, 0.2), 0.03, 12)]
+    for i in range(NR - 2):
+        zc = SZ1 - (i + 0.5) * GO - 0.15
+        if zc < 0.25:
+            break
+        top = F0 + (i + 1) * RISE
+        bal.append(box(xr - 0.015, xr + 0.015, top, yt(zc) + rh - 0.08, zc - 0.015, zc + 0.015))
+    # upstairs guard along the stairwell edge x = SX1 (z 0.2..SZ1) and z = SZ1 (x -I..SX1)
+    gy = F1 + 0.95
+    newel += [box(xr - 0.045, xr + 0.045, F1, gy + 0.05, SZ1 - 0.045, SZ1 + 0.045),
+              box(xr - 0.045, xr + 0.045, yt(0.2) - 0.3, gy + 0.05, 0.155, 0.245)]
+    rail += [cyl((xr, gy, 0.245), (xr, gy, SZ1 - 0.045), 0.03, 12), cyl((xr - 0.045, gy, SZ1), (-i2, gy, SZ1), 0.03, 12)]
+    for zc in np.arange(0.4, SZ1 - 0.1, 0.13):
+        bal.append(box(xr - 0.015, xr + 0.015, F1, gy - 0.02, zc - 0.015, zc + 0.015))
+    for xc in np.arange(SX1 - 0.15, -i2 + 0.05, -0.13):
+        bal.append(box(xc - 0.015, xc + 0.015, F1, gy - 0.02, SZ1 - 0.015, SZ1 + 0.015))
+    p.append(mk("stair-newels", P.merge(*newel), "#8A6440", "oak", roughness=0.5))
+    p.append(mk("stair-rails", P.merge(*rail), "#8A6440", "oak", roughness=0.45))
+    p.append(mk("stair-balusters", P.merge(*bal), "#E9E7E2", "trim", roughness=0.5))
+    return p
 
 
 def deck_y(z):
@@ -198,7 +269,9 @@ def house(rng):
     for n, ang, L, wo in SIDES:
         g = GROUND[n] + ([DOOR] if n == "front" else [])
         p.append(mk("brick-" + n, ry(wall(2 * L, Y_PL, Y_BR, wo - T, wo, g), ang), BRICK, "brick", roughness=0.85))
-    p.append(mk("band", box(-HX - 0.05, HX + 0.05, Y_BR, Y_BD, -HZ - 0.05, HZ + 0.05), TRIM, "trim", roughness=0.5))
+    bx, bz = HX + 0.05, HZ + 0.05   # floor band = upper floor slab, with the stairwell cut out
+    p.append(mk("band", P.merge(box(-bx, SX0, Y_BR, Y_BD, -bz, bz), box(SX1, bx, Y_BR, Y_BD, -bz, bz),
+                                box(SX0, SX1, Y_BR, Y_BD, -bz, SZ0), box(SX0, SX1, Y_BR, Y_BD, SZ1, bz)), TRIM, "trim", roughness=0.5))
     for n, ang, L, wo in SIDES:
         p.append(mk("siding-" + n, ry(wall(2 * L, Y_BD, Y_TOP, wo - T, wo, UPPER[n]), ang), SIDING, "siding", roughness=0.6))
     tri = [(-HZ, Y_TOP), (HZ, Y_TOP), (0.0, deck_y(0))]
@@ -297,6 +370,10 @@ def house(rng):
     ybk = ce - 0.02 + (cw + 0.04 - 0.72) * math.tan(ca) + 0.02
     br_ = P.prism([(wo + 0.6, ybk), (wo, ybk), (wo, ybk - 0.55)], 0.04, 0.006)
     p.append(mk("canopy-brackets", P.merge(P.xf(br_, t=(0.72, 0, 0)), P.xf(br_, t=(-0.72, 0, 0))), OAK, "oak", roughness=0.6))
+    p += interior()
+    import house_a, house_b, house_c  # noqa: E401  furniture (crew-built): living/dining, kitchen/bath, bedroom
+    for m in (house_a, house_b, house_c):
+        p += m.build(sys.modules[__name__])
     return p, {"brick": tex("bricks", [BRICK, MORTAR], 0.43, count=2, aspect=1.65),
                "siding": tex("planks", [SIDING, "#B9B2A2"], 0.8, count=4, detail=0.3),
                "trim": tex("woodgrain", [TRIM, "#CFCBC2", "#FAFAF8"], 1.2, detail=0.25),
@@ -304,7 +381,15 @@ def house(rng):
                "shingle": tex("bricks", [SHING, "#1F2023"], 0.66, count=2, aspect=1.0),
                "metal": tex("brushed", [METAL, "#45494E", "#A9AEB3"], 1.0),
                "oak": tex("woodgrain", [OAK, "#4A311C", "#8A6440"], 0.9),
-               "clay": tex("noise", ["#9C5B3E", "#7A4430"], 0.5)}
+               "clay": tex("noise", ["#9C5B3E", "#7A4430"], 0.5),
+               "plaster": tex("noise", ["#EDE9E1", "#DCD7CD"], 1.0, detail=0.2),
+               "floor": tex("planks", ["#A07850", "#6E4E30"], 0.6, count=4),
+               "fabric": tex("fabric", ["#6E7378", "#4E5257", "#8F949A"], 0.3),
+               "linen": tex("fabric", ["#EFECE6", "#D8D3C9", "#FFFFFF"], 0.3, detail=0.2),
+               "walnut": tex("woodgrain", ["#5A3D28", "#3A2618", "#7A5538"], 0.6),
+               "marble": tex("marble", ["#E8E5DF", "#9A958E"], 0.8),
+               "tile": tex("tiles", ["#E6E4DF", "#B5B0A8"], 1.2, count=4),
+               "rug": tex("fabric", ["#8A5A44", "#5C3A2C", "#C9A27E"], 0.4)}
 
 
 def live(out):
@@ -319,11 +404,21 @@ def live(out):
         doc = {"name": TITLE, "v": 1, "updated": t, "objects": dict(objs), "textures": d["textures"], "anims": {},
                "camera": {"pos": [11, 6, 13], "target": [0, 3.5, 0], "fov": 50, "ortho": False}}
         json.dump(doc, open(os.path.join(out, "live", "p%d.json" % (i + 1)), "w"), separators=(",", ":"))
-        json.dump({"name": TITLE, "updated": t, "count": len(objs) - 1, "ai": True, "building": i < len(STAGES) - 1},
+        json.dump({"name": TITLE, "updated": t, "count": len(objs) - 1, "ai": True, "building": True},
+                  open(os.path.join(out, "live", "m%d.json" % (i + 1)), "w"), separators=(",", ":"))
+    rest = [k for k in d["objects"] if k not in objs]
+    pres = [("plaster", "ceiling", "floor", "partition", "int-", "stair"), ("liv-", "din-", "kit-"), ("bath-", "bed-")]
+    for i, pre in enumerate(pres, len(STAGES)):
+        for k in rest:
+            if k[len(NAME) + 1:].startswith(pre):
+                objs[k] = d["objects"][k]
+        doc = dict(doc, objects=dict(objs))
+        json.dump(doc, open(os.path.join(out, "live", "p%d.json" % (i + 1)), "w"), separators=(",", ":"))
+        json.dump({"name": TITLE, "updated": t, "count": len(objs) - 1, "ai": True, "building": i < len(STAGES) + 2},
                   open(os.path.join(out, "live", "m%d.json" % (i + 1)), "w"), separators=(",", ":"))
     missing = set(d["objects"]) - set(objs)
     assert not missing, "parts not in any stage: %s" % sorted(missing)
-    return os.path.join(out, "live", "p%d.json" % len(STAGES))
+    return os.path.join(out, "live", "p%d.json" % (len(STAGES) + len(pres)))
 
 
 def main(argv=None):
@@ -332,6 +427,7 @@ def main(argv=None):
         sys.exit(__doc__)
     out = a[0]
     os.makedirs(out, exist_ok=True)
+    P.TRI_CAP = 60000  # whole furnished house, not a hand prop
     rc = P.run(out, [NAME], 7, "--check" in a, "--preview" in a, "toon")
     proj = live(out)
     here = os.path.dirname(os.path.abspath(__file__))
