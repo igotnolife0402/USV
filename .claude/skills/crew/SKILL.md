@@ -33,6 +33,7 @@ Never write "find and fix", "make it good", "figure out", "research" or "improve
 
 ## 3. While they work
 Write the integration, the merge and your review check. Never edit a worker's files while it runs.
+- Fetch reports in → build specs out within 45 s. Need more facts? Send a second fetch round to the same workers; the brain never investigates alone (owner 2026-11-22: brain spent 82 s alone between fetch and specs). The Stop hook flags spawn > 30 s and specs > 90 s after spawn.
 
 ## 4. Review each report (brain only)
 - Visual check = ONE look at the existing output (Umbrio tab / Artifact). Never build a viewer, start a server or loop captures; never run heavy checks in parallel (PC lags).

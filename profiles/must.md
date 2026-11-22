@@ -14,3 +14,4 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 8. Never move, script or capture the camera in Roblox Studio.
 9. No overkill: one big effect at completion or small subtle ones; less when unsure.
 10. Replies short; never claim a look you did not see.
+11. Always improve, every task: find and fix >= 3 real problems (speed, routing, rules, notes, tools), as many as possible; log `improved: a; b; c`; measure the run's speed and fix its slowest phase.

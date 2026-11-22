@@ -44,6 +44,7 @@ export function parseTurn(lines) {
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
   let tEnd = t0;
   const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set(), skills = new Set();
+  let firstAgent = NaN, firstSend = NaN;
   let lastText = '', lastErr = false; // final reply + whether the last tool result was a real failure
   for (const m of String(prompt).matchAll(/<command-name>\s*\/?([\w:-]+)/g)) skills.add(m[1].split(':').pop()); // slash command
   for (const e of E.slice(start + 1)) {
@@ -54,6 +55,8 @@ export function parseTurn(lines) {
       if (b?.type === 'tool_result') lastErr = !!b.is_error && !NOISE.test(resultText(b)) && !/^(Grep|Glob)$/.test(uses.get(b.tool_use_id)?.name || '');
       if (b?.type === 'tool_use') {
         uses.set(b.id, { name: b.name, input: b.input || {} });
+        if (b.name === 'Agent' && Number.isNaN(firstAgent)) firstAgent = ts;
+        if (b.name === 'SendMessage' && Number.isNaN(firstSend)) firstSend = ts;
         const p = String(b.input?.file_path || b.input?.notebook_path || '').replace(/\\/g, '/');
         if (b.name === 'Read' && p) reads.add(p);
         if (b.name === 'Skill' && b.input?.skill) skills.add(String(b.input.skill).split(':').pop());
@@ -71,6 +74,7 @@ export function parseTurn(lines) {
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
     errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
+    agentSecs: Number.isFinite(firstAgent) ? Math.round((firstAgent - t0) / 1000) : null, specSecs: Number.isFinite(firstSend) && Number.isFinite(firstAgent) ? Math.round((firstSend - firstAgent) / 1000) : null,
   };
 }
 
@@ -78,7 +82,12 @@ const rel = (p) => (isAbsolute(p) ? relative(ROOT, p) : p).replace(/\\/g, '/').r
 export const domainsOf = (paths) => [...new Set(paths.map(p => rel(p).match(/^domains\/([a-z0-9-]+)\//)?.[1]).filter(Boolean))];
 
 // Turn facts + router state -> list of signals worth a lesson.
-export function signals(turn, state = {}) {
+export function improvedCount(logText = '') {
+  const last = String(logText).split(/\n(?=## \[)/).pop() || '';
+  const m = last.match(/^improved:\s*(.+)/im);
+  return m ? m[1].split(';').map(s => s.trim()).filter(Boolean).length : 0;
+}
+export function signals(turn, state = {}, extra = {}) {
   const out = [];
   if (turn.relay) return out; // agent/system relays are not owner tasks
   const tier = state.tier || 'medium';
@@ -87,6 +96,8 @@ export function signals(turn, state = {}) {
     out.push({ kind: 'errors', text: `${turn.errors.length} tool error(s), worst retry x${turn.maxRetry}: ${turn.errors.slice(0, 3).map(e => `${e.tool} \`${e.what}\` → ${e.text}`).join(' | ')}` });
   const target = TARGET_S[tier];
   if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s vs ${tier} target ${target}s` });
+  if ((turn.skills || []).includes('crew') && turn.agentSecs != null && turn.agentSecs > 30) out.push({ kind: 'slow', text: `crew spawned workers ${turn.agentSecs}s after the prompt (cap 30s)` });
+  if ((turn.skills || []).includes('crew') && turn.specSecs != null && turn.specSecs > 90) out.push({ kind: 'slow', text: `crew sent build specs ${turn.specSecs}s after spawning (cap 90s): brain worked alone` });
   if (turn.prompt.length < 1500 && CORRECTION.test(turn.prompt))
     out.push({ kind: 'correction', text: `owner said: "${turn.prompt.replace(/\s+/g, ' ').slice(0, 120)}"` });
   // Skill miss: the router named a skill for real work (files were written) but it was never invoked or read.
@@ -104,9 +115,9 @@ export function signals(turn, state = {}) {
   // Honesty: the reply claims success while the last tool call failed (owner rule: never claim done unless checked).
   if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
-  // Always improve: a clean build still leaves the vault better (owner rule: meeting the goal is not the end).
-  if (!out.length && tier !== 'simple' && builds.length && !turn.writes.some(p => KNOW.test(rel(p))))
-    out.push({ kind: 'improve', text: 'goal met with no improvement recorded' });
+  // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
+  const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
+  if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
   return out;
 }
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
@@ -122,11 +133,11 @@ export const nextLessonId = (text) => {
 // Stop-hook instruction: diagnose, fix the note, record the lesson, retune the router. Kept short.
 export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged = false, nextId }) {
   const need = sigs.filter(s => s.kind === 'router' ? !routerChanged
-    : s.kind === 'improve' ? !(knowChanged || lessonsChanged) : s.kind === 'honesty' || !lessonsChanged);
+    : s.kind === 'improve' ? true : s.kind === 'honesty' || !lessonsChanged);
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
-  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE: the goal was met, which is not the end. Add one concrete improvement so the next similar task is faster or better: a speed trick or rule in domains/<d>/playbook.md, a snippet, a tool option/preset, or a checklist line. Real and specific, not filler.');
+  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Then add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>`. Real fixes only, no filler.');
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',

@@ -68,7 +68,7 @@ test('queue add / list / done', () => {
 test('skill miss: a routed skill not used on a build turn is a learning signal', () => {
   const turn = { prompt: 'build it', relay: false, secs: 10, errors: [], maxRetry: 0, reads: [], writes: ['index.html'], skills: [] };
   assert.deepEqual(L.signals(turn, { tier: 'medium', routes: ['web'], skills: ['website'] }).map(s => s.kind), ['skill']);
-  assert.deepEqual(L.signals({ ...turn, skills: ['website'] }, { tier: 'medium', routes: ['web'], skills: ['website'] }).map(s => s.kind), ['improve'], 'skill used: only the always-improve ask');
+  assert.deepEqual(L.signals({ ...turn, skills: ['website'] }, { tier: 'medium', routes: ['web'], skills: ['website'] }).map(s => s.kind), [], 'skill used: no signal (improve is only measured when the Stop hook passes a log count)');
   assert.equal(L.signals({ ...turn, writes: [] }, { tier: 'medium', routes: ['web'], skills: ['website'] }).length, 0, 'questions need no skill');
   const lines = [JSON.stringify({ type: 'user', timestamp: '2026-11-21T10:00:00Z', message: { content: 'go' } }),
     JSON.stringify({ type: 'assistant', timestamp: '2026-11-21T10:00:05Z', message: { content: [{ type: 'tool_use', id: 's', name: 'Skill', input: { skill: 'website' } }] } })];

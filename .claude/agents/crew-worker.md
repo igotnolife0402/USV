@@ -21,6 +21,7 @@ Never:
 - Never research on your own, browse, explore the repo or read files the brief did not name or point to.
 - Never "improve", refactor, add features, comments or extras. Never touch files you don't own.
 - Never start background commands (no run_in_background, no `&`).
+- Edit code with the Edit tool, never a node/sed/python string-replace script (backslashes and newlines in regexes get corrupted, L-045).
 - Budget: about 8 tool calls. Over it: report what you have.
 
 Report (at most 6 lines):

@@ -5,7 +5,7 @@ import { spawnSync, spawn } from 'node:child_process';
 import { join, relative, isAbsolute, resolve, basename } from 'node:path';
 import { ROOT, readInput, emit, safe, readIf, fm, isMain, today } from './lib.mjs';
 import { classify, route, RELAY } from './prompt-router.mjs';
-import { readTail, parseTurn, signals, learnReason, nextLessonId, saveTurnState, loadTurnState, recordMetrics, retryCapHit, perfDigest, METRICS } from './learn.mjs';
+import { readTail, parseTurn, signals, improvedCount, learnReason, nextLessonId, saveTurnState, loadTurnState, recordMetrics, retryCapHit, perfDigest, METRICS } from './learn.mjs';
 import { lintAll } from '../scripts/vault-lint.mjs';
 
 const V = ROOT.replace(/\\/g, '/');
@@ -52,7 +52,7 @@ function stop(input) {
   if (!input.transcript_path) return;
   const turn = parseTurn(readTail(input.transcript_path));
   const state = loadTurnState(input.session_id);
-  const sigs = signals(turn, state);
+  const sigs = signals(turn, state, { improved: improvedCount(readIf(join(ROOT, 'log.md'))) });
   recordMetrics(turn, { ...state, routes: state.routes || [] }, sigs, 'pc');
   if (sigs.length && !input.stop_hook_active) {
     const why = learnReason(sigs, { lessonsChanged: vaultChanged('lessons.md'), routerChanged: vaultChanged('router.json'), knowChanged: ['domains', 'tools', 'checklists', '.claude/skills'].some(vaultChanged),

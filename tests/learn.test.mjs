@@ -108,7 +108,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   const V = join(BASE, 'stop learn vault');
   const g = (...a) => spawnSync('git', a, { cwd: V, encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))) });
   mkdirSync(V, { recursive: true }); g('init', '-q'); g('config', 'user.name', 't'); g('config', 'user.email', 't@t');
-  put(V, 'log.md', `# Log\n## [${today()}] test / x\n`);   // the hook's own (local) date, not UTC
+  put(V, 'log.md', `# Log\n## [${today()}] test / x\nimproved: a; b; c\n`);   // the hook's own (local) date, not UTC
   const FM = '---\nsummary: l\nupdated: 2026-11-21\nstatus: current\n---\n';
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n`);
   g('add', '-A'); g('commit', '-qm', 'init');
@@ -139,13 +139,17 @@ test('honesty: claiming done after a failed last call is flagged; admitting it i
   assert.ok(!L.signals(fixed, { tier: 'medium' }).some(s => s.kind === 'honesty'));
 });
 
-test('always improve: a clean build asks for one improvement until a domain/tool note changes', () => {
+test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays are slow signals', () => {
   const clean = L.parseTurn(transcript('make a landing page', [use('w', 'Write', { file_path: 'C:/x/site/index.html' }, 5), res('w', 'ok', false, 6)]).split('\n'));
-  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] });
+  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 1 });
   assert.deepEqual(sigs.map(s => s.kind), ['improve']);
   assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
-  assert.equal(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, knowChanged: true, nextId: 'L-1' }), null);
-  assert.equal(L.signals(clean, { tier: 'simple', routes: ['web'] }).length, 0, 'simple tasks stay fast');
+  assert.match(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, knowChanged: true, nextId: 'L-1' }), /at least 3/, 'a note change alone is not 3 fixes');
+  assert.equal(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0);
+  assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
+  assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
+  const crew = { ...clean, skills: ['crew'], agentSecs: 45, specSecs: 120 };
+  assert.equal(L.signals(crew, { tier: 'medium' }, { improved: 3 }).filter(s => s.kind === 'slow').length, 2);
 });
 
 test('owner-preferred tools: Blender is denied unless the owner names it (Umbrio Sandbox instead)', () => {

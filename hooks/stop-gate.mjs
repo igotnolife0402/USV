@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { existsSync, statSync, readFileSync } from 'node:fs';
 import { ROOT, readInput, emit, safe, getMode, readIf, today, isMain } from './lib.mjs';
 import { lintAll } from '../scripts/vault-lint.mjs';
-import { readTail, parseTurn, signals, learnReason, nextLessonId, loadTurnState, recordMetrics, METRICS } from './learn.mjs';
+import { readTail, parseTurn, signals, improvedCount, learnReason, nextLessonId, loadTurnState, recordMetrics, METRICS } from './learn.mjs';
 
 const ENV = { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' };
 const git = (args, timeout = 5000) => spawnSync('git', args, { cwd: ROOT, encoding: 'utf8', timeout, env: ENV, windowsHide: true, maxBuffer: 32 << 20 });
@@ -60,7 +60,7 @@ if (isMain(import.meta.url)) safe(() => {
   // Auto-learning: analyse this turn (errors, retries, slowness, owner corrections, router misses); keep metrics.
   const turn = input.transcript_path ? parseTurn(readTail(input.transcript_path)) : null;
   const state = loadTurnState(input.session_id);
-  const sigs = turn ? signals(turn, state) : [];
+  const sigs = turn ? signals(turn, state, { improved: improvedCount(readIf(join(ROOT, 'log.md'))) }) : [];
   if (turn) recordMetrics(turn, state, sigs, getMode(input.session_id).mode);
 
   const st = git(['status', '--porcelain', '-z', '-uall']);
