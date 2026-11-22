@@ -3,7 +3,7 @@ summary: Every realistic model template in tools/3d in one file: what, run comma
 updated: 2026-11-22
 status: current
 ---
-# realistic models (3)
+# realistic models (7)
 Read this file instead of opening templates. Then read only the line range you copy. Regenerate: `node tools/3d/styles/build.mjs`.
 
 ## tiger | Realistic SDF-anatomy tiger with painted stripes and fur, ~3.57 studs per metre
@@ -57,7 +57,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L113 EYE_LAB = 6`
 
 ## house | Realistic two-storey brick and siding house, 8 x 6 m footprint
-- file: `tools/3d/props/house.py` (349 lines)
+- file: `tools/3d/props/house.py` (355 lines)
 - run: `python3 house.py OUT --check`
 - api:
   - L47 def box(x0, x1, y0, y1, z0, z1)
@@ -79,3 +79,35 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L126 GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.2, 1.2, 1.15, 2.`
   - `L128 UPPER = {"front": [(-2.5, 1.1, 3.75, 5.15), (0.0, 1.1, 3.75, 5.15), (2.5, 1.1, 3.75, 5.15)],`
   - `L131 DOOR = (0.0, 1.0, Y_PL, 2.75)`
+
+## computer-setup | desk + monitor + keyboard + mouse + PC tower, 1.40 x 0.70 m desk
+- file: `tools/3d/props/setup.py` (89 lines)
+- run: `python3 setup.py OUT --check`
+- api:
+  - L30 def setup(rng)
+  - L45 def live(out)
+  - L64 def main(argv=None)
+- constants:
+  - `L25 PIECES = [setup_desk, setup_tower, setup_screen]   # one Umbrio live stage per piece, in this order`
+  - `L26 STAGES = []`
+
+## desk | 1.40 x 0.70 m oak desk on black steel frame
+- file: `tools/3d/props/setup_desk.py` (34 lines)
+- run: `python3 setup.py OUT --check`
+- api:
+  - L15 def parts()
+
+## monitor, keyboard, mouse | 27 in monitor on stand, TKL keyboard, mouse
+- file: `tools/3d/props/setup_screen.py` (76 lines)
+- run: `python3 setup.py OUT --check`
+- api:
+  - L19 def frame_xy(x0, x1, y0, y1, z0, z1, wl, wr, wt, wb)
+  - L26 def frame_xz(x0, x1, y0, y1, z0, z1, w)
+  - L32 def keys()
+  - L47 def parts()
+
+## pc-tower | mid tower, tempered glass side, 3 fans, GPU
+- file: `tools/3d/props/setup_tower.py` (51 lines)
+- run: `python3 setup.py OUT --check`
+- api:
+  - L13 def parts()

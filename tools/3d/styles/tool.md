@@ -11,7 +11,7 @@ Read this file instead of opening templates. Then read only the line range you c
 - run: `python3 stamp.py <stage number> [thumb.jpg]`
 
 ## zfight.py
-- file: `tools/3d/zfight/zfight.py` (285 lines)
+- file: `tools/3d/zfight/zfight.py` (284 lines)
 - run: `python3 zfight.py check project.json geo/`
 - api:
   - L23 def load(project, gdir)

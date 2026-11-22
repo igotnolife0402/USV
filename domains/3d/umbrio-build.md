@@ -24,4 +24,7 @@ Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); l
 ## Umbrio write (hub https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF)
 - Fresh tab = new project id. Docs: `projects/<id>` (scene = `OUT/live/p<i>.json`), `meta/<id>` (`OUT/live/m<i>.json`, `building: true` until the last stage), geo `projects/<id>/geo/<gid>` (= `OUT/geo/<gid>.json`).
 - One ArtifactData batch per stage: that stage's geo docs + project + meta (<= 50 writes, <= 1 MiB). Relative `file_path` under `.worktrees/` (scratchpad paths prompt the owner every write).
+- Multi-piece models (crew): copy `tools/3d/props/setup.py`: one `setup_<piece>.py` per worker exporting `parts() -> (parts, textures)`, one live stage per piece, gates in one run (2026-11-22: 28 parts, all gates first run after one texture round).
+- Spec gate before sending: grid extents fit their opening (rows x pitch <= opening) and every part except glass has a texture key (detail needs >= 60 % textured).
+- Visual check: the built-in browser pane is signed out of claude.ai (sign-in wall), so the look is a queued PC step for the owner; never claim it.
 - Read back with `out_dir` `.worktrees/hub` (never the scratchpad), count objects, run zfight on the read-back.
