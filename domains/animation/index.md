@@ -6,6 +6,8 @@ triggers: [animation, animate, clip, key pose, keyframe, keyframes, easing, ease
 ---
 # Animation
 
+- [rules](domains/animation/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Motion for 3D pieces: key poses with `smooth` (sine in-out) tweens in the Studio animator; one motion spec per creature drives the Studio clip, the Roblox script and the MP4.
 
 ## Read in this order

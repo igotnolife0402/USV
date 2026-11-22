@@ -1,0 +1,12 @@
+---
+summary: Applied lesson rules for vfx (from lessons.md); read with the playbook before any vfx task.
+updated: 2026-11-22
+status: current
+---
+# VFX rules (applied lessons)
+- Flipbook effect = 4 stacked recipes; `vfx.py --check` must show max_step_jump < ~3 and thin_stroke_pct < ~10, built to scratch (L-041)
+- New effect = a recipe of existing presets; only new physics gets code (L-042)
+- 8x8 sheets need FlipbookLayout Grid8x8, never a helper hard-coded to 4x4 (L-043)
+- Effects never vanish cleanly: they erode into lingering embers or ash (L-044)
+- for any VFX build invoke the vfx skill first and follow its done-check, even when writing a new generator (L-050)
+- match the sim to where the effect plays (air vs floor); flipbook cards are front-lit and translucent, never baked side light (L-054)

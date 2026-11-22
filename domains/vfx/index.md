@@ -6,6 +6,8 @@ triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosio
 ---
 # VFX
 
+- [rules](domains/vfx/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox ParticleEmitter/Beam.
 
 ## Read in this order

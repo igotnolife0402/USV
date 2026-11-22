@@ -25,6 +25,7 @@ Measured: 4 brain reads (32 s) + 80 s silent design + 3 long literal briefs writ
 - Check command: reuse the template's own (e.g. its `--check`); never build or test-run one first.
 
 ## 2. Spec (SendMessage) = values to copy, <= 15 lines each
+Fill the templates in [spec.md](spec.md) (prep + build + known-good checks); never compose specs as prose (last vault run: specs at 53 s, cap 45 s).
 1. Files they write (absolute paths) + the shared contract (names, origin, units) verbatim, identical in all 3.
 2. A values list: part → size, position, color, material, count. "copy template fn X, change A→B". No geometry code written by the brain: the worker has the template's patterns from prep.
 3. The check command to run once, or "no check". Only commands whose output you know: node tests = `node --test --test-reporter=tap <files> 2>&1 | grep -E "^ *not ok|^# (pass|fail)"` (the default reporter prints no "# pass" line: 2 workers reported PARTIAL on 2026-11-22 for that alone).

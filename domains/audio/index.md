@@ -6,6 +6,8 @@ triggers: [audio, sfx, sound, sound effect, webaudio, jsfxr, wav, music, beep, c
 ---
 # Audio
 
+- [rules](domains/audio/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Sound effects and simple music, generated procedurally with WebAudio and exported as WAV.
 
 ## Read in this order

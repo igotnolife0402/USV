@@ -6,6 +6,8 @@ triggers: [roblox, luau, studio, rojo, obby, tycoon, simulator, rbxl, rbxm, data
 ---
 # Roblox
 
+- [rules](domains/roblox/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Luau games built with Roblox Studio's built-in MCP server (PC) or Rojo-layout repo files (mobile).
 
 ## Read in this order

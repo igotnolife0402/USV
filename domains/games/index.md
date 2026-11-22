@@ -6,6 +6,8 @@ triggers: [game, browser game, canvas, phaser, platformer, shooter, puzzle, arca
 ---
 # Games
 
+- [rules](domains/games/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Browser games (Canvas 2D, WebGL/three.js, Phaser). PC: local serve + browser automation. Mobile: single-file Artifact.
 
 ## Read in this order

@@ -6,6 +6,8 @@ triggers: [image, images, art style, style, styles, thumbnail, gfx, design sheet
 ---
 # Images
 
+- [rules](domains/images/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Image prompts in the owner's named styles ([styles page](tools/art/styles/README.md)) and Roblox thumbnails/GFX rendered in the [Studio](domains/3d/studio.md). Voxel or block 3D models are [3D](domains/3d/index.md).
 
 ## Read in this order

@@ -69,8 +69,9 @@
         "hero piece"
       ],
       "notes": [
-        "domains/roblox/index.md",
-        "domains/roblox/playbook.md"
+        "domains/roblox/playbook.md",
+        "domains/roblox/rules.md",
+        "domains/roblox/index.md"
       ],
       "checklist": "checklists/roblox.md",
       "skill": "roblox"
@@ -137,8 +138,9 @@
         "game"
       ],
       "notes": [
-        "domains/games/index.md",
-        "domains/games/playbook.md"
+        "domains/games/playbook.md",
+        "domains/games/rules.md",
+        "domains/games/index.md"
       ],
       "checklist": "checklists/game.md",
       "skill": "browser-game"
@@ -225,8 +227,9 @@
         "boat"
       ],
       "notes": [
-        "domains/3d/index.md",
-        "domains/3d/playbook.md"
+        "domains/3d/playbook.md",
+        "domains/3d/rules.md",
+        "domains/3d/index.md"
       ],
       "checklist": "checklists/3d.md",
       "fast": [
@@ -266,8 +269,9 @@
         "ik"
       ],
       "notes": [
-        "domains/animation/index.md",
-        "domains/animation/playbook.md"
+        "domains/animation/playbook.md",
+        "domains/animation/rules.md",
+        "domains/animation/index.md"
       ],
       "checklist": "checklists/3d.md",
       "skill": "3d-editor"
@@ -293,8 +297,9 @@
         "watercolor"
       ],
       "notes": [
-        "domains/images/index.md",
-        "domains/images/playbook.md"
+        "domains/images/playbook.md",
+        "domains/images/rules.md",
+        "domains/images/index.md"
       ],
       "checklist": "checklists/images.md",
       "skill": "3d-editor"
@@ -355,8 +360,9 @@
         "goo"
       ],
       "notes": [
-        "domains/vfx/index.md",
-        "domains/vfx/playbook.md"
+        "domains/vfx/playbook.md",
+        "domains/vfx/rules.md",
+        "domains/vfx/index.md"
       ],
       "checklist": "checklists/vfx.md",
       "skill": "vfx"
@@ -385,8 +391,9 @@
         "agent-audio"
       ],
       "notes": [
-        "domains/audio/index.md",
-        "domains/audio/playbook.md"
+        "domains/audio/playbook.md",
+        "domains/audio/rules.md",
+        "domains/audio/index.md"
       ],
       "checklist": "checklists/audio.md",
       "skill": "sfx"
@@ -421,6 +428,7 @@
         "commands"
       ],
       "notes": [
+        "profiles/vault-rules.md",
         "index.md",
         "lessons.md"
       ],
@@ -499,7 +507,9 @@
         "with workers"
       ],
       "notes": [
-        ".claude/skills/crew/SKILL.md"
+        ".claude/skills/crew/SKILL.md",
+        ".claude/skills/crew/spec.md",
+        "profiles/vault-rules.md"
       ],
       "checklist": "checklists/simple.md",
       "skill": "crew"

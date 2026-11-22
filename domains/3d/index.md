@@ -6,6 +6,8 @@ triggers: [studio tab, zfight, z-fighting, flicker, armor, avatar, creature, vox
 ---
 # 3D
 
+- [rules](domains/3d/rules.md): every applied lesson rule for this domain; read with the playbook.
+
 Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.js Artifacts + procedural geometry in repo files.
 
 ## Read in this order
