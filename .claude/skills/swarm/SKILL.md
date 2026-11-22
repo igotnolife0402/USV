@@ -21,6 +21,7 @@ description: 'Use only for HUGE tasks (multi-hour builds, many domains) once the
 ## Worktrees (every worker, no exceptions)
 ```
 git check-ignore -q .worktrees || echo ".worktrees/" >> .gitignore
+git config user.name >/dev/null || { git config user.name Claude; git config user.email noreply@anthropic.com; }   # fresh repo: commits fail without it (L-121)
 git worktree add .worktrees/<id> -b swarm/<id>/<slug>      # id = w01, w02...; slug = kebab task
 # after merge: git worktree remove .worktrees/<id> && git branch -d swarm/<id>/<slug>
 ```
@@ -29,6 +30,7 @@ Workers run with cwd = their worktree and absolute paths. Branch base = main aft
 ## Wave plan
 - Wave 0 (one worker): contracts. Orchestrator reviews, qa-gate type-checks, merge, tag `swarm-<task>-w0`. Contracts are FROZEN; a change request goes to the orchestrator, who issues a new mini Wave 0.
 - Wave 1..N (<= 30 min each): leads + workers in parallel on disjoint files. Each wave ends with qa-gate → merge → retro.
+- Contracts list every marker/attribute the integrator looks up (e.g. a Start part, Spawns folder); smoke tests run through the real selection path, not only setup/stop (L-124).
 - Dependencies between workers → put them in different waves, never "wait for the other worker".
 
 ## Brief template (lead → worker; orchestrator → lead is the same shape)

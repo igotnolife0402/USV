@@ -221,3 +221,15 @@ improved: pack-scripts tool (code ships inside the Umbrio rbxmx); procedural sfx
 ## [2026-11-22] build / Minigame Mayhem v2 (crew) + swarm spec
 v2: 3 Umbrio kit tabs (mm-kit-env/mech/props, 58 models, KITS PASS), Studio-built map via MapBuilder (15 arenas), 14 games + random Pick roulette, HUD/FX upgrade, 6 new SFX; solo test: no script errors, random pick works. Owner review: clipping, part-spam tiles, uneven model quality, not 10-player → swarm spec written, awaiting approval.
 improved: kit-grid tool (merge + grid kits for tabs/export); flipbook-texture fallback to built-in particles + EmitScale; owner look rule in roblox playbook + memory; SFX presets +6
+
+## [2026-11-22] swarm / minigame-mayhem polish waves 0-3
+Wave 0 contracts v3 (+v3.1 liquid/embed), wave 1 kit (0 TIER WARN, heroes 60+) / layout (MapBuilder v3: baseplate slabs, occupancy, audit) / core-UI (10-player ranking, leaderboard, feed, bonk), wave 2 games re-laid for 10 players, wave 3 Studio: audit 7 → 0, 1260 baseplate slabs, 14-game setup/stop smoke 0 failures, qa-gate FAIL 11 → fixed. Place saved v16. Bots (contract v4) started on owner request.
+improved: Studio audit pass catches clipping by script; setup/stop smoke test replaces per-round playtests; built-in particle textures as VFX base (L-117); measured sword grip (L-118); coplanar gates report-only (L-119); router words for bots
+
+## [2026-11-22] swarm / minigame-mayhem fun pass wave 0-1
+Spec state/minigame-mayhem-fun.md (owner budget 30-60 min: 6 new games, no tutorial island/shop). W0: contract v5 + MMShared Palette/UIKit/Momentum + ui-gate; Momentum Studio test 1000 chains: max 62.00, angle 0.03 deg, 0 NaN. 8 workers running.
+improved: momentum cap module + Studio proof (L-120); swarm W0 git identity step (L-121); owner-rule edit gate (L-122); roblox router words for spectate/cutscene/mini games
+
+## [2026-11-22] swarm / minigame-mayhem fun pass wave 2 (done)
+Merged 8 workers; Studio v5c: 21 arenas audit 0, decor 38-44 each, 6 new games smoke 0 errors, dash+roll max 54.7 studs/s (was ~700), vote/mutator/intro/spectate run, full bot match restarted, saved v22. qa-gate FAIL 2 fixed (Start fallback, bot net owner).
+improved: kit pivot from world AABB (L-123); contract marker rule in swarm skill (L-124); qa visual check queued for PC; lessons shortened to lint cap

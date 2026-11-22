@@ -3,7 +3,7 @@ summary: Swarm spec for the Minigame Mayhem polish pass (no clipping, baseplate 
 updated: 2026-11-22
 status: current
 ---
-# minigame-mayhem polish  spec: awaiting approval   wave: 0/3
+# minigame-mayhem polish  spec: approved 2026-11-22   wave: 3/3
 Base: [minigame-mayhem.md](minigame-mayhem.md) (v2 contract: kits, MapBuilder, 14 games, HUD). Code: %USERPROFILE%/RobloxImports/MinigameMayhem (git init there for worktrees; binaries stay out of the vault).
 
 ## Goal (owner review 2026-11-22)
@@ -38,4 +38,12 @@ Not checkable by me: looks inside Studio (camera off-limits); kit looks checked 
 
 | id | lead | files | branch | tries | qa | status |
 |---|---|---|---|---|---|---|
-Decisions: swarm chosen by owner 2026-11-22.  Blocked: approval.  Next: Wave 0.
+| w00 | orch | contract.md, kits/gen split, Games A/B/C split | swarm/w00/contracts | 1 | review | merged, tag swarm-mm-w0 |
+| L-kit | kit | kits/gen/env,mech,props.mjs | swarm/w1-kit/main | 1 | KITS PASS, 0 TIER WARN | merged; Umbrio tabs mm-kit3-env/mech/props written + read back; browser look blocked by claude.ai sign-in |
+| L-layout | layout | src/server/MapBuilder.luau (+Lobby.luau) | swarm/w1-layout/main | 2 | static | merged (v3.1 liquid/embed) |
+| L-core | core | RoundServer, Config, HUD, FX (+Leaderboard.luau) | swarm/w1-core/main | 1 | static | merged (+Leaderboard.luau in layout; orch fix lobby return point) |
+| L-games | games | src/server/GamesA/B/C.luau | swarm/w2-games/main | 2 | Studio audit 7 → 0 | merged (+fix e43f2f8) |
+| qa-gate | orch | whole diff since swarm-mm-w0 | - | 1 | FAIL 11 defects | fixed + merged (c9077e0, 235bb13); re-import audit 0, 14-game smoke 0 failures, place saved v16 |
+| bots-core | core | Bots.luau, RoundServer, Config, HUD, Leaderboard | swarm/w4/bots-core | 0 | - | running (contract v4) |
+| bots-games | games | GamesA/B/C ctx.who + def.bot | swarm/w4/bots-games | 0 | - | running |
+Decisions: swarm chosen by owner 2026-11-22.  Blocked: none.  Next: merge qa fixes, re-pack, re-import, save. Wave 3 results: audit TOTAL 0 (lobby + 15 arenas), 1260 baseplate slabs, 0 bare floors, 0 terrain, 13 game setup/stop smoke OK, duel hits 20/35, sword grip measured F1.00, console clean. Early Studio run 2026-11-22: MapBuilder v3 builds 15 arenas, audit works, Lobby AUDIT 0/0; old games 174 overlaps (being re-laid). Baseplate texture rbxassetid://6372755229 ("Grid") verified to exist via GetProductInfo.

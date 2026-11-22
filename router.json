@@ -70,7 +70,20 @@
         "minigame",
         "minigames",
         "round system",
-        "elimination"
+        "elimination",
+        "bots",
+        "add bots",
+        "simulate the whole game",
+        "npc players",
+        "fake players",
+        "mini games",
+        "mini game",
+        "spectate",
+        "spectate menu",
+        "cutscene",
+        "cutscenes",
+        "tutorial world",
+        "dash and roll"
       ],
       "notes": [
         "domains/roblox/playbook.md",

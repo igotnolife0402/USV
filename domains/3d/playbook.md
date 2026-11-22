@@ -90,3 +90,4 @@ Run [checklists/3d.md](checklists/3d.md). Add new failures to [errors](domains/3
 
 ## Umbrio writes (promoted 2026-11-22)
 - Build outputs go into gitignored `.worktrees/<build>/` inside the repo and Artifact/ArtifactData calls get a relative file_path; scratchpad paths sit outside the session folders and trigger permission prompts (L-069).
+- Coplanar/contact gates report only; never auto-move parts to clear them (moves create new conflicts: 3 rounds lost on kit stripes 2026-11-22). Offset decor >= 0.05 and avoid equal widths by construction (L-119).
