@@ -9,7 +9,7 @@ export const METRICS = 'archive/metrics.jsonl';
 const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
 // The owner says the last result was bad. Short prompts only (pasted logs are not corrections).
 // Phrased as a complaint about the last result, so task descriptions ("make it learn from errors") don't trigger it.
-const CORRECTION = /\b(still (broken|wrong|not working|failing|slow|bad|ugly)|(does|did|is) ?n[o']t work(ing)?|not working|(it'?s|it is|that'?s|that is|this is|was|looks|went) (wrong|broken|bad|ugly)|not what i (asked|wanted|said|meant)|you (missed|forgot|broke|ignored|skipped)|try again|redo (it|this|that)|(it|you) broke|took (way )?too long|too slow|so slow|fix (it|this|that) again|undo (it|this|that)|revert (it|this|that))\b/i;
+export const CORRECTION = /\b(still (broken|wrong|not working|failing|slow|bad|ugly)|(does|did|is) ?n[o']t work(ing)?|not working|(it'?s|it is|that'?s|that is|this is|was|looks|went) (wrong|broken|bad|ugly)|not what i (asked|wanted|said|meant)|you (missed|forgot|broke|ignored|skipped)|try again|redo (it|this|that)|(it|you) broke|took (way )?too long|too slow|so slow|fix (it|this|that) again|undo (it|this|that)|revert (it|this|that))\b/i;
 // Tool errors that are normal search misses or expected guard denials, not failures.
 const NOISE = /no (matches|files?) found|MOBILE MODE|3-try cap|user (doesn't|does not) want|rejected by the user|interrupted by user/i;
 
@@ -84,8 +84,12 @@ export const domainsOf = (paths) => [...new Set(paths.map(p => rel(p).match(/^do
 // Turn facts + router state -> list of signals worth a lesson.
 export function improvedCount(logText = '') {
   const last = String(logText).split(/\n(?=## \[)/).pop() || '';
-  const m = last.match(/^improved:\s*(.+)/im);
-  return m ? m[1].split(';').map(s => s.trim()).filter(Boolean).length : 0;
+  // `Improved: a; b; c` on one line, or `Improved:` followed by a numbered/bulleted list.
+  const m = last.match(/^improved:[ \t]*(.*)((?:\n[ \t]*(?:\d+[.)]|[-*])[ \t]+.+)*)/im);
+  if (!m) return 0;
+  const inline = m[1].split(';').map(s => s.trim()).filter(Boolean).length;
+  const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;
+  return inline + listed;
 }
 export function signals(turn, state = {}, extra = {}) {
   const out = [];
@@ -118,6 +122,8 @@ export function signals(turn, state = {}, extra = {}) {
   // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
   const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
+  // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
+  else if (imp != null && improvedCount(turn.lastText || '') < 3) out.push({ kind: 'improve', text: 'improvements not listed in the reply (`Improved: a; b; c`)' });
   return out;
 }
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
@@ -137,7 +143,7 @@ export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged =
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
-  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Then add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>`. Real fixes only, no filler.');
+  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Vault edits (rules, routing, hooks, notes) count. Add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>` AND end your reply to the owner with the same `Improved: ...` line, one short reason each. Real fixes only, no filler.');
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',

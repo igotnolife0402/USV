@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { ROOT, readInput, emit, safe, getMode, setMode, readIf, fm, MODE_CMD, isMain } from './lib.mjs';
-import { saveTurnState } from './learn.mjs';
+import { saveTurnState, CORRECTION } from './learn.mjs';
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const hit = (text, word) => new RegExp(`(^|[^\\w])${esc(word)}($|[^\\w])`, 'i').test(text);
@@ -12,6 +12,7 @@ export const looksLikeReport = (p) => REPORT.test(p) || p.split('\n').length > 4
 
 export function classify(prompt, tiers = {}) {
   if (looksLikeReport(prompt)) return 'medium';
+  if (CORRECTION.test(prompt) || /\b(you (still )?didn'?t|you never|still (didn'?t|not))\b/i.test(prompt)) return 'medium'; // owner complaints need fixes, never "simple"
   if (prompt.length < 200 && [...SIMPLE_FIX, ...(tiers.simple || [])].some(w => hit(prompt, w))) return 'simple';
   if ((tiers.complex || []).some(w => hit(prompt, w)) || prompt.length > 4000) return 'complex';
   return 'medium';
