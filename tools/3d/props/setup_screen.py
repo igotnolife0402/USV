@@ -38,9 +38,9 @@ def keys():
             x = -0.256 + c * px
             if r == 5 and 4 <= c <= 10:
                 if c == 4:
-                    out.append(H.box(x, -0.256 + 10 * px + cw, 0.754, 0.784, z, z + cd))
+                    out.append(H.box(x, -0.256 + 10 * px + cw, 0.768, 0.784, z, z + cd))
                 continue
-            out.append(H.box(x, x + cw, 0.754, 0.784, z, z + cd))
+            out.append(H.box(x, x + cw, 0.768, 0.784, z, z + cd))
     return P.merge(*out)
 
 
@@ -49,20 +49,21 @@ def parts():
         "scr_metal": H.tex("brushed", ["#2A2B2E", "#1F2023", "#4A4D52"], 1.0),
         "scr_plastic": H.tex("noise", ["#1C1D1F", "#26272A"], 0.2, detail=0.3),
         "scr_rubber": H.tex("grip", ["#3A3C40", "#2A2B2E"], 0.004),
+        "scr_screen": H.tex("gradient", ["#0D1424", "#1E3456", "#3A5F8C"], 0.6, detail=0.2),
         "scr_keys": H.tex("noise", ["#3A3C40", "#323438"], 0.1, detail=0.2),
     }
     p = [
-        H.mk("mon-base", P.xf(P.rbox((0.26, 0.012, 0.19), 0.005), t=(0, 0.756, -0.19)), "#2A2B2E", "scr_metal",
+        H.mk("mon-base", P.xf(P.rbox((0.26, 0.014, 0.19), 0.007), t=(0, 0.757, -0.19)), "#2A2B2E", "scr_metal",
              metalness=0.5, roughness=0.35),
-        H.mk("mon-neck", H.box(-0.025, 0.025, 0.762, 1.05, -0.245, -0.205), "#2A2B2E", "scr_metal",
+        H.mk("mon-neck", P.xf(P.rbox((0.05, 0.30, 0.035), 0.008), t=(0, 0.905, -0.215)), "#2A2B2E", "scr_metal",
              metalness=0.5),
-        H.mk("mon-back", P.xf(P.rbox((0.40, 0.26, 0.035), 0.012), t=(0, 1.07, -0.185)), "#1C1D1F", "scr_plastic",
+        H.mk("mon-back", P.xf(P.slab(0.20, 0.13, 0.035, 0.02, 0.01), t=(0, 1.07, -0.185)), "#1C1D1F", "scr_plastic",
              roughness=0.6),
-        H.mk("mon-bezel", frame_xy(-0.3075, 0.3075, 0.89, 1.255, -0.167, -0.147, 0.008, 0.008, 0.008, 0.022),
+        H.mk("mon-bezel", frame_xy(-0.3075, 0.3075, 0.89, 1.255, -0.167, -0.147, 0.006, 0.006, 0.006, 0.022),
              "#151618", "scr_plastic", roughness=0.5),
-        H.mk("mon-panel", H.box(-0.2995, 0.2995, 0.912, 1.247, -0.167, -0.152), "#0B0E14", None,
+        H.mk("mon-panel", H.box(-0.3015, 0.3015, 0.912, 1.249, -0.167, -0.152), "#16223A", "scr_screen",
              roughness=0.15, metalness=0.1),
-        H.mk("kb-case", frame_xz(-0.27, 0.17, 0.752, 0.772, 0.07, 0.20, 0.012), "#2A2B2E", "scr_metal",
+        H.mk("kb-case", P.xf(P.rbox((0.44, 0.022, 0.13), 0.005, seg=2), t=(-0.05, 0.763, 0.135)), "#2A2B2E", "scr_metal",
              metalness=0.4),
         H.mk("kb-keys", keys(), "#3A3C40", "scr_keys", roughness=0.7),
         H.mk("kb-feet", P.merge(*[H.box(x, x + 0.02, 0.750, 0.752, z, z + 0.01)

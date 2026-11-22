@@ -12,6 +12,9 @@ Why this note: the 2026-11-22 house run spent ~9 min reading 8 files (playbook, 
 - Helpers already there: `box()` plain 6-quad box, `fuv()` per-face metre UVs (use it, never `P.box_uv`: that picks the axis from vertex position, wrong on long parts), `wall()` panels split around openings, `bars()` frame + muntins without overlaps, `window()`, `cyl(p0, p1, r)`, `slope_pt()`/`roof_side()` stepped shingle courses, `live()` stage files.
 - From props.py: `P.prism(convex (z,y) poly, hw, ch)` extrudes along X (convex only; orient CCW by area sign), `P.lathe(profile, seg, False)` around +Y, `P.cbox(size, r)` chamfered box, `P.xf(m, t, r, s)` (negative scale flips faces), `P.merge`, `P.part(id, mesh, color, smooth=False, transparency=..)`. From guns.py: `G.tube(x0, x1, yc, prof)` along +X, `G.poly(pts (x,y), width)`, `G.attach(name)`.
 
+## Crew speed
+- /crew model builds: the first message spawns the 3 workers with a 3-line prep (read house.py helpers lines 1-200, wait for spec); specs follow by SendMessage. Designing all specs before spawning cost 155 s on 2026-11-22.
+
 ## Units and gates
 - 1 unit = 1 m (zfight bands are metres: level < 1.5 cm, layered < 12 cm, fail at 0.5 m2; `--prop` only for hand-held).
 - `python tools/3d/props/<gen>.py .worktrees/<build> --check` = mesh check (TRI_CAP 12k per prop) + `detail.py --class prop` (>= 15 parts, textured >= 60 %, >= 4 colours, >= 3k tris) + attach + zfight on `OUT/live/p<last>.json`. house.py check takes ~5 s (attach dedupes samples per cell).

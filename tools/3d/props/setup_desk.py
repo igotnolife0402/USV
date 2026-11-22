@@ -14,17 +14,17 @@ STEEL, BLACK = "#2B2D30", "#141516"
 
 def parts():
     p = []
-    p.append(H.mk("desk-top", H.box(-0.70, 0.70, 0.72, 0.75, -0.35, 0.35), "#7A5536", "desk_oak", roughness=0.55))
+    p.append(H.mk("desk-top", P.xf(P.rbox((1.40, 0.03, 0.70), 0.006, seg=2), t=(0, 0.735, 0)), "#7A5536", "desk_oak", roughness=0.55))
     pts = [(sx * 0.64, sz * 0.29) for sx in (1, -1) for sz in (1, -1)]
-    legs = P.merge(*[H.box(x - 0.025, x + 0.025, 0.012, 0.64, z - 0.025, z + 0.025) for x, z in pts])
+    legs = P.merge(*[P.xf(P.rbox((0.05, 0.628, 0.05), 0.006, seg=2), t=(x, 0.326, z)) for x, z in pts])
     p.append(H.mk("desk-legs", legs, STEEL, "desk_steel", metalness=0.6, roughness=0.4))
-    ap = [H.box(-0.615, 0.615, 0.64, 0.72, sz * 0.29 - 0.015, sz * 0.29 + 0.015) for sz in (1, -1)]
-    ap += [H.box(sx * 0.64 - 0.015, sx * 0.64 + 0.015, 0.64, 0.72, -0.265, 0.265) for sx in (1, -1)]
+    ap = [H.box(-0.62, 0.62, 0.64, 0.722, sz * 0.29 - 0.015, sz * 0.29 + 0.015) for sz in (1, -1)]
+    ap += [H.box(sx * 0.64 - 0.015, sx * 0.64 + 0.015, 0.64, 0.722, -0.265, 0.265) for sx in (1, -1)]
     p.append(H.mk("desk-apron", P.merge(*ap), STEEL, "desk_steel", metalness=0.6, roughness=0.4))
     feet = P.merge(*[H.cyl((x, 0, z), (x, 0.012, z), 0.022, 12) for x, z in pts])
     p.append(H.mk("desk-feet", feet, BLACK, "desk_rubber", roughness=0.9))
     tray = P.merge(H.box(-0.45, 0.45, 0.60, 0.605, -0.28, -0.18),
-                   H.box(-0.45, 0.45, 0.605, 0.66, -0.285, -0.28),
+                   H.box(-0.45, 0.45, 0.605, 0.722, -0.285, -0.28),
                    H.box(-0.45, 0.45, 0.605, 0.63, -0.185, -0.18))
     p.append(H.mk("desk-tray", tray, STEEL, "desk_steel", metalness=0.6, roughness=0.4))
     p.append(H.mk("desk-grommet", H.cyl((0.45, 0.745, -0.28), (0.45, 0.751, -0.28), 0.03, 12), "#1A1A1C", "desk_rubber"))
