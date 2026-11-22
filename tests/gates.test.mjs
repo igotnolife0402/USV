@@ -208,3 +208,11 @@ test('pre-commit hook and installer exist and are wired', () => {
   assert.match(pc, /node scripts\/vault-lint\.mjs --all && node --test "tests\/\*\.test\.mjs"/);
   assert.ok(existsSync(join(REPO, 'scripts', 'install-githooks.mjs')));
 });
+
+test('pre-tool: sed -i on js files is denied (L-045)', () => {
+  const root = join(BASE, 'live vault');
+  mkdirSync(root, { recursive: true });
+  const run = (command) => node([join(REPO, 'hooks', 'pre-tool.mjs')], { tool_name: 'Bash', tool_input: { command } }, { VAULT_ROOT: root }).stdout;
+  assert.ok(run("sed -i 's/a/b/' hooks/x.mjs").includes('Edit tool'));
+  assert.ok(!run("sed -i 's/a/b/' notes.md").includes('Edit tool'));
+});

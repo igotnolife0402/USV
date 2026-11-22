@@ -108,7 +108,9 @@ export function signals(turn, state = {}, extra = {}) {
   // Writes only to vault plumbing (hooks, scripts, notes, router...) are vault work, not a domain build.
   const VAULT_META = /^(hooks|scripts|tests|profiles|checklists|queue|state|archive|\.claude|\.orchestration|\.github)\/|^(CLAUDE\.md|index\.md|lessons\.md|log\.md|router\.json)$/;
   const builds = turn.writes.filter(p => !VAULT_META.test(rel(p)));
-  const missedSkills = tier !== 'simple' && builds.length ?(state.skills || []).filter(s => !(turn.skills || []).includes(s)) : [];
+  // An owner-invoked orchestration skill (/crew, /swarm, /helpers) replaces the routed skill (L-082): no skill miss then.
+  const ownerSkill = ['crew', 'swarm', 'helpers'].some(s => (turn.skills || []).includes(s));
+  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).filter(s => !(turn.skills || []).includes(s)) : [];
   if (missedSkills.length)
     out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);

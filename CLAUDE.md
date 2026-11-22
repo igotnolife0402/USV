@@ -56,7 +56,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Supersede, don't delete: set `status: superseded` + `superseded_by: path`, keep the file.
 - New note → add one line to its domain `index.md` the same task. Unlinked note = lost note.
 - [log.md](log.md): append one `## [YYYY-MM-DD] op / title` + 1-3 lines every session (stop-gate enforces).
-- [lessons.md](lessons.md) (ACE): lessons.md is append-only; allowed in-place edits are only bumping h:/x: counters and appending ` → promoted: <path>` or ` → dup of L-xxx` to a bullet's end; pruning is proposed in log.md, never deleted.
+- [lessons.md](lessons.md) (ACE): lessons.md is append-only; allowed in-place edits are only bumping h:/x: counters and appending ` → applied: <path>` (every new lesson, same turn: the Stop hook blocks until its rule is in a note/hook), ` → promoted: <path>` or ` → dup of L-xxx` to a bullet's end; pruning is proposed in log.md, never deleted.
 - Binaries (models, audio, builds) stay out of git; commit scripts that regenerate them.
 - Paths: forward slashes everywhere (hooks run in Git Bash on Windows).
 

@@ -86,3 +86,6 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 
 ## Done
 Run [checklists/3d.md](checklists/3d.md). Add new failures to [errors](domains/3d/errors.md).
+
+## Umbrio writes (promoted 2026-11-22)
+- Build outputs go into gitignored `.worktrees/<build>/` inside the repo and Artifact/ArtifactData calls get a relative file_path; scratchpad paths sit outside the session folders and trigger permission prompts (L-069).

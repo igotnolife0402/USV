@@ -123,6 +123,9 @@ if (isMain(import.meta.url)) safe(() => {
     if (why) return deny(`${why}. Do it manually if truly intended.`);
   }
 
+  if (tool === 'Bash' && typeof ti.command === 'string' && /\b(sed\s+-i|perl\s+-pi)\b[^|;&]*\.(m?js|cjs|ts)\b/.test(ti.command))
+    return deny('Edit .js/.mjs/.ts files with the Edit tool, not sed -i / perl -pi (regex backslashes and newlines get corrupted, L-045).');
+
   if (tool === 'Write' && typeof ti.file_path === 'string') {
     const rel = relative(ROOT, resolve(ROOT, ti.file_path)).replace(/\\/g, '/');
     if (isNote(rel) && String(ti.content || '').split(/\r?\n/).length > 200)

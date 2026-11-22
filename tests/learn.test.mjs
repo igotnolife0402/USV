@@ -122,6 +122,8 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   const silent = run({ stop_hook_active: true });
   assert.equal(silent.stdout, '', 'second pass never blocks');
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n- [L-002] (h:0 x:1) 2026-11-21 three missing → pin deps — trigger: build\n`);
+  assert.match(run().stdout, /Apply new lessons NOW/, 'a lesson that is not applied blocks');
+  put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n- [L-002] (h:0 x:1) 2026-11-21 three missing → pin deps — trigger: build → applied: checklists/web.md\n`);
   const ok = run();
   assert.equal(ok.stdout, '');
   assert.equal(g('status', '--porcelain').stdout.trim(), '', 'committed');

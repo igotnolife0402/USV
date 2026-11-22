@@ -37,7 +37,7 @@ export function refuseReason(root, rel) {
 
 // ACE rule: lessons.md lines may only be appended or have their (h:N x:N) counters bumped.
 export function lessonViolations(diff) {
-  const strip = (l) => l.replace(/\(h:\d+ x:\d+\)/, '(h x)').replace(/\s+→ promoted: .*$/, '').trimEnd();
+  const strip = (l) => l.replace(/\(h:\d+ x:\d+\)/, '(h x)').replace(/\s+→ (promoted|applied|dup of)[: ].*$/, '').trimEnd();
   const lines = diff.split('\n');
   const removed = lines.filter(l => l.startsWith('-') && !l.startsWith('---')).map(l => l.slice(1));
   const added = new Set(lines.filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => strip(l.slice(1))));
@@ -60,7 +60,8 @@ if (isMain(import.meta.url)) safe(() => {
   // Auto-learning: analyse this turn (errors, retries, slowness, owner corrections, router misses); keep metrics.
   const turn = input.transcript_path ? parseTurn(readTail(input.transcript_path)) : null;
   const state = loadTurnState(input.session_id);
-  const sigs = turn ? signals(turn, state, { improved: improvedCount(readIf(join(ROOT, 'log.md'))) }) : [];
+  // Workers still running = the task is mid-flight: judge it when the last report is in, not now.
+  const sigs = turn && !(input.background_tasks?.length > 0) ? signals(turn, state, { improved: improvedCount(readIf(join(ROOT, 'log.md'))) }) : [];
   if (turn) recordMetrics(turn, state, sigs, getMode(input.session_id).mode);
 
   const st = git(['status', '--porcelain', '-z', '-uall']);
@@ -81,6 +82,8 @@ if (isMain(import.meta.url)) safe(() => {
   if (files.includes('lessons.md')) {
     const bad = lessonViolations(git(['diff', 'HEAD', '--', 'lessons.md']).stdout || '');
     if (bad.length) return block(`lessons.md is ACE delta-only: restore these lines (only append bullets or bump h:/x:):\n${bad.join('\n')}`);
+    const fresh = (git(['diff', 'HEAD', '--', 'lessons.md']).stdout || '').split('\n').filter(l => /^\+- \[L-\d+\]/.test(l) && !/→ (promoted|applied): /.test(l));
+    if (fresh.length) return block(`Apply new lessons NOW (owner rule: a logged error that is never applied comes back). Put each rule into its playbook, checklist, skill or hook, then append " → applied: <path>" to the lesson line:\n${fresh.map(l => l.slice(1, 90)).join('\n')}`);
   }
 
   const d = today();

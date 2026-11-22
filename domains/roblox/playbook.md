@@ -52,3 +52,6 @@ triggers: [roblox, luau, studio mcp, rojo, play test]
 
 ## Done
 Run [checklists/roblox.md](checklists/roblox.md). Delivered files:  must PASS and the reply names every step not run in Roblox. Record new failures in [errors](domains/roblox/errors.md).
+
+## Uploads folder (promoted 2026-11-22)
+- Every Roblox upload (models, meshes, animation, VFX, audio) is exported into the one owner-approved folder `~/RobloxImports` (exact path in CLAUDE.local.md); never a fresh per-build folder, which Studio MCP refuses until approved (L-076).

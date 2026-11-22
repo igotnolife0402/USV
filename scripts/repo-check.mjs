@@ -133,7 +133,7 @@ function lessonsChecks(t, add) {
     if (!m) return add('lessons.md', 'lesson must be `- [L-NNN] (h:N x:N) YYYY-MM-DD rule — trigger: words`', 'error', i + 1);
     if (seen.has(m[1])) add('lessons.md', `duplicate lesson id L-${m[1]}`, 'error', i + 1);
     seen.add(m[1]);
-    const core = l.split(/ → (promoted|dup of)/)[0]; // allowed in-place suffixes (CLAUDE.md §4) do not count
+    const core = l.split(/ → (promoted|applied|dup of)/)[0]; // allowed in-place suffixes (CLAUDE.md §4) do not count
     if (core.length > 400) add('lessons.md', `lesson is ${core.length} chars (cap 400): shorten to rule + trigger`, 'error', i + 1);
   });
 }
