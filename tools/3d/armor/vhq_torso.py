@@ -134,6 +134,9 @@ def cuirass():
         N = nz(Z * math.cos(math.radians(15)) + X * sx * math.sin(math.radians(15))); U, V = frame(N)
         hp = plate(b, 'plate', (sx * 0.7, -1.3, 0.6), U, V, 0.17, 0.34, 0.05, ('shield', 0.5), bulge=(0.05, 0.0), flare=0.05, rim=0.03, nu=12, nv=14)
         trim(b, hp, 0.86, 0.009)
+    for sx in (-1, 1):                              # side plates under the arms (the torso sides showed bare)
+        sp = plate(b, 'plate', (sx * 1.075, 0.12, 0), -sx * Z, Y, 0.53, 0.74, 0.05, ('octa', 0.15), bulge=(0.04, 0.02), rim=0.03, nu=12, nv=12)
+        trim(b, sp, 0.86, 0.01)
     return b
 
 

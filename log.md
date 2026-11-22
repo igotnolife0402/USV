@@ -63,3 +63,6 @@ tools/3d/beast/shadow.py (22-stud rigged shadow creature: 4 glowing eyes, glowin
 
 ## [2026-11-22] build / Venomreaver remade at max quality
 New smooth kit tools/3d/armor/hq.py (curved plates, rims, lathes, tubes, smooth-by-angle, audit) + preview.py; venomreaver.py + vhq_torso/limbs/helm (crew: 3 workers). ~288k tris, audit clean, studio render checked. Open: torso sides bare under arms, toe-cap rivets float, not yet written to hub project. Took ~45 min on a medium-tier target: crew + kit-bug round trips.
+
+## [2026-11-22] build / Venomreaver HQ fixes + hub write
+Torso side plates, toe-cap rivets fixed; 87 geo docs + project v9 + meta v7 written to hub project venomreaver-p01s (Umbrio Sandbox), read-back matches. Not checked in the live hub page itself.

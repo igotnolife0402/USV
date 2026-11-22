@@ -204,7 +204,7 @@ def sabaton():
     trim(s, tc, [(0, v * tc.h) for v in np.linspace(-0.8, 0.6, 8)], 0.008, 0.003, 'glow')
     for sg in (-1, 1):
         trim(s, tc, [(sg * 0.8 * tc.w * tc.hw(v), v * tc.h) for v in np.linspace(-0.75, 0.75, 9)], 0.011)
-    studs(s, tc, [(sg * 0.38, 0.55 * tc.h) for sg in (-1, 1)], 0.028)
+    studs(s, tc, [(sg * 0.17, 0.55 * tc.h) for sg in (-1, 1)], 0.028)
     p, n = tc.at(0, -0.97 * tc.h)
     s.horn('iron', bez(p - Z * 0.02, p + Z * 0.05, p + Z * 0.09 + Y * 0.01, p + Z * 0.14 + Y * 0.04, 6), 0.04, 0.0, 20, 0.75)
     # heel spur + side spur
