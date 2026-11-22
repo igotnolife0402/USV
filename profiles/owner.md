@@ -27,7 +27,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - A model made in Umbrio Sandbox reaches Roblox (or any app) as an IMPORT of the exported file(s), intact: meshes, rig, animation, effects. Never rebuild it instance by instance in Studio with scripts as a substitute; if the export can't carry something, fix the exporter.
 
 ## Quality and scope
-- NEVER move, script or capture the camera in Roblox Studio (no screen_capture, video_capture, camera code; it bugs Studio). To see how something looks in Roblox, render the export (Sandbox studio shots) instead. Enforced by hooks/pre-tool.mjs (2026-11-22).
+- NEVER move, script or capture the camera in Roblox Studio (no screen_capture, video_capture, camera code run through MCP; it bugs Studio). In-game camera code shipped inside game scripts (spectate, cutscenes) is allowed (owner OK 2026-11-22). To see how something looks in Roblox, render the export (Sandbox studio shots) instead. Enforced by hooks/pre-tool.mjs (2026-11-22).
 - Maximum quality by default, expert-level, matching the owner's references; all effort up front.
 - A previous build is an identity reference, never the quality ceiling: new or remade models use the best kit available (3d: tools/3d/armor/hq.py), not the older piece's detail level (2026-11-22).
 - No placeholders or blockouts: every part is added at full detail; never show a stand-in draft to "fill in later".

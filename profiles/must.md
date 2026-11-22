@@ -11,7 +11,7 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 5. Custom meshes + textures + real thickness, many parts, detail floor gate; never placeholders or plain primitives.
 6. Scope = exactly what was asked: the model only, no ground or scenery, no extras.
 7. No z-fighting: zfight check on the tab read-back.
-8. Never move, script or capture the camera in Roblox Studio.
+8. Never move, script or capture the camera in Roblox Studio yourself (MCP); in-game camera code in game scripts (spectate, cutscenes) is allowed.
 9. No overkill: one big effect at completion or small subtle ones; less when unsure.
 10. Replies short; never claim a look you did not see.
 11. Always improve, every task: find and fix >= 3 real problems (speed, routing, rules, notes, tools), as many as possible; log `improved: a; b; c` and end the reply with a tiny footer `Fixed: a, b, c` + `Next: a, b, c` (2-5 word phrases; vault edits count; Next = >= 3 things not yet fixed); measure the run's speed and fix its slowest phase.

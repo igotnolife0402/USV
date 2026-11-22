@@ -233,3 +233,7 @@ improved: momentum cap module + Studio proof (L-120); swarm W0 git identity step
 ## [2026-11-22] swarm / minigame-mayhem fun pass wave 2 (done)
 Merged 8 workers; Studio v5c: 21 arenas audit 0, decor 38-44 each, 6 new games smoke 0 errors, dash+roll max 54.7 studs/s (was ~700), vote/mutator/intro/spectate run, full bot match restarted, saved v22. qa-gate FAIL 2 fixed (Start fallback, bot net owner).
 improved: kit pivot from world AABB (L-123); contract marker rule in swarm skill (L-124); qa visual check queued for PC; lessons shortened to lint cap
+
+## [2026-11-22] owner / camera rule narrowed
+Owner OK: in-game camera code in game scripts (spectate, cutscenes) allowed; Studio/MCP camera still never touched (owner.md, must.md).
+improved: camera rule matches owner intent; state file unblocked; L-122 gate followed (asked before editing)
