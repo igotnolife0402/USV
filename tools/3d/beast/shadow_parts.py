@@ -80,6 +80,14 @@ def wisp(seg, base, d, L, r, tipglow):
     pts = [np.asarray(base, float) + d * L * f + side * 0.35 * math.sin(f * 5 + rng.uniform(0, 6)) * f for f in (0, 0.3, 0.55, 0.8, 1.0)]
     chain(seg, pts, r, r * 0.45, SMOKE if rng.random() < 0.6 else SMOKE2, tip=True, tipcol=WISP if tipglow else SMOKE2, tr=0.12)
 
+def back_z(x, y):
+    """Back surface (most negative z) of the torso ellipsoids at (x, y); wisps and back pieces root here."""
+    zs = []
+    for c, r in (((0, 13.9, 0.5), (2.3, 2.95, 1.95)), ((0, 15.6, 0.6), (3.15, 1.2, 1.7)), ((0, 11.75, 0.3), (1.6, 1.35, 1.35))):
+        q = 1 - ((x - c[0]) / r[0]) ** 2 - ((y - c[1]) / r[1]) ** 2
+        if q > 0: zs.append(c[2] - r[2] * math.sqrt(q))
+    return min(zs) if zs else 0.0
+
 def build():
     Hd, Jw, C, Hp = 'Head', 'Jaw', 'Chest', 'Hips'
     # ================= head =================
@@ -149,8 +157,9 @@ def build():
         for d in ((0.3, 1.9, -0.4), (0.9, 1.3, -1.0), (-0.4, 1.6, -1.2), (1.2, 0.6, 0.2)):
             cone(C, (s * 3.5, 16.6, 1.2), (s * (3.5 + d[0]), 16.6 + d[1], 1.2 + d[2]), 0.28, HORN, mat='Slate')
     for k in range(36):                                                            # shadow wisps rising off the back and shoulders
-        x = rng.uniform(-3.3, 3.3); y = rng.uniform(12.6, 16.6); z = -0.95 - 0.35 * (1 - min(1, abs(x) / 2.6))
-        wisp(C, (x, y, z), (x * 0.12, 1.0, -0.7), rng.uniform(2.2, 4.4), rng.uniform(0.2, 0.32), k % 3 == 0)
+        x, y = rng.uniform(-2.4, 2.4), rng.uniform(12.6, 16.4)
+        z = back_z(x, y) + 0.12                                                  # rooted in the back skin, never floating
+        wisp(C, (x, y, z), (x * 0.18, 1.0, -0.7), rng.uniform(2.2, 4.4), rng.uniform(0.2, 0.32), k % 3 == 0)
 
     # ================= hips: pelvis, smoke skirt, tail =================
     ell(Hp, (0, 10.4, 0.1), (1.95, 1.2, 1.55), BODY)

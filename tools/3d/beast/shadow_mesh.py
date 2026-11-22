@@ -19,23 +19,76 @@ TEX = {
     't-skin2': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#2f2349', '#17111f', '#46366a'], 'count': 18, 'detail': 0.55, 'seed': 9, 'res': 512, 'scale': 1},
     't-ridge': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#3d2e5d', '#211833', '#56437e'], 'count': 18, 'detail': 0.5, 'seed': 2, 'res': 512, 'scale': 1},
     't-horn': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#1d1827', '#0c0a11', '#3e3456'], 'count': 6, 'detail': 0.8, 'seed': 5, 'res': 512, 'scale': 1},
-    't-dark': {'kind': 'procedural', 'pattern': 'rock', 'colors': ['#110c1a', '#07050b', '#22193a'], 'count': 14, 'detail': 0.55, 'seed': 11, 'res': 512, 'scale': 1},
-    't-teeth': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#d8cfe8', '#a89cc0', '#f1ebfa'], 'count': 5, 'detail': 0.5, 'seed': 12, 'res': 512, 'scale': 1},
-    't-smoke': {'kind': 'procedural', 'pattern': 'fabric', 'colors': ['#2a2040', '#1a1428', '#45356a'], 'count': 10, 'detail': 0.4, 'seed': 13, 'res': 512, 'scale': 1},
     't-claw': {'kind': 'procedural', 'pattern': 'brushed', 'colors': ['#0f0c15', '#050407', '#2a2338'], 'count': 8, 'detail': 0.8, 'seed': 6, 'res': 512, 'scale': 1},
 }
-SURF = {SP.BODY: ('t-skin', 0.55), SP.BODY2: ('t-skin2', 0.5), SP.RIDGE: ('t-ridge', 0.45), SP.HORN: ('t-horn', 0.35), SP.HORN2: ('t-horn', 0.3), SP.CLAW: ('t-claw', 0.25), SP.DARK: ('t-dark', 0.6), SP.TEETH: ('t-teeth', 0.3), SP.SMOKE: ('t-smoke', 0.8), SP.SMOKE2: ('t-smoke', 0.8)}
+SURF = {SP.BODY: ('t-skin', 0.55), SP.BODY2: ('t-skin2', 0.5), SP.RIDGE: ('t-ridge', 0.45), SP.HORN: ('t-horn', 0.35), SP.HORN2: ('t-horn', 0.3), SP.CLAW: ('t-claw', 0.25)}
 GLOW = {SP.EYE, SP.CORE, SP.VEIN, SP.MOUTH, SP.WISP}
 
+PEND = []
 def emit(seg, V, F, UV, col, tr=0.0):
-    V = np.asarray(V, float) - PIV[seg]; gid = f'sm{len(GEO):x}'
-    GEO[gid] = {'verts': [round(float(x), 3) for x in V.reshape(-1)], 'faces': [list(map(int, f)) for f in F], 'uvs': [round(float(x), 3) for x in np.asarray(UV, float).reshape(-1)]}
-    o = {'type': 'mesh', 'geo': gid, 'parent': SID[seg], 'pos': [0, 0, 0], 'smooth': True}
-    if col in GLOW: o.update(color=col, material='Neon')
-    elif col in SURF: t, r = SURF[col]; o.update(color='#ffffff', texture=t, rough=r)
-    else: o.update(color=col, rough=0.5)
-    if tr: o['transparency'] = tr
-    OBJ[f'm{len(OBJ):x}'] = o
+    """Queue a piece; finalize() merges pieces per (segment, colour, transparency) into Studio mesh objects."""
+    PEND.append((seg, col, round(float(tr), 2), np.asarray(V, float), [list(map(int, f)) for f in F], np.asarray(UV, float)))
+
+def attach_check(tol=0.12, snap_size=0.45):
+    """No floating parts (owner rule 2026-11-22): within each joint segment every piece must connect, through touching
+    pieces, to the segment's largest piece (vertices within tol). A small detached piece (rivet, stud, barb: bounding
+    size < snap_size) is slid onto the nearest same-segment surface; a larger one is an error, so the build fails."""
+    from scipy.spatial import cKDTree
+    segs = {}
+    for i, p in enumerate(PEND): segs.setdefault(p[0], []).append(i)
+    errors, snapped = [], 0
+    for seg, ids in segs.items():
+        for _ in range(3):
+            V = np.vstack([PEND[i][3] for i in ids]); own = np.concatenate([np.full(len(PEND[i][3]), i) for i in ids])
+            pairs = cKDTree(V).query_pairs(tol, output_type='ndarray'); a_, b_ = own[pairs[:, 0]], own[pairs[:, 1]]; m = a_ != b_
+            par = {i: i for i in ids}
+            def f(x):
+                while par[x] != x: par[x] = par[par[x]]; x = par[x]
+                return x
+            for x, y in zip(a_[m], b_[m]): par[f(x)] = f(y)
+            root = f(max(ids, key=lambda i: len(PEND[i][3])))
+            lost = [i for i in ids if f(i) != root]
+            if not lost: break
+            keep = np.array([f(o) == root for o in own]); T = cKDTree(V[keep])
+            for i in lost:
+                P = PEND[i][3]; size = float(np.ptp(P, 0).max())
+                if size >= snap_size: continue
+                d, j = T.query(P); k = int(np.argmin(d)); move = V[keep][j[k]] - P[k]
+                PEND[i] = PEND[i][:3] + (P + move * (1 + 0.35 * size / max(np.linalg.norm(move), 1e-6)),) + PEND[i][4:]
+                snapped += 1
+        for i in lost:
+            if float(np.ptp(PEND[i][3], 0).max()) >= snap_size:
+                errors.append(f'{seg}: detached piece at {np.round(PEND[i][3].mean(0), 2).tolist()} (size {np.ptp(PEND[i][3], 0).max():.2f})')
+    if snapped: print(f'attach_check: {snapped} small pieces seated on the skin')
+    if errors: raise SystemExit('floating parts: ' + '; '.join(errors[:20]))
+
+def finalize(prefix='sx', max_tris=12000, max_verts=4200):
+    groups = {}
+    for p in PEND: groups.setdefault(p[:3], []).append(p)
+    for (seg, col, tr), ps in groups.items():
+        cur = None
+        def flush():
+            if not cur or not cur['F']: return
+            gid = f'{prefix}{len(GEO):x}'; V = np.vstack(cur['V']) - PIV[seg]
+            GEO[gid] = {'verts': [round(float(x), 3) for x in V.reshape(-1)], 'faces': cur['F'], 'uvs': [round(float(x), 3) for x in np.vstack(cur['UV']).reshape(-1)]}
+            o = {'type': 'mesh', 'geo': gid, 'parent': SID[seg], 'pos': [0, 0, 0], 'smooth': True, 'name': seg}
+            if col in GLOW: o.update(color=col, material='Neon')
+            elif col in SURF: t, r = SURF[col]; o.update(color='#ffffff', texture=t, rough=r)
+            else: o.update(color=col, rough=0.5)
+            if tr: o['transparency'] = tr
+            OBJ[f'{prefix}o{len(OBJ):x}'] = o
+        for _, _, _, V, F, UV in ps:
+            t = sum(len(f) - 2 for f in F)
+            if cur is None or cur['t'] + t > max_tris or cur['n'] + len(V) > max_verts:
+                flush(); cur = {'V': [], 'UV': [], 'F': [], 't': 0, 'n': 0}
+            b = cur['n']; cur['V'].append(V); cur['UV'].append(UV); cur['F'] += [[i + b for i in f] for f in F]; cur['t'] += t; cur['n'] += len(V)
+        flush()
+    PEND.clear()
+
+def kit():
+    """What detail modules get: K.tube, K.blob, K.emit, K.SP (colours, layout), K.PIV, K.rng, K.np, K.spline."""
+    import types
+    return types.SimpleNamespace(tube=tube, blob=blob, emit=emit, SP=SP, PIV=PIV, rng=rng, np=np, spline=spline, math=math)
 
 # ---------------------------------------------------------------- sweeps
 def spline(pts, n):
@@ -145,6 +198,15 @@ if __name__ == '__main__':
     out = (sys.argv[1:] or ['out'])[0]; pid = sys.argv[2] if len(sys.argv) > 2 else 'shadowmonster'
     os.makedirs(os.path.join(out, 'geo'), exist_ok=True)
     SP.build()
+    import importlib
+    for mod in ('detail_head', 'detail_torso', 'detail_limbs'):      # maximum-detail layers (one module per body region)
+        try: m = importlib.import_module(mod)
+        except ModuleNotFoundError as e:
+            if e.name == mod: continue
+            raise
+        n0 = len(PEND); m.build(kit()); print(f'{mod}: {len(PEND) - n0} pieces')
+    attach_check()
+    finalize(os.environ.get('GEO_PREFIX', 'sx'))                    # geometry is cached by id: a rebuild into a live tab needs a new prefix
     doc = studio_doc('ShadowMonster', SEG, [None], 1.0, (0, 0, 0, 0, 0, 0), 1, [], ANIM, {}, CAMS[0])
     doc['objects'].update(OBJ); doc['textures'] = TEX
     doc['updated'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())

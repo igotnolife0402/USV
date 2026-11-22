@@ -22,12 +22,12 @@ export default async function (t) {
     })))
     const out = join(process.env.SCRATCH || '.', 'exports'); mkdirSync(out, { recursive: true })
     if (process.env.EXPORT_LINK) {   // link-mode zip (rbxmx with placeholders + meshes .fbx): step 1 of the Roblox import route
-      const r = await s.eval(async () => {
+      const r = await s.eval(async DETAIL => {
         const A = window.studio.app; let cap = null; A.store.download = async (n, d) => { cap = { n, d } }
-        await A.exec('roblox.export', { link: true })
+        await A.exec('roblox.export', { link: true, detail: DETAIL })
         const b = cap.d; let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000))
         return { filename: cap.n, b64: btoa(s) }
-      })
+      }, +(process.env.EXPORT_DETAIL || 0.5))
       writeFileSync(join(out, r.filename), Buffer.from(r.b64, 'base64')); t.log(`link export: ${r.filename}`)
       return
     }
