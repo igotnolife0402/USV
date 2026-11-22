@@ -226,10 +226,7 @@ def fix(docs, inst):
     for (gid, fi), fronts in cover.items():
         g = docs[gid]; V = np.asarray(g['verts'], float).reshape(-1, 3); f = g['faces'][fi]; P = V[f]
         uvs = g.get('uvs'); uv = None
-        if uvs:
-            uu = {(uvs[2 * v], uvs[2 * v + 1]) for v in f}
-            if len(uu) != 1: continue                # a real texture mapping: leave it whole
-            uv = uu.pop()
+        if uvs: uv = np.array([[uvs[2 * v], uvs[2 * v + 1]] for v in f], float)   # planar face: uv is affine in-plane
         n = np.zeros(3)
         for j in range(1, len(P) - 1): n += np.cross(P[j] - P[0], P[j + 1] - P[0])
         n /= np.linalg.norm(n); u = np.cross(n, [0, 1, 0] if abs(n[1]) < 0.9 else [1, 0, 0]); u /= np.linalg.norm(u); w = np.cross(n, u); o = P[0]
@@ -243,12 +240,14 @@ def fix(docs, inst):
             cur = nxt
             if not cur: break
         if len(cur) > lim and sum(abs(area(c)) for c in cur) < 0.3 * a0: cur = []
+        if uv is not None:                       # fit uv = [x, y, 1] @ M on the face, so cut pieces keep the texture (was: textured faces never cut)
+            M = np.linalg.lstsq(np.column_stack([np.array(to2(P)), np.ones(len(P))]), uv, rcond=None)[0]
         new = []
         for pc in cur:
             idx = []
             for x, y in pc:
                 q = o + x * u + y * w; idx.append(len(g['verts']) // 3); g['verts'] += [round(float(c), 3) for c in q]
-                if uvs is not None: uvs += list(uv)
+                if uvs is not None: uvs += [round(float(c), 4) for c in np.array([x, y, 1.0]) @ M]
             new.append(idx)
         g['faces'][fi] = None; g['faces'] += new; cut += 1; dropped += not new
     for g in docs.values(): g['faces'] = [f for f in g['faces'] if f is not None]

@@ -334,8 +334,14 @@ def main(argv=None):
     os.makedirs(out, exist_ok=True)
     rc = P.run(out, [NAME], 7, "--check" in a, "--preview" in a, "toon")
     proj = live(out)
+    here = os.path.dirname(os.path.abspath(__file__))
+    # nested frames/sashes/reveals leave hidden same-facing faces < 12 cm apart: cut them (~2 s), keep ids (fresh tab)
+    fx = os.path.join(out, "fix")
+    rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "fix", proj,
+                           os.path.join(out, "geo"), fx], stdout=subprocess.DEVNULL)
+    for f in os.listdir(os.path.join(fx, "geo")):
+        os.replace(os.path.join(fx, "geo", f), os.path.join(out, "geo", f))
     if "--check" in a:
-        here = os.path.dirname(os.path.abspath(__file__))
         rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
                                os.path.join(out, NAME + ".json"), os.path.join(out, "geo"), "--class", "prop"])
         rc |= G.attach(NAME)
