@@ -5,7 +5,7 @@ Blocky, high-detail dragon armor (an original ember-wyrm design) fitted to the s
 ## Steps (live tab, permanent: write each stage the moment it is made; never inspect, size or render outputs before they are in the tab)
 1. `python3 armor.py OUT <stage>`, stage = cuirass, pauldrons, arms, legs, helm → `OUT/geo/*.json` (each doc split under 200 KB) and `OUT/<stage>.json` (objects to merge into `projects/<id>`).
 2. Replacing a piece: build an update that deletes the old children of its groups (`{"__delete__": true}`) and adds the new objects, in the same write.
-3. One ArtifactData batch per stage: the geo docs (`projects/<id>/geo/<gid>`) plus the project update pinned with `if_version`; keep a batch under 1 MiB (split geo over two batches if needed, the project update last).
+3. Reads with out_dir: use the gitignored .worktrees/ (scratchpad is refused). Project doc = collection `projects`, doc_id `<id>`. One ArtifactData batch per stage: the geo docs (`projects/<id>/geo/<gid>`) plus the project update pinned with `if_version`; keep a batch under 1 MiB (split geo over two batches if needed, the project update last).
 4. Equip: every group pops in (scale 0.01 → 1.2 → 0.95 → 1 over 0.32 s, visible from the pop); the closed helm hides the head boxes the moment it lands.
 5. Check: the studio shots check on geo and project read back from the tab.
 

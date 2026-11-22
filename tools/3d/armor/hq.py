@@ -300,5 +300,67 @@ def audit(out):
     return bad
 
 
-if __name__ == '__main__':                          # python hq.py OUT -> mesh audit
-    import sys; r = audit(sys.argv[1]); print(json.dumps(r or 'clean'))
+GROUPS = {'CP': (0, 3, 0), 'HM': (0, 4.62, 0), 'LS': (1.62, 3.92, 0), 'LV': (1.5, 2.5, 0), 'LG': (0.5, 1.15, 0), 'LB': (0.5, 0.34, 0.06),
+          'RS': (-1.62, 3.92, 0), 'RV': (-1.5, 2.5, 0), 'RG': (-0.5, 1.15, 0), 'RB': (-0.5, 0.34, 0.06)}   # rest pose, world studs
+
+
+def _pieces(out):                                   # every closed piece (connected component) of every doc, in world space
+    P = []
+    for st in os.listdir(out):
+        if not st.endswith('.json'): continue
+        for oid, o in json.load(open(os.path.join(out, st))).get('objects', {}).items():
+            if o.get('type') != 'mesh' or o['parent'] not in GROUPS: continue
+            g = json.load(open(os.path.join(out, 'geo', o['geo'] + '.json'))); V = np.array(g['verts'], float).reshape(-1, 3) + GROUPS[o['parent']]
+            par = list(range(len(V)))
+            def find(a):
+                while par[a] != a: par[a] = par[par[a]]; a = par[a]
+                return a
+            for f in g['faces']:
+                for v in f[1:]: ra, rb = find(f[0]), find(v); par[ra] = rb
+            comp = {}
+            for f in g['faces']: comp.setdefault(find(f[0]), []).append(f)
+            for fs in comp.values():
+                T = np.array([[V[f[0]], V[f[k]], V[f[k + 1]]] for f in fs for k in range(1, len(f) - 1)])
+                idx = sorted({v for f in fs for v in f})
+                P.append(dict(name=f"{o['name']} #{len(P)}", grp=o['parent'], V=V[idx], T=T, lo=V[idx].min(0), hi=V[idx].max(0)))
+    return P
+
+
+def _inside(pts, T):                                # ray parity along a skew direction (no edge hits)
+    d = nz(np.array([0.5773, 0.6131, 0.5394])); e1 = T[:, 1] - T[:, 0]; e2 = T[:, 2] - T[:, 0]
+    h = np.cross(d, e2); a = np.einsum('ij,ij->i', e1, h); ok = np.abs(a) > 1e-12; f = np.where(ok, 1 / np.where(ok, a, 1), 0)
+    s = pts[:, None, :] - T[None, :, 0]; u = f * np.einsum('pij,ij->pi', s, h)
+    q = np.cross(s, e1[None]); v = f * np.einsum('j,pij->pi', d, q); t = f * np.einsum('ij,pij->pi', e2, q)
+    hit = ok & (u >= 0) & (v >= 0) & (u + v <= 1) & (t > 1e-9)
+    return hit.sum(1) % 2 == 1
+
+
+def overlaps(out, depth=0.02, limit=40, groups=None):
+    """Parts sticking through other parts: a vertex of piece A deeper than `depth` studs inside closed piece B (rest pose,
+    every group) while other vertices of A stay outside: a visible poke-through. Mounts (rivet heads, trims laid on a plate,
+    horn roots) sit shallower and pass; parts wholly inside another are hidden and pass. Returns the worst pairs."""
+    P = _pieces(out); bad = []
+    for i, A in enumerate(P):
+        sa = A['V'] if len(A['V']) <= 160 else A['V'][np.linspace(0, len(A['V']) - 1, 160).astype(int)]
+        for j, B in enumerate(P):
+            if groups and A['grp'] not in groups and B['grp'] not in groups: continue
+            if i == j or np.any(A['hi'] < B['lo'] + depth) or np.any(A['lo'] > B['hi'] - depth): continue
+            m = np.all((sa > B['lo'] + depth) & (sa < B['hi'] - depth), 1)
+            if not m.any(): continue
+            pts = sa[m]; ins = _inside(pts, B['T'])
+            if not ins.any(): continue
+            S = np.concatenate([B['V'], B['T'].mean(1), (B['T'][:, 0] + B['T'][:, 1]) / 2, (B['T'][:, 1] + B['T'][:, 2]) / 2])
+            dd = np.sqrt(((pts[ins][:, None] - S[None]) ** 2).sum(-1)).min(1); deep = dd > depth
+            if ins.sum() == len(sa): continue           # wholly inside (a core in its glass, a collar under the helm): hidden, fine
+            if deep.any(): bad.append(dict(a=A['name'], b=B['name'], n=int(deep.sum()), depth=round(float(dd.max()), 3),
+                                           at=[round(float(x), 2) for x in pts[ins][deep].mean(0)]))
+    bad.sort(key=lambda r: -r['depth'] * r['n']); return bad[:limit], len(bad)
+
+
+if __name__ == '__main__':                          # python hq.py OUT [--overlaps [--groups LV,RV]] -> audit (+ poke-throughs)
+    import sys
+    r = audit(sys.argv[1]); print(json.dumps(r or 'clean'))
+    if '--overlaps' in sys.argv:
+        g = sys.argv[sys.argv.index('--groups') + 1].split(',') if '--groups' in sys.argv else None
+        b, n = overlaps(sys.argv[1], groups=g, limit=60); print(json.dumps({'overlapping_pairs': n, 'worst': b}, indent=0) if n else '"no overlaps"')
+        if n or r: sys.exit(1)

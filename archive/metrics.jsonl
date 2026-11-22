@@ -20,3 +20,5 @@
 {"t":"2026-11-21T23:43:27.911Z","tier":"medium","secs":32,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve"],"mode":"pc"}
 {"t":"2026-11-21T23:44:05.705Z","tier":"medium","secs":307,"ok":false,"errors":6,"retry":2,"routes":[],"touched":[],"signals":["errors","slow"],"mode":"pc"}
 {"t":"2026-11-21T23:49:35.074Z","tier":"medium","secs":69,"ok":true,"errors":2,"retry":1,"routes":[],"touched":[],"signals":["errors"],"mode":"pc"}
+{"t":"2026-11-21T23:57:31.682Z","tier":"medium","secs":225,"ok":true,"errors":5,"retry":3,"routes":[],"touched":[],"signals":["errors"],"mode":"pc"}
+{"t":"2026-11-22T00:05:30.243Z","tier":"medium","secs":223,"ok":true,"errors":0,"retry":0,"routes":["crew"],"touched":[],"signals":[],"mode":"pc"}
