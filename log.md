@@ -124,3 +124,6 @@ Easy builds: one template read, router notes deferred to review, spawn within 60
 
 ## [2026-11-22] fix / guns attach gate CPU
 attach() 1M samples 75 s -> shell-level 0.1 step 2.4 s for 3 guns; detached-part negative still fails. Killed runaway shotgun --check + http.server 8765.
+
+## [2026-11-22] change / crew fetch round
+Owner: workers research first. Crew now opens with a fetch round (3 workers paste literal excerpts to brain questions while brain reads), then same workers get the build spec via SendMessage. Easy one-template builds skip it.

@@ -10,7 +10,10 @@ Owner rule (2026-11-22, replaces the old size gate): ALWAYS 3 Sonnet workers. Wo
 ## The loop (per worker)
 brain spec → worker one pass (~1-2 min) → report → brain reviews → `OK` (TaskStop) or new exact instruction (SendMessage) → repeat. Max 3 rounds per worker, then the brain does that piece itself.
 
-## 1. Brain decides everything first (workers spawned within 60 s)
+## 0. Fetch round first (owner 2026-11-22: 4 readers beat 1)
+When the task needs more than ONE template read: in the first message, spawn the 3 workers as fetchers while the brain reads its own slice. Each fetch brief = exact questions + where to look ("in X, paste the lines that define Y"; "list the files under Z that do W"). Fetchers paste literal excerpts and paths, max ~6 tool calls, NO opinions, NO decisions, no writing files. Then the SAME workers get the build spec via SendMessage (they keep the context). Easy builds with one known template skip this round.
+
+## 1. Brain decides everything (workers spawned within 60 s)
 - Owner 2026-11-22: 1.5 min of brain reading before a gun model was too slow. Easy builds (props, guns, small models, edits): read ONE template file (or a grep of it, not the whole thing), skip the router's "Read first" notes, index, playbook and checklist until the review step, no deliberation. Max 2 reads before spawning.
 - Decide the result, every name, value, size, color, position, signature and file path. Nothing is left for a worker to choose.
 - Split into exactly 3 pieces, one owner per file. Fewer natural pieces: split one file's work into sections that land in separate files, or give the spare worker(s) a variant of the hardest piece (different spec values you name) and keep the best. Never let a worker wait on another's output in the same round.
@@ -22,7 +25,7 @@ Spawn all 3 `crew-worker` agents in ONE message, run_in_background. Each brief:
 2. Files they write (absolute paths) and the ONE template file to copy (closest working example). No "look around".
 3. The exact spec: literal code, values, numbers, lists, or "copy template X, change only A→B, C→D". The more literal, the faster and more correct. Contract (shared names/paths/shapes) verbatim.
 4. The check command to run once, or "no check".
-5. "One pass, no retries, no research, ~8 tool calls; report in the format from your agent file."
+5. "One pass, no retries, no research of your own, ~8 tool calls; report in the format from your agent file."
 Never write "find and fix", "make it good", "figure out", "research" or "improve" in a brief: those turn a 1-min copy into a 7-min hunt.
 
 ## 3. While they work
