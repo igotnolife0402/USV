@@ -39,12 +39,14 @@ Write the integration, the merge and your review check. Never edit a worker's fi
 - Good → reply nothing more, TaskStop the worker.
 - Wrong → SendMessage the same worker ONE exact instruction: the defect and the literal fix ("line 40: size 2→1.5; rename Foo→Bar"). Never "try again" or "fix it".
 - 3rd wrong round on a piece → TaskStop, do it yourself.
+- Gate failures on the merge (z-fight, tris, detail): split the defect list by owning worker and SendMessage all 3 in ONE message; the brain never runs its own edit-rebuild loop (house run: brain fixed alone, 4 rebuilds, 190 s = 48% of the task).
 - No worker or background command stays running after its OK.
 
 ## 5. Model
 The agent file pins claude-sonnet-5-5 at effort low. If the spawn errors on the model (this desktop app maps the `sonnet` alias to "auto"), re-spawn with no model override and tell the owner it ran on the main model.
 
 ## 6. Close
+- ALWAYS end with a crew report (owner 2026-11-22): phase timing table (pre-spawn, workers, review+fix rounds, Umbrio save, close) with seconds and % of total, worker tool calls each, fixes done this run, fixes still needed. Times from the transcript, never estimated.
 3D/model tasks: the merged model is live-built into a fresh Umbrio Sandbox tab and read back before close (checklists/3d.md); a preview PNG is not done.
 Verify the merged result yourself (owner rule: 100% honest; a worker's DONE is a claim). Log to log.md, lesson for anything that failed, answer the owner: result, what you checked, what was not verified.
 

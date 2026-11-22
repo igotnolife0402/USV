@@ -139,3 +139,6 @@ Plain build requests are realistic; toon/low-poly/voxel only when asked. owner.m
 
 ## [2026-11-22] fix / 3d done requires Umbrio save
 House crew run ended on a PNG, never saved to Umbrio. Added to checklists/3d.md and crew close step.
+
+## [2026-11-22] measure / house crew run
+398 s: pre-spawn 153 (38%), workers 13 (3%, 2 calls each), brain fix loop 190 (48%), close 42 (11%). Workers fixed (was ~7 min). Crew now routes gate fixes to workers in parallel and always reports timing.
