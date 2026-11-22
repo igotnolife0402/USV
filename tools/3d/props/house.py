@@ -123,10 +123,10 @@ def window(cu, w, ya, yb, wo, lintel):
 
 # walls: (name, rotation, half length, outside offset)
 SIDES = [("front", 0, HX - T, HZ), ("back", 180, HX - T, HZ), ("right", 90, HZ, HX), ("left", -90, HZ, HX)]
-GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.2, 1.2, 1.15, 2.75),
-          (2.2, 1.2, 1.15, 2.75), (0.0, 0.7, 1.6, 2.75)], "right": [(-0.8, 1.0, 1.15, 2.75)], "left": [(-1.8, 1.0, 1.15, 2.75)]}
+GROUND = {"front": [(-2.5, 1.2, 1.15, 2.75), (2.5, 1.2, 1.15, 2.75)], "back": [(-2.6, 1.2, 1.15, 2.75),  # back wall: world x = -u
+          (2.2, 1.2, 1.45, 2.75), (0.0, 0.7, 1.6, 2.75)], "right": [(-0.8, 1.0, 1.15, 2.75)], "left": [(-1.8, 1.0, 1.15, 2.75)]}
 UPPER = {"front": [(-2.5, 1.1, 3.75, 5.15), (0.0, 1.1, 3.75, 5.15), (2.5, 1.1, 3.75, 5.15)],
-         "back": [(-2.2, 1.1, 3.75, 5.15), (2.2, 1.1, 3.75, 5.15)],
+         "back": [(-2.2, 1.1, 3.75, 5.15), (3.2, 0.9, 3.75, 5.15)],
          "right": [(0.0, 0.9, 3.85, 5.05)], "left": [(0.0, 0.9, 3.85, 5.05)]}
 DOOR = (0.0, 1.0, Y_PL, 2.75)
 F0, F1 = Y_PL + 0.02, Y_BD + 0.02          # finished floor tops (oak boards)
@@ -441,6 +441,8 @@ def main(argv=None):
         rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
                                os.path.join(out, NAME + ".json"), os.path.join(out, "geo"), "--class", "prop"])
         rc |= G.attach(NAME)
+        import clear  # furniture: no overlaps between items, nothing blocking a window
+        rc |= clear.check(P.PROPS[NAME][1](None)[0], sys.modules[__name__])
         rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "check",
                                proj, os.path.join(out, "geo")])
     return rc

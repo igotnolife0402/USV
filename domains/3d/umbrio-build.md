@@ -20,6 +20,10 @@ Why this note: the 2026-11-22 house run spent ~9 min reading 8 files (playbook, 
 - `python tools/3d/props/<gen>.py .worktrees/<build> --check` = mesh check (TRI_CAP 12k per prop) + `detail.py --class prop` (>= 15 parts, textured >= 60 %, >= 4 colours, >= 3k tris) + attach + zfight on `OUT/live/p<last>.json`. house.py check takes ~5 s (attach dedupes samples per cell).
 - Same-facing faces that overlap in projection within 12 cm fail, even hidden ones. Layout that passes first time: walls as panels around openings; frames, sashes, glass, sills, lintels INSIDE the opening (no ears past it); no shutters, corner boards, kick plates or trim laid on a face; stacked layers end where the next begins (plinth top → wall bottom). Nested parts (frame in reveal, sash in frame) still fail: the generator runs `zfight.py fix` (~2 s; since 2026-11-22 it also cuts textured faces, uvs kept) and copies `OUT/fix/geo` over `OUT/geo`, as house.py does. Glass `transparency >= 0.5` is ignored. Round tubes: 8/12-sided so no face is parallel to a wall.
 
+## Furniture layout (owner 2026-11-22: overlaps + blocked windows)
+- `tools/3d/props/clear.py` runs in house.py --check: no two furniture items overlap > 1 cm; nothing taller than sill + 5 cm within 25 cm of a window. Back wall is rotated 180: world x = -u in the window tables. Counter-height windows: sill >= counter top.
+- Upload in 3 batches (shell+roof+openings, interior+ground furniture, upper furniture), not 6: each <= 50 writes.
+
 ## Textures (studio procedural, `scale` = metres per tile, `aspect` stretches v)
 Patterns: bricks, planks, noise, clouds, checker, studs, grid, tiles, marble, gradient, stripes, camo, rock, woodgrain, brushed, fabric, asphalt, road, grass, sand, water, grip, carbon.
 Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); lap siding `planks` count 4 scale 0.8 (200 mm boards, horizontal on fuv uvs); shingles `bricks` dark, count 2 scale 0.66; stone `rock` 1.5; painted trim `woodgrain` light 1.2; oak `woodgrain` 0.9; metal `brushed` 1.0.
@@ -29,6 +33,7 @@ Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); l
 - One ArtifactData batch per stage: that stage's geo docs + project + meta (<= 50 writes, <= 1 MiB). Relative `file_path` under `.worktrees/` (scratchpad paths prompt the owner every write).
 - Multi-piece models (crew): copy `tools/3d/props/setup.py`: one `setup_<piece>.py` per worker exporting `parts() -> (parts, textures)`, one live stage per piece, gates in one run (2026-11-22: 28 parts, all gates first run after one texture round).
 - Spec gate before sending: grid extents fit their opening (rows x pitch <= opening) and every part except glass has a texture key (detail needs >= 60 % textured).
-- Polish floor (owner 2026-11-22 "gaps, unpolished"): touching parts embed 2-5 mm, solid body under any key/button grid, `P.rbox`/`P.slab` rounded edges on visible slabs, displays get a lit `gradient` texture; zoom the `--preview` PNG (PIL crop x2) before upload and fix any gap seen.
+- Quality target: [ref-quality.md](ref-quality.md) (owner reference photos, 8 rules). - Polish floor (owner 2026-11-22 "gaps, unpolished"): touching parts embed 2-5 mm, solid body under any key/button grid, `P.rbox`/`P.slab` rounded edges on visible slabs, displays get a lit `gradient` texture; zoom the `--preview` PNG (PIL crop x2) before upload and fix any gap seen.
+- Mesh limits: `P.slab` rad >= 0.012 and bevel >= 0.004 with nb=2 (smaller exports degenerate faces); `P.rbox` seg=1 on small/hidden parts, seg=2 only on hero surfaces (44 parts at seg=2 broke the 12k tri cap).
 - Visual check: the built-in browser pane is signed out of claude.ai (sign-in wall), so the look is a queued PC step for the owner; never claim it.
 - Read back with `out_dir` `.worktrees/hub` (never the scratchpad), count objects, run zfight on the read-back.
