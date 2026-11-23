@@ -71,3 +71,4 @@
 {"t":"2026-11-23T21:54:56.944Z","tier":"medium","secs":30,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-23T21:57:31.674Z","tier":"medium","secs":243,"ok":true,"errors":0,"retry":0,"routes":["3d","math"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-23T22:04:43.891Z","tier":"medium","secs":214,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T22:10:07.251Z","tier":"simple","secs":62,"ok":false,"errors":0,"retry":0,"routes":["web"],"touched":[],"signals":["slow"],"mode":"mobile"}

@@ -36,3 +36,4 @@ status: current
 - complaints are never simple tier; Improved counter accepts one-line or numbered/bulleted lists (L-102)
 - crew routes only on /crew or an explicit ask to use sub agents/workers (L-103)
 - New `.claude/agents/*.md` loads only at session start: test it the same session via general-purpose + `model`/`effort` override that Reads the agent file first (L-132)
+- SKILL.md description <= 300 chars (lint cap): count it before writing; skill/agent edits are medium tier (L-133)
