@@ -1,0 +1,7 @@
+{
+  "name": "improve skill (account-level)",
+  "what": "Standalone /improve <seconds> <prompt> skill for claude.ai: works in any repo, any branch and plain chats; upload once.",
+  "run": "cd tools/skills/improve-standalone && zip -r improve.zip improve  # then claude.ai > Settings > Capabilities > Skills > Upload",
+  "prompt": "/improve 90 make a viking helmet",
+  "url": ""
+}
