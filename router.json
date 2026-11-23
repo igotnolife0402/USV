@@ -258,7 +258,9 @@
         "holes",
         "lantern",
         "lamp",
-        "candle"
+        "candle",
+        "helmet",
+        "make a model"
       ],
       "notes": [
         "domains/3d/playbook.md",
