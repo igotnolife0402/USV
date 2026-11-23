@@ -37,3 +37,4 @@ Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); l
 - Mesh limits: `P.slab` rad >= 0.012 and bevel >= 0.004 with nb=2 (smaller exports degenerate faces); `P.rbox` seg=1 on small/hidden parts, seg=2 only on hero surfaces (44 parts at seg=2 broke the 12k tri cap).
 - Visual check: the built-in browser pane is signed out of claude.ai (sign-in wall), so the look is a queued PC step for the owner; never claim it.
 - Read back with `out_dir` `.worktrees/hub` (never the scratchpad), count objects, run zfight on the read-back.
+- Dark metal reads black in the Studio render (2026-11-23 blind test: every realistic iron helmet scored 3-5/10 on readability): iron/steel base colour >= #5a5a5a, metalness <= 0.7, give the darkest metal a lighter `brushed` highlight colour; check with the real render, `VIEWS_TAB=... node test/run.mjs views` (studio.md).

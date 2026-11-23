@@ -293,3 +293,7 @@ improved: timer Sonnet estimate per level (17/20/24/28 s); default medium think 
 ## [2026-11-23] 3d / real-render every-angle sheets (owner: labeled, real render)
 tools/3d/studio/test/views.mjs: 8 labeled views via look.render in headless Chromium on mobile (~15 s). Fixed: scene Box3 caught the ground/sky (r 99 km) -> bounds from geo verts.
 improved: views suite (labeled real renders); studio.md mobile: browser tests work here + exact setup; angles.py straight views level (L-134)
+
+## [2026-11-23] test / helmets built from think-time prompts, blind rated
+4 Opus builders (prompts verbatim), real Studio renders (views suite, shared light, front-yaw fixed for R), 3 blind Sonnet raters: 30s 77, 60s 84, 120s 106, 240s 111 /180. Uploaded hv-k, hv-r, hv-m, hv-t; read-back counts match.
+improved: dark-metal readability rule in umbrio-build.md; views suite parent-scale + VIEWS_ENV + VIEWS_YAW; blind result + 120 s sweet spot in improve skill

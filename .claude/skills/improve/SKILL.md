@@ -11,7 +11,7 @@ Owner design 2026-11-23: the main model writes the prompt's decisions itself; So
 
 ## Think time (owner 2026-11-23: "Opus is best"; the owner sets how long Opus thinks)
 Syntax: `/improve [think] <prompt>`. `think` = the first word if it is `quick`/`q`, `<N>s`, `<N>m`, `deep` or `max`; strip it from RAW PROMPT. Owner's value always wins.
-No think word → pick from the task's tier: simple = quick, medium = 60s, complex = 2m, huge = 4m (2026-11-23 test: 30s skipped the build notes and broke owner rules; gains flatten after 2m). Say the chosen level in one line.
+No think word → pick from the task's tier: simple = quick, medium = 2m for models (blind test: 60 s builds scored near 30 s), 60s otherwise, complex = 2m, huge = 4m (2026-11-23 test: 30s skipped the build notes and broke owner rules; gains flatten after 2m). Say the chosen level in one line.
 
 | think | Opus before the brief (the budget is wall-clock; stop at it) | Brief |
 |---|---|---|
@@ -56,3 +56,4 @@ No think word → pick from the task's tier: simple = quick, medium = 60s, compl
 - Drone A/B 2026-11-23 (fresh prompt): brief flow → build starts 16.3 s, full prompt 31.9 s; Sonnet only → prompt 16.4 s. Same start time, brief flow far fewer errors (Sonnet-only: 39 parts vs its own ">= 40" gate, 0.05 blades vs ">= 0.15" thickness rule, size contradiction). Keep brief flow.
 - Fable 5.2 medium as sole writer (2026-11-23, drone): 39.6 s, richest detail but tier/skill wrong and spec fails the hero same-size gate; ~4x Sonnet price per token ($8/$40 vs $2/$10 per MTok). Not worth it here: brief flow = Opus decisions at Sonnet cost.
 - Think-time test 2026-11-23 (viking helmet, fresh Opus per level; rubric /100): 10s 20, 30s 30, 60s 81, 120s 91, 240s 98. Delivery: 10s 2.8 (early FAIL), 30s 31.0, 60s 61.6, 120s 126.3 (+6.3 FAIL), 240s 249.1 (+9.1 FAIL) -> Sonnet time now scales by level in the timer.
+- Blind build test 2026-11-23 (helmets built from the 30/60/120/240 s prompts, real Studio render, 8 labeled views, 3 blind Sonnet raters, order shuffled): total /180 = 77 / 84 / 106 / 111 (43/47/59/62 %); all 3 ranked 30 s last; 120 s and 240 s won 2 of 3 each... (M first for 2 raters, T for 1). Prompt rubric overrated 60 s (81 vs real 47 %): its brief picked the wrong template (house.py) and no front axis. Sweet spot 120 s; 240 s +3 %.
