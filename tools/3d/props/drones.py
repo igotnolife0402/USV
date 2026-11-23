@@ -174,6 +174,77 @@ def drone_b(rng):
     }
 
 
+# ---------------------------------------------------------------- drone C (Fable 5.2 medium prompt)
+@P.prop("drone-c", "Drone C (Fable medium prompt)")
+def drone_c(rng):
+    PRI, SEC, ACC, TRIM, DARK, GLASS, EMI = "#2B2F36", "#8A9099", "#E8622A", "#C9CED6", "#0E1013", "#10202B", "#35D6FF"
+    D = 2.9  # duct centre on x and z: 8.0 overall, duct outer r 1.1
+    hull = P.rbox((3.6, 1.0, 4.4), 0.08, 2, (4, 2, 6))
+    v = hull.v
+    front = np.clip(-v[:, 2] / 2.2, 0, 1)  # front faces -Z: wedge thins toward the nose
+    v[:, 1] = v[:, 1] * (1 - 0.4 * front) - 0.15 * front
+    hull.v = v
+    p = [
+        mk("hull-core", hull, PRI, "armor", roughness=0.45, metalness=0.7),
+        mk("top-armor-plate", P.xf(P.slab(1.5, 1.7, 0.2, 0.25, 0.05, 2), r=(-90, 0, 0), t=(0, 0.58, 0.3)), PRI, "armor",
+           roughness=0.45, metalness=0.7),
+        mk("canopy", P.xf(ball(1.0), s=(0.8, 0.5, 1.0), t=(0, 0.68, 0.4)), GLASS, "glass", roughness=0.08, metalness=0.3),
+        mk("sensor-pod", P.merge(P.xf(ball(0.42), t=(0, -0.1, -2.35)),
+                                  P.xf(ring(0.42, 0.5, 0.16, 32), r=(90, 0, 0), t=(0, -0.1, -2.3))), SEC, "metal",
+           roughness=0.35, metalness=0.85),
+        glow("sensor-eye", P.xf(cyl(0.3, 0.1, 32), r=(90, 0, 0), t=(0, -0.1, -2.7)), EMI),
+    ]
+    for k, sx in enumerate((-1, 1)):
+        path = [(sx * 0.8, -0.45, -1.2), (sx * 1.0, -0.9, -1.3), (sx * 1.1, -1.25, -1.5),
+                (sx * 1.1, -1.28, 0.0), (sx * 1.1, -1.25, 1.5), (sx * 1.0, -0.9, 1.3), (sx * 0.8, -0.45, 1.2)]
+        p.append(mk("landing-skid-%d" % k, sweep(path, 0.1, 10), SEC, "metal", roughness=0.35, metalness=0.85))
+        slats = P.merge(*[P.xf(P.rbox((0.1, 0.05, 1.2), 0.02, 1), r=(-20, 0, 0), t=(0, -0.2 + j * 0.1, 0)) for j in range(5)])
+        p.append(mk("side-vent-%d" % k, P.xf(slats, t=(sx * 1.83, 0.05, 0.6)), DARK, "dark", roughness=0.8))
+        rod = P.merge(cyl(0.08, 0.1, 8), P.xf(P.lathe([(0, 0), (0.04, 0), (0.015, 0.9), (0, 0.9)], 8), t=(0, 0.1, 0)))
+        p.append(mk("antenna-%d" % k, P.xf(rod, t=(sx * 0.6, 0.66, 1.5)), TRIM, "metal", roughness=0.25, metalness=0.9))
+        p.append(mk("hull-stripe-%d" % k, P.xf(P.rbox((0.04, 0.12, 2.6), 0.015, 1), t=(sx * 1.82, 0.32, 0.2)), ACC, "accent"))
+    for i, (sx, sz) in enumerate(DIAG):
+        cx, cz = sx * D, sz * D
+        yaw = -math.degrees(math.atan2(sz, sx))
+        p += [
+            mk("arm-%d" % i, sweep(arm_path(sx * 1.5, sz * 1.9, cx - sx * 0.72, cz - sz * 0.72, 0.0, 0.05),
+                                   np.linspace(0.24, 0.17, 6)), SEC, "metal", roughness=0.35, metalness=0.85),
+            mk("duct-ring-%d" % i, P.xf(ring(0.95, 1.1, 0.7, 48, 0.05), t=(cx, 0.05, cz)), PRI, "armor", roughness=0.45, metalness=0.7),
+            mk("motor-hub-%d" % i, P.xf(cyl(0.25, 0.6), t=(cx, -0.3, cz)), TRIM, "metal", roughness=0.25, metalness=0.9),
+            mk("duct-lip-mark-%d" % i, P.xf(P.rbox((0.3, 0.04, 0.12), 0.015, 1), r=(0, yaw + 180, 0),
+                                            t=(cx - sx * 0.73, 0.41, cz - sz * 0.73)), ACC, "accent"),
+            # one strip per hull edge: right, left, rear, front-top
+            glow("status-strip-%d" % i, P.xf(P.rbox((0.08, 0.08, 1.4), 0.03, 1), r=(0, (0, 0, 90, 90)[i], 0),
+                                             t=((1.84, 0.12, 0.9), (-1.84, 0.12, 0.9), (0, 0.12, 2.24), (0, -0.05, -2.1))[i]), EMI),
+        ]
+        for k in range(3):
+            a = k * 120 + i * 17
+            p.append(mk("rotor-blade-%d-%d" % (i, k), P.xf(blade(0.65, 0.25, 0.06, 16, 0.2), r=(0, a, 0), t=(cx, 0.15, cz)),
+                        DARK, "dark", roughness=0.8))
+            p.append(mk("duct-spoke-%d-%d" % (i, k), P.xf(P.rbox((0.7, 0.08, 0.1), 0.02, 1), r=(0, a + 60, 0),
+                                                         t=(cx + math.cos(math.radians(-(a + 60))) * 0.6, -0.15,
+                                                            cz + math.sin(math.radians(-(a + 60))) * 0.6)), SEC, "metal",
+                        roughness=0.35, metalness=0.85))
+    hexb = P.lathe([(0, 0), (0.05, 0), (0.05, 0.04), (0, 0.05)], 6, False)
+    spots = [(x, 0.69, z) for x in (-1.3, 1.3) for z in (-1.2, 1.8)]
+    for sx, sz in DIAG:
+        for t in (0.25, 0.55):
+            spots += [(sx * (1.5 + (D - 0.72 - 1.5) * t) + sz * 0.0, 0.25, sz * (1.9 + (D - 0.72 - 1.9) * t))]
+        spots += [(sx * 1.55, 0.25, sz * 1.95)]
+    spots += [(sx * 1.1, -1.2, z) for sx in (-1, 1) for z in (-0.8, 0.8)]
+    spots += [(sx * 0.9, 0.69, -0.9) for sx in (-1, 1)]
+    for k, s in enumerate(spots[:24]):
+        p.append(mk("bolt-%02d" % k, P.xf(hexb, t=s), SEC, "metal", roughness=0.35, metalness=0.85))
+    P.ground(p)
+    return p, {
+        "armor": tex("brushed", [PRI, "#20242A", "#3A3F48"], 2),
+        "metal": tex("brushed", [SEC, "#6E747D", "#A9AFB7"], 3),
+        "dark": tex("carbon", [DARK, "#060708", "#22262C"], 6),
+        "accent": tex("stripes", [ACC, "#C24E1E", "#FF8A55"], 1),
+        "glass": tex("gradient", [GLASS, "#05090D", "#2A4456"], 1),
+    }
+
+
 def live(out, name, title):
     t = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     d = json.load(open(os.path.join(out, name + ".json")))
@@ -192,7 +263,7 @@ def main(argv=None):
         sys.exit(__doc__)
     here = os.path.dirname(os.path.abspath(__file__))
     rc = 0
-    for name in ("drone-a", "drone-b"):
+    for name in ("drone-a", "drone-b", "drone-c"):
         out = os.path.join(a[0], name)
         os.makedirs(out, exist_ok=True)
         rc |= P.run(out, [name], 7, "--check" in a, "--preview" in a, "toon", tri_cap=19000)
