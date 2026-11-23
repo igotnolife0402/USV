@@ -255,7 +255,10 @@
         "see inside",
         "see through",
         "transparent",
-        "holes"
+        "holes",
+        "lantern",
+        "lamp",
+        "candle"
       ],
       "notes": [
         "domains/3d/playbook.md",

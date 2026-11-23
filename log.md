@@ -281,3 +281,7 @@ improved: router miss fixed ("outline" sent it to web; vault words added); impro
 ## [2026-11-23] skill / improve: no line counts
 Owner: length = best result, zero filler. Removed every line count from improver + skill (output contract, LENGTH, think table, parts row range).
 improved: improver length rule = every line a needed decision/number/check; think table now sets depth not size; parts table one row per distinct part
+
+## [2026-11-23] test / improve 2m level (medieval lantern)
+think 2m: 26.7 s brief (route, template grep, gate math), 18.0 s Sonnet, 44.8 s total; build would start at ~27 s. All brief values kept; one unit mix (studs vs metres) from the agent template.
+improved: improver unit rule (brief units, never mix); router 3d words lantern/lamp/candle (route had no checklist); timing logged per level
