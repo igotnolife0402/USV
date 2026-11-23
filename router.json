@@ -263,7 +263,12 @@
         "make a model",
         "hatchback",
         "sedan",
-        "truck"
+        "truck",
+        "see-through",
+        "transparent side",
+        "flipped faces",
+        "backface",
+        "double sided"
       ],
       "notes": [
         "domains/3d/playbook.md",

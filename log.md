@@ -324,3 +324,7 @@ Built tools/3d/props/car.py (57 parts, 36,324 tris), live into Umbrio tab car-a 
 improved: car generator + playbook row; 2 errors.md rows (fuv geo size, zfight fix whitening lofts); router words car/vehicle; panel-straddle rule for zfight
 improved (follow-up): car + drones grouped in tools/3d/props/vehicle (props folder cap 20, tools may not import each other); pre-tool hook segments() splits on newlines (multi-line commands made later tokens count as rm args, blocked `rm -rf <subdir>`)
 improved (stop-gate): router: '/improve' removed from vault words (every /improve build was routed to vault-upkeep); playbook speed rule for new generators; L-138
+
+## [2026-11-23] fix / Umbrio double-sided materials (owner: flipped faces showed see-through)
+core/model.js: every material DoubleSide; backColor/backTexture split a part into front + back meshes. Test in parts.mjs (7/7), look/mesh pass; car re-render: roof/sides solid. Published to Claude-Hub v49. core boot-size test was already failing (819 KB > 800 cap), untouched.
+improved: double-sided default in Umbrio; backColor/backTexture fields + scene-format doc; errors.md row + L-139 + router words (see-through, flipped faces)

@@ -31,6 +31,23 @@ export default async function (t) {
     s.noErrors()
   })
 
+  await t.test('faces show from both sides; only a backColor/backTexture part splits front and back', async () => {
+    const s = await t.open()
+    await s.project('Sides', { empty: true })
+    const id = await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.idle()
+    const side = id => window.studio.app.viewport.objects.get(id).material.side
+    t.eq(await s.eval(side, id), 2, 'plain part is double-sided, so a flipped face never turns see-through')
+    await s.eval(id => window.studio.app.set(id, { texture: 'noise' }), id); await s.idle()
+    t.eq(await s.eval(side, id), 2, 'a texture keeps it double-sided')
+    await s.eval(id => window.studio.app.set(id, { backColor: '#ff0000' }), id); await s.idle()
+    const r = await s.eval(id => { const m = window.studio.app.viewport.objects.get(id), b = m.userData.backMesh; return [m.material.side, b?.material.side, b?.material.color.getHexString(), b?.geometry === m.geometry] }, id)
+    t.eq(r, [0, 1, 'ff0000', true], 'backColor: front side + a back mesh on the same geometry in the back colour')
+    await s.eval(id => window.studio.app.set(id, { backColor: null }), id); await s.idle()
+    t.eq(await s.eval(id => { const m = window.studio.app.viewport.objects.get(id); return [m.material.side, !!m.userData.backMesh, m.children.filter(c => c.name === 'back').length] }, id), [2, false, 0], 'clearing it goes back to one double-sided mesh')
+    s.noErrors()
+  })
+
   await t.test('Roblox names, explicit position wins, did-you-mean, Neon glows in its colour, grey dummy', async () => {
     const s = await t.open()
     await s.project('Names')

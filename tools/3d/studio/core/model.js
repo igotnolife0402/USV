@@ -447,7 +447,9 @@ export function materialFor(spec, ctx = {}) {
     const custom = spec.texture && ctx.getTexture ? ctx.getTexture(spec.texture) : null
     if (custom) m.map = custom
     else if (preset.pattern && !negate) m.map = patternTexture(preset.pattern, preset.tile || 4)
-    if (spec.side) m.side = THREE.DoubleSide
+    // Every face renders from both sides (owner 2026-11-23): a flipped face with a single-sided material showed the
+    // outside as see-through. Only a part with its own back look (backColor/backTexture) splits into front + back.
+    m.side = spec.side === 'front' ? THREE.FrontSide : spec.side === 'back' ? THREE.BackSide : THREE.DoubleSide
     m.userData.cacheKey = key
     e = { m, n: 0 }
     matCache.set(key, e)
@@ -514,8 +516,10 @@ export function strokeGeometry(points, radius = 0.05) {
 
 // ---------- objects ----------
 function partSig(o) { return o.shape + '|' + (o.size || []).join(',') + '|' + (o.bevel || 0) }
-function matSpec(o) { return { color: o.color, material: o.material, transparency: o.transparency, negate: o.negate, texture: o.texture, side: o.shape === 'plane' ? 1 : 0, rough: o.roughness, metal: o.metalness, emissive: o.emissive, glow: o.emissiveIntensity } }
-const matSig = o => JSON.stringify(matSpec(o))
+function matSpec(o) { return { color: o.color, material: o.material, transparency: o.transparency, negate: o.negate, texture: o.texture, side: hasBack(o) ? 'front' : 'double', rough: o.roughness, metal: o.metalness, emissive: o.emissive, glow: o.emissiveIntensity } }
+const hasBack = o => !!(o.backColor || o.backTexture) && !o.negate
+const backSpec = o => ({ ...matSpec(o), color: o.backColor || o.color, texture: o.backTexture || o.texture, side: 'back' })
+const matSig = o => JSON.stringify(matSpec(o)) + (hasBack(o) ? JSON.stringify(backSpec(o)) : '')
 const helperMat = new THREE.MeshBasicMaterial({ color: '#ffd166', toneMapped: false })
 helperMat.userData.shared = true
 
@@ -539,7 +543,15 @@ function setMesh(mesh, o, ctx, geoKey, makeGeo) {
     mesh.material = o.shadowOnly ? shadowOnlyMat : materialFor(matSpec(o), ctx)
     if (old && mesh.userData.matKey !== undefined && mesh.userData.matKey !== 'shadowOnly') releaseMaterial(old)
     mesh.userData.matKey = ms
+    let back = mesh.userData.backMesh
+    if (back) { releaseMaterial(back.material); mesh.remove(back); mesh.userData.backMesh = back = null }
+    if (!o.shadowOnly && hasBack(o)) {
+      back = new THREE.Mesh(mesh.geometry, materialFor(backSpec(o), ctx))
+      back.raycast = noRaycast; back.castShadow = false; back.receiveShadow = true; back.name = 'back'
+      mesh.add(back); mesh.userData.backMesh = back
+    }
   }
+  if (mesh.userData.backMesh) mesh.userData.backMesh.geometry = mesh.geometry
   mesh.userData.shadowOnly = !!o.shadowOnly
   mesh.castShadow = !!o.shadowOnly || o.castShadow !== false
   mesh.receiveShadow = !o.shadowOnly
