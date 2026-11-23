@@ -21,7 +21,13 @@ No think word → pick from the task's tier: simple = quick, medium = 30s, compl
 | 5m / deep | + references (owner refs, templates), gate math checked with code (part counts, same-size ratio, tris) | full decisions + checked gate math |
 | max | no cap: every gate pre-checked with code, contradictions resolved, explorer allowed | everything resolved |
 - Gate math (2m and up): add up part counts, check the same-size ratio and the floor class before sending; a brief that fails its own gate is the A/B's top error (drones A and C).
-- Measure: note the start time and log `think <level>: <s> brief, <s> Sonnet` in log.md.
+- Measure: log `think <level>: <s> brief, <s> Sonnet, <s> total` in log.md.
+
+## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
+- First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - 18 s (measured Sonnet expansion); quick levels (<= 15 s) have no Sonnet.
+- Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
+- Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
+- Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this
 0. Do the think-time work for the level (quick: skip to building from your outline).

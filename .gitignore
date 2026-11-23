@@ -41,3 +41,4 @@ __pycache__/
 .claude/.session/
 # Obsidian app settings (per machine)
 .obsidian/
+state/.improve-timer*.json
