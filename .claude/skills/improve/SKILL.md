@@ -23,3 +23,4 @@ Owner rule 2026-11-23: manual only; target < 30 s to get the improved prompt bac
 - Improved prompt ignores nothing the owner said; owner's words win over the agent's `(assumed)` choices.
 - Timing 2026-11-23 (general-purpose stand-in + 1 Read, 125 lines): 34.7 s; output length is the cost. Over 30 s → lower the line target first; < 10 s is not reachable at 100+ lines.
 - Agent files load at session start: in the session that created them, use general-purpose + `model: sonnet` + `effort: low` and tell it to Read improver.md first.
+- A/B 2026-11-23 (dragon + Roblox pets, same template): Sonnet low 15-19 s, Opus medium 30-34 s. Opus ~20-30% richer (parent tree, client-only pet visuals, DataStore load guard) but over the 30 s target; its best patterns were folded into the improver template instead. Keep Sonnet.

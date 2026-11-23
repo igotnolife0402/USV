@@ -249,3 +249,7 @@ improved: shared motion-cache bug (2nd bot read 0); persistent miss roll; uncros
 ## [2026-11-23] skill / improve
 Added owner-only /improve skill + improver agent (Sonnet 5.5, low): rough prompt → 100-120 line structured prompt (goal, route, palette, exploded breakdown, steps, verify, owner rules). Timed: 34.7 s at 125 lines → 20.2 s after line cap.
 improved: improve speed 35→20 s (line cap, 15-row parts table); mobile profile: Playwright screenshots exist on cloud; improver mobile Umbrio path via ArtifactData; skill listed in index + CLAUDE.md; 2 tests hardcoded "Super-Vault" clone name (blocked cloud commits)
+
+## [2026-11-23] test / improve Sonnet low vs Opus medium
+2 prompts x 2 models in parallel. Sonnet 15.2/18.8 s, Opus 30.4/33.6 s; Opus richer, Sonnet had a single-Part pet placeholder gap. Kept Sonnet, folded Opus patterns into the template.
+improved: improver bans fictional-character references; 3D verify adds bounds/orphan/coplanar checks; Roblox block adds client-visual split, DataStore load guard, detail floor for pets; A/B result recorded in skill
