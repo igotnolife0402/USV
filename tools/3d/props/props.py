@@ -19,7 +19,8 @@ import zlib
 import numpy as np
 
 GEO_CAP = 225 * 1024  # studio doc limit (prompt cap 240 KB, guide 225 KB)
-TRI_CAP = 12000
+TRI_CAP = None  # owner 2026-11-23: no detail limit on realistic builds; fit_parts splits what a doc/mesh can't hold
+PART_TRIS = 19000  # Roblox MeshPart cap: the real per-mesh limit, met by splitting, never by building less
 LOW_TRI_CAP = 3000  # owner: low-poly props well under the toon ones
 FLAT_DEG = 20.0
 
@@ -1665,8 +1666,44 @@ def build(name, seed, style="lowpoly"):
     return title, parts, textures
 
 
+def split_mesh(m, max_tris=PART_TRIS, max_bytes=GEO_CAP - 8 * 1024):
+    """Final compress step: cut a mesh into face chunks that each fit one geo doc and one Roblox MeshPart.
+    Keeps every triangle (no detail lost); a chunk is the faces in order, vertices remapped."""
+    if m.tris() <= max_tris and len(geo_doc(m).encode()) <= max_bytes:
+        return [m]
+    per_tri = len(geo_doc(m).encode()) / max(1, m.tris())
+    step = max(1, min(max_tris, int(max_bytes / per_tri * 0.9)))
+    out, cur, n = [], [], 0
+    for f in m.f:
+        cur.append(f); n += len(f) - 2
+        if n >= step:
+            out.append(cur); cur, n = [], 0
+    if cur:
+        out.append(cur)
+    res = []
+    for fs in out:
+        idx = sorted({i for f in fs for i in f}); remap = {o: k for k, o in enumerate(idx)}
+        sub = Mesh(m.v[idx], [[remap[i] for i in f] for f in fs], None if m.uv is None else m.uv[idx])
+        res += split_mesh(sub, max_tris, max_bytes) if len(sub.f) < len(m.f) else [sub]
+    return res
+
+
+def fit_parts(parts):
+    """Split every part too big for a geo doc or a MeshPart into -1, -2 ... parts with the same look."""
+    out = []
+    for p in parts:
+        ms = split_mesh(p["mesh"])
+        if len(ms) == 1:
+            out.append(p); continue
+        for k, m in enumerate(ms, 1):
+            q = dict(p, mesh=m, id="%s-%d" % (p["id"], k)); q["name"] = "%s %d" % (p.get("name", p["id"]), k)
+            out.append(q)
+    return out
+
+
 def write_prop(out, name, seed, style="lowpoly"):
     title, parts, textures = build(name, seed, style)
+    parts = fit_parts(parts)
     gdir = os.path.join(out, "geo")
     os.makedirs(gdir, exist_ok=True)
     root = name + "-root"
@@ -1757,7 +1794,7 @@ def run(out, names, seed, check, preview, style="lowpoly", tri_cap=None):
                     errs += check_flat(gid, m)
                     if p.get("smooth", True):
                         errs.append(gid + ": low-poly mesh must be flat shaded")
-            if tris > cap:
+            if cap and tris > cap:
                 errs.append("%s: %d tris over cap %d" % (name, tris, cap))
         rows.append((name, len(parts), tris, kb))
         shots.append((name, parts))

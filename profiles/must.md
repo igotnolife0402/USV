@@ -8,7 +8,7 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 2. Tool = Umbrio Sandbox. No Blender, Customuse or Roblox AI generators unless the owner names them.
 3. Every 3D model: live-built stage by stage into a fresh Umbrio tab, then read back. A PNG or local files is NOT done.
 4. Style: realistic unless the owner names one (toon, low-poly, voxel only when asked).
-5. Custom meshes + textures + real thickness, many parts, detail floor gate; never placeholders or plain primitives.
+5. Custom meshes + textures + real thickness, as many parts as possible (no detail limits: build max detail, then at the very end cut useless triangles or split/compress so gates pass), detail floor gate; never placeholders or plain primitives.
 6. Scope = exactly what was asked: the model only, no ground or scenery, no extras.
 7. No z-fighting: zfight check on the tab read-back.
 8. Never move, script or capture the camera in Roblox Studio yourself (MCP); in-game camera code in game scripts (spectate, cutscenes) is allowed.

@@ -17,7 +17,7 @@ Why this note: the 2026-11-22 house run spent ~9 min reading 8 files (playbook, 
 
 ## Units and gates
 - 1 unit = 1 m (zfight bands are metres: level < 1.5 cm, layered < 12 cm, fail at 0.5 m2; `--prop` only for hand-held).
-- `python tools/3d/props/<gen>.py .worktrees/<build> --check` = mesh check (TRI_CAP 12k per prop) + `detail.py --class prop` (>= 15 parts, textured >= 60 %, >= 4 colours, >= 3k tris) + attach + zfight on `OUT/live/p<last>.json`. house.py check takes ~5 s (attach dedupes samples per cell).
+- `python tools/3d/props/<gen>.py .worktrees/<build> --check` = mesh check (no total tri cap since 2026-11-23: `fit_parts` splits any mesh over 19k tris or the doc cap into -1/-2 parts, no triangle lost) + `detail.py --class prop` (>= 15 parts, textured >= 60 %, >= 4 colours, >= 3k tris) + attach + zfight on `OUT/live/p<last>.json`. house.py check takes ~5 s (attach dedupes samples per cell).
 - Same-facing faces that overlap in projection within 12 cm fail, even hidden ones. Layout that passes first time: walls as panels around openings; frames, sashes, glass, sills, lintels INSIDE the opening (no ears past it); no shutters, corner boards, kick plates or trim laid on a face; stacked layers end where the next begins (plinth top → wall bottom). Nested parts (frame in reveal, sash in frame) still fail: the generator runs `zfight.py fix` (~2 s; since 2026-11-22 it also cuts textured faces, uvs kept) and copies `OUT/fix/geo` over `OUT/geo`, as house.py does. Glass `transparency >= 0.5` is ignored. Round tubes: 8/12-sided so no face is parallel to a wall.
 
 ## Furniture layout (owner 2026-11-22: overlaps + blocked windows)
@@ -34,7 +34,7 @@ Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); l
 - Multi-piece models (crew): copy `tools/3d/props/setup.py`: one `setup_<piece>.py` per worker exporting `parts() -> (parts, textures)`, one live stage per piece, gates in one run (2026-11-22: 28 parts, all gates first run after one texture round).
 - Spec gate before sending: grid extents fit their opening (rows x pitch <= opening) and every part except glass has a texture key (detail needs >= 60 % textured).
 - Quality target: [ref-quality.md](ref-quality.md) (owner reference photos, 8 rules). - Polish floor (owner 2026-11-22 "gaps, unpolished"): touching parts embed 2-5 mm, solid body under any key/button grid, `P.rbox`/`P.slab` rounded edges on visible slabs, displays get a lit `gradient` texture; zoom the `--preview` PNG (PIL crop x2) before upload and fix any gap seen.
-- Mesh limits: `P.slab` rad >= 0.012 and bevel >= 0.004 with nb=2 (smaller exports degenerate faces); `P.rbox` seg=1 on small/hidden parts, seg=2 only on hero surfaces (44 parts at seg=2 broke the 12k tri cap).
+- Mesh limits: `P.slab` rad >= 0.012 and bevel >= 0.004 with nb=2 (smaller exports degenerate faces); `P.rbox` seg=2 everywhere visible (owner 2026-11-23: max detail first; only hidden faces get cut at the end).
 - Visual check: the built-in browser pane is signed out of claude.ai (sign-in wall), so the look is a queued PC step for the owner; never claim it.
 - Read back with `out_dir` `.worktrees/hub` (never the scratchpad), count objects, run zfight on the read-back.
 - Dark metal reads black in the Studio render (2026-11-23 blind test: every realistic iron helmet scored 3-5/10 on readability): iron/steel base colour >= #5a5a5a, metalness <= 0.7, give the darkest metal a lighter `brushed` highlight colour; check with the real render, `VIEWS_TAB=... node test/run.mjs views` (studio.md).
