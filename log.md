@@ -328,3 +328,4 @@ improved (stop-gate): router: '/improve' removed from vault words (every /improv
 ## [2026-11-23] fix / Umbrio double-sided materials (owner: flipped faces showed see-through)
 core/model.js: every material DoubleSide; backColor/backTexture split a part into front + back meshes. Test in parts.mjs (7/7), look/mesh pass; car re-render: roof/sides solid. Published to Claude-Hub v49. core boot-size test was already failing (819 KB > 800 cap), untouched.
 improved: double-sided default in Umbrio; backColor/backTexture fields + scene-format doc; errors.md row + L-139 + router words (see-through, flipped faces)
+improved (stop-hook): 3d playbook Studio fast path (L-140); pre-tool sed/.mjs check no longer reads across newlines (L-135 bumped, promoted)

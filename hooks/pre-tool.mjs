@@ -129,7 +129,7 @@ if (isMain(import.meta.url)) safe(() => {
   }
 
   // Target file only: a .mjs name inside the quoted sed expression is text, not the file edited (L-135, 2026-11-23)
-  if (tool === 'Bash' && typeof ti.command === 'string' && /\b(sed\s+-i|perl\s+-pi)\b[^|;&]*\.(m?js|cjs|ts)\b/.test(ti.command.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, "''")))
+  if (tool === 'Bash' && typeof ti.command === 'string' && /\b(sed\s+-i|perl\s+-pi)\b[^|;&\n]*\.(m?js|cjs|ts)\b/.test(ti.command.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, "''")))
     return deny('Edit .js/.mjs/.ts files with the Edit tool, not sed -i / perl -pi (regex backslashes and newlines get corrupted, L-045).');
 
   if (tool === 'Write' && typeof ti.file_path === 'string') {

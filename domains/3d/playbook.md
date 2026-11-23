@@ -78,6 +78,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Lit to read form: environment + key light, shadows on, tone mapping ACES/AgX, sRGB output.
 
 ## Speed tricks
+- Studio code fix fast path (2026-11-23): tests set props with `window.studio.app.set(id, {...})` in `s.eval`; part material code = core/model.js `materialFor`/`setMesh`; saved tabs for `views` renders = `.worktrees/tabs/<name>` (VIEWS_TAB); hub publish = Artifact list scope files, compare sha to `git show HEAD:<file> | sha256sum`, read url, publish saved index.html + only changed files.
 - New generator with no template (car, 2026-11-23: 774 s): put it in a subfolder of the tool it imports (`tools/3d/props/<cat>/`, helpers one level up); a new top-level tool folder can't import another tool and props/ is at the 20-item cap, so 2 lint rejections cost a rebuild. Patch-on-loft panels: straddle the surface first time (inner 2 cm in, outer 1.5 cm out), never `zfight fix` smooth lofts.
 - Gate/fixer bugs (gaps, z-fight, holes): measure first (`zfight/seethru.py`), then A/B each fixer step by disabling it on one build; edit only the step that flips the gate (2026-11-22: 8 guess loops cost ~6 min).
 - Library asset + material tweak beats modelling from scratch 10x.
