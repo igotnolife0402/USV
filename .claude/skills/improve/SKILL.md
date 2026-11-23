@@ -1,42 +1,43 @@
 ---
 name: improve
-description: Owner-only /improve [think] <prompt>; think = quick|30s|2m|5m|deep|max. Opus thinks that long, writes a decision brief; the improver agent (Sonnet 5.5 low) expands it into a structured prompt (palette, exploded parts, steps, verify, owner rules); Opus builds from it.
+description: Owner-only /improve <seconds> <prompt> (any number, e.g. /improve 90 ...). Opus uses that time, writes a decision brief; the improver agent (Sonnet 5.5 low) expands it into a structured prompt (palette, exploded parts, steps, verify, owner rules); Opus builds from it.
 disable-model-invocation: true
 ---
 
 # /improve: brain writes the brief, Sonnet types the full prompt, then build
 
-Owner rule 2026-11-23: manual only. Speed target replaced by the owner's think time (table below); quick stays < 10 s. Owner 2026-11-23: no line counts anywhere; length = best result, zero filler.
+Owner rule 2026-11-23: manual only. The owner picks any think time in seconds; more time = better prompt (value ladder below). Owner 2026-11-23: no line counts anywhere; length = best result, zero filler.
 Owner design 2026-11-23: the main model writes the prompt's decisions itself; Sonnet only expands them, because Sonnet types ~2x faster than Opus (A/B below).
 
-## Think time (owner 2026-11-23: "Opus is best"; the owner sets how long Opus thinks)
-Syntax: `/improve [think] <prompt>`. `think` = the first word if it is `quick`/`q`, `<N>s`, `<N>m`, `deep` or `max`; strip it from RAW PROMPT. Owner's value always wins.
-No think word → pick from the task's tier: simple = quick, medium = 2m for models (blind test: 60 s builds scored near 30 s), 60s otherwise, complex = 2m, huge = 4m (2026-11-23 test: 30s skipped the build notes and broke owner rules; gains flatten after 2m). Say the chosen level in one line.
+## Think time (owner 2026-11-23: any number of seconds, no levels, no menu)
+Syntax: `/improve <seconds> <prompt>`, e.g. `/improve 90 make a viking helmet`. The first word, if it is a number (`90`, `90s`, `1.5m`), is the budget in seconds; strip it from RAW PROMPT. Never show a selection box or ask for the time: no number = medium 60, complex 120, models 120 (blind test), simple 15; say it in one line.
+Higher time = better prompt, by one rule: work down the value ladder below, in order, until the timer says write; whatever the budget, the most valuable work is done first, and every extra second buys the next rung.
 
-| think | Opus before the brief (the budget is wall-clock; stop at it) | Brief |
-|---|---|---|
-| quick (<= 10 s) | nothing: no reads, no Sonnet | write an outline yourself, then build (no spawn) |
-| 30s | route only (`vault route`) | decisions only |
-| 2m | route + the domain's first-read note + closest template's api lines | more decisions, all numbers checked |
-| 5m / deep | + references (owner refs, templates), gate math checked with code (part counts, same-size ratio, tris) | full decisions + checked gate math |
-| max | no cap: every gate pre-checked with code, contradictions resolved, explorer allowed | everything resolved |
-- Gate math (2m and up): add up part counts, check the same-size ratio and the floor class before sending; a brief that fails its own gate is the A/B's top error (drones A and C).
-- Measure: log `think <level>: <s> brief, <s> Sonnet, <s> total` in log.md.
+Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner rules or built the wrong thing):
+1. Owner rules + route: the hook block (OWNER MUST, route, checklist) and `node scripts/vault.mjs route "<prompt>"`.
+2. The domain's first-read build note (3D: `domains/3d/umbrio-build.md` + `detail.md`; Roblox/web/game: the routed playbook's top section).
+3. Closest template + its api lines (3D: the playbook's which-tool table, e.g. helmets -> `tools/3d/armor/vhq_helm.py`); fix the front axis and units.
+4. Gate math with code: part counts, same-size ratio, floor class, tris, proud/coplanar gaps.
+5. Readability and look rules (`ref-quality.md`, dark-metal rule) and real references.
+6. Contradiction pass: every number in the brief agrees with every other (totals, dims vs parts, units).
+7. Depth: more distinct parts, wear, sub-assemblies, build stages, then repeat 4 and 6 for the additions.
+- Budget under ~15 s: no Sonnet; write the outline yourself from rung 1 only, then build.
+- Measure: log `improve <s>: <s> brief, <s> Sonnet, <s> total, rungs 1-<n>` in log.md.
 
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
-- First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the measured Sonnet time for that level (17/20/24/28 s); quick levels (<= 15 s) have no Sonnet.
+- First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the Sonnet time it predicts for that budget (interpolated from measured runs, 17 s at 30 s to 27 s at 240 s); budgets <= 15 s have no Sonnet.
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this
-0. Do the think-time work for the level (quick: skip to building from your outline).
+0. Climb the value ladder until `left` says write the brief (budget <= 15 s: build from your outline).
 1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
    ```
    MODE: <mobile|pc from the hook block>
-   RAW PROMPT: <the owner's text after /improve, verbatim, think word removed>
+   RAW PROMPT: <the owner's text after /improve, verbatim, the seconds removed>
    BRIEF:
-   <decisions only, no prose; as long as the think level's work produced>
+   <decisions only, no prose; as long as the ladder work produced>
    ```
    BRIEF holds every decision that needs your judgment, as `key: value` lines:
    - goal (real goal + who uses it), tier, skill, checklist, scope out (what NOT to build).

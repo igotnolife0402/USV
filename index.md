@@ -48,7 +48,7 @@ triggers: [index, map, where, vault]
 - Engineering skills (auto-load on match): code-review-and-quality, debugging-and-error-recovery, test-driven-development, spec-driven-development, planning-and-task-breakdown, incremental-implementation, frontend-ui-engineering, performance-optimization, security-and-hardening, git-workflow-and-versioning, context-engineering, and more in `.claude/skills/`.
 - [sfx](.claude/skills/sfx/SKILL.md): sound effects recipe.
 - [crew](.claude/skills/crew/SKILL.md): any task, main model as manager + 3 crew-worker agents (Sonnet 5.5, low effort, copy-only: brain specs, worker one pass, brain OKs or re-instructs).
-- [improve](.claude/skills/improve/SKILL.md): owner-only `/improve [think] <prompt>` (quick|30s|2m|5m|deep|max): Opus thinks that long, writes a brief, Sonnet 5.5 low expands it, Opus builds.
+- [improve](.claude/skills/improve/SKILL.md): owner-only `/improve <seconds> <prompt>` (any number): Opus climbs a value ladder for that long, writes a brief, Sonnet 5.5 low expands it, delivered at the time +-5 s.
 - [swarm](.claude/skills/swarm/SKILL.md): huge-tier multi-agent waves.
 - [vault-upkeep](.claude/skills/vault-upkeep/SKILL.md): lint, rollup, lesson promotion.
 - Commands (.claude/commands): [/plan](.claude/commands/plan.md), [/review](.claude/commands/review.md), [/test](.claude/commands/test.md), [/learn](.claude/commands/learn.md).

@@ -297,3 +297,7 @@ improved: views suite (labeled real renders); studio.md mobile: browser tests wo
 ## [2026-11-23] test / helmets built from think-time prompts, blind rated
 4 Opus builders (prompts verbatim), real Studio renders (views suite, shared light, front-yaw fixed for R), 3 blind Sonnet raters: 30s 77, 60s 84, 120s 106, 240s 111 /180. Uploaded hv-k, hv-r, hv-m, hv-t; read-back counts match.
 improved: dark-metal readability rule in umbrio-build.md; views suite parent-scale + VIEWS_ENV + VIEWS_YAW; blind result + 120 s sweet spot in improve skill
+
+## [2026-11-23] skill / improve: any think time
+Owner: no levels or menu, `/improve <seconds> <prompt>`. Replaced the level table with a 7-rung value ladder (most valuable work first, more seconds = more rungs); timer interpolates Sonnet time for any budget. Not live-tested at a new budget yet.
+improved: any-seconds syntax, never a selection box; value ladder ordered by the blind-test failures; timer interpolation (sonnetFor) + index line

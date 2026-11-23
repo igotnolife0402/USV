@@ -11,8 +11,14 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FILE = join(ROOT, 'state', `.improve-timer${process.env.IMPROVE_TIMER_ID ? '-' + process.env.IMPROVE_TIMER_ID.replace(/[^\w-]/g, '') : ''}.json`);
-// Sonnet expansion grows with the brief: measured 2026-11-23 viking-helmet test (30s 16.9, 60s 19.6, 120s 23.9, 240s 27.1)
-const sonnetFor = (b) => (b <= 15 ? 0 : b <= 30 ? 17 : b <= 60 ? 20 : b <= 120 ? 24 : 28);
+// Sonnet expansion grows with the brief: measured 2026-11-23 viking-helmet test (30s 16.9, 60s 19.6, 120s 23.9, 240s 27.1);
+// any budget the owner types is interpolated between these points (owner: no fixed levels).
+const PTS = [[15, 16], [30, 17], [60, 20], [120, 24], [240, 28], [600, 32]]
+const sonnetFor = (b) => {
+  if (b <= 15) return 0
+  for (let i = 1; i < PTS.length; i++) if (b <= PTS[i][0]) { const [x0, y0] = PTS[i - 1], [x1, y1] = PTS[i]; return Math.round(y0 + (y1 - y0) * (b - x0) / (x1 - x0)) }
+  return PTS[PTS.length - 1][1]
+}
 const TOL = 5;
 
 function promptArrival() {
