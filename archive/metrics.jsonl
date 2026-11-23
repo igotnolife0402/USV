@@ -83,3 +83,4 @@
 {"t":"2026-11-23T23:04:59.911Z","tier":"medium","secs":774,"ok":false,"errors":2,"retry":1,"routes":["3d","vault"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
 {"t":"2026-11-23T23:21:16.309Z","tier":"medium","secs":359,"ok":false,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":["slow"],"mode":"mobile"}
 {"t":"2026-11-23T23:29:17.741Z","tier":"medium","secs":84,"ok":true,"errors":0,"retry":0,"routes":["3d","vault"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T23:38:11.130Z","tier":"medium","secs":110,"ok":true,"errors":0,"retry":0,"routes":["3d","owner"],"touched":[],"signals":[],"mode":"mobile"}
