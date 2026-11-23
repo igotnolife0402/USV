@@ -305,3 +305,7 @@ improved: any-seconds syntax, never a selection box; value ladder ordered by the
 ## [2026-11-23] skill / improve everywhere + time box
 Owner: skill missing in new sessions (lived only on the session branch) and wanted time+prompt inside the call. Added argument-hint, AskUserQuestion time box when no number, installer copies improve + improver agent with absolute script paths; merged to main; PC install queued.
 improved: installer path rewrite covers every scripts/*.mjs + agents; AGENTS sync (improver); argument-hint + time box; PC queue step
+
+## [2026-11-23] skill / improve as an account-level Claude skill
+No tool can add account skills, so built a standalone /improve (no vault files) in tools/skills/improve-standalone + upload zip; owner uploads once in claude.ai Settings > Capabilities > Skills. Fixed the mobile hook blocking quoted PC-app names (L-135).
+improved: standalone skill + references/improver.md (vault refs stripped); tool.json + index link; pre-tool hook ignores quoted/heredoc text (6 cases tested)

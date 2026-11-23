@@ -73,7 +73,10 @@ export function mobileBlock(tool, ti = {}, modes = {}) {
   if (tool === 'Skill' && modes.pcOnlySkills && new RegExp(modes.pcOnlySkills, 'i').test(String(ti.skill || '')))
     return { what: `skill ${ti.skill}`, key: String(ti.skill) };
   if ((tool === 'Bash' || tool === 'PowerShell') && typeof ti.command === 'string') {
-    const m = modes.pcOnlyBash && ti.command.match(new RegExp(modes.pcOnlyBash, 'i'));
+    // Match only what runs: heredoc bodies and quoted strings are data (commit messages, sed text, python code that merely
+    // mentions a PC app) and blocked real work on 2026-11-23 twice (L-135).
+    const runs = ti.command.replace(/<<-?\s*['"]?(\w+)['"]?[^\n]*\n[\s\S]*?\n\s*\1\s*(\n|$)/g, ' ').replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, "''");
+    const m = modes.pcOnlyBash && runs.match(new RegExp(modes.pcOnlyBash, 'i'));
     if (m) return { what: `'${m[0].trim()}'`, key: m[0] };
     const bad = outsideInstalls(ti.command, modes.mobilePackages || []);
     if (bad.length) return { what: `install of ${bad.join(', ')} (not a vault package)`, key: 'install' };
