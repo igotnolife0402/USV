@@ -261,3 +261,7 @@ improved: improver obeys BRIEF values as final; skill step 1 = brief format per 
 ## [2026-11-23] skill / improve build-from-brief
 Build starts from the brief (16.3 s with fresh thinking, drone test); Sonnet expands in background. Brief values survived verbatim.
 improved: improver runs in background; build starts from brief same turn; /improve only path split out
+
+## [2026-11-23] test / improve brief flow vs Sonnet only (drone)
+Build start 16.3 s vs 16.4 s; Sonnet-only prompt had 3 self-contradictions, brief flow 1 minor (44 vs 47 count).
+improved: fresh-prompt timing recorded; Sonnet-only failure modes recorded in skill; brief flow confirmed as default
