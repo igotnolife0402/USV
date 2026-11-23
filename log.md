@@ -289,3 +289,7 @@ improved: improver unit rule (brief units, never mix); router 3d words lantern/l
 ## [2026-11-23] test / improve think time 10-30-60-120-240 (viking helmet)
 Fresh Opus per level + real Sonnet expansion. Delivered: 2.8 / 31.0 / 61.6 / 126.3 / 249.1 s (2 PASS in +-5, 120/240 late: Sonnet time grows with brief). Rubric: 20 / 30 / 81 / 91 / 98.
 improved: timer Sonnet estimate per level (17/20/24/28 s); default medium think 30s -> 60s; router 3d words helmet/armor; playbook points helmets at vhq_helm.py
+
+## [2026-11-23] 3d / real-render every-angle sheets (owner: labeled, real render)
+tools/3d/studio/test/views.mjs: 8 labeled views via look.render in headless Chromium on mobile (~15 s). Fixed: scene Box3 caught the ground/sky (r 99 km) -> bounds from geo verts.
+improved: views suite (labeled real renders); studio.md mobile: browser tests work here + exact setup; angles.py straight views level (L-134)
