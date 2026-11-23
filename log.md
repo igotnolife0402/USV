@@ -333,3 +333,7 @@ improved (stop-hook): 3d playbook Studio fast path (L-140); pre-tool sed/.mjs ch
 ## [2026-11-23] hook / live tier clock (owner: car + fix both over 5 min)
 Cause: time was only measured by the Stop hook after the turn. New hooks/budget.mjs (PostToolUse, all tools) warns at 50/80/100 % of the tier target, turn start from the transcript like the Stop hook; tested 6 cases. L-141.
 improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); pre-tool sed check stops at newlines
+
+## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
+Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
+improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
