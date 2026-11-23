@@ -16,7 +16,9 @@ export function norm(p) {
 // Quote-aware tokens; unquoted ; & | split segments, so text inside a quoted commit message never matches.
 export function segments(cmd) {
   const segs = [[]];
-  for (const t of String(cmd).match(/"[^"]*"|'[^']*'|\S+/g) || []) {
+  // newlines end a command too: a later line's tokens counted as rm args blocked `rm -rf <subdir>` (2026-11-23)
+  for (const t of String(cmd).match(/"[^"]*"|'[^']*'|\n|[^\s]+/g) || []) {
+    if (t === '\n') { segs.push([]); continue; }
     if (/^["']/.test(t)) { segs.at(-1).push(t); continue; }
     for (const part of t.split(/([;&|]+)/)) {
       if (!part) continue;

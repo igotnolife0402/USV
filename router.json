@@ -260,7 +260,10 @@
         "lamp",
         "candle",
         "helmet",
-        "make a model"
+        "make a model",
+        "hatchback",
+        "sedan",
+        "truck"
       ],
       "notes": [
         "domains/3d/playbook.md",

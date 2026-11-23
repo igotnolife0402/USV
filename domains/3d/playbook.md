@@ -40,6 +40,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Armor sets fitted to the R6 rig + equip; any helmet/helm (standalone too: `vhq_helm.py` superellipse skull, `hq.py` plate/rivet/torus kit) | [armor](tools/3d/armor/README.md) |
 | Z-fighting / flicker check and fix | [zfight](tools/3d/zfight/README.md) |
 | Editing by hand, export, render, MP4 | [studio](tools/3d/studio/README.md) |
+| Car / vehicle (lofted body, solid skin panels, pressed wheel wells, tread tyres, 5-spoke rims) | `tools/3d/props/vehicle/car.py` (57 parts, 36k tris, hero PASS, zfight 0; generic hatchback, front +Z) |
 | Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build per [umbrio-build.md](domains/3d/umbrio-build.md) (one read: template tools/3d/props/house.py, units, textures, gates, write format) |
 | None fits and the owner names Blender | Blender MCP (PC) below |
 

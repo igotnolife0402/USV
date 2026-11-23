@@ -318,3 +318,8 @@ improved: mobile profile note on pre-session menu; improve skill + standalone RE
 ## [2026-11-23] skill / improve 45 car
 improve 45: ~25 s brief, 19.9 s Sonnet, 80.8 s delivered (FAIL +35.8), rungs 1-4. Cause: long build planning after spawn hid the Sonnet return.
 improved: SKILL.md rule (short calls until prompt shown, wait at left<=2); lesson logged; car brief gate math checked by code (62 parts, same-size 0.065)
+
+## [2026-11-23] 3d / car from /improve 45 prompt
+Built tools/3d/props/car.py (57 parts, 36,324 tris), live into Umbrio tab car-a in 3 stages; read-back: hero floor PASS, zfight 0.00 m2, 0 orphans, size 4.34 L x 1.59 H (antenna) x 2.12 W (mirrors). Renders looked at: boxy wagon-like silhouette, unexplained light patch on rear slope.
+improved: car generator + playbook row; 2 errors.md rows (fuv geo size, zfight fix whitening lofts); router words car/vehicle; panel-straddle rule for zfight
+improved (follow-up): car + drones grouped in tools/3d/props/vehicle (props folder cap 20, tools may not import each other); pre-tool hook segments() splits on newlines (multi-line commands made later tokens count as rm args, blocked `rm -rf <subdir>`)

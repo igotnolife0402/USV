@@ -21,7 +21,7 @@ import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # props helpers live one level up
 import props as P  # noqa: E402
 from guns import tex, mk, glow  # noqa: E402
 
@@ -269,9 +269,9 @@ def main(argv=None):
         rc |= P.run(out, [name], 7, "--check" in a, "--preview" in a, "toon", tri_cap=19000)
         proj = live(out, name, P.PROPS[name][0])
         if "--check" in a:
-            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
+            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "detail", "detail.py"), "check",
                                    os.path.join(out, name + ".json"), os.path.join(out, "geo"), "--class", "hero"])
-            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "check",
+            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "zfight", "zfight.py"), "check",
                                    proj, os.path.join(out, "geo"), "--prop"])
     return rc
 
