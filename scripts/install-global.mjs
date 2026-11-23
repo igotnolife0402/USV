@@ -32,11 +32,13 @@ export function apply(settings, remove = false) {
 
 // Personal copies of the vault's talk-to-the-vault skills, with the CLI path made absolute, so /vault, /learn
 // and /queue work in every folder. Marked so --remove only deletes what this installer wrote.
-export const SKILLS = ['vault', 'learn', 'queue'];
+export const SKILLS = ['vault', 'learn', 'queue', 'improve'];
+// Agents a personal skill spawns (improve -> improver), copied to ~/.claude/agents with the same mark.
+export const AGENTS = ['improver'];
 const SKILL_MARK = '<!-- installed by Super-Vault scripts/install-global.mjs -->';
 export function personalSkill(name, vault = VAULT) {
   const src = readFileSync(join(vault, '.claude', 'skills', name, 'SKILL.md'), 'utf8');
-  return src.replace(/node scripts\/vault\.mjs/g, `node "${vault}/scripts/vault.mjs"`).replace(/\n---\n/, `\n---\n${SKILL_MARK}\n`);
+  return src.replace(/node scripts\/([\w-]+\.mjs)/g, (m, f) => `node "${vault}/scripts/${f}"`).replace(/(?<![\w/])\.claude\/agents\//g, `${vault}/.claude/agents/`).replace(/\n---\n/, `\n---\n${SKILL_MARK}\n`);
 }
 export function syncSkills(dir, remove = false) {
   for (const name of SKILLS) {
@@ -45,6 +47,14 @@ export function syncSkills(dir, remove = false) {
     if (remove) { if (existsSync(f)) rmSync(join(dir, name), { recursive: true, force: true }); continue; }
     mkdirSync(join(dir, name), { recursive: true });
     writeFileSync(f, personalSkill(name));
+  }
+  const adir = join(dir, '..', 'agents');
+  for (const name of AGENTS) {
+    const f = join(adir, name + '.md');
+    if (existsSync(f) && !readFileSync(f, 'utf8').includes(SKILL_MARK)) continue;
+    if (remove) { if (existsSync(f)) rmSync(f, { force: true }); continue; }
+    mkdirSync(adir, { recursive: true });
+    writeFileSync(f, readFileSync(join(VAULT, '.claude', 'agents', name + '.md'), 'utf8').replace(/\n---\n/, `\n---\n${SKILL_MARK}\n`));
   }
 }
 

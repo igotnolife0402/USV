@@ -2,6 +2,7 @@
 name: improve
 description: Owner-only /improve <seconds> <prompt> (any number, e.g. /improve 90 ...). Opus uses that time, writes a decision brief; the improver agent (Sonnet 5.5 low) expands it into a structured prompt (palette, exploded parts, steps, verify, owner rules); Opus builds from it.
 disable-model-invocation: true
+argument-hint: <seconds> <your prompt>
 ---
 
 # /improve: brain writes the brief, Sonnet types the full prompt, then build
@@ -9,8 +10,11 @@ disable-model-invocation: true
 Owner rule 2026-11-23: manual only. The owner picks any think time in seconds; more time = better prompt (value ladder below). Owner 2026-11-23: no line counts anywhere; length = best result, zero filler.
 Owner design 2026-11-23: the main model writes the prompt's decisions itself; Sonnet only expands them, because Sonnet types ~2x faster than Opus (A/B below).
 
-## Think time (owner 2026-11-23: any number of seconds, no levels, no menu)
-Syntax: `/improve <seconds> <prompt>`, e.g. `/improve 90 make a viking helmet`. The first word, if it is a number (`90`, `90s`, `1.5m`), is the budget in seconds; strip it from RAW PROMPT. Never show a selection box or ask for the time: no number = medium 60, complex 120, models 120 (blind test), simple 15; say it in one line.
+## Think time (owner 2026-11-23: any number of seconds, no levels; the time box shows only when no number was given)
+Syntax (owner 2026-11-23: time and prompt both go INSIDE the skill call): `/improve <seconds> <prompt>`, e.g. `/improve 90 make a viking helmet`; the slash menu shows the hint `<seconds> <your prompt>`.
+- Read the number from the skill arguments: first or last word (`90`, `90s`, `1.5m`); also accept a number typed just before `/improve` in the same message. Strip it from RAW PROMPT.
+- No number found: your FIRST action is the time box, AskUserQuestion, header "Think time", question "How long should I think about this prompt?", options `30 s`, `60 s`, `120 s (Recommended for models)`, `240 s`; "Other" takes any number. The timer starts when the owner answers (`start <s> --now`).
+- No prompt text: ask for it in one short line, then run.
 Higher time = better prompt, by one rule: work down the value ladder below, in order, until the timer says write; whatever the budget, the most valuable work is done first, and every extra second buys the next rung.
 
 Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner rules or built the wrong thing):
