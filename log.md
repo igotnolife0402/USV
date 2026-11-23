@@ -253,3 +253,7 @@ improved: improve speed 35→20 s (line cap, 15-row parts table); mobile profile
 ## [2026-11-23] test / improve Sonnet low vs Opus medium
 2 prompts x 2 models in parallel. Sonnet 15.2/18.8 s, Opus 30.4/33.6 s; Opus richer, Sonnet had a single-Part pet placeholder gap. Kept Sonnet, folded Opus patterns into the template.
 improved: improver bans fictional-character references; 3D verify adds bounds/orphan/coplanar checks; Roblox block adds client-visual split, DataStore load guard, detail floor for pets; A/B result recorded in skill
+
+## [2026-11-23] skill / improve brief flow (owner design)
+Main writes a 15-30 line decision brief, improver (Sonnet low) expands it; values must survive verbatim. Pets test: 30.7 s total, all values kept.
+improved: improver obeys BRIEF values as final; skill step 1 = brief format per task type; timing + caveat recorded
