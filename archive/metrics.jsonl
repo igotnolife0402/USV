@@ -67,3 +67,5 @@
 {"t":"2026-11-22T17:54:02.252Z","tier":"medium","secs":583,"ok":false,"errors":6,"retry":2,"routes":["crew","roblox"],"touched":[],"signals":[],"mode":"pc"}
 {"t":"2026-11-23T21:44:18.911Z","tier":"medium","secs":200,"ok":true,"errors":1,"retry":1,"routes":["tools","vfx"],"touched":[],"signals":["errors"],"mode":"mobile"}
 {"t":"2026-11-23T21:48:56.949Z","tier":"medium","secs":102,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T21:52:08.518Z","tier":"medium","secs":75,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T21:54:56.944Z","tier":"medium","secs":30,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}

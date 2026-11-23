@@ -10,7 +10,7 @@ Owner rule 2026-11-23: manual only; target < 30 s from /improve to improved prom
 Owner design 2026-11-23: the main model writes the prompt's decisions itself; Sonnet only expands them, because Sonnet types ~2x faster than Opus (A/B below).
 
 ## Do exactly this (no reads before the spawn)
-1. Your FIRST tool call: Agent, `subagent_type: improver`, `run_in_background: false`, prompt =
+1. Your FIRST tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
    ```
    MODE: <mobile|pc from the hook block>
    RAW PROMPT: <the owner's text after /improve, verbatim>
@@ -23,9 +23,9 @@ Owner design 2026-11-23: the main model writes the prompt's decisions itself; So
    - Type specifics. Model: style, 1-2 real references, pose, palette `role hex rough/metal`, parts `name size count material attach` (8-15), overall dims, parent tree. Roblox: files, remotes, data keys, tunables with numbers. Web: sections, palette, layout. Game: loop, controls, entities. Other: the outline.
    - verify: the ONE outside check + pass numbers.
    Write it fast: fragments, numbers, hex; Sonnet turns it into sentences and tables.
-2. When it returns: check all 9 sections are there and the brief values survived. Gaps → fill them yourself, do not respawn.
-3. Show the owner the improved prompt in a collapsed block (`<details><summary>Improved prompt</summary>...</details>`) or plain if the client can't collapse.
-4. Then carry it out as the task (its Route, Steps, Verify). If the owner wrote `/improve only ...`, stop after step 3.
+2. Same turn, right after the spawn: start the build from your BRIEF (invoke the brief's skill, open its checklist, first build step). Do not wait.
+3. When the full prompt arrives: show it to the owner in a collapsed block (`<details><summary>Improved prompt</summary>...</details>`), then follow its Build steps, Verify and Owner rules for the rest of the build. Brief values win over anything Sonnet changed.
+4. `/improve only ...`: skip step 2; show the prompt when it arrives and stop.
 
 ## Notes
 - Owner's words win over any `(assumed)` choice.
