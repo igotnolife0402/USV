@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FILE = join(ROOT, 'state', `.improve-timer${process.env.IMPROVE_TIMER_ID ? '-' + process.env.IMPROVE_TIMER_ID.replace(/[^\w-]/g, '') : ''}.json`);
-const SONNET_S = 18; // measured improver expansion time 2026-11-23 (15-20 s); quick level skips it
+// Sonnet expansion grows with the brief: measured 2026-11-23 viking-helmet test (30s 16.9, 60s 19.6, 120s 23.9, 240s 27.1)
+const sonnetFor = (b) => (b <= 15 ? 0 : b <= 30 ? 17 : b <= 60 ? 20 : b <= 120 ? 24 : 28);
 const TOL = 5;
 
 function promptArrival() {
@@ -33,14 +34,14 @@ if (cmd === 'start') {
   const t0 = flag === '--now' ? now : promptArrival();
   mkdirSync(dirname(FILE), { recursive: true });
   writeFileSync(FILE, JSON.stringify({ t0, budget }));
-  const brief = budget <= 15 ? budget : budget - SONNET_S;
-  console.log(JSON.stringify({ budget, elapsed: +((now - t0) / 1000).toFixed(1), sonnet: budget <= 15 ? 0 : SONNET_S,
+  const brief = budget - sonnetFor(budget);
+  console.log(JSON.stringify({ budget, elapsed: +((now - t0) / 1000).toFixed(1), sonnet: sonnetFor(budget),
     send_brief_at: brief, note: budget <= 15 ? 'quick: write the outline yourself, no Sonnet' : `spawn Sonnet at ${brief}s` }));
 } else if (cmd === 'left' || cmd === 'done') {
   let s;
   try { s = JSON.parse(readFileSync(FILE, 'utf8')); } catch { console.error('no timer: run start first'); process.exit(2); }
   const el = (now - s.t0) / 1000;
-  const sendAt = s.budget <= 15 ? s.budget : s.budget - SONNET_S;
+  const sendAt = s.budget - sonnetFor(s.budget);
   if (cmd === 'left') {
     console.log(JSON.stringify({ elapsed: +el.toFixed(1), budget: s.budget, left: +(s.budget - el).toFixed(1),
       brief_left: +(sendAt - el).toFixed(1), advice: el < sendAt - 8 ? 'keep researching/checking' : el < sendAt ? 'write the brief now' : 'send now' }));

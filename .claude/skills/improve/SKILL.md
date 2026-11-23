@@ -11,7 +11,7 @@ Owner design 2026-11-23: the main model writes the prompt's decisions itself; So
 
 ## Think time (owner 2026-11-23: "Opus is best"; the owner sets how long Opus thinks)
 Syntax: `/improve [think] <prompt>`. `think` = the first word if it is `quick`/`q`, `<N>s`, `<N>m`, `deep` or `max`; strip it from RAW PROMPT. Owner's value always wins.
-No think word → pick from the task's tier: simple = quick, medium = 30s, complex = 2m, huge = 5m. Say the chosen level in one line.
+No think word → pick from the task's tier: simple = quick, medium = 60s, complex = 2m, huge = 4m (2026-11-23 test: 30s skipped the build notes and broke owner rules; gains flatten after 2m). Say the chosen level in one line.
 
 | think | Opus before the brief (the budget is wall-clock; stop at it) | Brief |
 |---|---|---|
@@ -24,7 +24,7 @@ No think word → pick from the task's tier: simple = quick, medium = 30s, compl
 - Measure: log `think <level>: <s> brief, <s> Sonnet, <s> total` in log.md.
 
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
-- First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - 18 s (measured Sonnet expansion); quick levels (<= 15 s) have no Sonnet.
+- First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the measured Sonnet time for that level (17/20/24/28 s); quick levels (<= 15 s) have no Sonnet.
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
@@ -55,3 +55,4 @@ No think word → pick from the task's tier: simple = quick, medium = 30s, compl
 - Brief flow timed 2026-11-23 (pets): brief ~11 s + Sonnet 19.7 s = 30.7 s total; every brief value survived, Sonnet flagged a 10-vs-11 parts slip. The brief was reused from the A/B, so a fresh brief with real thinking will take longer.
 - Drone A/B 2026-11-23 (fresh prompt): brief flow → build starts 16.3 s, full prompt 31.9 s; Sonnet only → prompt 16.4 s. Same start time, brief flow far fewer errors (Sonnet-only: 39 parts vs its own ">= 40" gate, 0.05 blades vs ">= 0.15" thickness rule, size contradiction). Keep brief flow.
 - Fable 5.2 medium as sole writer (2026-11-23, drone): 39.6 s, richest detail but tier/skill wrong and spec fails the hero same-size gate; ~4x Sonnet price per token ($8/$40 vs $2/$10 per MTok). Not worth it here: brief flow = Opus decisions at Sonnet cost.
+- Think-time test 2026-11-23 (viking helmet, fresh Opus per level; rubric /100): 10s 20, 30s 30, 60s 81, 120s 91, 240s 98. Delivery: 10s 2.8 (early FAIL), 30s 31.0, 60s 61.6, 120s 126.3 (+6.3 FAIL), 240s 249.1 (+9.1 FAIL) -> Sonnet time now scales by level in the timer.
