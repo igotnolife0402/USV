@@ -6,20 +6,20 @@ disable-model-invocation: true
 
 # /improve: brain writes the brief, Sonnet types the full prompt, then build
 
-Owner rule 2026-11-23: manual only. Speed target replaced by the owner's think time (table below); quick stays < 10 s.
+Owner rule 2026-11-23: manual only. Speed target replaced by the owner's think time (table below); quick stays < 10 s. Owner 2026-11-23: no line counts anywhere; length = best result, zero filler.
 Owner design 2026-11-23: the main model writes the prompt's decisions itself; Sonnet only expands them, because Sonnet types ~2x faster than Opus (A/B below).
 
 ## Think time (owner 2026-11-23: "Opus is best"; the owner sets how long Opus thinks)
 Syntax: `/improve [think] <prompt>`. `think` = the first word if it is `quick`/`q`, `<N>s`, `<N>m`, `deep` or `max`; strip it from RAW PROMPT. Owner's value always wins.
 No think word → pick from the task's tier: simple = quick, medium = 30s, complex = 2m, huge = 5m. Say the chosen level in one line.
 
-| think | Opus before the brief (the budget is wall-clock; stop at it) | Brief | LENGTH sent to Sonnet |
-|---|---|---|---|
-| quick (<= 10 s) | nothing: no reads, no Sonnet | write a 15-30 line outline yourself, then build | none (no spawn) |
-| 30s | route only (`vault route`) | 15-30 lines | 100-120 |
-| 2m | route + the domain's first-read note + closest template's api lines | 30-50 lines, all numbers checked | 120-160 |
-| 5m / deep | + references (owner refs, templates), gate math checked with code (part counts, same-size ratio, tris) | 50-80 lines | 160-220 |
-| max | no cap: every gate pre-checked with code, contradictions resolved, explorer allowed | as long as it needs | 220-300 |
+| think | Opus before the brief (the budget is wall-clock; stop at it) | Brief |
+|---|---|---|
+| quick (<= 10 s) | nothing: no reads, no Sonnet | write an outline yourself, then build (no spawn) |
+| 30s | route only (`vault route`) | decisions only |
+| 2m | route + the domain's first-read note + closest template's api lines | more decisions, all numbers checked |
+| 5m / deep | + references (owner refs, templates), gate math checked with code (part counts, same-size ratio, tris) | full decisions + checked gate math |
+| max | no cap: every gate pre-checked with code, contradictions resolved, explorer allowed | everything resolved |
 - Gate math (2m and up): add up part counts, check the same-size ratio and the floor class before sending; a brief that fails its own gate is the A/B's top error (drones A and C).
 - Measure: note the start time and log `think <level>: <s> brief, <s> Sonnet` in log.md.
 
@@ -29,14 +29,13 @@ No think word → pick from the task's tier: simple = quick, medium = 30s, compl
    ```
    MODE: <mobile|pc from the hook block>
    RAW PROMPT: <the owner's text after /improve, verbatim, think word removed>
-   LENGTH: <from the think table>
    BRIEF:
-   <brief lines from the think table, decisions only, no prose>
+   <decisions only, no prose; as long as the think level's work produced>
    ```
    BRIEF holds every decision that needs your judgment, as `key: value` lines:
    - goal (real goal + who uses it), tier, skill, checklist, scope out (what NOT to build).
    - 4-6 assumptions.
-   - Type specifics. Model: style, 1-2 real references, pose, palette `role hex rough/metal`, parts `name size count material attach` (8-15), overall dims, parent tree. Roblox: files, remotes, data keys, tunables with numbers. Web: sections, palette, layout. Game: loop, controls, entities. Other: the outline.
+   - Type specifics. Model: style, 1-2 real references, pose, palette `role hex rough/metal`, parts `name size count material attach` (every distinct part), overall dims, parent tree. Roblox: files, remotes, data keys, tunables with numbers. Web: sections, palette, layout. Game: loop, controls, entities. Other: the outline.
    - verify: the ONE outside check + pass numbers.
    Write it fast: fragments, numbers, hex; Sonnet turns it into sentences and tables.
 2. Same turn, right after the spawn: start the build from your BRIEF (invoke the brief's skill, open its checklist, first build step). Do not wait.

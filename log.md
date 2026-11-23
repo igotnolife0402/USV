@@ -277,3 +277,7 @@ improved: drone C generator in drones.py; zfight caught my status-strip overlap 
 ## [2026-11-23] skill / improve think time
 Owner sets Opus think time: `/improve [quick|30s|2m|5m|deep|max] <prompt>`; table maps each level to research depth, brief size and Sonnet LENGTH; default by tier. Not live-tested yet.
 improved: router miss fixed ("outline" sent it to web; vault words added); improver takes LENGTH; gate-math rule for 2m+ briefs (A/B top error); index line updated
+
+## [2026-11-23] skill / improve: no line counts
+Owner: length = best result, zero filler. Removed every line count from improver + skill (output contract, LENGTH, think table, parts row range).
+improved: improver length rule = every line a needed decision/number/check; think table now sets depth not size; parts table one row per distinct part
