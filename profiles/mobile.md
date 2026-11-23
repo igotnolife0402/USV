@@ -40,3 +40,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 If the PC is on and the owner wants PC tools from the phone, suggest `/remote-control` (phone drives the PC session; mode becomes pc, remote). Don't suggest it for work the fallback covers.
 
 PC capabilities: [profiles/pc.md](profiles/pc.md).
+- New cloud session screen (before the first message): the `/` menu lists built-ins only (`/model`); repo skills load after the clone. Type the full `/improve 90 <prompt>` and send, or send one message first, then `/` lists repo skills (owner screenshot 2026-11-23). Account skills (claude.ai upload) are repo-independent.

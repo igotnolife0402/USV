@@ -310,3 +310,7 @@ improved: installer path rewrite covers every scripts/*.mjs + agents; AGENTS syn
 No tool can add account skills, so built a standalone /improve (no vault files) in tools/skills/improve-standalone + upload zip; owner uploads once in claude.ai Settings > Capabilities > Skills. Fixed the mobile hook blocking quoted PC-app names (L-135).
 improved: standalone skill + references/improver.md (vault refs stripped); tool.json + index link; pre-tool hook ignores quoted/heredoc text (6 cases tested)
 improved (follow-up): sed/perl .mjs rule also ignores quoted text (same root cause as L-135, bumped)
+
+## [2026-11-23] skill / improve missing from new-session menu (owner screenshot)
+Cause: pre-session `/` menu lists built-ins only; repo skills load after the clone. Documented the workaround (type in full / send a first message) and the account-skill route.
+improved: mobile profile note on pre-session menu; improve skill + standalone README note; router words for skill-not-showing asks
