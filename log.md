@@ -314,3 +314,7 @@ improved (follow-up): sed/perl .mjs rule also ignores quoted text (same root cau
 ## [2026-11-23] skill / improve missing from new-session menu (owner screenshot)
 Cause: pre-session `/` menu lists built-ins only; repo skills load after the clone. Documented the workaround (type in full / send a first message) and the account-skill route.
 improved: mobile profile note on pre-session menu; improve skill + standalone README note; router words for skill-not-showing asks
+
+## [2026-11-23] skill / improve 45 car
+improve 45: ~25 s brief, 19.9 s Sonnet, 80.8 s delivered (FAIL +35.8), rungs 1-4. Cause: long build planning after spawn hid the Sonnet return.
+improved: SKILL.md rule (short calls until prompt shown, wait at left<=2); lesson logged; car brief gate math checked by code (62 parts, same-size 0.065)
