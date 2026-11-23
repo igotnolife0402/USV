@@ -257,3 +257,7 @@ improved: improver bans fictional-character references; 3D verify adds bounds/or
 ## [2026-11-23] skill / improve brief flow (owner design)
 Main writes a 15-30 line decision brief, improver (Sonnet low) expands it; values must survive verbatim. Pets test: 30.7 s total, all values kept.
 improved: improver obeys BRIEF values as final; skill step 1 = brief format per task type; timing + caveat recorded
+
+## [2026-11-23] skill / improve build-from-brief
+Build starts from the brief (16.3 s with fresh thinking, drone test); Sonnet expands in background. Brief values survived verbatim.
+improved: improver runs in background; build starts from brief same turn; /improve only path split out
