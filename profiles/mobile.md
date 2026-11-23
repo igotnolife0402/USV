@@ -25,7 +25,7 @@ Rule: never say "failed"/"can't" when a fallback exists. Do the fallback, queue 
 |---|---|---|
 | Roblox Studio MCP | Edit .luau files in Rojo layout in the repo; static-check logic | "sync via Rojo / paste into Studio, playtest" |
 | Blender MCP | three.js Artifact preview + bpy script saved in the repo | "run script in Blender, export glb" |
-| Browser testing (Chrome/preview) | Artifact preview; node syntax/unit checks | "visual check in Chrome" if layout-critical |
+| Browser testing (Chrome/preview) | Headless Chromium + Playwright (preinstalled, `require("playwright")`, verified 2026-11-23): one small screenshot; else Artifact preview + node checks | "visual check in Chrome" if layout-critical |
 | Computer use | none | the full step |
 | agent-audio / audio gen | procedural WebAudio or jsfxr params in code | "generate final SFX with agent-audio" if needed |
 | Local files | repo files only; ask owner to commit missing files | "copy X into repo" |

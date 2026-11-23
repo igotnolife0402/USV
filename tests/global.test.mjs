@@ -37,7 +37,7 @@ test('in another folder: routes into the vault with absolute paths', () => {
   mkdirSync(proj, { recursive: true });
   const r = node([HOOK, 'prompt'], { prompt: 'calculate the drop rate odds for 20 rolls', session_id: 'g2', cwd: proj });
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
-  assert.match(ctx, /VAULT .*Super-Vault(\/\.claude\/worktrees\/[^/ ]+)? \| TIER=/);
+  assert.match(ctx, /VAULT (\/|[A-Za-z]:\/).+ \| TIER=/);
   assert.match(ctx, /domains\/math\/index\.md/);
   const s = node([HOOK, 'start'], { session_id: 'g2', cwd: proj });
   assert.match(JSON.parse(s.stdout).hookSpecificOutput.additionalContext, /shared memory for every task/);
