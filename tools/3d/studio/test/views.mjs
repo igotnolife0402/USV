@@ -1,6 +1,7 @@
 // Every-angle labeled sheet of an exported tab, rendered by the real Studio renderer (look.render: textures, PBR, AO),
 // for blind ratings and visual checks. No-op unless VIEWS_TAB is set:
 //   VIEWS_TAB=<dir with project.json meta.json geo/ [tex/] [uploads.json]> [VIEWS_OUT=<dir>] [VIEWS_FAST=1: viewport shots]
+//   [VIEWS_YAW=180: model faces -Z] [VIEWS_ENV='{"light":"day","bg":"#7d8590"}': one shared light/background for fair comparisons]
 //   node test/run.mjs views  ->  <VIEWS_OUT>/views.jpg (4x2, labeled) + view-<name>.png each
 // Straight views are level (el 0): a tilted straight view reads as duplicated far parts (L-134).
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
@@ -18,6 +19,8 @@ export default async function (t) {
     if (existsSync(join(D, 'uploads.json'))) for (const [id, p] of Object.entries(JSON.parse(readFileSync(join(D, 'uploads.json'))))) docs[`projects/${pid}/tex/${id}`] = { kind: 'image', data: 'data:image/png;base64,' + readFileSync(p).toString('base64') }
     if (existsSync(join(D, 'tex'))) for (const f of readdirSync(join(D, 'tex'))) docs[`projects/${pid}/tex/${f.replace('.json', '')}`] = JSON.parse(readFileSync(join(D, 'tex', f)))
     docs[`projects/${pid}`] = JSON.parse(readFileSync(join(D, 'project.json'))); docs[`meta/${pid}`] = JSON.parse(readFileSync(join(D, 'meta.json')))
+    // Same light for every model being compared (VIEWS_ENV='{"light":"day","bg":"#7d8590"}'): dark iron vanishes on the default dark scene
+    if (process.env.VIEWS_ENV) docs[`projects/${pid}`].env = { ...(docs[`projects/${pid}`].env || {}), ...JSON.parse(process.env.VIEWS_ENV) }
     const s = await t.open({ device: 'desktop' })
     await s.page.evaluate(d => { for (const [p, v] of Object.entries(d)) window.__mock.external(p, v, { set: true }) }, docs)
     await s.page.evaluate(id => { window.studio.open(id) }, pid)
@@ -28,7 +31,12 @@ export default async function (t) {
     for (const o of Object.values(proj.objects || {})) {
       const g = o.geo && docs[`projects/${pid}/geo/${o.geo}`]
       if (!g || o.visible === false) continue
-      const p0 = o.pos || [0, 0, 0], sc = o.scale || [1, 1, 1]
+      // world = parent chain of pos/scale (rotations ignored: generators bake them into verts)
+      let sc = (o.scale || [1, 1, 1]).slice(), p0 = (o.pos || [0, 0, 0]).slice()
+      for (let q = proj.objects[o.parent]; q; q = proj.objects[q.parent]) {
+        const qs = q.scale || [1, 1, 1], qp = q.pos || [0, 0, 0]
+        for (let k = 0; k < 3; k++) { sc[k] *= qs[k]; p0[k] = p0[k] * qs[k] + qp[k] }
+      }
       for (let i = 0; i < g.verts.length; i += 3) for (let k = 0; k < 3; k++) {
         const v = g.verts[i + k] * sc[k] + p0[k]; if (v < lo[k]) lo[k] = v; if (v > hi[k]) hi[k] = v
       }
@@ -38,7 +46,8 @@ export default async function (t) {
     mkdirSync(out, { recursive: true })
     const urls = []
     for (const [name, az, el] of VIEWS) {
-      const a = az * Math.PI / 180, e = el * Math.PI / 180, d = box.r * 1.7
+      // VIEWS_YAW=180 when a model's face points -Z, so FRONT is its real front
+      const a = (az + (+process.env.VIEWS_YAW || 0)) * Math.PI / 180, e = el * Math.PI / 180, d = box.r * 1.7
       const pos = [box.c[0] + d * Math.cos(e) * Math.sin(a), box.c[1] + d * Math.sin(e), box.c[2] + d * Math.cos(e) * Math.cos(a)]
       await s.eval(([p, c]) => { const A = window.studio.app; A.setMode('animate'); A.select([]); A.viewport.setCamera({ pos: p, target: c }) }, [pos, box.c])
       await new Promise(r => setTimeout(r, 400))
