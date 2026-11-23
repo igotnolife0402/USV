@@ -1,21 +1,37 @@
 ---
 name: improve
-description: Owner-only /improve <prompt>. Main model writes a dense decision brief (the thinking), the improver agent (Sonnet 5.5, low) expands it into a structured 100-120 line prompt (goal, route, palette, exploded breakdown, steps, verify, owner rules), then the main model runs it.
+description: Owner-only /improve [think] <prompt>; think = quick|30s|2m|5m|deep|max. Opus thinks that long, writes a decision brief; the improver agent (Sonnet 5.5 low) expands it into a structured prompt (palette, exploded parts, steps, verify, owner rules); Opus builds from it.
 disable-model-invocation: true
 ---
 
 # /improve: brain writes the brief, Sonnet types the full prompt, then build
 
-Owner rule 2026-11-23: manual only; target < 30 s from /improve to improved prompt back (ideal < 10 s).
+Owner rule 2026-11-23: manual only. Speed target replaced by the owner's think time (table below); quick stays < 10 s.
 Owner design 2026-11-23: the main model writes the prompt's decisions itself; Sonnet only expands them, because Sonnet types ~2x faster than Opus (A/B below).
 
-## Do exactly this (no reads before the spawn)
-1. Your FIRST tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
+## Think time (owner 2026-11-23: "Opus is best"; the owner sets how long Opus thinks)
+Syntax: `/improve [think] <prompt>`. `think` = the first word if it is `quick`/`q`, `<N>s`, `<N>m`, `deep` or `max`; strip it from RAW PROMPT. Owner's value always wins.
+No think word → pick from the task's tier: simple = quick, medium = 30s, complex = 2m, huge = 5m. Say the chosen level in one line.
+
+| think | Opus before the brief (the budget is wall-clock; stop at it) | Brief | LENGTH sent to Sonnet |
+|---|---|---|---|
+| quick (<= 10 s) | nothing: no reads, no Sonnet | write a 15-30 line outline yourself, then build | none (no spawn) |
+| 30s | route only (`vault route`) | 15-30 lines | 100-120 |
+| 2m | route + the domain's first-read note + closest template's api lines | 30-50 lines, all numbers checked | 120-160 |
+| 5m / deep | + references (owner refs, templates), gate math checked with code (part counts, same-size ratio, tris) | 50-80 lines | 160-220 |
+| max | no cap: every gate pre-checked with code, contradictions resolved, explorer allowed | as long as it needs | 220-300 |
+- Gate math (2m and up): add up part counts, check the same-size ratio and the floor class before sending; a brief that fails its own gate is the A/B's top error (drones A and C).
+- Measure: note the start time and log `think <level>: <s> brief, <s> Sonnet` in log.md.
+
+## Do exactly this
+0. Do the think-time work for the level (quick: skip to building from your outline).
+1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
    ```
    MODE: <mobile|pc from the hook block>
-   RAW PROMPT: <the owner's text after /improve, verbatim>
+   RAW PROMPT: <the owner's text after /improve, verbatim, think word removed>
+   LENGTH: <from the think table>
    BRIEF:
-   <15-30 terse lines, decisions only, no prose>
+   <brief lines from the think table, decisions only, no prose>
    ```
    BRIEF holds every decision that needs your judgment, as `key: value` lines:
    - goal (real goal + who uses it), tier, skill, checklist, scope out (what NOT to build).

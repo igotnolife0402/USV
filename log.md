@@ -273,3 +273,7 @@ improved: props.run tri_cap param (hero floor vs 12k prop cap contradiction); er
 ## [2026-11-23] test / Fable 5.2 medium prompt writer + drone C
 Fable medium wrote the drone prompt in 39.6 s (stand-in, 1 Read); richest spec (bolts, seams, glass canopy) but wrong tier/skill, 74 vs 75 count, 24 identical bolts. Built as drone C (tab dab-c): 79 parts, 16.8k tris, read-back zfight PASS, hero gate FAIL same_size 0.278.
 improved: drone C generator in drones.py; zfight caught my status-strip overlap before upload; 3-way A/B image + prices recorded in improve skill
+
+## [2026-11-23] skill / improve think time
+Owner sets Opus think time: `/improve [quick|30s|2m|5m|deep|max] <prompt>`; table maps each level to research depth, brief size and Sonnet LENGTH; default by tier. Not live-tested yet.
+improved: router miss fixed ("outline" sent it to web; vault words added); improver takes LENGTH; gate-math rule for 2m+ briefs (A/B top error); index line updated

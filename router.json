@@ -456,7 +456,12 @@
         "selftest",
         "standard",
         "standards",
-        "commands"
+        "commands",
+        "improve skill",
+        "/improve",
+        "prompt improver",
+        "think time",
+        "thinks for"
       ],
       "notes": [
         "profiles/vault-rules.md",
