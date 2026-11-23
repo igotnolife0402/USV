@@ -265,3 +265,7 @@ improved: improver runs in background; build starts from brief same turn; /impro
 ## [2026-11-23] test / improve brief flow vs Sonnet only (drone)
 Build start 16.3 s vs 16.4 s; Sonnet-only prompt had 3 self-contradictions, brief flow 1 minor (44 vs 47 count).
 improved: fresh-prompt timing recorded; Sonnet-only failure modes recorded in skill; brief flow confirmed as default
+
+## [2026-11-23] 3d / drone A/B from both /improve prompts
+Built both drone prompts with the same helpers (tools/3d/props/drones.py), live into Umbrio tabs dab-a, dab-b. Read-back: 39/45 meshes, zfight PASS both. Hero gate: A FAIL (parts 39, colors 5, tris 11.4k), B PASS (45, 6, 15.9k).
+improved: props.run tri_cap param (hero floor vs 12k prop cap contradiction); errors.md row for it; drones.py generator + README line; ready batch JSON per drone (L-089)

@@ -70,3 +70,4 @@ Metal is #C9CED6, metalness 0.7, roughness 0.3.
 
 ## House (2026-11-22, realistic)
 `python3 house.py OUT --check`: realistic 2-storey house, 1 unit = 1 m, 8 x 6 m footprint, 110 textured parts (finished interior: plaster, oak floors, stair, partition; furniture in house_a.py living/dining, house_b.py kitchen/bath, house_c.py bedroom; stone plinth, brick ground floor, lap siding, stepped shingle roof, chimney, gutters, 6-over-6 sash windows, panelled oak door, canopy, steps). Writes OUT/live/p1-6 (shell, roof, details, interior, ground furniture, upper furniture) for the Umbrio build (project `furnished-house`). Recipe: [umbrio-build.md](../../../domains/3d/umbrio-build.md).
+- `drones.py`: A/B of two /improve prompts (drone-a Sonnet-only, drone-b brief+Sonnet); hero class; `python3 drones.py OUT --check --preview`.

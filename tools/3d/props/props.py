@@ -1741,7 +1741,8 @@ def check_flat(gid, m):
     return ["%s: %d vertices shared by facets > %g deg apart" % (gid, bad, FLAT_DEG)] if bad else []
 
 
-def run(out, names, seed, check, preview, style="lowpoly"):
+def run(out, names, seed, check, preview, style="lowpoly", tri_cap=None):
+    # tri_cap: hero-class models need >= 15k tris (floor.json), so they pass 19000 (Roblox mesh cap) here
     t0 = time.time()
     errs, rows, shots = [], [], []
     for name in names:
@@ -1749,7 +1750,7 @@ def run(out, names, seed, check, preview, style="lowpoly"):
         tris = sum(m.tris() for _, m, _ in stats)
         kb = sum(s for _, _, s in stats) / 1024
         if check:
-            cap = LOW_TRI_CAP if style == "lowpoly" else TRI_CAP
+            cap = tri_cap or (LOW_TRI_CAP if style == "lowpoly" else TRI_CAP)
             for (gid, m, s), p in zip(stats, parts):
                 errs += check_mesh(gid, m, s)
                 if style == "lowpoly":
