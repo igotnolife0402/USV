@@ -54,6 +54,16 @@
             "timeout": 20
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"./hooks/budget.mjs\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "Stop": [
