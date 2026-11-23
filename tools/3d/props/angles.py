@@ -14,8 +14,9 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props as P  # noqa: E402
 
-# (azimuth, elevation, caption): front is az 0 (looks down -Z); cover every side, the top and from below
-VIEWS = [(0, 8, "FRONT"), (180, 8, "BACK"), (90, 8, "LEFT"), (-90, 8, "RIGHT"),
+# (azimuth, elevation, caption). Straight views use el 0: the renderer is orthographic, so any tilt draws the far
+# side (e.g. back rotors) just above the near side at the same size and reads as a duplicate layer (owner 2026-11-23).
+VIEWS = [(0, 0, "FRONT"), (180, 0, "BACK"), (90, 0, "LEFT"), (-90, 0, "RIGHT"),
          (35, 22, "3/4 FRONT"), (215, 22, "3/4 BACK"), (0, 80, "TOP"), (30, -25, "LOW 3/4")]
 
 
