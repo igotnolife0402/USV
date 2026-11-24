@@ -269,7 +269,10 @@
         "flipped faces",
         "backface",
         "double sided",
-        "rbxmx dry-run, simulate roblox export, db full"
+        "rbxmx dry-run, simulate roblox export, db full",
+        "database full",
+        "storage limit",
+        "quota"
       ],
       "notes": [
         "domains/3d/playbook.md",

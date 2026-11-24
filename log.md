@@ -351,3 +351,8 @@ Body, trim, glass, lights, mirrors, suspension and 2 rear brakes are live; the 4
 improved: delete batches pre-built with if_version so freeing space is 1 call per 50 docs; geo uploads sized by batch before sending; projects/meta pinned by returned version (no re-read)
 
 improved: L-143 bumped (x:2, promote next): free by bytes not doc count; errors.md row with du sizing rule; wheel docs measured (1.3 MB) for next prune
+
+## [2026-11-24] answer / hub DB limit question (/improve 15)
+100 MB per-artifact cap, not expandable via tools; options: pack geo, assets, 2nd hub, prune.
+improved: playbook rule that the DB cap is fixed + ways out; router 3d words database full/storage limit/quota; improve skill: short questions still deliver at think time
+
