@@ -367,3 +367,4 @@ improved: errors row + L-146: pin only uploaded ids
 improve 20: 4 s brief, 11 s Sonnet, 28.2 s total (+8.2 FAIL), rungs 1. Front wheels live; rear wheels refused by quota after deleting helmets hv-k/m/t. car_p60 loft() now orients shells by signed volume (both winding directions tested).
 improved: car_p60 loft winding fixed at the source; helmet tests deleted (91 docs); front wheels live (28 docs)
 
+improved: L-143 promoted to playbook rule (x3): no upload without 1.2x free bytes

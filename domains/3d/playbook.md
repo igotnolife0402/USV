@@ -70,6 +70,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Editor work: edit repo files of the forked editor; queue the browser test.
 - Roblox export on phone (2026-11-24): dry-run it, no file: `VIEWS_RBXMX=1 VIEWS_TAB=<tab dir> node test/run.mjs views` in tools/3d/studio (valid XML, MeshPart count, tris cap) + the 8-view sheet.
 - Live build: hub DB caps at 100 MB; on `quota_exceeded` build the tab locally, ask the owner which old test tabs to delete (L-143), never delete unasked.
+- RULE (L-143 x3): never send a live upload into a hub with < 1.2x its bytes free; deleting small test builds frees little (helmets/drones did not fit 0.6 MB of rear wheels). Pack geo smaller first.
 - Hub DB limit is fixed per artifact (100 MB of document bytes, not the 25k doc count); no tool raises it (2026-11-24). Ways out: pack geo smaller, artifact asset files, a 2nd hub artifact, prune by bytes (errors.md).
 - Python generators in [tools/3d](tools/3d/README.md) need numpy (+ Pillow); if the session has them, run with an OUT folder in scratch and write the Studio JSON; else queue the run.
 
