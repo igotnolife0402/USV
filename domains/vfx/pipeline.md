@@ -9,9 +9,9 @@ triggers: [flipbook, sprite sheet, shader files, vfx budget]
 ## 1. Layout
 ```
 tools/vfx/pages/<name>.html  isolated test page: trigger key/tap + FPS readout
-vfx/shaders/<name>.vert.glsl, <name>.frag.glsl   (inline in Artifacts)
-vfx/textures/<name>.png      sprites/flipbooks (generated or CC0)
-vfx/presets.js               emitter presets {rate, life, speed, spread, gravity, drag, colors, size}
+tools/vfx/pages/shaders/<name>.vert.glsl, <name>.frag.glsl   (inline in Artifacts)
+tools/vfx/pages/textures/<name>.png      sprites/flipbooks (generated or CC0)
+tools/vfx/pages/presets.js               emitter presets {rate, life, speed, spread, gravity, drag, colors, size}
 ```
 
 ## 2. Build
