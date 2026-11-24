@@ -466,3 +466,8 @@ improved: stylized generator + per-cell compare gate; halo pad + round add-windo
 tools/vfx/stylized/recolor.py: white sheet from ref pixels + strong hue-shift gradient + soft-blended per-effect patterns; gates shape 0.963, hue 9.2°, gradient 51.6°; viewed.
 improve 120: ~138 s brief, 12 s Sonnet, 168.6 s total (FAIL +48.6), rungs 1-4.
 improved: pixel-mask recolour replaces procedural reshaping; pattern seams fixed by soft blend; router words for recolour/gradient; lesson on spawning at send_brief_at.
+
+## [2026-11-24] build / 62 ref whites + 200 new stylized VFX
+tools/vfx/stylized/batch.py: ref cells cut as whites; 200 new via shapes.py + recolor(); unique corr ≤ 0.92, 0 empty, gradient 32-41°; sheet 2 + whites viewed, sheets 0,1,3 viewed only sheet 0 earlier run.
+improve 60: 28 s brief, 14 s Sonnet, 65.1 s total (FAIL +5.1), rungs 1-3.
+improved: identical-shape repeats fixed by rotate/squash/mirror vary(); square halo box removed by radial edge fade; ring-heavy combos rebalanced; uniqueness keeps least-similar try.

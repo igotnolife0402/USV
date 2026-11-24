@@ -474,7 +474,8 @@
         "reference image",
         "realistic vfx",
         "recreate the image",
-        "identical shape, recolor reference, recolour, gradient texture, pattern texture"
+        "identical shape, recolor reference, recolour, gradient texture, pattern texture",
+        "200 vfx, batch vfx, unique effects, white textures"
       ],
       "notes": [
         "domains/vfx/playbook.md",

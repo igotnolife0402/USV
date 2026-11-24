@@ -12,3 +12,6 @@ status: current
 
 ## recolor.py (2026-11-24, owner: identical shapes + strong gradient/pattern)
 `python3 recolor.py REF.jpg OUT_PREFIX` → `-white.png` (exact ref shapes as white light + alpha), `-color.png` (ref hues, ±26° hue-shift gradient to a white core, per-effect pattern: voronoi / flow stripes / hex / rune rings, soft-blended), `-compare.png`. Gates printed: shape_corr ≥ 0.95, hue_family ≤ 20°, gradient_spread ≥ 30° (last: 0.963 / 9.2 / 51.6). Use this, not sheet.py, when shapes must match a reference.
+
+## batch.py (2026-11-24, owner: save the 62 as white + 200 more, same style, unique)
+`python3 batch.py REF.jpg OUTDIR [N]` (~65 s) → `OUTDIR/ref/` 62 whites (256 px, white RGB, light = alpha, radial edge fade), `OUTDIR/new/` N whites + `sheetK-color.png`. New cells = shapes.py families or back+front combos, random rotate/squash/mirror, ref palette hues, all through the same `recolor()`. Gates: uniqueness (32x32 light corr ≤ 0.92, 30 tries, least-similar kept), empty 0, per sheet gradient ≥ 30°, hue ≤ 20°. Last: 200 made, max corr 0.92, gradient 32-41°.
