@@ -341,3 +341,6 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 ## [2026-11-24] vfx / fire-slash flipbook stack (done on mobile, PC step queued)
 New `STACKS['fire-slash']` in tools/vfx/flipbook/vfx.py: flame-arc body + dim Na slash halo + crisp white-hot slash edge + 180 embers. --check: 4.6 s, max_step_jump 1.32, thin_stroke_pct 5.0; sheet looked at over dark + light sky (scratch only). Studio upload + playtest queued.
 improved: fire-slash saved as reusable stack + recipes doc; router vfx route now names flipbook.md + "fire slash" word; vfx skill/playbook mobile lines fixed (cloud runs flipbook, not three.js fallback)
+
+## [2026-11-24] vault / blind routing test (3 fresh sub-agents: vfx, model, anim+vfx) — in progress
+/improve 60 delivered 45 s (FAIL -15 s: no Monitor wait-out). Audit pending agent reports.

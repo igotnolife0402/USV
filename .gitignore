@@ -42,3 +42,4 @@ __pycache__/
 # Obsidian app settings (per machine)
 .obsidian/
 state/.improve-timer*.json
+.claude/worktrees/

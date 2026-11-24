@@ -22,7 +22,7 @@ No framework for a static page. No new dependency for what 20 lines of code can 
 7. Optional: Lighthouse via chrome-devtools-mcp performance trace when asked for perf.
 
 ## Mobile fallback (/mobile)
-- No browser automation, no local server, no local files. Build as an Artifact (single HTML) so the user sees it rendered on the phone; mirror the final file into the repo.
+- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Build as an Artifact (single HTML) so the user sees it rendered on the phone; mirror the final file into the repo.
 - Artifacts: pin CDN versions (`https://cdn.jsdelivr.net/npm/pkg@x.y.z/...`), cannot load external images/fonts reliably: use inline SVG, CSS gradients, system font stack.
 - Self-check by reading: valid nesting, all IDs referenced exist, no console-error patterns (undefined vars, missing closing tags).
 - Append PC steps to [queue/pc.md](queue/pc.md), e.g.:

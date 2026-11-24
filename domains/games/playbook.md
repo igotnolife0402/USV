@@ -22,7 +22,7 @@ No engine for something a 300-line canvas file can do.
 7. Re-test once; stop at checklist.
 
 ## Mobile fallback (/mobile)
-- No browser automation or local files. Build the game as a single-file Artifact (the user plays it on the phone), then save the same file to `game/index.html` in the repo.
+- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Build the game as a single-file Artifact (the user plays it on the phone), then save the same file to `game/index.html` in the repo.
 - Touch controls are mandatory here: on-screen buttons or swipe/tap; `touch-action:none` on canvas.
 - Artifacts: pin CDN versions; no external sprites/sounds: draw shapes on canvas, generate SFX with WebAudio.
 - Append PC steps to [queue/pc.md](queue/pc.md), e.g.:

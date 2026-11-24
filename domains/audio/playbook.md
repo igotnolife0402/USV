@@ -34,7 +34,7 @@ Always randomize pitch ±5% per play to avoid repetition fatigue.
 5. Normalize: peak ≤ -1 dBFS; SFX around -14 to -18 LUFS short-term, UI quieter.
 
 ## Mobile fallback (/mobile)
-- No browser automation, no local files, no ffmpeg. Build `preview.html` as an Artifact: the user taps buttons to hear sounds on the phone; include a "download WAV" button (Blob URL) where the Artifact allows it.
+- Headless Chromium + Playwright work (profiles/mobile.md); no local files, no ffmpeg. Build `preview.html` as an Artifact: the user taps buttons to hear sounds on the phone; include a "download WAV" button (Blob URL) where the Artifact allows it.
 - Save the synth/preset source to `sfx/sfx.js` in the repo; runtime synthesis means no binary files are needed.
 - Queue file exports in [queue/pc.md](queue/pc.md), e.g.:
   `- [ ] 2026-11-21 export coin/jump/hit to WAV+OGG, normalize -1 dBFS — audio sfx/sfx.js`
