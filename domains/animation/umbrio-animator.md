@@ -41,11 +41,11 @@ Why this exists (owner 2026-11-24, "for the time it took it sucks"): the duel lo
 2. Place hands/feet/blades with `anim.ik`; mirror symmetric poses.
 3. Switch the in-between segments to `auto` (impacts `out`, holds `in`).
 4. `anim.lint` -> 0 issues (or each one covered: a cut, a flash, an intentional spin).
-5. Warp for slow-mo/speed ramps; camera keys (`clip.camera`) and bars.
+5. Warp for slow-mo/speed ramps; camera keys (`clip.camera`) and bars. Floor (owner 2026-11-24): frame the wide shot, then `anim.cine {payoff}` (impact/burst) or `{kind:'loop'}` on every clip with a payoff or loop: push-in, slow-mo, dip + flash, hit-stop, shake, settle in one call ([cinematic-baseline](cinematic-baseline.md)).
 6. Fights: FK gate (`fk.py`, contacts <= 0.15 stud, no blade through torsos, tips above ground).
 7. Review every frame: `SHOTS_FPS=12` sheets ([tests](../../tools/3d/studio/docs/tests.md)); a note per second.
 
 ## Gates before upload
-- `anim.lint` empty or every issue justified in the log.
+- `anim.lint` empty or every issue justified in the log (includes the baseline faults: motion-stop, camera-robotic, static-camera, payoff-flat, loop-seam).
 - Exports: GLB/Roblox sample through the same sampler (no extra step), fk.py mirrors it.
 - Phone fps for heavy cutscenes is a queued PC/phone check (not measurable headless).

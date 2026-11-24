@@ -323,7 +323,13 @@
         "slerp",
         "time warp",
         "slow-mo",
-        "lint animation"
+        "lint animation",
+        "cinematic",
+        "suspense",
+        "zoom in",
+        "push-in",
+        "smooth animation",
+        "baseline animation"
       ],
       "notes": [
         "domains/animation/playbook.md",
@@ -645,7 +651,10 @@
       "animator",
       "rigging",
       "improve how",
-      "sampler"
+      "sampler",
+      "animations",
+      "cinematic",
+      "frame by frame"
     ]
   }
 }

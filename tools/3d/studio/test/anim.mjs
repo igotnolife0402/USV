@@ -405,4 +405,66 @@ export default async function (t) {
     t.eq(clean, [], 'a clean clip lints to 0 issues')
     s.noErrors()
   })
+
+  await t.test('cinematic baseline: anim.cine adds eased push-in, slow-mo into the payoff, dip + flash, hit-stop, shake, settle; idempotent; lints clean', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Cine', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(() => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement, o = Object.keys(A.scene.objects)[0]
+      A.scene.env.bg = '#808080'
+      const cid = A.exec('anim.new', { name: 'Hit', len: 4, fps: 30 })
+      A.patchAnim(cid, { loop: false, tracks: { [o]: { pos: [[0, [0, 0.5, 0], 'auto'], [2.5, [0, 0.5, 3], 'auto'], [4, [0, 0.5, 3.4]]] } } })
+      vp.setCamera({ pos: [8, 3, 8], target: [0, 0.5, 1.5], fov: 45 })
+      const res = A.exec('anim.cine', { payoff: 2.5 })
+      const c = A.scene.anims[cid], w = c.warp, cam = c.camera
+      const slopes = w.slice(1).map((k, i) => (k[1] - w[i][1]) / (k[0] - w[i][0]))
+      const pc = w.find(k => Math.abs(k[1] - 2.5) < 1e-4)[0]
+      const luma = t => { A.setTime(t); vp.render(); const g = document.createElement('canvas'); g.width = cv.width; g.height = cv.height; const x = g.getContext('2d', { willReadFrequently: true }); x.drawImage(cv, 0, 0)
+        const d = x.getImageData(4, 4, 1, 1).data; return (d[0] + d[1] + d[2]) / 3 }
+      const lum = { before: luma(0.5), dip: luma(pc - 0.2), peak: luma(pc + 0.02), after: luma(c.len - 0.1) }
+      const once = JSON.stringify(A.scene.anims[cid]); A.exec('anim.cine', { payoff: 2.5 }); const twice = JSON.stringify(A.scene.anims[cid])
+      const lint = A.exec('anim.lint')
+      A.exec('anim.cine', { off: true }); const off = A.scene.anims[cid]
+      return { res, len: c.len, storyEnd: w.at(-1)[1], minSlope: Math.min(...slopes.filter(v => v > 0)), holdFrames: Math.round(slopes.reduce((n, v, i) => v === 0 ? n + (w[i + 1][0] - w[i][0]) * 30 : n, 0)),
+        posEases: cam.pos.map(k => k[2] || 'linear'), nPos: cam.pos.length, flash: cam.flash.map(k => +k[1]), shake: cam.shake.map(k => +k[1]), lum, same: once === twice, lint,
+        off: { len: off.len, warp: off.warp, camera: off.camera, cine: off.cine } }
+    })
+    t.ok(r.len > 4 && r.storyEnd === 4, 'slow-mo stretches the clip, story length kept: ' + r.len)
+    t.ok(r.minSlope <= 0.35, 'warp slows to <= 0.35x into the payoff: ' + r.minSlope)
+    t.eq(r.holdFrames, 4, 'hit-stop freezes 4 frames')
+    t.ok(r.nPos >= 3 && r.posEases.slice(0, -1).every(e => e !== 'linear' && e !== 'smooth'), 'camera push-in keys are eased, never stop-start: ' + r.posEases)
+    t.ok(Math.min(...r.flash) < 0 && Math.max(...r.flash) >= 0.8, 'dark dip then white flash: ' + r.flash)
+    t.ok(Math.max(...r.shake) > 0 && r.shake.at(-1) === 0, 'shake kicks and decays to 0')
+    t.ok(r.lum.dip < r.lum.before * 0.92 && r.lum.peak > r.lum.before + 60 && Math.abs(r.lum.after - r.lum.before) < 6, 'frame dims, flashes, settles: ' + JSON.stringify(r.lum))
+    t.ok(r.same, 're-running anim.cine replaces its own keys (idempotent)')
+    t.eq(r.lint, [], 'a cine clip lints to 0 issues')
+    t.ok(r.off.len === 4 && !r.off.warp && !r.off.camera && !r.off.cine, 'off restores the clip: ' + JSON.stringify(r.off))
+    s.noErrors()
+  })
+
+  await t.test('baseline lint: motion-stop, camera-robotic, payoff-flat, loop-seam, static-camera; cine loop orbit has no seam', async () => {
+    const s = await t.open()
+    await s.project('Lint2', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(() => {
+      const A = window.studio.app, o = Object.keys(A.scene.objects)[0], vp = A.viewport
+      const a = A.exec('anim.new', { name: 'Bad', len: 2, fps: 30 })
+      A.patchAnim(a, { tracks: { [o]: { pos: [[0, [0, 0, 0], 'smooth'], [1, [1, 0, 0], 'smooth'], [2, [2, 0, 0]]] } },
+        camera: { pos: [[0, [5, 2, 5], 'smooth'], [1, [4, 2, 4], 'smooth'], [2, [3, 2, 3]]], target: [[0, [0, 0, 0]]], shake: [[0.9, 0, 'step'], [1, 0.2, 'out'], [1.4, 0]] } })
+      const bad = [...new Set(A.exec('anim.lint').map(i => i.type))]
+      A.exec('anim.new', { name: 'Still', len: 3, fps: 30 }); A.patchAnim(A.anim.clip, { tracks: { [o]: { rot: [[0, [0, 0, 0], 'auto'], [1.5, [0, 30, 0], 'auto'], [3, [0, 0, 0]]] } } })
+      const still = A.exec('anim.lint').map(i => i.type)
+      vp.setCamera({ pos: [6, 3, 0], target: [0, 0.5, 0], fov: 45 }); A.exec('anim.cine', { kind: 'loop' })
+      const c = A.scene.anims[A.anim.clip], at = t => window.studio.anim?.camAt?.(c, t)
+      return { bad, still, after: A.exec('anim.lint').map(i => i.type), n: c.camera.pos.length }
+    })
+    for (const k of ['motion-stop', 'camera-robotic', 'payoff-flat', 'loop-seam']) t.ok(r.bad.includes(k), k + ' flagged: ' + r.bad)
+    t.eq(r.still, ['static-camera'], 'a 3 s clip with no camera move is flagged')
+    t.eq(r.after, [], 'cine loop: orbit keys, seamless, lints clean')
+    t.ok(r.n >= 16, 'orbit keyed with >= 16 auto keys')
+    s.noErrors()
+  })
 }

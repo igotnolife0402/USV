@@ -373,3 +373,8 @@ New plugins/sample.js (one sampler: rot slerp with spin fallback, 'auto' Hermite
 improve 240: ~210 s brief, 25 s Sonnet, 238 s total (PASS), rungs 1-4.
 improved: one shared sampler (viewport = exports = fk.py); IK/mirror/lint in Umbrio; animator rulebook with timing numbers; router words animator/rig/ik/slow-mo
 - learn: animator turn 848 s vs medium 300 s: same root cause as L-151 (no complex tier word); L-151 bumped and promoted (router tiers += animator, rigging, improve how, engine, sampler); known-red suites listed in the 3d playbook so no stash re-baseline.
+
+## [2026-11-24] feature / cinematic baseline: anim.cine + baseline lint (/improve 90)
+Owner refs (outshot, confetti-cannon, Shenron loop, combo14) measured frame by frame (per-frame luma + sheets): build -> 4-frame dark dip -> flash + freeze -> shake -> held close-up -> slow reveal -> drifting settle. New plugins/cine.js + `anim.cine` (impact/burst/loop, idempotent, off), camera.flash pass, 5 lint rules; test anim 16/16; 12 fps sheet read: first pull-back jumped in 1 frame, fixed (hold + even ease). Real duel re-shot queued.
+improve 90: ~60 s brief, 17 s Sonnet, 85.3 s total (PASS), rungs 1-3.
+improved: anim.cine one-call cinematic floor; camera.flash dip/flash pass; lint motion-stop/camera-robotic/static-camera/payoff-flat/loop-seam; cinematic-baseline note with measured ref numbers; router tiers += animations, cinematic, frame by frame (this run tagged medium, real work complex)

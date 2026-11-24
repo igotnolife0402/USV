@@ -38,6 +38,7 @@ const XF = ['pos', 'rot', 'scale']
 const CH_LABEL = { pos: 'Position', rot: 'Rotation', scale: 'Scale', color: 'Color', visible: 'Visible' }
 const CH_COL = { pos: '#e5484d', rot: '#3fb950', scale: '#3d8bfd', color: '#ffa23a', visible: '#8b93a1' }
 import { EASES, EASE, easeFn, isEase, sample, storyAt, mix, hexRGB, rgbHex } from './sample.js'
+import { cinePass, CINE } from './cine.js'
 export { EASE, easeFn, isEase, sample, storyAt }
 const EASE_LABEL = { linear: 'Linear', ease: 'Ease in-out', smooth: 'Smooth (sine)', in: 'Ease in', out: 'Ease out', step: 'Constant', bounce: 'Bounce', elastic: 'Elastic' }
 const D2R = Math.PI / 180
@@ -254,7 +255,25 @@ function barsPass(vp) {
   ;(vp.post ||= []).push((r) => BARS.fn(r))
   return BARS
 }
+// Flash: clip.camera.flash = [[t, amount -1..1, ease]], a full-frame pass like the bars: > 0 = white (impact flash),
+// < 0 = black (the dark dip the owner's refs show right before every flash). Runs whenever the clip plays, Follow or not.
+let FLASH = null
+function flashPass(vp) {
+  if (FLASH) return FLASH
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), m = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false, depthWrite: false })
+  sc.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m))
+  FLASH = { amount: 0, fn(r) {
+    const a = Math.max(-1, Math.min(1, FLASH.amount))
+    if (Math.abs(a) < 1e-3) return
+    m.color.set(a > 0 ? 0xffffff : 0x000000); m.opacity = Math.abs(a)
+    const ac = r.autoClear; r.autoClear = false; r.render(sc, cam); r.autoClear = ac
+  } }
+  ;(vp.post ||= []).push((r) => FLASH.fn(r))
+  return FLASH
+}
 function camDrive(vp, c, t) {
+  const fk = c?.camera?.flash?.length ? c.camera.flash : null
+  if (fk || FLASH) flashPass(vp).amount = fk ? sample(fk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0
   const bk = S.camFollow && c?.camera?.bars?.length ? c.camera.bars : null
   if (bk || BARS) { const b = barsPass(vp); b.amount = bk ? sample(bk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0; b.ratio = +c?.camera?.barsRatio || 2.39 }
   const s = S.camFollow && c ? camAt(c, t) : null
@@ -1186,6 +1205,20 @@ const commands = {
       app.putAnim(id, next); return n
     }
   },
+  // Cinematic baseline (2026-11-24, owner refs measured frame by frame): one call adds the eased push-in, suspense slow-mo,
+  // dark dip + white flash, hit-stop, decaying shake and settling pull-back (impact/burst) or a seamless orbit (loop).
+  // Re-running replaces the previous pass; {off: true} restores the clip's own camera, warp and length.
+  'anim.cine': {
+    label: 'Cinematic pass', icon: 'camera', enabled: () => !!cur() && !isModelRef(curId()),
+    run(app, a = {}) {
+      const id = a.id || curId(), c = anims()[id]
+      if (!c) throw new Error('Pick a clip first')
+      if (isModelRef(id)) throw new Error('Imported clips are read-only')
+      const next = cinePass(c, a, app.viewport?.getCamera?.() || {})
+      app.putAnim(id, next); evaluate()
+      return next.cine ? { kind: next.cine.kind, len: next.len, warp: next.cine.warp } : 0
+    }
+  },
   // Lint the current clip (read-only): the faults the 2026-11-24 duel critique found by hand, found in one call.
   'anim.lint': {
     label: 'Lint animation', icon: 'an-key', noUndo: true,
@@ -1202,6 +1235,30 @@ const commands = {
             const t0 = storyAt(c, (i - 1) / fps), t1 = storyAt(c, i / fps), ang = quat(q0, sample(ks, t0, 'rot')).angleTo(quat(q1, sample(ks, t1, 'rot'))) / D2R
             if (ang > 60 && i / fps - last > 0.25) { last = i / fps; out.push({ type: 'pose-snap', id: oid, t: +(i / fps).toFixed(3), value: +ang.toFixed(1) }) }
           } }
+      }
+      // Baseline faults (2026-11-24, domains/animation/cinematic-baseline.md): motion that brakes to 0 mid-move, a camera
+      // that stops at every key or never moves, a hit with no payoff, a loop that pops at the seam.
+      const brakeEnd = e => e === 'smooth' || e === 'ease' || e === 'out', brakeStart = e => e === 'smooth' || e === 'ease' || e === 'in'
+      for (const [oid, tr] of Object.entries(c.tracks || {})) for (const ch of ['pos', 'rot']) {
+        const ks = tr[ch] || []
+        for (let i = 1; i < ks.length - 1; i++) {
+          const d1 = ks[i][1].map((v, j) => v - ks[i - 1][1][j]), d2 = ks[i + 1][1].map((v, j) => v - ks[i][1][j])
+          const n1 = Math.hypot(...d1), n2 = Math.hypot(...d2), cos = n1 > 1e-3 && n2 > 1e-3 ? d1.reduce((s, v, j) => s + v * d2[j], 0) / (n1 * n2) : 0
+          if (cos > 0.7 && brakeEnd(ks[i - 1][2]) && brakeStart(ks[i][2])) out.push({ type: 'motion-stop', id: oid, t: ks[i][0], value: ch })
+        }
+      }
+      const cm = c.camera || {}
+      for (const ch of ['pos', 'target', 'fov']) { const ks = cm[ch] || []
+        if (ks.length >= 3 && ks.slice(0, -1).every(k => !k[2] || k[2] === 'linear' || k[2] === 'smooth')) out.push({ type: 'camera-robotic', id: 'camera', t: ks[0][0], value: ch }) }
+      if (len >= 3 && Object.keys(c.tracks || {}).length && !cm.pos?.length && !cm.target?.length && !cm.fov?.length) out.push({ type: 'static-camera', id: 'camera', t: 0, value: len })
+      const shk = cm.shake || [], top = Math.max(0, ...shk.map(k => +k[1]))
+      for (let i = 0; i < shk.length; i++) { const v = +shk[i][1]
+        if (v > 0 && v >= 0.5 * top && v >= +(shk[i - 1]?.[1] ?? 0) && v >= +(shk[i + 1]?.[1] ?? 0) && !(cm.flash || []).some(f => +f[1] > 0.3 && Math.abs(f[0] - shk[i][0]) <= 0.2)) out.push({ type: 'payoff-flat', id: 'camera', t: shk[i][0], value: v }) }
+      if (c.loop !== false) {
+        const s0 = storyAt(c, 0), s1 = storyAt(c, len), tol = { pos: 0.02, rot: 2, target: 0.02 }
+        const gap = (ks, ch) => Math.max(...sample(ks, s0, ch).map((v, j) => Math.abs(v - sample(ks, s1, ch)[j])))
+        for (const [oid, tr] of Object.entries(c.tracks || {})) for (const ch of ['pos', 'rot']) if (tr[ch]?.length > 1) { const g = gap(tr[ch], ch); if (g > tol[ch]) { out.push({ type: 'loop-seam', id: oid, t: len, value: +g.toFixed(3) }); break } }
+        for (const ch of ['pos', 'target']) if (cm[ch]?.length > 1) { const g = gap(cm[ch], 'pos'); if (g > tol[ch]) out.push({ type: 'loop-seam', id: 'camera', t: len, value: +g.toFixed(3) }) }
       }
       const sig = t => JSON.stringify(Object.values(c.tracks || {}).map(tr => Object.entries(tr).map(([ch, k]) => k?.length ? sample(k, storyAt(c, t), ch) : 0)))
       let runStart = 0, prev = sig(0)
@@ -1349,7 +1406,7 @@ const plugin = {
     Animate: ['anim.mode', '-', 'anim.new', 'anim.rename', 'anim.duplicate', 'anim.set', 'anim.loop', 'anim.delete', '-',
       'anim.play', 'anim.stop', 'anim.start', 'anim.end', 'anim.prevKey', 'anim.nextKey', 'anim.time', 'anim.speed', '-',
       'anim.key', 'anim.autokey', 'anim.copyKeys', 'anim.pasteKeys', 'anim.deleteKeys', 'anim.clear', '-',
-      'anim.camKey', 'anim.camFollow', 'anim.camClear', '-', 'anim.ik', 'anim.mirror', 'anim.lint', '-',
+      'anim.camKey', 'anim.camFollow', 'anim.camClear', 'anim.cine', '-', 'anim.ik', 'anim.mirror', 'anim.lint', '-',
       'anim.spin', 'anim.bob', 'anim.bounce', 'anim.pulse', 'anim.walk', 'anim.wave']
   },
   modes: [{ id: 'animate', label: 'Animate', icon: 'an-mode', order: 20, gizmo: true }],
