@@ -373,3 +373,7 @@ improved: L-143 promoted to playbook rule (x3): no upload without 1.2x free byte
 improve 45: 26 s brief, 12 s Sonnet, 163.9 s total (+118.9 FAIL: done called late after upload work), rungs 1. car60-a all 186 geo docs live (rear wheels 26). car_p200.py is a byte copy of car_p60 (only loft fix differs) and emits the same 186 docs: the 200 s car was never built.
 improved: car60 size measured (4.5 MB/186 docs, discs 115 KB, cabin 174 KB); car200 generator found to be a car60 copy; rear wheels live
 
+
+## [2026-11-24] fix / geo to asset store + /improve delivery
+car60-cabin geo moved to the hub asset store ({asset:id}); read-back sha256 identical; hub render not visually verified. /improve: improver now foreground, prompt shown in <details> + done in the very next response.
+improved: geo docs can live in the asset store at ~0 DB bytes (no loader change needed); /improve delivery root cause fixed (background result hidden behind build calls); measured text-level packing = 0% so no wasted encoder work

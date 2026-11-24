@@ -38,7 +38,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 
 ## Do exactly this
 0. Climb the value ladder until `left` says write the brief (budget <= 15 s: build from your outline).
-1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
+1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: false` (2026-11-24: background runs FAILED delivery every time, 4.7/15, 28.2/20, 163.9/45, and the prompt was never shown: its result hid behind build tool calls), prompt =
    ```
    MODE: <mobile|pc from the hook block>
    RAW PROMPT: <the owner's text after /improve, verbatim, the seconds removed>
@@ -51,9 +51,9 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
    - Type specifics. Model: style, 1-2 real references, pose, palette `role hex rough/metal`, parts `name size count material attach` (every distinct part), overall dims, parent tree. Roblox: files, remotes, data keys, tunables with numbers. Web: sections, palette, layout. Game: loop, controls, entities. Other: the outline.
    - verify: the ONE outside check + pass numbers.
    Write it fast: fragments, numbers, hex; Sonnet turns it into sentences and tables.
-2. Same turn, right after the spawn: start the build from your BRIEF (invoke the brief's skill, open its checklist, first build step). Do not wait. Until the prompt is shown, only short tool calls (reads, `left`) with no long planning between them: a result is seen only between tool calls, and the 45 s car run (2026-11-23) delivered at 80.8 s because build planning hid the on-time Sonnet return. At `left` <= 2, stop build work and wait for Sonnet with Monitor.
-3. When the full prompt arrives: show it to the owner in a collapsed block (`<details><summary>Improved prompt</summary>...</details>`), then follow its Build steps, Verify and Owner rules for the rest of the build. Brief values win over anything Sonnet changed.
-4. `/improve only ...`: skip step 2; show the prompt when it arrives and stop.
+2. The agent returns = delivery moment. The VERY NEXT response, no tool call before it: write the prompt as text in `<details><summary>Improved prompt</summary>...</details>`, then in the same response call `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the block. Never skip the block, even for a pure question (then the block holds the answer's outline and the answer follows).
+3. Only after `done`: build from the prompt (its skill, checklist, Build steps, Verify, Owner rules). Brief values win over anything Sonnet changed. Sonnet early: per Delivery deadline, check, then Monitor until `left` <= 2, then step 2.
+4. `/improve only ...`: steps 0-2, then stop.
 
 ## Notes
 - Owner's words win over any `(assumed)` choice.
