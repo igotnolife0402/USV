@@ -472,7 +472,8 @@
         "stylized",
         "glow halo",
         "reference image",
-        "realistic vfx"
+        "realistic vfx",
+        "recreate the image"
       ],
       "notes": [
         "domains/vfx/playbook.md",

@@ -452,3 +452,7 @@ improved: VFX.lua band SIZE misalignment (Roblox rings too); adaptive preview re
 Reference = saturated hue + white core + halo: HSV ramp, Brightness per step, -glow.png halo emitter, per-card hues, navy sky; 10 sheets pass gates, preview lit sat 0.59 (ref 0.60), hot cores 9/10, frozen.cjs PASS; artifact v8.
 improve 120: ~95 s brief, ~17 s Sonnet, 119.7 s total (PASS), rungs 1-5.
 improved: realism push reverted to owner's stylized reference (owner.md VFX exception); batch.py glow_spread gate; look.cjs/montage.cjs style metrics vs reference; router words stylized/glow halo/reference image
+
+## [2026-11-24] build / recreate owner VFX reference grid
+grid.py composites the 10 real sheets in reference hues: lit sat 0.52 (ref 0.60), near-white 2.9 %; first pass (max-light frames) 0.39 / 5.9 % = white blobs. Shapes the reference has (rings, swirls, star glints, magic circles, tornados) do not exist as families yet.
+improved: grid.py look tool (preview compositing in numpy, no browser); frame pick = most hued light, not max light; router "recreate the image" -> vfx (was images/3d-editor); flipbook.md step 5 look check
