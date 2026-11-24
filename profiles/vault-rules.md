@@ -40,3 +40,4 @@ status: current
 - Hook message strings are JS template literals: never put backticks inside them (2026-11-24 learn.mjs broke every hook); run `node --test tests/learn.test.mjs` after any hook text edit.
 - Learn hook must cover the turn where the work happened: a relay turn (agent hand-back, task notification) with errors, writes or >= 3 tool calls gets every signal (2026-11-24 Macarena build ran in the improver hand-back, nothing learned); test in tests/learn.test.mjs
 - Run the vault tests as `node --test tests/*.test.mjs` (a bare `tests/` folder fails on Node 22, 2026-11-24)
+- JS/MJS/TS edits: Edit tool only, never `sed -i` (pre-tool denies it, L-045 x9); insert an import with Edit on the line before.
