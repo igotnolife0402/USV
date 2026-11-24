@@ -45,3 +45,6 @@ Presets: fire, ice, electric, poison, holy, void, blood, wind; or hex stops `--r
 
 ## Adding effects
 Generator output lands in scratch first. A newer, better set replaces the old one (owner 2026-11-24): set `SRC` to the new set only, `git rm -r vfx/sheets vfx/index.tsv`, rebuild. To add alongside instead: add its folder to `SRC` in `tools/vfx/library.py` (prefix, kind, grid, frames, life) and run `python3 tools/vfx/library.py SCRATCH vfx`: it dedupes by pixels, writes white sheets and rebuilds the index. Commit `vfx/`.
+
+## Showcase clip
+`tools/vfx/showcase/build.mjs` + `spec.json`: 20 painted sheets on a crystal caster, anim.cine payoff at 8.5 s; story time is shorter than the clip (cine slow-mo adds ~2 s). Run `PLUGINS=tools/3d/studio/plugins node tools/vfx/showcase/build.mjs tools/vfx/showcase/spec.json FXDIR OUT`, check with `SHOTS_TAB=OUT/studio SHOTS_LINT=1 SHOTS_FPS=12 node test/run.mjs shots`.

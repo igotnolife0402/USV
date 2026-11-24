@@ -1,0 +1,7 @@
+{
+  "name": "VFX showcase clip",
+  "what": "Spec-driven Umbrio tab: painted vfx/sheets flipbooks on a crystal caster, anim.cine payoff, cine lights.",
+  "run": "PLUGINS=<editor plugins dir> node tools/vfx/showcase/build.mjs tools/vfx/showcase/spec.json FXDIR OUT",
+  "prompt": "make a cool animation using 20 of the new vfx",
+  "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF"
+}

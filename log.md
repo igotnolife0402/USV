@@ -503,3 +503,7 @@ improved: repo-check VFX_LIB exemption; vfx skill + rules now say grep vfx/index
 ## [2026-11-24] improve / 20-vfx cinematic brief
 improve 60: ~31 s brief, ~19 s Sonnet, 74.8 s total (FAIL +14.8), rungs 1-3. 20 slugs verified in vfx/index.tsv, painted to scratch; Umbrio tab not built yet.
 improved: improve skill bans per-file loops before the prompt shows; L-136 bumped, L-189 added; lessons.md at the 200-line cap: 40 oldest applied lessons moved to archive/lessons-2026-11.md.
+
+## [2026-11-24] build / VFX Showcase 20 (new set only)
+Hub tab vfx-showcase-20: 20 mix3 sheets painted (void + holy), crystal caster, anim.cine impact payoff 8.5 s clip time, 5 cine lights; lint 0, read-back 20 flipbooks, 12 fps payoff sheets looked at.
+improved: tools/vfx/showcase builder (spec-driven, reusable); cine slow-mo stretch documented (story len 10 -> clip 12.04); L-190 + router words "new vfx"; payoff resized after whiteout seen in frames
