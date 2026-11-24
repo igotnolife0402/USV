@@ -46,6 +46,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 
 ## Speed tricks
 - Library rebuilds (100 sheets ~115 s): start `batch.py` in the background the moment the code passes a 3-family smoke run (`--only shock,glints,explosion`), then write the preview/Lua/docs while it runs; preview loops: clamp `now - t0` at 0 (the first rAF time can precede t0 and index frame -1) (2026-11-24).
+- Previews of Roblox emitters emulate the emitter, never a loop of staggered restarts (owner 2026-11-24: "just blinking"): particles born every 1/Rate, frame = OneShot age/Lifetime*64 or Loop age*FlipbookFramerate, linear Color/Transparency keys exactly as VFX.make writes them; one-shots play as Emit(1) every Lifetime. Check: `window.previewTime` sweep, loops 0 alpha jumps > 25 %.
 - Flipbook preset tuning: sweep params x seeds in ONE pooled script that prints max_step_jump per combo (2026-11-24: 6 serial probes cost ~4 min); edit a code line by replacing the whole line, never by appending a comment mid-line (it swallowed `; tt = ...`).
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.
 - Additive blending makes anything look 2x better on dark backgrounds.

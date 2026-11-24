@@ -446,7 +446,15 @@
         "not seeing any vfx",
         "no vfx",
         "vfx missing",
-        "white vfx,recolor,recolour,theme vfx,100 vfx,vfx library,vfx batch,vfx layers,band textures,vfx gradient,flat vfx,multicolor vfx,multicolored vfx"
+        "white vfx,recolor,recolour,theme vfx,100 vfx,vfx library,vfx batch,vfx layers,band textures,vfx gradient,flat vfx,multicolor vfx,multicolored vfx",
+        "vfx blinking",
+        "blinking vfx",
+        "play like in editor",
+        "like in studio",
+        "vfx preview animation",
+        "just blinking",
+        "in editer",
+        "in the editor"
       ],
       "notes": [
         "domains/vfx/playbook.md",

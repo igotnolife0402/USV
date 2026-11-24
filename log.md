@@ -425,3 +425,7 @@ improved: shock attack 2.5→3.0 (jump 3.96→2.4); kamehameha arc strike soften
 ## [2026-11-24] fix / layered VFX turn retro (452 s vs 300)
 - Root cause: full 100-sheet batch started only after all code; preview frame -1 bug cost a round; secondary "animate" route demanded 3d-editor.
 - improved: learn.mjs skill-miss now requires only the primary route's skill (tests 46/46); vfx playbook speed rule: smoke 3 families then background batch while writing preview; L-168 preview loop clamp + batch overlap rule
+
+## [2026-11-24] build / VFX preview plays like Studio emitters
+Replaced the 3-staggered-particle loop in the layered-VFX preview (Artifact v3) with a Roblox ParticleEmitter emulation: one-shots = Emit(1) every Lifetime, OneShot frame over life; loops = Lifetime x4, 24 fps, Rate 2/life, fade 1-0-0-1; linear sequences as VFX.make writes. previewTime sweep: loops 0 jumps, 0 console errors; one-shot jumps only at each sheet's own start.
+improved: preview emulates emitter instead of blinking restarts; batch10.json carries FlipbookFramerate; window.previewTime hook for deterministic frame checks; router vfx words (just blinking, in editer, in the editor) so this no longer routes to animation only; playbook rule + L-169.
