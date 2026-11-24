@@ -95,3 +95,4 @@
 {"t":"2026-11-24T03:01:24.592Z","tier":"complex","secs":31,"ok":true,"errors":0,"retry":0,"routes":["animation"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T03:05:24.943Z","tier":"medium","secs":136,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T03:44:15.392Z","tier":"medium","secs":6,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T04:04:50.093Z","tier":"complex","secs":291,"ok":true,"errors":1,"retry":1,"routes":["animation"],"touched":[],"signals":[],"mode":"mobile"}
