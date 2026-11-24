@@ -9,11 +9,10 @@ status: current
 - `vfx/sheets/<slug>.png`: one file per effect, **white only** (light = alpha, grey+alpha PNG). Colour is added at use time, never stored.
 - `vfx/index.tsv`: one row per sheet: `slug  name  kind  grid  frames  life  src`. Never open the sheets to search; grep the index:
   `grep -i slash vfx/index.tsv | cut -f1-5`, `grep -c . vfx/index.tsv`, `awk -F'\t' '$3=="action"' vfx/index.tsv | head`
-- Slug prefix = family: `gen` physics flipbooks, `nf` stage flipbooks, `vb` beams, `act` actions (slash/smash/wind), `sym` symbols, `ref` reference cut-outs, `icon` icon cut-outs.
+- Only the newest, owner-approved set lives here (owner 2026-11-24 deleted the older gen/nf/vb/ref/icon/sym sets): 67 `act-` actions (slash, smash, wind, ...) + 30 `sym-` symbols (~70/30).
 
 | kind | grid | frames | size | Roblox |
 |---|---|---|---|---|
-| flipbook | 8 | 64 | 1024 | `FlipbookLayout = Grid8x8` |
 | action | 4 | 16 | 1024 | `FlipbookLayout = Grid4x4` |
 | symbol | 1 | 1 | 256 | no flipbook (static texture) |
 
@@ -45,4 +44,4 @@ status: current
 Presets: fire, ice, electric, poison, holy, void, blood, wind; or hex stops `--ramp "#3a0a5e,#9b3dff,#fff"`. `--tex noise|cells|streaks`, `--tex-amt 0.35`. OUT goes to scratch or the game, never into vfx/sheets (rule 7).
 
 ## Adding effects
-Generator output lands in scratch first. Then: add its folder to `SRC` in `tools/vfx/library.py` (prefix, kind, grid, frames, life) and run `python3 tools/vfx/library.py SCRATCH vfx`: it dedupes by pixels, writes white sheets and rebuilds the index. Commit `vfx/`.
+Generator output lands in scratch first. A newer, better set replaces the old one (owner 2026-11-24): set `SRC` to the new set only, `git rm -r vfx/sheets vfx/index.tsv`, rebuild. To add alongside instead: add its folder to `SRC` in `tools/vfx/library.py` (prefix, kind, grid, frames, life) and run `python3 tools/vfx/library.py SCRATCH vfx`: it dedupes by pixels, writes white sheets and rebuilds the index. Commit `vfx/`.

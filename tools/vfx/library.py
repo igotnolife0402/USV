@@ -8,10 +8,9 @@ import numpy as np
 from PIL import Image
 
 # (glob, set name, kind, default grid, frames, life). Older rejected mixes (mix, mix2, u24: owner called them identical) are skipped.
-SRC = [('vfx100/*.png', 'gen', 'flipbook', 8, 64, 1.4), ('smoke/*.png', 'smoke', 'flipbook', 8, 64, 1.4),
-       ('real/*.png', 'real', 'flipbook', 8, 64, 1.4), ('vb/*.png', 'vb', 'flipbook', 8, 64, 1.4),
-       ('stages/fx/*.png', 'nf', 'flipbook', 8, 64, 1.0), ('mix3/action/*.png', 'act', 'action', 4, 16, .6),
-       ('sym/*.png', 'sym', 'symbol', 1, 1, .6), ('vfx262/ref/*.png', 'ref', 'symbol', 1, 1, .6), ('vfx262/new/*.png', 'icon', 'symbol', 1, 1, .6)]
+# owner 2026-11-24: "those are the old vfx, delete them ... use the new ones": only the newest generator set lives in the library.
+# Older sets (vfx100, smoke, real, vb, stages/fx, sym, vfx262) were deleted from vfx/ (still in git history before this commit).
+SRC = [('mix3/action/*.png', 'act', 'action', 4, 16, .6), ('mix3/symbols/*.png', 'sym', 'symbol', 1, 1, .6)]
 
 HUE = 'cyan|blue|purple|magenta|red|orange|gold|yellow|green|teal|white|pink|violet|lime|ice|fire'
 
