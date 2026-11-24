@@ -467,7 +467,12 @@
         "pixelated",
         "low res",
         "blurry preview",
-        "dark rings"
+        "dark rings",
+        "look like this",
+        "stylized",
+        "glow halo",
+        "reference image",
+        "realistic vfx"
       ],
       "notes": [
         "domains/vfx/playbook.md",

@@ -30,7 +30,10 @@ VFX.THEMES = {
 VFX.PALETTES = { inferno = { "fire", "holy" }, abyss = { "void", "ice" } }
 
 -- per ramp step (dark -> bright): colour mode (0 = scale, 1 = toward white) and amount, size, LightEmission
-local RAMP = { { 0, 0.45 }, { 0, 0.7 }, { 0, 1.0 }, { 1, 0.35 }, { 1, 0.7 } }
+-- owner 2026-11-24 reference = stylized glow: mode 0 = full HSV saturation, value x amount; mode 1 = saturation x sat (cap 1),
+-- then toward white by amount. BRIGHT = ParticleEmitter.Brightness per step (hot steps bloom past 1). Same maths as vfx.py.
+local RAMP = { { 0, 0.55, 1 }, { 0, 0.8, 1 }, { 0, 1.0, 1 }, { 1, 0.45, 1.1 }, { 1, 0.85, 1.1 } }
+local BRIGHT = { 1, 1, 1.3, 2, 3 }
 -- every band of one sheet at the SAME size: bands are luminance cuts of one image, so a per-band scale misaligns
 -- them and the sky shows through at each edge (dark contour rings, light down to 24%; owner 2026-11-24 "144p")
 local SIZE = { 1.0, 1.0, 1.0, 1.0, 1.0 }
@@ -67,8 +70,14 @@ function VFX.layerColors(id: string, theme: Theme?): { Color3 }
 		for _, b in { string.byte(id .. "#" .. k, 1, -1) } do
 			h = (h * 31 + b) % 16777216
 		end
+		local mx, mn = math.max(rgb[1], rgb[2], rgb[3]), math.min(rgb[1], rgb[2], rgb[3])
+		local s = if step[1] == 0 then 1 else math.min(1, step[3] * (mx - mn) / math.max(mx, 1))
+		local base = {}
+		for i = 1, 3 do -- same hue and value, HSV saturation s
+			base[i] = if mx == mn then rgb[i] else mx * (1 - s * (mx - rgb[i]) / (mx - mn))
+		end
 		for i = 1, 3 do
-			local v = if step[1] == 0 then rgb[i] * step[2] else rgb[i] + (255 - rgb[i]) * step[2]
+			local v = if step[1] == 0 then base[i] * step[2] else base[i] + (255 - base[i]) * step[2]
 			local mag = 2 + (h // 2 ^ (4 * (i - 1))) % 5
 			local sign = if (h // 2 ^ (12 + i - 1)) % 2 == 1 then 1 else -1
 			rgb[i] = math.clamp(math.floor(v + mag * sign + 0.5), 0, 255)
@@ -82,7 +91,7 @@ local function lifeColour(c: Color3): ColorSequence
 	return ColorSequence.new({
 		ColorSequenceKeypoint.new(0, c:Lerp(Color3.new(1, 1, 1), 0.3)),
 		ColorSequenceKeypoint.new(0.3, c),
-		ColorSequenceKeypoint.new(1, Color3.new(c.R * 0.6, c.G * 0.6, c.B * 0.6)),
+		ColorSequenceKeypoint.new(1, Color3.new(c.R * 0.8, c.G * 0.8, c.B * 0.8)), -- x0.6 read grey (owner 2026-11-24)
 	})
 end
 
@@ -90,10 +99,14 @@ end
 function VFX.recolor(fx: Folder, theme: Theme?)
 	local id = fx:GetAttribute("VfxId") :: string
 	local layers = VFX.layerColors(id, theme)
-	local n = #fx:GetChildren()
+	local halo = fx:FindFirstChild("Halo") :: ParticleEmitter?
+	local n = #fx:GetChildren() - (if halo then 1 else 0)
 	assert(#layers == n, ("VFX: %d colours need %d bands, effect has %d"):format(#layers // 5, #layers, n))
 	for k = 0, n - 1 do
 		(fx:FindFirstChild("L" .. k) :: ParticleEmitter).Color = lifeColour(layers[k + 1])
+	end
+	if halo then -- the first palette colour at full saturation (its ramp step 2)
+		halo.Color = lifeColour(layers[n - 5 + 3])
 	end
 end
 
@@ -138,6 +151,7 @@ function VFX.make(id: string, parent: Instance, studs: number?, theme: Theme?): 
 			})
 		end
 		p.LightEmission = GLOW[step]
+		p.Brightness = BRIGHT[step]
 		p.LightInfluence = e.LightInfluence or 0 -- the sheet already carries its own lighting
 		p.Size = NumberSequence.new(size * SIZE[step])
 		p.ZOffset = k * 0.01
@@ -149,6 +163,22 @@ function VFX.make(id: string, parent: Instance, studs: number?, theme: Theme?): 
 		p.LockedToPart = true
 		p.Enabled = false
 		p.Parent = fx
+	end
+	-- halo: the blurred sheet under the bands, same Size so it stays centred, full additive (owner 2026-11-24 reference glow)
+	if e.glow then
+		assert(e.GlowId and e.GlowId ~= 0, "VFX: upload " .. e.glow .. " and set GlowId")
+		local h = (fx:FindFirstChild("L2") :: ParticleEmitter):Clone()
+		h.Name = "Halo"
+		h.Texture = "rbxassetid://" .. tostring(e.GlowId)
+		h.LightEmission = 1
+		h.Brightness = 1
+		h.ZOffset = -0.01
+		local ks = {}
+		for _, kp in h.Transparency.Keypoints do
+			table.insert(ks, NumberSequenceKeypoint.new(kp.Time, 0.45 + 0.55 * kp.Value))
+		end
+		h.Transparency = NumberSequence.new(ks)
+		h.Parent = fx
 	end
 	VFX.recolor(fx, theme)
 	fx.Parent = parent

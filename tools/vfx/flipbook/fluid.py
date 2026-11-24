@@ -182,14 +182,16 @@ def curl_noise(N, seed, scale):
 
 
 def noise_tile(n, seed, scale=4):
-    """Tileable 3D value noise, 2 octaves (scale and 2x scale lattice cells across), values ~0..1, shape (n, n, n)."""
+    """Tileable 3D value noise, 4 octaves (fbm) (scale and 2x scale lattice cells across), values ~0..1, shape (n, n, n)."""
     rng = np.random.default_rng(seed)
-    out = 0
-    for o, amp in ((scale, 0.65), (scale * 2, 0.35)):
+    out, tot = 0, 0.0
+    # 4-octave fbm (2026-11-24): with 2 octaves kamehameha-charge failed max_step_jump (3.39) on 3 seeds; fbm passes (2.32)
+    for o, amp in ((scale, 0.53), (scale * 2, 0.27), (scale * 4, 0.13), (scale * 8, 0.07)):
+        if o > n // 2: break   # finer than 2 px is aliasing, not detail
         lat = rng.random((o, o, o)).astype(np.float32)
         U = upsample_matrix_periodic(o, n)
-        out = out + amp * np.einsum('az,bc,dx,zcx->abd', U, U, U, lat, optimize=True)
-    return out
+        out = out + amp * np.einsum('az,bc,dx,zcx->abd', U, U, U, lat, optimize=True); tot += amp
+    return out / tot   # keep ~0..1 when the fine octaves are skipped
 
 
 def upsample_matrix_periodic(n, m):

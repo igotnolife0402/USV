@@ -14,3 +14,4 @@ status: current
 - Every sheet ships white (greyscale, alpha kept); colour comes from the scene (VFX.make theme / emitter Color), never baked in, unless the owner asks for `--color` (owner 2026-11-24)
 - One tinted white sheet is flat (Roblox Color is per particle, not per pixel): colour through band textures, >= 5 luminance bands per colour, one emitter each (vfx.py `bands`, VFX.lua `make`); never a single-emitter tint (owner 2026-11-24).
 - Variant libraries: `batch.py` (recipes x seeds, 4-process pool, per-PNG verify, reseed on fail); never hand-pick seeds
+- House style = stylized glow (owner reference image 2026-11-24): HSV-saturated band ramp, Brightness {1,1,1.3,2,3}, blurred `-glow.png` halo emitter under the bands, own hue per effect; never blackbody/grey 'realism' (L-175)

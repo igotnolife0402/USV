@@ -447,3 +447,8 @@ improved: shared WebGL context replaces 10 per-card contexts; tick no longer die
 Preview canvas now CSS width x min(DPR,2) with adaptive step-down (fps<45), sheets kept at 1024 (128 px cells), band SIZE unified (VFX.lua + preview). Ring metric light/ideal p1 0.24 -> 1.00; frozen.cjs 6/6 PASS, rt.cjs 52 fps @4x throttle (PX 370 software GL). Artifact v7. Not verified on phone/Roblox.
 improve 60: brief 97 s (late), Sonnet 13 s, 119.7 s total (+59.7 FAIL), rungs 1-3.
 improved: VFX.lua band SIZE misalignment (Roblox rings too); adaptive preview resolution; ring metric script (scratch ring.py); router words 144p/pixelated/low res/dark rings; L-173 rule in vfx playbook
+
+## [2026-11-24] build / VFX stylized glow look (owner reference)
+Reference = saturated hue + white core + halo: HSV ramp, Brightness per step, -glow.png halo emitter, per-card hues, navy sky; 10 sheets pass gates, preview lit sat 0.59 (ref 0.60), hot cores 9/10, frozen.cjs PASS; artifact v8.
+improve 120: ~95 s brief, ~17 s Sonnet, 119.7 s total (PASS), rungs 1-5.
+improved: realism push reverted to owner's stylized reference (owner.md VFX exception); batch.py glow_spread gate; look.cjs/montage.cjs style metrics vs reference; router words stylized/glow halo/reference image

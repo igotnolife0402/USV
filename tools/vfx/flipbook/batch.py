@@ -76,6 +76,11 @@ def verify(out, r, color):
             r = dict(r, **{f'band{n}_err': round(max(el, ea), 2), f'band{n}_minshare': round(min(mass) / max(sum(mass), 1e-6), 3)})
             if max(el, ea) > 2: bad.append(f'bands{n} rebuild err {max(el, ea):.2f}/255')
             if min(mass) / max(sum(mass), 1e-6) < 0.01: bad.append(f'bands{n} empty layer')
+        if e.get('glow'):   # halo must cover more than the sheet (that is its job) and not be empty
+            lit = a[..., 0] * a[..., 3] > 8 / 255   # where the sheet gives light (faint alpha haze is not light)
+            g = np.asarray(Image.open(os.path.join(out, e['glow'])).convert('RGBA'))[..., 3] > 8
+            r = dict(r, glow_spread=round(float(g.sum() / max(lit.sum(), 1)), 2))
+            if g.sum() < 1.1 * lit.sum(): bad.append(f"glow spread {r['glow_spread']}")
     return dict(r, saturation=round(sat, 4), visible_pct=round(float(vis.mean() * 100), 1), fail=bad)
 
 if __name__ == '__main__':
