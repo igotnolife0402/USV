@@ -357,3 +357,8 @@ improved: Cutscene rules section (animation playbook); FK fact-check script patt
 anim.js clip.camera (pos/target/fov/shake, Follow toggle, Key/Clear commands, toolbar button); test anim 11/11 PASS; hub v50 anim.js sha ee404376 = local. shots.mjs SHOTS_FPS (duel: 81 frames, 21 sheets) + saved scene camera default. duel.py camera_keys.
 improve 60: ~22 s brief, 29 s Sonnet, 74.3 s total (FAIL +14.3), rungs 1-3.
 improved: clip camera track in Umbrio; SHOTS_FPS frame sheets; shots no longer force a fake 7,5,9 view; rater protocol in animation playbook
+
+## [2026-11-24] build / Supernova Duel II (cinematic rebuild, /improve 120)
+New tab supernova-duel-ii-0143: 20 s, clip camera 31 keys (cuts, close-ups, low angles, orbit, shake), letterbox 2.39 (new anim.js bars pass, test 12/12), slow-mo binds at 3.6 and 12.4 s, 6 FK-solved contacts (<= 0.05 stud), 49 fx tinted per fighter at the contacts, bodies lie on the ground. Gate PASS, read-back = built, zfight PASS; frames reviewed at 12 fps headless; phone look queued.
+improve 120: ~100 s brief, 20 s Sonnet, 132.4 s total (FAIL +12.4), rungs 1-4.
+improved: letterbox bars in Umbrio; fk.py reusable FK + contact solver; tint.py sheet recolour; duel.py yaw paths/tint/extra tracks/fx variants/env; shots frames use the full render (bars, post passes)

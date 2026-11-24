@@ -273,7 +273,26 @@ export function camAt(c, t) {
   delete s.shake
   return s
 }
+// Letterbox: clip.camera.bars = [[t, amount 0..1, ease]] (ratio clip.camera.barsRatio, default 2.39:1), drawn as a pass over
+// the frame (vp.post), so the viewport, shots and the MP4 export all show them; amount 0 = none.
+let BARS = null
+function barsPass(vp) {
+  if (BARS) return BARS
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), m = new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false, depthWrite: false })
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(2, 1), m), bot = top.clone(); sc.add(top, bot)
+  BARS = { amount: 0, ratio: 2.39, fn(r) {
+    if (!(BARS.amount > 0)) return
+    const sz = r.getSize(new THREE.Vector2()), want = sz.x / BARS.ratio, h = Math.max(0, (sz.y - want) / 2 / sz.y * 2) * Math.min(1, BARS.amount)   // NDC height of one bar
+    if (h <= 0) return
+    top.scale.set(1, h, 1); top.position.set(0, 1 - h / 2, 0); bot.scale.set(1, h, 1); bot.position.set(0, -1 + h / 2, 0)
+    const ac = r.autoClear; r.autoClear = false; r.render(sc, cam); r.autoClear = ac
+  } }
+  ;(vp.post ||= []).push((r) => BARS.fn(r))
+  return BARS
+}
 function camDrive(vp, c, t) {
+  const bk = S.camFollow && c?.camera?.bars?.length ? c.camera.bars : null
+  if (bk || BARS) { const b = barsPass(vp); b.amount = bk ? sample(bk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0; b.ratio = +c?.camera?.barsRatio || 2.39 }
   const s = S.camFollow && c ? camAt(c, t) : null
   if (s) {
     if (!S.camSaved) S.camSaved = vp.getCamera?.()

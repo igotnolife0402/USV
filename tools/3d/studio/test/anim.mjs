@@ -44,6 +44,28 @@ export default async function (t) {
     s.noErrors()
   })
 
+  await t.test('clip letterbox: camera.bars keyed 0 -> 1 draws black bars top and bottom at 2.39:1, none at amount 0', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Bars', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Bars', len: 2, fps: 30 })
+    const r = await s.eval(cid => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement
+      A.scene.env.bg = '#ffffff'
+      A.patchAnim(cid, { camera: { bars: [[0, 0, 'linear'], [1, 1, 'linear']] } })
+      const px = t => { A.setTime(t); vp.render(); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(cv, 0, 0)
+        const at = y => [...g.getImageData(Math.floor(cv.width / 2), y, 1, 1).data].slice(0, 3)
+        const want = cv.width / 2.39, bar = Math.max(0, (cv.height - want) / 2)
+        return { top: at(2), bottom: at(cv.height - 3), mid: at(Math.floor(cv.height / 2)), bar, w: cv.width, h: cv.height } }
+      return { on: px(1.5), off: px(0) }
+    }, cid)
+    t.ok(r.on.bar > 4, 'canvas is taller than 2.39:1 ' + JSON.stringify(r.on))
+    t.ok(r.on.top.every(v => v < 8) && r.on.bottom.every(v => v < 8), 'black bars at amount 1 ' + JSON.stringify(r.on))
+    t.ok(r.off.top.some(v => v > 16), 'no bar at amount 0 (sky shows) ' + JSON.stringify(r.off.top))
+    s.noErrors()
+  })
+
   await t.test('clip + keys at 0 s and 1 s: scrubbing to 0.5 s interpolates, rest pose stays', async () => {
     const s = await t.open()
     await s.project('Anim', { empty: true })

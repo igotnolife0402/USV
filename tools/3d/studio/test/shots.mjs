@@ -52,7 +52,7 @@ export default async function (t) {
       const n = Math.round(len * fps) + 1, per = []
       for (let i = 0; i < n; i++) {
         const tt = Math.min(len, i / fps)
-        const u = await s.eval(x => { const A = window.studio.app, v = A.viewport; A.setTime(x); v.renderer.render(v.scene, v.camera); return v.renderer.domElement.toDataURL('image/jpeg', 0.8) }, tt)
+        const u = await s.eval(x => { const A = window.studio.app, v = A.viewport; A.setTime(x); v.render(); return v.renderer.domElement.toDataURL('image/jpeg', 0.8) }, tt)
         const name = `f-${String(i).padStart(4, '0')}`; writeFileSync(join(fdir, name + '.jpg'), Buffer.from(u.split(',')[1], 'base64'))
         per.push([u, `${name}  ${tt.toFixed(2)} s`])
         if (per.length === fps || i === n - 1) {

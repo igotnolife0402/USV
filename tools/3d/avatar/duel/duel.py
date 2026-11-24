@@ -31,7 +31,16 @@ for f in SPEC['fighters']:
         objs[rid(k)] = o
     root = rid('A0'); objs[root].update(pos=f['path'][0][1], rot=[0, f.get('yaw', 0), 0])
     for k, tr in doc['anims']['fight']['tracks'].items(): tracks[rid(k)] = tr
-    tracks.setdefault(root, {})['pos'] = [[t, p, 'smooth'] for t, p in f['path']]
+    # path keys: [t, [x, y, z]] or [t, [x, y, z], ease] (a 'step' holds, then jumps: cuts, hit-stops)
+    tracks.setdefault(root, {})['pos'] = [[p[0], p[1], p[2] if len(p) > 2 else 'smooth'] for p in f['path']]
+    if f.get('yaw_path'):        # footwork turns: [t, yaw deg]
+        tracks[root]['rot'] = [[p[0], [0, p[1], 0], p[2] if len(p) > 2 else 'smooth'] for p in f['yaw_path']]
+    if f.get('tint'):            # body clothing tint (multiplies the texture): tells two same-outfit fighters apart
+        for k, o in objs.items():
+            if k.startswith(tag + '_') and o['type'] == 'mesh' and any(w in o.get('name', '') for w in ('Torso', 'Arm', 'Leg', 'Hand', 'Foot')): o['color'] = f['tint']
+    for e in f.get('extra', []):  # extra tracks on the fighter's own objects, matched by id prefix: {"match": "X0", "ch": "scale", "keys": [...]}
+        for k in doc['objects']:
+            if k.startswith(e['match']): tracks.setdefault(rid(k), {})[e['ch']] = [[q[0], q[1], q[2] if len(q) > 2 else 'step'] for q in e['keys']]
     if 'hide' in f:              # gone in the blast: a step to zero scale
         h = f['hide']; tracks[root]['scale'] = [[0, [1, 1, 1], 'step'], [h, [1, 1, 1], 'step'], [h + 0.01, [0, 0, 0], 'step']]
     for k, t in doc['textures'].items():
@@ -41,8 +50,9 @@ for f in SPEC['fighters']:
 
 FXDIR = P(SPEC['fxdir'])
 for i, e in enumerate(SPEC['fx']):
-    meta = json.load(open(os.path.join(FXDIR, e['preset'] + '.json'))); tid = 'fx-' + e['preset']
-    uploads[tid] = os.path.join(FXDIR, meta['file'])
+    meta = json.load(open(os.path.join(FXDIR, e['preset'] + '.json'))); v = e.get('variant')     # variant: a recoloured copy <preset>-<v>.png (tint.py)
+    tid = 'fx-' + e['preset'] + (f'-{v}' if v else '')
+    uploads[tid] = os.path.join(FXDIR, f"{e['preset']}-{v}.png" if v else meta['file'])
     loop = 'dur' in e; fps = meta.get('FlipbookFramerate', 24)
     life = e.get('life', meta['Lifetime']); dur = e['dur'] if loop else life
     o = dict(type='flipbook', name=f"FX {e['preset']} {e['t']}", tex=tid, grid=8, frames=meta['frames'], parent=None, pos=e['pos'],
@@ -59,7 +69,7 @@ name = SPEC['name']; now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 doc = {'v': 1, 'name': name, 'objects': objs, 'textures': textures, 'updated': now, 'camera': SPEC['camera'],
        'anims': {'fight': {'name': name, 'len': LEN, 'fps': 60, 'loop': False, 'tracks': tracks,
                            **({'camera': SPEC['camera_keys']} if SPEC.get('camera_keys') else {})}},   # studio clip camera: {pos, target, fov, shake: [[t, v, ease]]}
-       'env': {'bg': '#05070d', 'fog': None, 'grid': False, 'light': 'night'}}
+       'env': SPEC.get('env') or {'bg': '#05070d', 'fog': None, 'grid': False, 'light': 'night'}}
 json.dump(doc, open(os.path.join(ST, 'project.json'), 'w'), separators=(',', ':'))
 json.dump({'name': name, 'updated': now, 'count': len(objs), 'ai': True}, open(os.path.join(ST, 'meta.json'), 'w'))
 json.dump(uploads, open(os.path.join(ST, 'uploads.json'), 'w'), indent=1)

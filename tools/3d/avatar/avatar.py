@@ -123,7 +123,8 @@ CLIP = opt('--clip', '')
 if '--clipfile' in args:                          # a clip as data: {"name", "poses": {new: {"base": old, joint: [x,y,z]}}, "keys": [[t, pose, ease?]]}
     _cf = json.load(open(opt('--clipfile', '')))
     for _n, _p in _cf.get('poses', {}).items():
-        POSES[_n] = dict(POSES[_p['base']], **{j: tuple(v) for j, v in _p.items() if j != 'base'}) if 'base' in _p else _p
+        _v = lambda j, v: {sd: tuple(tuple(x) for x in w) for sd, w in v.items()} if j == 'ik' else v if isinstance(v, bool) else tuple(v)
+        POSES[_n] = dict(POSES[_p['base']], **{j: _v(j, v) for j, v in _p.items() if j != 'base'}) if 'base' in _p else {j: _v(j, v) for j, v in _p.items()}
     CLIP = _cf.get('name', 'fight'); CLIPS[CLIP] = [tuple(k) for k in _cf['keys']]
 POSE = POSES[opt('--pose', 'wave')]
 BG = opt('--bg', '#0b0f1a')                       # studio sky behind effects
