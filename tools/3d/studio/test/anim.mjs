@@ -19,6 +19,31 @@ export default async function (t) {
     s.noErrors()
   })
 
+  await t.test('clip camera: keyed pos/target/fov drive the view mid-clip, shake 0 is exact, Follow off and leaving Animate restore the view', async () => {
+    const s = await t.open()
+    await s.project('Cam', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Shot', len: 2, fps: 30 })
+    const r = await s.eval(cid => {
+      const A = window.studio.app, vp = A.viewport, run = (c, a) => A.exec(c, a)
+      vp.setCamera({ pos: [9, 9, 9], target: [0, 0, 0], fov: 50 }); const user = vp.getCamera()
+      A.setTime(0); run('anim.camKey', { values: { pos: [0, 2, 10], target: [0, 1, 0], fov: 40, shake: 0 } })
+      A.setTime(2); run('anim.camKey', { values: { pos: [10, 2, 0], target: [0, 3, 0], fov: 60, shake: 0 } })
+      A.setTime(1); const mid = vp.getCamera()
+      const keys = A.scene.anims[cid].camera
+      run('anim.camFollow', { on: false }); const off = vp.getCamera()
+      run('anim.camFollow', { on: true }); A.setTime(1)
+      A.setMode('build'); const back = vp.getCamera()
+      return { mid, off, back, user, n: keys.pos.length, fovKeys: keys.fov.length }
+    }, cid)
+    t.eq(r.n, 2, 'two pos keys'); t.eq(r.fovKeys, 2, 'fov keyed')
+    t.near(r.mid.pos[0], 5, 0.01, 'smooth midpoint x'); t.near(r.mid.pos[2], 5, 0.01, 'smooth midpoint z'); t.near(r.mid.target[1], 2, 0.01, 'target midpoint')
+    t.near(r.mid.fov, 50, 0.01, 'fov midpoint')
+    t.near(r.off.pos[0], r.user.pos[0], 0.01, 'Follow off puts the user view back'); t.near(r.back.pos[1], r.user.pos[1], 0.01, 'leaving Animate puts the user view back')
+    s.noErrors()
+  })
+
   await t.test('clip + keys at 0 s and 1 s: scrubbing to 0.5 s interpolates, rest pose stays', async () => {
     const s = await t.open()
     await s.project('Anim', { empty: true })

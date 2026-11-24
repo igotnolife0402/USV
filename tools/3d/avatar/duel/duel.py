@@ -57,7 +57,8 @@ for i, e in enumerate(SPEC['fx']):
 
 name = SPEC['name']; now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 doc = {'v': 1, 'name': name, 'objects': objs, 'textures': textures, 'updated': now, 'camera': SPEC['camera'],
-       'anims': {'fight': {'name': name, 'len': LEN, 'fps': 60, 'loop': False, 'tracks': tracks}},
+       'anims': {'fight': {'name': name, 'len': LEN, 'fps': 60, 'loop': False, 'tracks': tracks,
+                           **({'camera': SPEC['camera_keys']} if SPEC.get('camera_keys') else {})}},   # studio clip camera: {pos, target, fov, shake: [[t, v, ease]]}
        'env': {'bg': '#05070d', 'fog': None, 'grid': False, 'light': 'night'}}
 json.dump(doc, open(os.path.join(ST, 'project.json'), 'w'), separators=(',', ':'))
 json.dump({'name': name, 'updated': now, 'count': len(objs), 'ai': True}, open(os.path.join(ST, 'meta.json'), 'w'))

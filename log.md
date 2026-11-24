@@ -352,3 +352,8 @@ improved: catalog.py 401 fallback to v1/assetId; avatar.py --clipfile clips as d
 Scores /10 (R1/R2/R3 avg): epic 3/3/3=3, clash 2/2/2=2, spacing 2/2/2=2, suspense 3/3/3=3, vfx 3/3/3=3, camera 3/3/4=3.3, distinct 5/6/5=5.3, ending 4/2/3=3. 15 faults CONFIRMED by FK on the read-back, 5 rater claims WRONG, rules logged only (no fixes). Umbrio: no timeline camera track (code-checked).
 improve 60: ~15 s brief (early), 31.8 s Sonnet, 69.4 s total (FAIL +9.4), rungs 1-2.
 improved: Cutscene rules section (animation playbook); FK fact-check script pattern (blade contact, through-torso, ground, fx offset); 8 errors rows (animation + vfx); studio shots run on mobile via scratch deps
+
+## [2026-11-24] feature / Umbrio clip camera track + frame-by-frame rater shots
+anim.js clip.camera (pos/target/fov/shake, Follow toggle, Key/Clear commands, toolbar button); test anim 11/11 PASS; hub v50 anim.js sha ee404376 = local. shots.mjs SHOTS_FPS (duel: 81 frames, 21 sheets) + saved scene camera default. duel.py camera_keys.
+improve 60: ~22 s brief, 29 s Sonnet, 74.3 s total (FAIL +14.3), rungs 1-3.
+improved: clip camera track in Umbrio; SHOTS_FPS frame sheets; shots no longer force a fake 7,5,9 view; rater protocol in animation playbook

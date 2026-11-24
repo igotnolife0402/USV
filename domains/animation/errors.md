@@ -25,3 +25,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | Kamehameha with hands 2.1 studs apart, saber still lit | Blade card show [0.8, 16.6] spans the beam; kamehameha pose on a yawed R15 kit | Hide or sheathe the weapon for two-hand moves; check palm distance <= 0.5 | 2026-11-24 |
 | Strikes land together (1.9 / 1.95 s) | Both clips keyed on the same beat | Stagger attacker/defender >= 0.3 s | 2026-11-24 |
 | Last 2.4 s empty black frame | Fighters hidden at 17.6, embers too faint to read | Hold aftermath visible to the end | 2026-11-24 |
+| raters saw ~10 stills in a different framing | duel raters judged 12 stills from a forced 7,5,9 shots camera, not the owner's saved view; owner: go frame by frame | shots.mjs SHOTS_FPS + scene camera default | 2026-11-24 |

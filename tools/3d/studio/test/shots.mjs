@@ -1,5 +1,5 @@
 // Check an exported tab before it goes up (no-op unless SHOTS_TAB is set): SHOTS_TAB=<OUT/studio> SHOTS_AT="1,1.9,2.2"
-// [SHOTS_CAM="x,y,z,tx,ty,tz"] [SHOTS_DEVICE=desktop] [SHOTS_RENDER=1: also render.png, 1920x1080] [SHOTS_VIDEO=1: also clip.mp4] node test/run.mjs shots -> one phone screenshot per clip time (shots-<t>.png) and shots.jpg (all of them).
+// [SHOTS_CAM="x,y,z,tx,ty,tz"] [SHOTS_DEVICE=desktop] [SHOTS_RENDER=1: also render.png, 1920x1080] [SHOTS_VIDEO=1: also clip.mp4] [SHOTS_FPS=12: every frame (frames/f-XXXX.jpg) + one labelled sheet per second (sec-NN.jpg), for frame-by-frame reviews] node test/run.mjs shots -> one phone screenshot per clip time (shots-<t>.png) and shots.jpg (all of them).
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 export default async function (t) {
@@ -15,8 +15,11 @@ export default async function (t) {
     await s.page.evaluate(d => { for (const [p, v] of Object.entries(d)) window.__mock.external(p, v, { set: true }) }, docs)
     await s.page.evaluate(id => { window.studio.open(id) }, pid)
     await s.page.waitForFunction(() => window.studio.app.loaded && window.studio.app.viewport, null, { timeout: 30000 })
-    const cam = (process.env.SHOTS_CAM || '7,5,9,0,3.2,0').split(',').map(Number)
-    await s.eval(c => { const A = window.studio.app; A.setMode('animate'); A.select([]); A.viewport.setCamera({ pos: c.slice(0, 3), target: c.slice(3) }) }, cam)
+    // the view: SHOTS_CAM if given, else the tab's saved scene camera (the 2026-11-24 duel raters judged a forced 7,5,9 view the
+    // owner never sees); a clip camera track then drives every frame on its own
+    const cam = process.env.SHOTS_CAM ? process.env.SHOTS_CAM.split(',').map(Number) : null
+    await s.eval(c => { const A = window.studio.app; A.setMode('animate'); A.select([]); const sc = A.scene.camera || {}
+      A.viewport.setCamera(c ? { pos: c.slice(0, 3), target: c.slice(3) } : { pos: sc.pos || [7, 5, 9], target: sc.target || [0, 3.2, 0], fov: sc.fov }) }, cam)
     await new Promise(r => setTimeout(r, 1200))
     const urls = []
     if (process.env.SHOTS_NEAR) await s.eval(n => { window.__shotsNear = n }, +process.env.SHOTS_NEAR)
@@ -43,6 +46,30 @@ export default async function (t) {
     }, urls)
     const { writeFileSync, mkdirSync } = await import('node:fs'), out = join(process.env.SCRATCH || '.', 'shots')
     mkdirSync(out, { recursive: true }); writeFileSync(join(out, 'shots.jpg'), Buffer.from((await s.eval(() => window.__sheet)).split(',')[1], 'base64'))
+    if (process.env.SHOTS_FPS) {                   // frame by frame for reviews: every frame at SHOTS_FPS, one labelled sheet per second
+      const fps = +process.env.SHOTS_FPS || 12, fdir = join(out, 'frames'); mkdirSync(fdir, { recursive: true })
+      const len = await s.eval(() => { const A = window.studio.app, c = A.scene.anims[A.anim?.clip] || Object.values(A.scene.anims)[0]; return +c?.len || 1 })
+      const n = Math.round(len * fps) + 1, per = []
+      for (let i = 0; i < n; i++) {
+        const tt = Math.min(len, i / fps)
+        const u = await s.eval(x => { const A = window.studio.app, v = A.viewport; A.setTime(x); v.renderer.render(v.scene, v.camera); return v.renderer.domElement.toDataURL('image/jpeg', 0.8) }, tt)
+        const name = `f-${String(i).padStart(4, '0')}`; writeFileSync(join(fdir, name + '.jpg'), Buffer.from(u.split(',')[1], 'base64'))
+        per.push([u, `${name}  ${tt.toFixed(2)} s`])
+        if (per.length === fps || i === n - 1) {
+          const sec = Math.floor((i - per.length + 1) / fps)
+          const b64 = await s.page.evaluate(async list => {
+            const ims = await Promise.all(list.map(([u]) => new Promise(r => { const im = new Image(); im.onload = () => r(im); im.src = u })))
+            const k = 4, w = Math.floor(1000 / k) - 6, h = Math.round(w * ims[0].height / ims[0].width), c = document.createElement('canvas')
+            c.width = (w + 6) * k; c.height = (h + 6) * Math.ceil(ims.length / k); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height)
+            g.font = 'bold 13px sans-serif'
+            ims.forEach((im, j) => { const x = (j % k) * (w + 6), y = Math.floor(j / k) * (h + 6); g.drawImage(im, x, y, w, h); g.fillStyle = '#000a'; g.fillRect(x, y, 150, 18); g.fillStyle = '#ff0'; g.fillText(list[j][1], x + 4, y + 13) })
+            return c.toDataURL('image/jpeg', 0.85)
+          }, per)
+          writeFileSync(join(out, `sec-${String(sec).padStart(2, '0')}.jpg`), Buffer.from(b64.split(',')[1], 'base64')); per.length = 0
+        }
+      }
+      console.log(`    frames ${n} at ${fps} fps, sheets ${Math.ceil(n / fps)} -> ${out}`)
+    }
     if (process.env.SHOTS_RENDER) {                // the finished 1920x1080 render (look.render) too
       const b64 = await s.eval(async () => { const b = await window.studio.app.exec('look.render', { silent: true }); return await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b) }) })
       writeFileSync(join(out, 'render.png'), Buffer.from(b64.split(',')[1], 'base64'))

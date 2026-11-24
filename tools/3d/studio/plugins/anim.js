@@ -104,7 +104,7 @@ function restVal(obj, ch) {
 // ---------- state ----------
 let A = null
 const S = {
-  clip: null, playing: false, speed: 1, autokey: false, stopLoop: null,
+  clip: null, playing: false, speed: 1, autokey: false, stopLoop: null, camFollow: true, camSaved: null,
   sel: new Set(), clipboard: null, open: new Set(), posed: new Set(), mix: null, ui: null, rows: null, hint: false
 }
 const anims = () => A?.scene?.anims || {}
@@ -253,6 +253,34 @@ function unpose(o) {
   if (r) { o.position.copy(r.p); o.quaternion.copy(r.q); o.scale.copy(r.s); o.visible = r.v; o.updateMatrix(); delete o.userData.anRest }
   unColor(o)
 }
+// Clip camera (2026-11-24, cutscenes): clip.camera = {pos, target: [[t, [x,y,z], ease]], fov, shake: [[t, n, ease]]}, sampled like
+// object tracks. While a clip with camera keys plays or is in Animate mode (and Follow camera is on) it drives the view; the
+// view the user had is kept and put back when it stops driving. Shake = deterministic noise (amp in studs), so shots,
+// video export and every replay match frame for frame.
+const CAM_V = ['pos', 'target'], CAM_N = ['fov', 'shake']
+export function camAt(c, t) {
+  const k = c?.camera
+  if (!k) return null
+  const s = {}
+  for (const ch of CAM_V) if (k[ch]?.length) s[ch] = sample(k[ch], t, 'pos')
+  for (const ch of CAM_N) if (k[ch]?.length) s[ch] = sample(k[ch].map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0]
+  if (!s.pos && !s.target && s.fov == null) return null
+  const a = s.shake || 0
+  if (a && s.pos) {
+    const n = f => Math.sin(t * f * 6.2832) * 0.6 + Math.sin(t * f * 2.71 + 1.3) * 0.4
+    s.pos = [s.pos[0] + a * n(17), s.pos[1] + a * n(23), s.pos[2] + a * n(29)]
+  }
+  delete s.shake
+  return s
+}
+function camDrive(vp, c, t) {
+  const s = S.camFollow && c ? camAt(c, t) : null
+  if (s) {
+    if (!S.camSaved) S.camSaved = vp.getCamera?.()
+    vp.setCamera?.(s); return
+  }
+  if (S.camSaved) { const v = S.camSaved; S.camSaved = null; vp.setCamera?.(v) }
+}
 function evaluate(t = A?.time || 0, force = false) {
   const vp = A?.viewport
   if (!vp) return
@@ -266,6 +294,7 @@ function evaluate(t = A?.time || 0, force = false) {
   }
   for (const oid of S.posed) if (!next.has(oid)) { const o = vp.objects.get(oid); if (o) unpose(o) }
   S.posed = next
+  camDrive(vp, c, t)
   const m = on && isModelRef(id) ? modelClip(id) : null
   if (S.mix && (!m || S.mix.key !== m.key || S.mix.root !== m.o)) stopMix()
   if (m) {
@@ -914,6 +943,7 @@ function buildBar(u, ph) {
   u.end = b('an-end', 'Jump to end (Shift+Right)', run('anim.end'))
   u.key = b('an-key', 'Key selected (K)', run('anim.key'))
   u.rec = b('an-rec', 'Auto-key: moves in Animate mode record keys', run('anim.autokey'), 'an-rec')
+  u.cam = b('camera', 'Key camera: the current view becomes a camera key at the playhead', run('anim.camKey'))
   u.time = h('div', 'an-time')
   const sep = () => h('div', 'an-sep'), grow = () => h('div', 'an-grow')
   if (ph) {
@@ -922,7 +952,7 @@ function buildBar(u, ph) {
     const r1 = h('div', 'an-row'), r2 = h('div', 'an-row')
     r1.append(sel, u.time, u.add, u.more)
     u.fx = b('an-fx', 'Effects: drag one onto a row', run('vfx.library'))
-    r2.append(u.start, u.prev, u.play, u.next, u.key, u.rec, u.pre, u.fx)
+    r2.append(u.start, u.prev, u.play, u.next, u.key, u.rec, u.cam, u.pre, u.fx)
     bar.append(r1, r2)
     return
   }
@@ -945,7 +975,7 @@ function buildBar(u, ph) {
   pre.type = 'button'; pre.onclick = () => presetMenu(pre)
   const fxb = h('button', 'btn an-txt', ic('an-fx') + '<span>Effects</span>')
   fxb.type = 'button'; fxb.title = 'Effects: drag one onto a row'; fxb.onclick = () => A.exec('vfx.library')
-  bar.append(sel, u.add, u.ren, u.dup, u.del, sep(), lw, fw, u.loop, grow(), u.start, u.prev, u.play, u.stop, u.next, u.end, u.speed, grow(), u.time, sep(), u.key, u.rec, sep(), pre, fxb)
+  bar.append(sel, u.add, u.ren, u.dup, u.del, sep(), lw, fw, u.loop, grow(), u.start, u.prev, u.play, u.stop, u.next, u.end, u.speed, grow(), u.time, sep(), u.key, u.rec, u.cam, sep(), pre, fxb)
 }
 function renderPanel(el) {
   const ph = isPhone()
@@ -1108,6 +1138,27 @@ const commands = {
       return t
     }
   },
+  'anim.camKey': {
+    label: 'Key camera', icon: 'camera', mode: 'animate',
+    run(app, a = {}) {
+      if (isModelRef(curId())) throw new Error('Imported clips are read-only')
+      const vp = app.viewport, { id, c } = ensureClip(app)
+      const t = snap(a.t ?? app.time ?? 0, fpsOf(c)), v = { ...(vp?.getCamera?.() || {}), ...(a.values || {}) }, next = clone(c), e = a.ease || 'smooth'
+      const cam = next.camera ||= {}
+      const put = (ch, val) => { const ks = (cam[ch] ||= []).filter(k => Math.abs(k[0] - t) > 1e-4); ks.push([t, val, e]); ks.sort((p, q) => p[0] - q[0]); cam[ch] = ks }
+      for (const ch of a.channels || ['pos', 'target', 'fov', ...(a.values?.shake != null ? ['shake'] : [])]) if (v[ch] != null) put(ch, v[ch])
+      app.putAnim(id, next)
+      return t
+    }
+  },
+  'anim.camClear': {
+    label: 'Clear camera keys', icon: 'camera', enabled: () => !!cur()?.camera,
+    run(app) { const id = curId(), c = anims()[id]; if (!c?.camera) return 0; const next = clone(c); delete next.camera; app.putAnim(id, next); return 1 }
+  },
+  'anim.camFollow': {
+    label: 'Follow clip camera', icon: 'camera', noUndo: true, checked: () => S.camFollow,
+    run: (app, a = {}) => { S.camFollow = a.on != null ? !!a.on : !S.camFollow; evaluate(); return S.camFollow }
+  },
   'anim.autokey': { label: 'Auto-key', icon: 'an-rec', noUndo: true, checked: () => S.autokey, run: (app, a = {}) => { S.autokey = a.on != null ? !!a.on : !S.autokey; syncUI(); return S.autokey } },
   'anim.deleteKeys': {
     label: 'Delete keys', icon: 'an-trash', key: ['Delete', 'Backspace'], mode: 'animate', enabled: (app, a) => !!cur() && (a.keys ? true : inMode() && S.sel.size > 0),
@@ -1247,6 +1298,7 @@ const plugin = {
     Animate: ['anim.mode', '-', 'anim.new', 'anim.rename', 'anim.duplicate', 'anim.set', 'anim.loop', 'anim.delete', '-',
       'anim.play', 'anim.stop', 'anim.start', 'anim.end', 'anim.prevKey', 'anim.nextKey', 'anim.time', 'anim.speed', '-',
       'anim.key', 'anim.autokey', 'anim.copyKeys', 'anim.pasteKeys', 'anim.deleteKeys', 'anim.clear', '-',
+      'anim.camKey', 'anim.camFollow', 'anim.camClear', '-',
       'anim.spin', 'anim.bob', 'anim.bounce', 'anim.pulse', 'anim.walk', 'anim.wave']
   },
   modes: [{ id: 'animate', label: 'Animate', icon: 'an-mode', order: 20, gizmo: true }],
