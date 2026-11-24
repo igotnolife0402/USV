@@ -347,3 +347,8 @@ prune proposal: lessons.md at 154 lines (> 150), roll L-001..L-040 into archive/
 Umbrio tab supernova-duel-0106: 2 rigs (Kaito saber, Ren greatsword), 20 s clip, 27 effects, 15 beats (max action 1.6 s); read-back PASS (rigs, len, fx windows, no orphans/missing tex), zfight PASS. Not visually verified; shots queued for PC.
 improve 60: ~37 s brief, 20 s Sonnet, 78.9 s total (FAIL +18.9), rungs 1-3.
 improved: catalog.py 401 fallback to v1/assetId; avatar.py --clipfile clips as data + geo id sanitizing; new duel.py two-fighter cutscene tool + README; router words cutscene/duel/supernova -> animation
+
+## [2026-11-24] review / supernova duel critique (/improve 60, 3 Sonnet raters)
+Scores /10 (R1/R2/R3 avg): epic 3/3/3=3, clash 2/2/2=2, spacing 2/2/2=2, suspense 3/3/3=3, vfx 3/3/3=3, camera 3/3/4=3.3, distinct 5/6/5=5.3, ending 4/2/3=3. 15 faults CONFIRMED by FK on the read-back, 5 rater claims WRONG, rules logged only (no fixes). Umbrio: no timeline camera track (code-checked).
+improve 60: ~15 s brief (early), 31.8 s Sonnet, 69.4 s total (FAIL +9.4), rungs 1-2.
+improved: Cutscene rules section (animation playbook); FK fact-check script pattern (blade contact, through-torso, ground, fx offset); 8 errors rows (animation + vfx); studio shots run on mobile via scratch deps
