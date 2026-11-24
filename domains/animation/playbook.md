@@ -16,6 +16,7 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 - Fast cuts: never one key jump (a 150° Euler lerp cuts through the body or over the wrong shoulder): `arc_keys` adds slerped in-betweens so the tip draws a clean arc.
 - Weight is timing: slow lift, long wind-up with the tip sagging behind, a held beat, a fast cut (0.22 s at 60 fps), a braked follow-through, slow recovery.
 - Root `pos` keys keep the feet on the ground in every key. Never animate the root of a big build on phones (moves every object; bake statics first).
+- Flight paths around a player: author the path with clearance >= wing half-span + 4 studs (not body radius), and run the loop test (tools/roblox/wyvern/test/sim.mjs) before tuning anything else; the wyvern took 2 failed rounds (2026-11-24).
 - Effects ride the clip: flipbooks with `start`/`life` or `show: [t0, t1]`; swing trails fitted to the tip path's plane and circle (`kind: swing`).
 
 ## Which tool

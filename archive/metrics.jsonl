@@ -81,3 +81,4 @@
 {"t":"2026-11-23T22:53:37.615Z","tier":"medium","secs":77,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-23T22:55:09.271Z","tier":"medium","secs":152,"ok":true,"errors":1,"retry":1,"routes":[],"touched":[],"signals":["errors"],"mode":"mobile"}
 {"t":"2026-11-23T22:59:28.206Z","tier":"medium","secs":4,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
+{"t":"2026-11-24T02:22:07.421Z","tier":"medium","secs":1400,"ok":false,"errors":4,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
