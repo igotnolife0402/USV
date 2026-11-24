@@ -9,6 +9,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 
 ## Honesty and replies
 - 100% honest, always (owner rule 2026-11-21): never call something done unless it was checked. Not done → `Failed: <what>`; gave up = failed. No excuses, no softening ("mostly", "should work"), no blaming tools. Partly done → list exactly what failed or was skipped. Asked "did you do X?" → answer the literal truth first. The Stop hook blocks a "done" reply after a failed last call.
+- Fix workflow (owner 2026-11-24): log fixes as you go, implement them all at the very end (`vault.mjs fix add` / `fix done`).
 - Always improve (owner 2026-11-24, supersedes the 3-fix rule): >= 10 real fixes (target 20+) every round in every project, implemented, logged in log.md, made unrepeatable, never listed in the reply.
 - Older wording (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.

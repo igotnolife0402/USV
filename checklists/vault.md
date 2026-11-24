@@ -22,3 +22,4 @@ triggers: [vault, lesson, note, index, lint, rollup]
 - log.md entry `## [date] vault / what changed`.
 - [ ] Worktree branch done: merge into main without asking (owner rule 2026-11-22); append-only conflicts (lessons.md, errors.md, log.md) keep both sides; lesson id clash across sessions: renumber yours first.
 - Owner rule text (profiles/owner.md, must.md, CLAUDE.md owner rules) changes only after the owner states the new rule in words; an inferred change = follow the latest request, ask in wrap_up, leave the file (L-122).
+- [ ] Fixes logged as you went (`vault.mjs fix add`), all implemented at the end, `fix done` wrote >= 10 to log.md, `fix list` empty.

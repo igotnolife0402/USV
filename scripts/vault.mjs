@@ -6,6 +6,7 @@
 //   node scripts/vault.mjs bump L-012 --helped|--hurt   count a lesson again (seen twice -> promote)
 //   node scripts/vault.mjs words <routeId> <word...>   add trigger words to a route (warns on clashes)
 //   node scripts/vault.mjs queue add "<step>" [--context ""] | queue list | queue done <n>
+//   node scripts/vault.mjs fix add "<fix>" | fix list | fix done   running fix list: log as you go, implement at the end, done -> log.md
 //   node scripts/vault.mjs status                      lint, performance, lessons to promote, queue, last commit
 //   node scripts/vault.mjs tool find <words> | tool add "<name>" --where <url|path> [--kind artifact|cli|mcp|app] [--how ""]
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
@@ -126,6 +127,22 @@ export function toolAdd(name, { where, kind = 'artifact', how = '' }) {
   return { name, where, updated: i >= 0 };
 }
 
+// Running fix list (owner 2026-11-24): log each fix the moment it is spotted (`fix add`), keep working, implement them all at
+// the very end, then `fix done` moves them into this turn's log.md `improved:` line and clears the list.
+export const FIXES = 'state/fixes-pending.md';
+export function fix(op = 'list', text = '') {
+  const cur = readIf(P(FIXES)).split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2));
+  if (op === 'add') { if (!text) throw new Error('fix add "<what to fix>"'); cur.push(text); }
+  if (op === 'done') {
+    const log = readIf(P('log.md')), line = `improved: ${cur.join('; ')}`;
+    writeFileSync(P('log.md'), log.replace(/\s*$/, '') + '\n' + line + '\n');
+    writeFileSync(P(FIXES), '');
+    return { moved: cur.length, line: line.slice(0, 120) };
+  }
+  if (op === 'add') writeFileSync(P(FIXES), cur.map(x => `- ${x}`).join('\n') + '\n');
+  return { pending: cur.length, fixes: cur };
+}
+
 export function status() {
   const lint = lintAll(VAULT), errs = lint.filter(r => r.level === 'error');
   const g = spawnSync('git', ['log', '-1', '--format=%h %cr %s'], { cwd: VAULT, encoding: 'utf8' });
@@ -147,6 +164,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     else if (cmd === 'words') show(addWords(a[0], a.slice(1)));
     else if (cmd === 'queue') show(queue(a[0] || 'list', a[1], flag(a, 'context')));
     else if (cmd === 'status') show(status());
+    else if (cmd === 'fix') show(fix(a[0] || 'list', a.slice(1).join(' ')));
     else if (cmd === 'tool' && a[0] === 'add') show(toolAdd(a[1], { where: flag(a, 'where'), kind: flag(a, 'kind'), how: flag(a, 'how') }));
     else if (cmd === 'tool') show(toolFind(a.slice(a[0] === 'find' ? 1 : 0)));
     else { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 11).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exitCode = cmd ? 1 : 0; }

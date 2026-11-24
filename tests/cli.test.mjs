@@ -92,3 +92,16 @@ test('tool registry: add once, find by fuzzy words, update in place', () => {
   assert.equal(C.toolAdd('Umbrio Sandbox', { where: 'https://claude.ai/artifact/NEW' }).updated, true);
   assert.equal(C.toolFind(['umbrio']).filter(t => t.name === 'Umbrio Sandbox').length, 1);
 });
+
+test('fix list: add as you go, done moves them into log.md improved line and clears', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync: w, readFileSync: r } = await import('node:fs');
+  const { tmpdir } = await import('node:os'); const { join: j } = await import('node:path'); const { spawnSync: sp } = await import('node:child_process');
+  const root = mkdtempSync(j(tmpdir(), 'fixv-')); mkdirSync(j(root, 'state'));
+  w(j(root, 'log.md'), '# Log\n## [2026-11-24] t / x\n');
+  const run = (...a) => sp('node', [j(process.cwd(), 'scripts', 'vault.mjs'), 'fix', ...a], { env: { ...process.env, VAULT_ROOT: root }, encoding: 'utf8' });
+  run('add', 'first fix'); run('add', 'second fix');
+  assert.match(run('list').stdout, /"pending": 2/);
+  run('done');
+  assert.match(r(j(root, 'log.md'), 'utf8'), /improved: first fix; second fix\n$/);
+  assert.match(run('list').stdout, /"pending": 0/);
+});

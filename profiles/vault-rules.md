@@ -37,3 +37,4 @@ status: current
 - crew routes only on /crew or an explicit ask to use sub agents/workers (L-103)
 - New `.claude/agents/*.md` loads only at session start: test it the same session via general-purpose + `model`/`effort` override that Reads the agent file first (L-132)
 - SKILL.md description <= 300 chars (lint cap): count it before writing; skill/agent edits are medium tier (L-133)
+- Hook message strings are JS template literals: never put backticks inside them (2026-11-24 learn.mjs broke every hook); run `node --test tests/learn.test.mjs` after any hook text edit.
