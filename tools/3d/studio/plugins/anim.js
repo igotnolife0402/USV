@@ -211,12 +211,18 @@ function poseObj(o, obj, tr, t) {
   if (s) { const b = obj.scale || [1, 1, 1]; o.scale.set(r.s.x * ratio(s[0], b[0]), r.s.y * ratio(s[1], b[1]), r.s.z * ratio(s[2], b[2])) } else o.scale.copy(r.s)
   o.visible = tr.visible?.length ? r.v && !!sample(tr.visible, t, 'visible') : r.v
   if (tr.color?.length) setColor(o, sample(tr.color, t, 'color')); else unColor(o)
+  // Light intensity track (2026-11-24, cine lighting): [[t, [n], ease]] (array like every channel, so lint/sample/tidy work) in the object's own intensity units (point/spot x6 like model.js).
+  const L = o.userData.light
+  if (L && tr.intensity?.length) { if (o.userData.anI == null) o.userData.anI = L.intensity; L.intensity = Math.max(0, sample(tr.intensity.map(q => [q[0], Array.isArray(q[1]) ? q[1] : [+q[1]], q[2]]), t, 'pos')[0]) * (L.isDirectionalLight ? 1 : 6) }
+  else if (L && o.userData.anI != null) { L.intensity = o.userData.anI; delete o.userData.anI }
   o.updateMatrix()
 }
 function unpose(o) {
   const r = o.userData.anRest
   if (r) { o.position.copy(r.p); o.quaternion.copy(r.q); o.scale.copy(r.s); o.visible = r.v; o.updateMatrix(); delete o.userData.anRest }
   unColor(o)
+  const L = o.userData.light
+  if (L && o.userData.anI != null) { L.intensity = o.userData.anI; delete o.userData.anI }
 }
 // Clip camera (2026-11-24, cutscenes): clip.camera = {pos, target: [[t, [x,y,z], ease]], fov, shake: [[t, n, ease]]}, sampled like
 // object tracks. While a clip with camera keys plays or is in Animate mode (and Follow camera is on) it drives the view; the
@@ -271,7 +277,42 @@ function flashPass(vp) {
   ;(vp.post ||= []).push((r) => FLASH.fn(r))
   return FLASH
 }
+// Grade: clip.camera.grade = [[t, [exp, vig, tint], ease]], clip.camera.gradeTint = '#hex' (2026-11-24, cine lighting).
+// exp < 0 darkens (black overlay), exp > 0 lifts (additive white); vig = radial edge darkening 0..1; tint = additive colour
+// wash 0..1. A full-frame pass after the scene like flash/bars, so viewport, shots and MP4 export all match.
+let GRADE = null
+function gradePass(vp) {
+  if (GRADE) return GRADE
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+  const U = { exp: { value: 0 }, vig: { value: 0 }, tint: { value: 0 }, col: { value: new THREE.Color(1, 1, 1) }, aspect: { value: 1 } }
+  const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
+  const dark = new THREE.ShaderMaterial({ uniforms: U, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false,
+    fragmentShader: 'uniform float exp; uniform float vig; uniform float aspect; varying vec2 vUv; void main(){ vec2 d = (vUv - 0.5) * vec2(aspect, 1.0); float r = length(d) / length(vec2(aspect, 1.0) * 0.5); float a = clamp(max(0.0, -exp) + vig * smoothstep(0.45, 1.0, r), 0.0, 1.0); gl_FragColor = vec4(0.0, 0.0, 0.0, a); }' })
+  const lift = new THREE.ShaderMaterial({ uniforms: U, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+    fragmentShader: 'uniform float exp; uniform float tint; uniform vec3 col; varying vec2 vUv; void main(){ vec2 d = vUv - 0.5; float c = 1.0 - 0.6 * dot(d, d) * 4.0; gl_FragColor = vec4(vec3(max(0.0, exp)) + col * tint * c, 1.0); }' })
+  const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), dark); sc.add(q)
+  GRADE = { exp: 0, vig: 0, tint: 0, color: '#ffffff', fn(r) {
+    if (Math.abs(GRADE.exp) < 1e-3 && GRADE.vig < 1e-3 && GRADE.tint < 1e-3) return
+    const sz = r.getSize(new THREE.Vector2()); U.aspect.value = sz.x / Math.max(1, sz.y)
+    U.exp.value = Math.max(-1, Math.min(1, GRADE.exp)); U.vig.value = Math.min(1, Math.max(0, GRADE.vig)); U.tint.value = Math.min(1, Math.max(0, GRADE.tint)); U.col.value.set(GRADE.color)
+    const ac = r.autoClear; r.autoClear = false
+    if (U.exp.value < 0 || U.vig.value > 0) { q.material = dark; r.render(sc, cam) }
+    if (U.exp.value > 0 || U.tint.value > 0) { q.material = lift; r.render(sc, cam) }
+    r.autoClear = ac
+  } }
+  // Before flash and bars: the grade is part of the image, the flash and letterbox sit on top of it.
+  ;(vp.post ||= []).unshift((r) => GRADE.fn(r))
+  return GRADE
+}
+export function gradeAt(c, t) {
+  const gk = c?.camera?.grade
+  if (!gk?.length) return null
+  const v = sample(gk.map(q => [q[0], [0, 1, 2].map(i => +(Array.isArray(q[1]) ? q[1][i] : 0) || 0), q[2]]), t, 'pos')
+  return { exp: v[0], vig: v[1], tint: v[2], color: c.camera.gradeTint || '#ffffff' }
+}
 function camDrive(vp, c, t) {
+  const g = gradeAt(c, t)
+  if (g || GRADE) Object.assign(gradePass(vp), g || { exp: 0, vig: 0, tint: 0 })
   const fk = c?.camera?.flash?.length ? c.camera.flash : null
   if (fk || FLASH) flashPass(vp).amount = fk ? sample(fk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0
   const bk = S.camFollow && c?.camera?.bars?.length ? c.camera.bars : null
@@ -1264,6 +1305,21 @@ const commands = {
       let runStart = 0, prev = sig(0)
       for (let t = 0.1; t <= len + 1e-6; t += 0.1) { const s = sig(t); if (s !== prev) { if (t - 0.1 - runStart > 2) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(t - 0.1 - runStart).toFixed(2) }); runStart = t; prev = s } }
       if (len - runStart > 2 && c.loop === false) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(len - runStart).toFixed(2) })
+      // Spacing + framing (2026-11-24, owner: "spacing"): rig roots (top-level objects with pos keys) closer than 0.8x reach
+      // clip into each other; farther than 3x reach for > 1 s is dead air in a fight. The action (roots' midpoint + a.chest
+      // studs up, default 0) outside the centre 60 % of a 16:9 frame for > 0.3 s is lost off-frame. reach = a.reach (default 2.2 studs).
+      const roots = Object.entries(c.tracks || {}).filter(([oid, tr]) => tr.pos?.length && !A?.obj?.(oid)?.parent).map(([oid, tr]) => [oid, tr.pos])
+      const reach = +a.reach || 2.2, chest = +a.chest || 0, step = 0.1, pc = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 1e4), v3 = new THREE.Vector3()
+      for (let i = 0; i < roots.length; i++) for (let j = i + 1; j < roots.length; j++) { let near = -1, far = -1
+        for (let t = 0; t <= len + 1e-6; t += step) { const st = storyAt(c, t), p = sample(roots[i][1], st, 'pos'), q = sample(roots[j][1], st, 'pos'), d = Math.hypot(p[0] - q[0], p[2] - q[2])
+          if (d < 0.8 * reach) { if (near < 0) { near = t; out.push({ type: 'spacing-close', id: roots[i][0] + '|' + roots[j][0], t: +t.toFixed(2), value: +d.toFixed(2) }) } } else near = -1
+          if (d > 3 * reach) { if (far === -1) far = t; else if (far >= 0 && t - far > 1) { out.push({ type: 'spacing-far', id: roots[i][0] + '|' + roots[j][0], t: +far.toFixed(2), value: +d.toFixed(2) }); far = -2 } } else far = -1 } }
+      if (roots.length && (cm.pos?.length || cm.target?.length)) { let off = -1
+        for (let t = 0; t <= len + 1e-6; t += step) { const st = storyAt(c, t), s = camAt(c, st); if (!s?.pos || !s?.target) continue
+          const m = [0, 1, 2].map(k => roots.reduce((n, r) => n + sample(r[1], st, 'pos')[k], 0) / roots.length); m[1] += chest
+          pc.fov = s.fov || 50; pc.position.fromArray(s.pos); pc.lookAt(v3.fromArray(s.target)); pc.updateProjectionMatrix(); pc.updateMatrixWorld()
+          const n = v3.fromArray(m).project(pc), outside = n.z > 1 || Math.abs(n.x) > 0.6 || Math.abs(n.y) > 0.6
+          if (!outside) off = -1; else if (off === -1) off = t; else if (off >= 0 && t - off > 0.3) { out.push({ type: 'framing', id: 'camera', t: +off.toFixed(2), value: +Math.max(Math.abs(n.x), Math.abs(n.y)).toFixed(2) }); off = -2 } } }
       return out
     }
   },

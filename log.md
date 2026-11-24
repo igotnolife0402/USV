@@ -389,3 +389,8 @@ improved: anim.cine takes per-call overrides (push, fov, slow, hold, flash...) +
 ## [2026-11-24] fix / fight preview looked the same (owner)
 Root cause: anim.cine hold/dip counted clip frames, so the 60 fps duel got 0.05-0.07 s freezes, and the before clip already had clash shakes. cine.js frame counts now 30 fps ref frames (anim 16/16); cine_duel clashes get 0.12 s freeze + 0.5x recoil + white pop sized to the shake; page gains half-speed toggle.
 improved: cine frame counts fps-independent; clash impact frames in cine_duel + baseline note; before/after must differ per beat (L-157) + router words looks the same, no difference.
+
+## [2026-11-24] build / cine v2: lighting, vfx light, spacing (owner /improve 60)
+Answer: anim.cine had no lighting/spacing. Added clip.camera.grade pass (exp, vignette, element tint) + light `intensity` track (anim.js), cine grade keys + cineLights impact/rim lights (cine.js), lint spacing-close/far + framing; anim 17/17. Duel preview re-rendered with grade, 6 impact lights, blue/red rims.
+improve 60: ~40 brief, ~20 Sonnet, 60.7 total (PASS)
+improved: video export hid vp.helpers but not light gizmos (diamonds in MP4, L-159); grade ramp brightened before the hit (L-158); router word "looks the same,no difference" was one merged string, split + lighting/spacing words added.

@@ -335,7 +335,13 @@
         "fight preview",
         "before and after",
         "cinematic floor",
-        "looks the same,no difference"
+        "looks the same",
+        "no difference",
+        "lighting",
+        "vignette",
+        "rim light",
+        "spacing",
+        "framing"
       ],
       "notes": [
         "domains/animation/umbrio-animator.md",

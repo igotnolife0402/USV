@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 // The editor's plugins dir comes from the env (tools never import each other): PLUGINS=<repo>/tools/<editor>/plugins
 const PLUGINS = process.env.PLUGINS
 if (!PLUGINS) { console.error('set PLUGINS to the editor plugins dir (cine.js, sample.js)'); process.exit(1) }
-const { cinePass } = await import(join(resolve(PLUGINS), 'cine.js'))
+const { cinePass, cineLights } = await import(join(resolve(PLUGINS), 'cine.js'))
 const { sample } = await import(join(resolve(PLUGINS), 'sample.js'))
 
 const [IN, OUT, PAY, CL, PUSH] = process.argv.slice(2)
@@ -18,7 +18,8 @@ const payoff = +PAY, clashes = (CL || '').split(',').filter(Boolean).map(Number)
 const fps = +c.fps || 60, orig = JSON.parse(JSON.stringify(c.camera))
 
 // 1. The cine pass on the final blow. The clip's own camera already frames the build shot, so it is the wide shot.
-const n = cinePass(c, { payoff, kind: 'impact', push: PUSH ?? 0.2 }, {})
+const TINT = '#ffd27a'   // payoff blast colour (gold core of the final-blow sheets)
+const n = cinePass(c, { payoff, kind: 'impact', push: PUSH ?? 0.2, tint: TINT }, {})
 // The clip cuts to its own wide shot on the payoff, so the cut lands under the flash peak (cut on the flash) instead of a
 // close-up hold: held close, the camera sat inside the blast sphere for 0.8 s of white with card edges (12 fps sheet, f-0192..0198).
 const th = payoff
@@ -50,6 +51,17 @@ for (const t of clashes.sort((x, y) => x - y)) {
 const pops = clashes.flatMap(t => { const s = sample(orig.shake.map(k => [k[0], [k[1]], k[2]]), t + 1e-3, 'pos')[0] || 0.1
   return [[+(t - 1e-3).toFixed(4), 0, 'linear'], [t, +Math.min(0.35, 2 * s).toFixed(3), 'out'], [+(t + 0.14).toFixed(4), 0, 'linear']] })
 n.camera.flash = [...pops, ...(n.camera.flash || [])].sort((x, y) => x[0] - y[0])
+// 5. Lighting (owner 2026-11-24: "spacing vfx visuals lighting"): a vignette + light tint per clash (an exposure lift on top of the pop washed the frame milky) (the cine grade owns the
+// build darken, vignette and the tinted payoff), a point light at every impact so the hit lights both fighters, and a rim
+// light behind each fighter in its own colour that pulses on every hit. Impact points = the clash's own impact flipbook.
+const fx = Object.values(p.objects).filter(o => o.type === 'flipbook')
+const hitAt = t => (fx.find(o => /impact/.test(o.name) && Math.abs(o.start - t) < 0.06) || fx.find(o => /flash/.test(o.name) && Math.abs(o.start - t) < 0.1))?.pos
+const bumps = clashes.flatMap(t => [[+(t - 1e-3).toFixed(4), [0, 0, 0], 'linear'], [t, [0, 0.2, 0.12], 'out'], [+(t + 0.15).toFixed(4), [0, 0, 0], 'linear']])
+n.camera.grade = [...bumps, ...(n.camera.grade || [])].sort((x, y) => x[0] - y[0])
+n.camera.gradeTint = TINT
+const impacts = [...clashes.map(t => ({ t, at: hitAt(t) })), { t: payoff, at: hitAt(payoff) || [0, 4, -1], payoff: true, size: 1.2 }].filter(i => i.at)
+const L = cineLights(p.objects, n, { impacts, tint: TINT, rims: [{ parent: 'a_A0', pos: [3, 4.5, 0], color: '#49c6ff' }, { parent: 'b_A0', pos: [-3, 4.5, 0], color: '#ff4f6a' }] })
+p.objects = L.objects; Object.assign(n, L.clip)
 for (const k of w.slice(1)) out.push([+(k[0] + off).toFixed(4), k[1]])
 n.warp = out; n.len = +(n.len + off).toFixed(4); n.cine.hitstops = clashes
 p.anims[name] = n
@@ -58,4 +70,4 @@ mkdirSync(OUT, { recursive: true })
 writeFileSync(join(OUT, 'project.json'), JSON.stringify(p))
 for (const f of ['meta.json', 'uploads.json']) writeFileSync(join(OUT, f), readFileSync(join(IN, f)))
 for (const d of ['geo', 'tex']) if (existsSync(join(IN, d))) { rmSync(join(OUT, d), { force: true, recursive: true }); symlinkSync(resolve(IN, d), join(OUT, d)) }
-console.log(JSON.stringify({ len: n.len, story: c.len, payoff, hold: th, hitstops: clashes.length, warp: n.warp.length }))
+console.log(JSON.stringify({ len: n.len, story: c.len, payoff, hold: th, hitstops: clashes.length, warp: n.warp.length, lights: n.cine.lights, impacts: impacts.length, grade: n.camera.grade.length }))

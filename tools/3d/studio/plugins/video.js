@@ -40,7 +40,9 @@ export async function mp4 (app, o = {}) {
   const temps = o.temp ? [] : app.ids().filter(id => app.obj(id)?.temp).map(id => vp.objects.get(id)).filter(x => x?.visible).map(x => [x, x.visible])   // temporary models are not in the video
   for (const [x] of temps) x.visible = false
   if (A.playing) A.pause()
-  if (!render) { vp.helpers.visible = false; if (vp.gizmo) vp.gizmo.visible = false }                 // the render path hides these itself
+  // Light gizmos (octahedra) are scene children, not in vp.helpers: a cine light rig printed yellow diamonds into the MP4 (2026-11-24).
+  const lh = []
+  if (!render) { vp.helpers.visible = false; if (vp.gizmo) vp.gizmo.visible = false; vp.world?.traverse(c => { if (c.userData.lightHelper && c.visible) { c.visible = false; lh.push(c) } }) }   // the render path hides these itself
   try {
     for (let i = 0; i < n; i++) {
       if (failed) throw failed
@@ -57,7 +59,7 @@ export async function mp4 (app, o = {}) {
     if (failed) throw failed
   } finally {
     if (enc.state !== 'closed') enc.close()
-    if (!render) { vp.helpers.visible = was.helpers; if (vp.gizmo) vp.gizmo.visible = was.gizmo }
+    if (!render) { vp.helpers.visible = was.helpers; if (vp.gizmo) vp.gizmo.visible = was.gizmo; for (const c of lh) c.visible = true }
     for (const [x, v] of temps) x.visible = v
     app.setTime(was.t); if (was.playing) A.play()
     vp.requestRender()

@@ -10,8 +10,8 @@ import { sample } from './sample.js'
 // shake: amplitude as a share of the camera distance; back: camera distance after the pull-back (share of the start);
 // steps: escalating rumble steps during the build (confetti: 4 brightness steps 0.5 s apart).
 export const CINE = {
-  impact: { build: 1.6, push: 0.45, fov: 0.82, slow: 0.3, hold: 4, flash: 0.85, dip: 0.12, decay: 0.35, shake: 0.03, back: 0.9, steps: 0 },
-  burst: { build: 2.5, push: 0.3, fov: 0.86, slow: 0.35, hold: 3, flash: 0.95, dip: 0.15, decay: 0.3, shake: 0.045, back: 1.1, steps: 4 },
+  impact: { build: 1.6, push: 0.45, fov: 0.82, slow: 0.3, hold: 4, flash: 0.85, dip: 0.12, decay: 0.35, shake: 0.03, back: 0.9, steps: 0, grade: { dark: 0.15, vig: 0.35, lift: 0.15, tint: 0.4 } },
+  burst: { build: 2.5, push: 0.3, fov: 0.86, slow: 0.35, hold: 3, flash: 0.95, dip: 0.15, decay: 0.3, shake: 0.045, back: 1.1, steps: 4, grade: { dark: 0.2, vig: 0.4, lift: 0.2, tint: 0.5 } },
   loop: { sweep: 360, keys: 16 }
 }
 const clone = o => o == null ? o : JSON.parse(JSON.stringify(o))
@@ -54,7 +54,7 @@ export function cinePass(c, o = {}, view = {}) {
   // Any preset number can be overridden per clip (2026-11-24 duel: a shot that starts close pushed 45 % into an occluding arm;
   // push 0.2 kept both fighters in frame).
   const K = { ...CINE[kind] }
-  for (const k of Object.keys(K)) if (k !== 'build' && Number.isFinite(+o[k]) && o[k] !== null && o[k] !== '') K[k] = +o[k]
+  for (const k of Object.keys(K)) if (k !== 'build' && k !== 'grade' && Number.isFinite(+o[k]) && o[k] !== null && o[k] !== '') K[k] = +o[k]
   // Frame counts (hold, dip) are measured on the owner's 30 fps refs, so they stay 30 fps frames whatever the clip's fps:
   // at the clip's 60 fps a 4-frame hit-stop shrank to 0.067 s and the owner saw no difference (2026-11-24).
   const len = +base.len || 2, fps = 30, cam = next.camera ||= {}
@@ -82,6 +82,12 @@ export function cinePass(c, o = {}, view = {}) {
   // Flash: a dark dip over the last ~4 frames (both refs dim before the flash), a white peak held by the hit-stop, fast decay.
   const dipT = r4(p - 4 / fps)
   put(cam, 'flash', [[r4(Math.max(T0, dipT - 2 / fps)), 0, 'in'], [dipT, -K.dip, 'linear'], [r4(p - 0.5 / fps), -K.dip, 'linear'], [p, K.flash, 'out'], [r4(Math.min(tEnd, p + K.decay)), 0]], T0, tEnd)
+  // Grade [exp, vig, tint] (2026-11-24, owner: lighting): the build darkens and closes a vignette (attention to the centre),
+  // the payoff lifts exposure with a wash of the element colour (o.tint) that decays with the flash, then a light vignette
+  // stays for the reveal. Values: domains/animation/cinematic-baseline.md.
+  const G = K.grade || CINE.impact.grade
+  put(cam, 'grade', [[T0, [0, 0, 0], 'in'], [dipT, [-G.dark, G.vig, 0], 'linear'], [r4(p - 0.5 / fps), [-G.dark, G.vig, 0], 'linear'], [p, [G.lift, G.vig * 0.4, G.tint], 'out'], [r4(Math.min(tEnd, p + K.decay + 0.1)), [0, G.vig * 0.5, G.tint * 0.3], EV], [tEnd, [0, 0, 0]]], T0, tEnd)
+  cam.gradeTint = o.tint || cam.gradeTint || '#ffd27a'
 
   // Warp (clip time -> story time): speed 1 -> 0.6 -> slow into the payoff, frozen for `hold` frames, 0.5 back up to 1.
   // A clip that already has its own warp keeps it (two time remaps would fight): reported in cine.warp.
@@ -110,4 +116,29 @@ function loopPass(next, K, o, view, base) {
   next.camera.target = [[0, F, 'auto'], [len, F]]
   next.cine = { kind: 'loop', sweep: o.sweep ?? K.sweep, warp: 'none', base }
   return next
+}
+
+// Lights (2026-11-24, owner: lighting + vfx): a point light flashes at every impact (the hit lights the fighters, 0.25 s;
+// the payoff 3x brighter, wider and 0.6 s), and each rim light (a light behind a fighter, parented to its root) sits at a
+// low base and pulses on every impact. objs = project objects; returns { objects, clip } with the lights added and keyed
+// through the anim intensity track. Re-running replaces the earlier cine lights (ids cine_L*, cine_R*).
+// o = { impacts: [{ t, at: [x,y,z], size?, payoff?, color? }], rims: [{ parent, pos, color, base? }], tint? }
+export function cineLights(objs, c, o = {}) {
+  const tint = o.tint || '#ffd27a', objects = {}, clip = clone(c), ims = (o.impacts || []).slice().sort((a, b) => a.t - b.t)
+  for (const [k, v] of Object.entries(objs)) if (!/^cine_[LR]\d+$/.test(k)) objects[k] = v
+  clip.tracks = Object.fromEntries(Object.entries(clip.tracks || {}).filter(([k]) => !/^cine_[LR]\d+$/.test(k)))
+  ims.forEach((im, i) => {
+    if (!Array.isArray(im.at) || !(im.t >= 0)) throw new Error('cine impact needs { t, at: [x,y,z] }')
+    const id = 'cine_L' + i, big = !!im.payoff, peak = r4((big ? 15 : 3) * (+im.size || 1)), life = big ? 0.6 : 0.25
+    objects[id] = { type: 'light', kind: 'point', name: (big ? 'Cine payoff light ' : 'Cine impact light ') + (i + 1), parent: null, pos: im.at.slice(), color: im.color || tint, intensity: 0, range: big ? 30 : 14, shadow: false }
+    clip.tracks[id] = { intensity: [[r4(Math.max(0, im.t - 0.02)), [0], 'linear'], [im.t, [peak], 'out'], [r4(im.t + life), [0], 'linear']] }
+  })
+  ;(o.rims || []).forEach((rm, i) => {
+    const id = 'cine_R' + i, base = +rm.base || 1.2, ks = [[0, [base], 'linear']]
+    for (const im of ims) ks.push([r4(Math.max(0, im.t - 0.01)), [base], 'linear'], [im.t, [r4(base * (im.payoff ? 4 : 2.5))], 'out'], [r4(im.t + (im.payoff ? 0.6 : 0.3)), [base], 'linear'])
+    objects[id] = { type: 'light', kind: 'point', name: 'Cine rim light ' + (i + 1), parent: rm.parent || null, pos: (rm.pos || [0, 4, -3]).slice(), color: rm.color || '#ffffff', intensity: base, range: 9, shadow: false }
+    clip.tracks[id] = { intensity: ks.sort((a, b) => a[0] - b[0]) }
+  })
+  clip.cine = { ...(clip.cine || {}), lights: Object.keys(objects).filter(k => /^cine_[LR]\d+$/.test(k)) }
+  return { objects, clip }
 }

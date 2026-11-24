@@ -471,4 +471,53 @@ export default async function (t) {
     t.ok(r.n >= 16, 'orbit keyed with >= 16 auto keys')
     s.noErrors()
   })
+  await t.test('cine v2: grade darkens + vignettes the build and tints the payoff; light intensity track; cineLights; spacing + framing lint', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Cine2', { empty: true })
+    const a = await s.run('parts.box', { pos: [0, 0.5, 0] }), b = await s.run('parts.box', { pos: [3, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(async ([a, b]) => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement
+      A.scene.env.bg = '#808080'
+      const cid = A.exec('anim.new', { name: 'Hit', len: 4, fps: 30 })
+      A.patchAnim(cid, { loop: false, tracks: { [a]: { pos: [[0, [0, 0.5, 0], 'auto'], [2.5, [0, 0.5, 2], 'auto'], [4, [0, 0.5, 2.4]]] } } })
+      vp.setCamera({ pos: [8, 3, 8], target: [0, 0.5, 1.5], fov: 45 })
+      A.exec('anim.cine', { payoff: 2.5, tint: '#ff2020' })
+      const c = A.scene.anims[cid], pc = c.warp.find(k => Math.abs(k[1] - 2.5) < 1e-4)[0]
+      const px = (t, x, y) => { A.setTime(t); vp.render(); const g = document.createElement('canvas'); g.width = cv.width; g.height = cv.height; const q = g.getContext('2d', { willReadFrequently: true }); q.drawImage(cv, 0, 0)
+        const d = q.getImageData(Math.round(x * (cv.width - 1)), Math.round(y * (cv.height - 1)), 1, 1).data; return [d[0], d[1], d[2]] }
+      const corner = { before: px(0.3, 0.01, 0.01), dip: px(pc - 0.2, 0.01, 0.01), end: px(c.len - 0.05, 0.01, 0.01) }, mid = px(pc - 0.2, 0.5, 0.15)
+      const clipAt = st => { const w = c.warp, i = w.findIndex(k => k[1] >= st), a0 = w[i - 1], b0 = w[i]; return a0[0] + (st - a0[1]) / (b0[1] - a0[1]) * (b0[0] - a0[0]) }   // warp inverse
+      const peak = px(clipAt(2.85), 0.5, 0.15)
+      // light intensity track: a point light keyed 0 -> 8 -> 0 drives the three.js light, and is restored when the clip stops
+      const lid = A.add({ type: 'light', kind: 'point', name: 'L', pos: [0, 3, 2], color: '#ffffff', intensity: 1, range: 12 })
+      A.patchAnim(cid, { tracks: { ...A.scene.anims[cid].tracks, [lid]: { intensity: [[0, [0], 'linear'], [1, [8], 'linear'], [2, [0]]] } } })
+      const L = () => vp.objects.get(lid).userData.light.intensity
+      A.setTime(0); const i0 = L(); A.setTime(clipAt(1)); const i1 = L()
+      const { cineLights } = await import(new URL('plugins/cine.js', location.href).href)
+      const cl = cineLights({ [a]: A.scene.objects[a] }, c, { impacts: [{ t: 1, at: [0, 2, 0] }, { t: 2.5, at: [0, 2, 1], payoff: true }], rims: [{ parent: a, color: '#49c6ff' }] })
+      const again = cineLights(cl.objects, cl.clip, { impacts: [{ t: 1, at: [0, 2, 0] }] })
+      // spacing + framing: two roots 0.5 apart for 1 s, then 12 apart for 2 s; a camera that looks away from them
+      const sid = A.exec('anim.new', { name: 'Space', len: 4, fps: 30 })
+      A.patchAnim(sid, { loop: false, tracks: { [a]: { pos: [[0, [0, 0.5, 0], 'step'], [1.5, [-6, 0.5, 0], 'step'], [4, [-6, 0.5, 0]]] }, [b]: { pos: [[0, [0.5, 0.5, 0], 'step'], [1.5, [6, 0.5, 0], 'step'], [4, [6, 0.5, 0]]] } },
+        camera: { pos: [[0, [0, 3, 12], 'auto'], [4, [0, 3, 12]]], target: [[0, [0, 2, 0], 'auto'], [2, [0, 2, 0], 'auto'], [2.6, [30, 2, 0], 'auto'], [4, [30, 2, 0]]] } })
+      const sp = A.exec('anim.lint', { id: sid }).map(i => i.type)
+      A.exec('anim.mode')
+      return { grade: c.camera.grade.length, tint: c.camera.gradeTint, corner, mid, peak, i0, i1, rest: L(), lint: A.exec('anim.lint', { id: cid }).map(i => i.type),
+        lights: Object.keys(cl.objects).filter(k => k.startsWith('cine_')), rimKeys: cl.clip.tracks.cine_R0.intensity.length, payPeak: cl.clip.tracks.cine_L1.intensity[1][1][0],
+        againLights: Object.keys(again.objects).filter(k => k.startsWith('cine_')), sp }
+    }, [a, b])
+    const lum = p => (p[0] + p[1] + p[2]) / 3
+    t.ok(r.grade >= 4 && r.tint === '#ff2020', 'cine writes grade keys + the tint: ' + r.grade + ' ' + r.tint)
+    t.ok(lum(r.corner.dip) < lum(r.corner.before) * 0.75, 'build: corners darken (vignette + exposure dip): ' + JSON.stringify(r.corner))
+    t.ok(Math.abs(lum(r.corner.end) - lum(r.corner.before)) < 6, 'grade settles back to neutral: ' + JSON.stringify(r.corner))
+    t.ok(r.peak[0] - r.peak[2] > r.corner.before[0] - r.corner.before[2] + 15, 'after the flash: frame keeps a wash of the element colour with the element colour: ' + JSON.stringify(r.peak))
+    t.ok(r.i0 < 0.01 && r.i1 > 40 && Math.abs(r.rest - 6) < 0.01, 'intensity track drives the light (x6 point units) and restores it: ' + [r.i0, r.i1, r.rest])
+    t.eq(r.lint, [], 'a cine v2 clip still lints clean')
+    t.eq(r.lights, ['cine_L0', 'cine_L1', 'cine_R0'], 'cineLights adds an impact light per hit and a rim light')
+    t.ok(r.rimKeys === 7 && r.payPeak === 15, 'rim pulses on both impacts, payoff light 3x: ' + r.rimKeys + ' ' + r.payPeak)
+    t.eq(r.againLights, ['cine_L0'], 're-running cineLights replaces its own lights')
+    for (const k of ['spacing-close', 'spacing-far', 'framing']) t.ok(r.sp.includes(k), k + ' flagged: ' + r.sp)
+    s.noErrors()
+  })
 }
