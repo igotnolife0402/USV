@@ -345,3 +345,8 @@ improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for 
 ## [2026-11-24] vault / hard tier clock in hooks (improve 30: 29.6 s PASS)
 - Owner: medium = 5 min, stop overrunning. Warnings failed 3x, so pre-tool now enforces it.
 improved: budgetGate denies new agents past 50 % of target; denies all non-wrap-up tools past 100 %; improve skill counts think time inside the tier budget; Agent/Task/Workflow added to the PreToolUse matcher; stale clocks fail open (test 47/47)
+
+## [2026-11-24] build / car60-a live upload to Umbrio hub
+Body, trim, glass, lights, mirrors, suspension and 2 rear brakes are live; the 4 wheels (54 docs) were refused by the 100 MB DB quota after deleting car-a, computer-setup-1122/1122b, dab-a/b/c geo (owner approved).
+improved: delete batches pre-built with if_version so freeing space is 1 call per 50 docs; geo uploads sized by batch before sending; projects/meta pinned by returned version (no re-read)
+
