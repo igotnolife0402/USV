@@ -456,3 +456,8 @@ improved: realism push reverted to owner's stylized reference (owner.md VFX exce
 ## [2026-11-24] build / recreate owner VFX reference grid
 grid.py composites the 10 real sheets in reference hues: lit sat 0.52 (ref 0.60), near-white 2.9 %; first pass (max-light frames) 0.39 / 5.9 % = white blobs. Shapes the reference has (rings, swirls, star glints, magic circles, tornados) do not exist as families yet.
 improved: grid.py look tool (preview compositing in numpy, no browser); frame pick = most hued light, not max light; router "recreate the image" -> vfx (was images/3d-editor); flipbook.md step 5 look check
+
+## [2026-11-24] build / recreate owner VFX reference sheet (stylized)
+New tools/vfx/stylized (style/shapes/sheet): 62 effects at the reference layout in ~1 s, hues sampled from the reference, flipbook HSV ramp + halos. Compare check 31/62 cells within hue 20 deg + sat 0.1: Failed on the rest (tornado/portal fill, glint softness, swirl saturation).
+improve 30: brief ~20 s, Sonnet 15 s, 66.2 s total (FAIL +36), rungs 1.
+improved: stylized generator + per-cell compare gate; halo pad + round add-window (no square halo edges); hues sampled from ref, not guessed; tools/vfx README row

@@ -1,0 +1,6 @@
+{
+ "name": "stylized",
+ "what": "Stylized mobile-game VFX sheet: 62 toon effects (glints, portals, tornados, swirls, orbs, magic circles, icons, clouds) with the flipbook HSV ramp and same-hue halos, ~1 s",
+ "run": "python3 tools/vfx/stylized/sheet.py OUT.png [REF.jpg] (REF adds OUT-compare.png + per-cell hue/sat match)",
+ "prompt": "Output to scratch. New effect = a shapes.py function + one CELLS row; colour only through style.colorize/glow_fx."
+}
