@@ -477,7 +477,8 @@
         "identical shape, recolor reference, recolour, gradient texture, pattern texture",
         "200 vfx, batch vfx, unique effects, white textures",
         "symbol,icon,different shape,repeating",
-        "slash,smash,wind,flipbook pack"
+        "slash,smash,wind,flipbook pack",
+        "rotated,same vfx"
       ],
       "notes": [
         "domains/vfx/playbook.md",

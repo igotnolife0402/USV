@@ -479,3 +479,7 @@ improved: font glyphs filtered (tofu, letters, clip-art SKIP); procedural emblem
 ## [2026-11-24] build / vfx pack 70/30: 140 animated action flipbooks + 60 symbols
 tools/vfx/stylized/actions.py: 22 action kinds (slash/smash/wind/others) as Grid4x4 flipbooks in recolor style; 60 symbols picked farthest-first. improve 30: brief 13 s, total 52.4 s (FAIL +22.4).
 improved: action generator added (owner's main need); flipbook step-jump metric reused from flipbook/vfx.py; slash crescents thickened + spark trails after viewing frames; beam grow slowed (jump 6.4 -> 4.0).
+
+## [2026-11-24] fix / vfx no rotated copies
+actions.py: canonical angle per kind, uniqueness gate checks 8 rotations x mirror. Run: 140 made, 501 redraws, max_corr 0.914 (gate 0.85 missed on some), 95/2240 empty frames, 8 jumpy (beams, lightning); peak contact sheets viewed: heal/beam/smash variants look alike, dust/ice faint.
+improved: rotation-invariant gate; canonical angles; slash sweep/fade overlap (jump 11 -> < 3); rule recorded as lesson.

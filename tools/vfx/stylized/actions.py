@@ -16,7 +16,10 @@ _sp = importlib.util.spec_from_file_location('stylized_symbols', os.path.join(_d
 SY = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(SY)   # loads stylized batch.py by path too (flipbook/ shadows it)
 HUES, white = SY.HUES, SY.white
 
-C, SS, F, MAXC = 160, 2, 16, 0.85          # frame px, supersample, frames, uniqueness gate
+C, SS, F, MAXC = 160, 2, 16, 0.85
+# owner 2026-11-24: never ship a rotated/mirrored copy (the game rotates a texture itself): one canonical angle per kind, and the
+# uniqueness gate compares every candidate in 8 rotations x mirror, so variants differ in shape (sweep, width, count, spread), not angle
+CANON = {'slash': math.pi * .85, 'xslash': math.pi * .75, 'claw': math.pi * .85, 'spin': -math.pi / 2}          # frame px, supersample, frames, uniqueness gate
 FAM = {'slash': ['slash', 'xslash', 'claw', 'spin'], 'smash': ['smash', 'slam', 'punch', 'starhit'],
        'wind': ['gust', 'spiralgust', 'dash', 'tornado'],
        'other': ['explosion', 'fire', 'lightning', 'splash', 'beam', 'magic', 'heal', 'dust', 'ice', 'smoke']}
@@ -66,9 +69,9 @@ def jag(rng, x0, y0, x1, y1, k, amp):
 
 def params(kind, rng):
     """random per-effect params; frames reuse them so the effect is one continuous motion"""
-    p = dict(kind=kind, rot=rng.uniform(0, 2 * math.pi), seed=int(rng.integers(1 << 30)), sz=rng.uniform(.8, 1.0),
+    p = dict(kind=kind, rot=CANON.get(kind, 0.0), seed=int(rng.integers(1 << 30)), sz=rng.uniform(.8, 1.0),
              n=int(rng.integers(2, 6)), sq=rng.uniform(.5, 1.0), w=rng.uniform(.7, 1.4), sweep=rng.uniform(1.6, 3.6),
-             dirn=1 if rng.random() < .5 else -1, k=int(rng.integers(5, 13)), off=rng.uniform(-.25, .25))
+             dirn=1, k=int(rng.integers(5, 13)), off=rng.uniform(-.25, .25))
     return p
 
 
@@ -87,7 +90,7 @@ def draw(p, t):
     if k in ('slash', 'xslash', 'claw', 'spin'):
         cuts = {'slash': 1, 'xslash': 2, 'claw': 3 + p['n'] % 2, 'spin': 1}[k]
         for c in range(cuts):
-            tt = t - c * .06; head = ease(tt / .3); tail = .8 * ease(max(0, tt - .38) / .62)      # full crescent visible ~.3-.45
+            tt = t - c * .06; head = ease(tt / .4); tail = .8 * ease(max(0, tt - .26) / .74)      # overlap: no frozen frames between sweep and fade      # full crescent visible ~.3-.45
             if head <= 0: continue
             if k == 'spin': a0, span = rot, 2 * math.pi * .95
             elif k == 'xslash': a0, span = rot + c * math.pi / 2, p['sweep'] * .7
@@ -224,6 +227,18 @@ def lit(m, h):
     return np.clip(body[..., None] * h + np.clip(core * .9, 0, 1)[..., None] * (1 - h), 0, 1)
 
 
+def vecs(m):
+    """rotation + mirror invariant signature: the candidate in 8 angles, each also flipped"""
+    im = Image.fromarray((m * 255).astype(np.uint8)); out = []
+    for a in range(0, 360, 45):
+        r = im.rotate(a, Image.BILINEAR); out += [vec_im(r), vec_im(r.transpose(Image.FLIP_LEFT_RIGHT))]
+    return out
+
+
+def vec_im(im):
+    v = np.asarray(im.resize((32, 32)), np.float32).ravel(); return (v - v.mean()) / (v.std() + 1e-6)
+
+
 def vec(m):
     v = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).resize((32, 32)), np.float32).ravel(); return (v - v.mean()) / (v.std() + 1e-6)
 
@@ -252,8 +267,8 @@ def main(sym_dir, out, n=140, ns=60):
     keep = []; bg = np.array([.05, .12, .18], np.float32)
     for i, kind in enumerate(kinds):
         best = None
-        for tr in range(25):
-            p = params(kind, rng); v = vec(draw(p, .3)); c = max((float(v @ u) / v.size for u in keep), default=0)
+        for tr in range(40):
+            p = params(kind, rng); m0 = draw(p, .3); v = vec(m0); c = max((float(w_ @ u) / w_.size for w_ in vecs(m0) for u in keep), default=0)
             if best is None or c < best[0]: best = (c, p, v)
             if c < MAXC: break
             st['redraws'] += 1
