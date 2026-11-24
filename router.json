@@ -454,7 +454,9 @@
         "vfx preview animation",
         "just blinking",
         "in editer",
-        "in the editor"
+        "in the editor",
+        "still blinking",
+        "full animation"
       ],
       "notes": [
         "domains/vfx/playbook.md",

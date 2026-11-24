@@ -129,10 +129,10 @@ function VFX.make(id: string, parent: Instance, studs: number?, theme: Theme?): 
 				NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.2, 0),
 				NumberSequenceKeypoint.new(0.8, 0), NumberSequenceKeypoint.new(1, 1),
 			})
-		else -- the white-hot core burns out first, the dark edge lingers
+		else -- the sheet already dissipates: only a light tail, white-hot core first (a full fade hid half the play)
 			p.Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.85 - 0.35 * f, 0),
-				NumberSequenceKeypoint.new(1, 0.3 + 0.7 * f),
+				NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.9 - 0.2 * f, 0),
+				NumberSequenceKeypoint.new(1, 0.15 + 0.35 * f),
 			})
 		end
 		p.LightEmission = GLOW[step]

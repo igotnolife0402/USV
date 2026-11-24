@@ -101,9 +101,27 @@ def white(frames):
     L = (a[..., :3] * [0.299, 0.587, 0.114]).sum(-1)
     vis = a[..., 3] > 0.05
     top = float(np.percentile(L[vis], 99.9)) if vis.any() else 1.0
-    L = np.clip(L / max(top, 1e-3), 0, 1)
+    L = sustain(np.clip(L / max(top, 1e-3), 0, 1), a[..., 3])
     g = (L * 255 + 0.5).astype(np.uint8)
     return [np.dstack([g[i], g[i], g[i], frames[i][..., 3]]) for i in range(len(frames))]
+
+
+def sustain(L, A, keep=0.65, gmin=0.35):
+    """Owner 2026-11-24 ("I only see the first 0.1 s"): impact sheets lost 75 %+ of their light within 10 of 64 frames (shock,
+    crystal-burst, glints), so in game they read as a blink. After the peak frame, each frame's light sum(L*A) is lifted to at
+    least peak*(1 - keep*p) by a per-frame gamma L**g (g >= gmin, dim pixels rise most, white stays white); alpha is untouched,
+    so a frame with no alpha left still ends the play."""
+    E = (L * A).sum((1, 2)); pk = int(E.argmax()); n = len(L)
+    for i in range(pk + 1, n):
+        T = E[pk] * (1 - keep * i / max(n - 1, 1))
+        if E[i] >= T or not A[i].any(): continue
+        lo, hi = gmin, 1.0
+        for _ in range(14):   # energy falls as g grows: find the largest g that still reaches T
+            g = (lo + hi) / 2
+            if (L[i] ** g * A[i]).sum() >= T: lo = g
+            else: hi = g
+        L[i] = L[i] ** lo
+    return L
 
 
 def layer_colors(id, cols):
@@ -125,14 +143,17 @@ RAMP = ((0, 0.45), (0, 0.7), (0, 1.0), (1, 0.35), (1, 0.7))   # band 0..4 dark->
 def bands(frames, n=5, ov=0.06):
     """Owner 2026-11-24: one tinted sheet is flat (Roblox Color is per particle, not per pixel). Split the white sheet by
     luminance into n soft bands (smoothstep edges +-ov) whose alphas sum to the sheet's alpha; band k = one texture = one
-    emitter with its own colour, so the effect gets a real dark->bright gradient. Edges sit halfway between even steps and
-    the sheet's luminance quantiles, so every band holds pixels (all n layers show) and edges are >= 0.5/n apart.
+    emitter with its own colour, so the effect gets a real dark->bright gradient. Edges sit 85/15 between the sheet's alpha-weighted
+    luminance quantiles and even steps, so every band holds pixels (all n layers show) and edges are >= 0.15/n apart.
     Returns (band frame lists, edges, tops); grey_k = L / top_k keeps the detail inside each band (L ~= sum w_k grey_k top_k)."""
     a = np.stack(frames).astype(np.float32) / 255
     L, A = a[..., 0], a[..., 3]
     vis = A > 0.05
-    q = np.quantile(L[vis], np.arange(1, n) / n) if vis.any() else np.arange(1, n) / n
-    edges = [round(float(0.5 * q[j] + 0.5 * (j + 1) / n), 4) for j in range(n - 1)]
+    if vis.any():   # alpha-weighted quantiles: a band's share is its alpha mass, so faint pixels count less (sustain lifts darks)
+        o = np.argsort(L[vis]); lv, cw = L[vis][o], np.cumsum(A[vis][o]); q = np.interp(np.arange(1, n) / n * cw[-1], cw, lv)
+    else: q = np.arange(1, n) / n
+    edges = [round(float(0.85 * q[j] + 0.15 * (j + 1) / n), 4) for j in range(n - 1)]
+    ov = min(ov, 0.4 * float(np.diff([0] + edges + [1]).min()))   # edges closer than 2*ov squeeze the middle band to a sliver
     s = [np.ones_like(L)] + [img.smooth(e - ov, e + ov, L) for e in edges] + [np.zeros_like(L)]
     tops = [min(1.0, round(e + ov, 4)) for e in edges] + [1.0]
     out = []
