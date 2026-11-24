@@ -361,3 +361,4 @@ improved: playbook rule that the DB cap is fixed + ways out; router 3d words dat
 seethru 22.2% -> 0.68% by flipping 4 inward-wound shells (cabin, body-1..3), pushed live (v2). car200 not built; wheels still blocked by quota.
 improved: seethru measured (root cause found: inward winding); 4 shells fixed live; L-145 + errors row: seethru before live upload
 
+improved: errors row + L-146: pin only uploaded ids
