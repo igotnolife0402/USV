@@ -362,3 +362,8 @@ improved: clip camera track in Umbrio; SHOTS_FPS frame sheets; shots no longer f
 New tab supernova-duel-ii-0143: 20 s, clip camera 31 keys (cuts, close-ups, low angles, orbit, shake), letterbox 2.39 (new anim.js bars pass, test 12/12), slow-mo binds at 3.6 and 12.4 s, 6 FK-solved contacts (<= 0.05 stud), 49 fx tinted per fighter at the contacts, bodies lie on the ground. Gate PASS, read-back = built, zfight PASS; frames reviewed at 12 fps headless; phone look queued.
 improve 120: ~100 s brief, 20 s Sonnet, 132.4 s total (FAIL +12.4), rungs 1-4.
 improved: letterbox bars in Umbrio; fk.py reusable FK + contact solver; tint.py sheet recolour; duel.py yaw paths/tint/extra tracks/fx variants/env; shots frames use the full render (bars, post passes)
+
+## [2026-11-24] build / Supernova Duel III (all-new fitted VFX x6, /improve 120)
+Tab supernova-duel-iii-0155: v2 choreography + camera, 300 flipbooks (v2 49), 35 new sheets (none from v1/v2), 16 trail arcs traced from FK tip paths (plane residual < 0.1), per-fighter Ar/Li colour. Gate PASS, read-back = built, zfight PASS; frames reviewed headless; phone fps queued.
+improve 120: ~88 s brief, 21 s Sonnet, 121.2 s total (PASS), rungs 1-4.
+improved: fitted swing-trail generator (FK tip trace, planar split); owner rule 9 cutscene exception; vfx playbook Cutscene VFX section; duel fx can ride rig groups

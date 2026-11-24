@@ -59,3 +59,8 @@ Run [checklists/vfx.md](checklists/vfx.md). Add new failures to [errors](domains
 - Thick flat pools need detail: add fixed (not per-frame) noise to the height before the gradient, or they flicker.
 - Flipbook cards in a 3D scene: never bake a side light (it fights the scene light as the camera turns); light from the camera, mostly emissive, thin parts translucent, soft alpha edges. Physics must match where it plays: a floor bounce only on the ground (`liquid.py --air` for bodies/mid-air).
 - No overkill: effects mark the one big moment (all done) or run small and subtle throughout; never a big burst on every step (each armor piece, each hit). Owner rule 2026-11-21, applies to all builds.
+
+## Cutscene VFX (owner 2026-11-24)
+- Never reuse preset sheets or recolour them in PIL: every effect is a fresh `vfx.py` recipe for the shot, coloured by `element=` per fighter (Ar cyan, Li crimson, Na white-gold).
+- Swing trails are traced from the real blade-tip path (fk.py), split until each arc is planar (< 0.1 stud), one sheet + flat card per arc (`tools/3d/avatar/duel/supernova3/build.py`).
+- Density: ~300 cards / 20 s (6x v2), <= 40 sheets; cover > 60 deg/frame pose snaps with 3-frame spark cards.

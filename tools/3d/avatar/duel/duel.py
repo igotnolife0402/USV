@@ -59,7 +59,9 @@ for i, e in enumerate(SPEC['fx']):
              rot=e.get('rot', [0, 0, 0]), size=e['size'], start=e['t'], life=life, loop=loop, dur=dur, fps=fps if loop else round(64 / life, 2),
              blend='add', flat=bool(e.get('flat')))
     if e.get('shape') == 'beam': o.update(shape='beam', length=e['length'], speed=e.get('speed', 18))
-    fid = f'fx{i:02d}'; objs[fid] = o
+    if e.get('parent'): o['parent'] = e['parent']                 # ride a rig group (auras, hand charges): pos is then local
+    if e.get('alpha') is not None: o['opacity'] = e['alpha']
+    fid = f'fx{i:03d}'; objs[fid] = o
     if e.get('move'): tracks.setdefault(fid, {})['pos'] = [[t, p, 'smooth'] for t, p in e['move']]
     if e.get('grow'): tracks.setdefault(fid, {})['scale'] = [[t, [s, s, s], 'smooth'] for t, s in e['grow']]
     for k in ('start', 'dur'):
