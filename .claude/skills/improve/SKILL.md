@@ -31,7 +31,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
 - First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the Sonnet time it predicts for that budget (interpolated from measured runs, 17 s at 30 s to 27 s at 240 s); budgets <= 15 s have no Sonnet.
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
-- Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
+- Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further. `left` <= 20 s at start: no exploration at all, brief from the hook block (L-139).
 - The improver hand-back can land mid-build: run `node scripts/improve-timer.mjs done` as the very next call when it arrives, before any other tool (2026-11-24: done ran 115 s late -> false FAIL).
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 

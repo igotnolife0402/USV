@@ -1,6 +1,6 @@
 --!strict
 -- Wind + motion VFX riding the wyvern: wingtip and tail trails, dash-only wind spirals and speed lines,
--- a cloud puff at each dash start, one shockwave ring at the flare (the single big effect), faint ambient wind.
+-- a cloud puff at each dash start, one shockwave ring on the payoff frame at the flare (the single big effect), faint ambient wind.
 -- Built-in textures only (rbxasset://), so nothing needs uploading.
 local Bake = require(script.Parent.Bake)
 
@@ -127,7 +127,7 @@ function Fx.new(model: Model, parts: { [string]: BasePart }, centers: { [string]
 end
 
 -- pose: Spine pose; frames: world CFrames of anchors; now: clock seconds
-function Fx.update(self: Fx, pose: any, frames: { [string]: CFrame }, now: number, playerPos: Vector3)
+function Fx.update(self: Fx, pose: any, frames: { [string]: CFrame }, now: number, playerPos: Vector3, payoff: boolean)
 	-- spirals: two points 180 deg apart orbiting the torso 3 times a second
 	local seg3 = frames.TorsoSeg3
 	local c3 = self.centers.TorsoSeg3
@@ -142,7 +142,7 @@ function Fx.update(self: Fx, pose: any, frames: { [string]: CFrame }, now: numbe
 	if self.lastDash < 0.5 and pose.dash >= 0.5 then
 		self.puff:Emit(12)
 	end
-	if self.lastFlare < 0.8 and pose.flare >= 0.8 then
+	if payoff then -- the camera's hit-stop + flash frame (Bake.CAM.PAYOFF_STORY), so ring, flash and shake land together
 		self.ringBorn = now
 	end
 	self.lastDash, self.lastFlare = pose.dash, pose.flare

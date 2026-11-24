@@ -9,11 +9,14 @@ local Bake = require(script.Bake)
 local Spine = require(script.Spine)
 local PlayerPose = require(script.PlayerPose)
 local Fx = require(script.Fx)
+local Camera = require(script.Camera)
 
 local CONFIG = {
 	SCALE = 1, -- whole loop + wyvern size
 	FX_ON = true,
 	MODEL_NAME = "Wyvern",
+	CAMERA = true, -- cinematic showcase camera (orbit + flare payoff); false = the player keeps their own camera
+	POST = true, -- bloom, colour grade, depth of field + payoff flash while the camera runs
 }
 
 local player = Players.LocalPlayer
@@ -84,10 +87,15 @@ local function run(character: Model)
 	end
 	local cframes: { CFrame } = table.create(#list)
 	local t0 = os.clock()
+	local cam = if CONFIG.CAMERA then Camera.start(CONFIG.POST) else nil
+	local lastT = 0
 
 	local conn = RunService.RenderStepped:Connect(function()
 		local now = os.clock() - t0
-		local t = now % Bake.LOOP_LEN
+		local c = now % Bake.LOOP_LEN
+		local t = Camera.warp(c) -- story time: slow-mo into the flare, 4-frame hit-stop, loop still 16 s
+		local payoff = lastT < Bake.CAM.PAYOFF_STORY and t >= Bake.CAM.PAYOFF_STORY
+		lastT = t
 		local pose = Spine.pose(t)
 		local sub = Spine.subParts(pose)
 		-- anchor frames to world (path space is scaled about the centre)
@@ -109,7 +117,10 @@ local function run(character: Model)
 		PlayerPose.update(character, center, t)
 		if fx then
 			local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			fx:update(pose, world, now, if root then root.Position else center.Position)
+			fx:update(pose, world, now, if root then root.Position else center.Position, payoff)
+		end
+		if cam then
+			Camera.update(cam, c, center, scale, world.TorsoSeg2.Position)
 		end
 	end)
 
@@ -121,6 +132,9 @@ local function run(character: Model)
 		end
 		cleaned = true
 		conn:Disconnect()
+		if cam then
+			Camera.stop(cam)
+		end
 		if fx then
 			fx:destroy()
 		end

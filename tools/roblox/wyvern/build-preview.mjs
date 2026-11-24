@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const mods = ['spec', 'motion', 'geo', 'texture', 'pose'];
+const mods = ['spec', 'motion', 'geo', 'texture', 'pose', 'camera'];
 const wrap = (name) => {
   let src = fs.readFileSync(path.join(here, `${name}.mjs`), 'utf8');
   const exp = [];

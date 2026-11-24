@@ -6,9 +6,10 @@ import { TUNE, BODY, TAIL_BLADE } from './spec.mjs';
 import { bake, wingAxes } from './motion.mjs';
 import { build, WING_PTS, JAW_HINGE } from './geo.mjs';
 import { PLAYER_POSE, PLAYER_FLOAT } from './pose.mjs';
+import { bakeCamera } from './camera.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const B = bake(), parts = build();
+const B = bake(), parts = build(), cam = bakeCamera(B);
 const f = (v) => (Math.abs(v) < 5e-5 ? '0' : (+v.toFixed(4)).toString());
 const arr = (a, per = 12) => { const s = a.map(f), lines = []; for (let i = 0; i < s.length; i += per) lines.push('\t' + s.slice(i, i + per).join(', ') + ','); return '{\n' + lines.join('\n') + '\n}'; };
 const v3 = (p) => `Vector3.new(${p.map(f).join(', ')})`;
@@ -62,6 +63,20 @@ ${parts.map((p) => `\t{ name = "${p.name}", anchor = "${p.anchor}", mat = "${p.m
 Bake.WING = { R = ${axes(1)}, L = ${axes(-1)} }
 Bake.WING_TIP = { R = { tip = ${v3(tipR)}, wrist = ${v3(wR)} }, L = { tip = ${v3([-tipR[0], tipR[1], tipR[2]])}, wrist = ${v3([-wR[0], wR[1], wR[2]])} } }
 Bake.JAW_HINGE = ${v3(JAW_HINGE)}
+
+-- cinematic camera, per clock sample (NT + 1): story time warp (linear lookup), camera pos/look (Catmull-Rom), fov,
+-- flash (-1 black .. 1 white, linear) and shake amplitude in studs (linear). Payoff = hit-stop at the flare.
+Bake.CAM = {
+	WARP = ${arr(cam.warp)},
+	POS = ${arr(flat(cam.pos))},
+	LOOK = ${arr(flat(cam.look))},
+	FOV = ${arr(cam.fov)},
+	FLASH = ${arr(cam.flash)},
+	SHAKE = ${arr(cam.shake)},
+	FOCUS = ${v3(cam.focus)},
+	PAYOFF_CLOCK = ${f(cam.cF)},
+	PAYOFF_STORY = ${f(cam.tPay)},
+}
 
 Bake.PLAYER_POSE = {
 ${Object.entries(PLAYER_POSE).map(([k, a]) => `\t${k} = { ${a.join(', ')} },`).join('\n')}

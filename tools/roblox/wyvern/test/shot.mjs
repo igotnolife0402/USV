@@ -15,6 +15,9 @@ const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=sw
 const page = await browser.newPage({ viewport: { width: 960, height: 600 }, deviceScaleFactor: 1 });
 // CDN is often blocked in cloud sessions: serve three@0.160.0 from $NODE_MODULES/three when present.
 const nm = process.env.NODE_MODULES;
+if (nm && !fs.existsSync(path.join(nm, 'three', 'build', 'three.module.js'))) { // scratchpads get cleared between sessions
+  console.error(`NODE_MODULES=${nm} has no three@0.160.0: run  (cd ${path.dirname(nm)} && npm i three@0.160.0)`); process.exit(2);
+}
 if (nm) await page.route('https://cdn.jsdelivr.net/npm/three@0.160.0/**', (r) => { const f = path.join(nm, 'three', r.request().url().split('three@0.160.0/')[1]); r.fulfill({ status: 200, contentType: 'text/javascript', body: fs.readFileSync(f) }); });
 page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
 page.on('pageerror', (e) => errs.push(String(e)));

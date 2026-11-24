@@ -64,3 +64,15 @@ export const MOVE_FX = {
   dash2: { wings: 'fold', dash: 1 },
   weave: { wings: 'flap', flapHz: 2.0 },
 };
+
+// Cinematic camera (domains/animation/cinematic-baseline.md, kind 'loop' + one 'impact' payoff at the flare).
+// Base: one 360 deg orbit per loop around the player. Payoff: push-in, slow-mo, hit-stop, dip + flash, shake, hold, reveal.
+// The warp remaps clock -> story time and is normalised so the clock loop stays exactly LOOP_LEN (seamless).
+export const CAMERA = {
+  radius: 62, height: 14, heightAmp: 6, heightCycles: 2, fov: 62, lookPlayer: 0.65, // look = lerp(torso, player, 0.65)
+  payoffMove: 'flare',
+  build: 1.6, push: 0.35 /* baseline 0.45 put the spread wing 5 studs from the lens; sim gate >= 8 */, pushEase: [0.4, 0, 0.9, 0.6], fovK: 0.82,
+  slow: 0.3, holdFrames: 4, fps: 30,
+  dip: -0.12, flash: 0.85, flashDecay: 0.35, shake: 0.03, shakeDecay: 0.4,
+  hold: 0.5, holdDrift: 0.05, reveal: 1.2, revealEase: [0.42, 0, 0.58, 1], slowOut: 1.0,
+};

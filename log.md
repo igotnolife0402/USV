@@ -320,3 +320,8 @@ tools/roblox/wyvern: one spec -> GLB (39 parts, 34.6k tris, scale atlas + normal
 improve 80: brief ~45 s, Sonnet 24 s, done logged 185.8 s (late: hand-back arrived mid-build), rungs 1-3.
 improved: improve skill runs timer done on hand-back (L-136); mobile profile CDN-403 headless workaround (L-137); pre-tool install check ignores heredoc data + test (L-135 promoted); animation route skill 3d-editor -> roblox + wyvern/pet router words + complex tier words; animation playbook/index + tools/roblox index list the wyvern tool; roblox errors row for blocked luau binary
 learn: L-138 flight-path clearance rule in animation playbook; vfx skill not invoked (VFX were native Roblox objects built in Fx.luau, primary route roblox)
+
+## [2026-11-24] build / wyvern cinematic camera + post pass
+Baked camera track (camera.mjs) with slow-mo hit-stop payoff, flash, shake, push-in; Camera.luau plays it with Bloom/CC/DoF; preview Cine/Free. sim 11/11 PASS; preview shots 0 errors; not run in Roblox (queued).
+improve 60: 153 s total, FAIL +93 (late start + branch read).
+improved: camera-to-body sim gate incl. wing tips (caught 5-stud clip); flash keyed on a sample (peak 0.69 -> 0.85); shot.mjs exits with install hint when three is missing; flash overlay no longer covers HUD; L-139 improve no-explore rule; router words camera/cinematic/graphics

@@ -93,7 +93,10 @@
         "wyvern",
         "dragon pet",
         "pet animation",
-        "circling the player"
+        "circling the player",
+        "camera",
+        "cinematic",
+        "graphics"
       ],
       "notes": [
         "domains/roblox/playbook.md",
