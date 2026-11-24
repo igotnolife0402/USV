@@ -36,3 +36,6 @@ Owner: white only (game tints via ImageColor3), no GIFs, no wasted sheets. `pyth
 frames into shared 1024 atlases (64 x 128 px cells), drops empty/unchanged frames as holds, writes VFXAtlas.luau
 (`play(adornee, name, {color,size,duration})`, BillboardGui + ImageRectOffset). 67 effects: 24 MB -> 15 atlases, 2.9 MB.
 ParticleEmitter flipbooks cannot play a sheet sub-range: packed atlases need this player.
+
+## Last step of every run
+Add the white sheets to the shared library (Claude-Hub db `vfx`): `python3 tools/vfx/library.py` (add the set to `SRC`), steps in [domains/vfx/library.md](../../../domains/vfx/library.md).

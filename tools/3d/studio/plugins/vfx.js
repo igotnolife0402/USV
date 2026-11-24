@@ -143,7 +143,7 @@ function projectFx(app) {                // effects already in this project, one
   return [...seen.values()]
 }
 function thumb(app, e, el) {             // a frame a third of the way in, from the sheet itself
-  const g = +e.grid || 4, i = Math.floor((+e.frames || g * g) / 3), x = (i % g) / (g - 1) * 100, y = Math.floor(i / g) / (g - 1) * 100
+  const g = +e.grid || 4, i = Math.floor((+e.frames || g * g) / 3), x = g > 1 ? (i % g) / (g - 1) * 100 : 50, y = g > 1 ? Math.floor(i / g) / (g - 1) * 100 : 50   // grid 1 = a static symbol
   const set = url => { el.style.backgroundImage = `url("${url}")`; el.style.backgroundSize = `${g * 100}% ${g * 100}%`; el.style.backgroundPosition = `${x}% ${y}%` }
   if (e.asset) set('/_blob/' + e.asset)
   else app.tex.get(e.tex).then(d => d && set(d.data || (d.asset ? '/_blob/' + d.asset : ''))).catch(() => {})
@@ -157,11 +157,19 @@ function addFx(app, e, at) {
 function library(app) {
   app.ui.sheet({ title: 'Effects', cls: 'vfx-sheet', render(body, close) {
     body.append(h('div', 'vfx-hint mute', 'Drag onto a timeline row: it plays from there and rides that part. Tap: at the playhead, on the selection.'))
-    const list = h('div', 'vfx-list'); body.append(list)
+    // the hub library holds hundreds of full sheets: thumbs load only when scrolled into view, search + kind chips narrow the list
+    const bar = h('div', 'vfx-bar'), q = h('input', 'vfx-q'), list = h('div', 'vfx-list'); q.type = 'search'; q.placeholder = 'Search effects'
+    let kind = '', all = []
+    const chips = ['', 'flipbook', 'action', 'symbol'].map(k => { const c = h('button', 'vfx-chip'); c.type = 'button'; c.textContent = k ? k[0].toUpperCase() + k.slice(1) : 'All'; c.onclick = () => { kind = k; chips.forEach(x => x.classList.toggle('on', x === c)); show() }; return c })
+    chips[0].classList.add('on'); bar.append(q, ...chips); body.append(bar, list)
+    const show = () => { const t = q.value.trim().toLowerCase(); for (const [it, e] of all) it.hidden = (kind && (e.kind || 'flipbook') !== kind) || (t && !e.name.toLowerCase().includes(t)) }
+    q.addEventListener('input', show)
+    const io = typeof IntersectionObserver === 'function' ? new IntersectionObserver(es => { for (const x of es) if (x.isIntersecting) { io.unobserve(x.target); x.target._load() } }, { rootMargin: '200px' }) : null
     const fill = items => {
       for (const e of items) {
         const it = h('button', 'vfx-it'), pic = h('div', 'vfx-pic'), lab = h('div', 'vfx-lab')
-        it.type = 'button'; lab.textContent = e.name; it.append(pic, lab); thumb(app, e, pic); list.append(it)
+        it.type = 'button'; lab.textContent = e.name; it.append(pic, lab); list.append(it); all.push([it, e])
+        if (io) { pic._load = () => thumb(app, e, pic); io.observe(pic) } else thumb(app, e, pic)
         let drag = null
         // tracked on the window: the list turns see-through (pointer-events off) mid-drag, which would drop an element's capture
         it.addEventListener('pointerdown', ev => {
@@ -190,11 +198,13 @@ function library(app) {
       }
     }
     const own = projectFx(app); fill(own)
-    shared(app).then(all => { const have = new Set(own.map(e => e.tex)); fill(all.filter(e => !have.has('fx-' + e.id)).map(e => ({ ...e, tex: 'fx-' + e.id }))); if (!list.children.length) list.append(h('div', 'mute', 'No effects yet: build some with the VFX generator.')) })
+    shared(app).then(lib => { const have = new Set(own.map(e => e.tex)); fill(lib.filter(e => !have.has('fx-' + e.id)).map(e => ({ ...e, tex: 'fx-' + e.id }))); show(); if (!list.children.length) list.append(h('div', 'mute', 'No effects yet: build some with the VFX generator.')) })
   } })
 }
 const CSS = `.vfx-hint{font-size:12px;margin:0 4px 10px}.vfx-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 .vfx-it{display:flex;flex-direction:column;gap:6px;padding:6px;border:1px solid var(--line);border-radius:var(--r,8px);background:var(--panel2);color:var(--text);touch-action:none;cursor:grab;font:inherit}
+.vfx-bar{display:flex;flex-wrap:wrap;gap:6px;margin:0 4px 10px}.vfx-q{flex:1 1 140px;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:var(--r,8px);background:var(--panel2);color:var(--text);font:inherit}
+.vfx-it[hidden]{display:none}.vfx-chip{padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:none;color:var(--text);font:inherit;font-size:12px}.vfx-chip.on{background:var(--panel2);border-color:var(--accent,#6aa0ff)}
 .vfx-pic,.vfx-ghost{aspect-ratio:1;border-radius:6px;background-color:#0b0f1a;background-repeat:no-repeat}
 .vfx-lab{font-size:12px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vfx-ghost{position:fixed;width:56px;z-index:2147483600;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.45)}

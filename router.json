@@ -480,7 +480,8 @@
         "slash,smash,wind,flipbook pack",
         "rotated,same vfx",
         "identical vfx, same shape, all unique, unique shapes",
-        "white ones, color itself, atlas, sheets as an animation, flipbook atlas"
+        "white ones, color itself, atlas, sheets as an animation, flipbook atlas",
+        "vfx library, all vfx, animator effects, effects list, effects picker, save the same place"
       ],
       "notes": [
         "domains/vfx/playbook.md",

@@ -235,4 +235,27 @@ export default async function (t) {
     t.ok(!(await s.eval(() => document.querySelector('.vfx-sheet'))), 'the list closes after the drop')
     s.noErrors()
   })
+
+  await t.test('effects list: hub library of hundreds loads thumbs lazily, search + kind chips filter, static symbols centre', async () => {
+    const s = await t.open()
+    await s.project('FX lib', { empty: true })
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==', 'base64')
+    let hits = 0; await s.page.route('**/_blob/**', r => { hits++; r.fulfill({ status: 200, contentType: 'image/png', body: png }) })
+    await s.eval(async () => {
+      const db = window.studio.app.store.db
+      for (let i = 0; i < 120; i++) await db.doc('vfx/k' + String(i).padStart(3, '0')).set(i % 2 ? { name: 'Glyph ' + i, asset: 'a' + i, grid: 1, frames: 1, kind: 'symbol' } : { name: 'Burst ' + i, asset: 'a' + i, grid: 8, frames: 64, kind: 'flipbook' })
+      window.studio.app.setMode('animate')
+    })
+    await s.run('vfx.library')
+    await s.page.waitForFunction(() => document.querySelectorAll('.vfx-it').length >= 120, null, { timeout: 7000 }); await new Promise(r => setTimeout(r, 450))
+    const r = await s.eval(() => { const p = [...document.querySelectorAll('.vfx-pic')]; return { n: p.length, loaded: p.filter(x => x.style.backgroundImage).length, pos: p.find(x => x.nextSibling.textContent.startsWith('Glyph') && x.style.backgroundImage)?.style.backgroundPosition } })
+    t.ok(r.loaded > 0 && r.loaded < r.n / 2, `only on-screen thumbs load: ${r.loaded} of ${r.n}`)
+    t.eq(r.pos, '50% 50%', 'grid 1 symbol thumb is centred, not NaN')
+    t.ok(hits < 60, `sheets fetched on open: ${hits} of 120`)
+    await s.eval(() => { const q = document.querySelector('.vfx-q'); q.value = 'burst 1'; q.dispatchEvent(new Event('input')) })
+    t.eq(await s.eval(() => [...document.querySelectorAll('.vfx-it')].filter(x => !x.hidden).length), 15, 'search "burst 1": Burst 10-18 and 100-118, evens only')
+    await s.eval(() => { const q = document.querySelector('.vfx-q'); q.value = ''; q.dispatchEvent(new Event('input')); [...document.querySelectorAll('.vfx-chip')].find(c => c.textContent === 'Symbol').click() })
+    t.eq(await s.eval(() => [...document.querySelectorAll('.vfx-it')].filter(x => !x.hidden).length), 60, 'Symbol chip shows the 60 symbols')
+    s.noErrors()
+  })
 }
