@@ -352,3 +352,7 @@ improved: vfx/studio/must rules -> Umbrio + MP4; router vfx+animation load umbri
 Umbrio tab cbeam2-1124: plasma flipbook beam (kamehameha-beam:element=Ne, hub asset), noise core tube, 3 helix strands, 8 lightning arcs, spiked crown, rippled shock rings, dust wall, 30 ground spikes, 48 streak sparks; rune circle kept. 205 objects read back, zfight PASS, clip.mp4 1.4 MB sent.
 improve 60: ~40 s brief, 16 s Sonnet, 59.7 s total (PASS), rungs 1-3.
 improved: vfx playbook depth rule + v2 template with tube() helper; flipbook sheet upload path (asset + local data-url for shots); L-146 lesson.
+
+## [2026-11-24] fix / beam v2 white core (owner: "white middle looks pretty bad")
+cbeam2-1124 core: solid white Neon 9 m tube -> translucent hot-red ForceField 4.4 m tube (new geo g-c2-core2, old deleted); read-back 205, zfight PASS, MP4 sent.
+improved: vfx playbook core rule; umbrio_beam2.py core; L-147 lesson; old geo cleaned from hub.

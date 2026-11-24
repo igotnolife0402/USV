@@ -148,8 +148,9 @@ add('fb_outer', dict(fb, name='Plasma halo', size=48, fps=16, pos=[0, 0, 0], rot
 # ---------- spinning noise core (alive surface) ----------
 nz = noise1(5)
 ys = [i * 6 for i in range(H // 6 + 1)]
-geos['g-c2-core'] = tube([[0, y, 0] for y in ys], [4.5 + 0.8 * nz(y * 0.09) + 0.6 * math.exp(-y / 8) * 3 for y in ys], sides=24)
-add('core', {'type': 'mesh', 'name': 'Beam core', 'geo': 'g-c2-core', 'material': 'Neon', 'color': C['core'], 'smooth': True, 'pos': [0, 0, 0]},
+# owner 2026-11-24: "the white middle looks pretty bad" -> no solid white tube; a thin translucent hot-red core lets the plasma flipbook carry the centre
+geos['g-c2-core2'] = tube([[0, y, 0] for y in ys], [2.2 + 0.6 * nz(y * 0.09) + 0.5 * math.exp(-y / 8) * 3 for y in ys], sides=24)
+add('core', {'type': 'mesh', 'name': 'Beam core', 'geo': 'g-c2-core2', 'material': 'ForceField', 'color': '#ff3a4c', 'transparency': 0.35, 'smooth': True, 'pos': [0, 0, 0]},
     visible=beam_on, scale=beam_scale, rot=[k(T['impact'], [0, 0, 0]), k(T['gone'], [0, 1440, 0])])
 geos['g-c2-haze'] = tube([[0, y, 0] for y in ys], [21 + 2.5 * nz(y * 0.05 + 3) for y in ys], sides=32)
 add('haze', {'type': 'mesh', 'name': 'Beam haze', 'geo': 'g-c2-haze', 'material': 'ForceField', 'color': C['outer'], 'transparency': 0.9, 'smooth': True, 'pos': [0, 0, 0]},
