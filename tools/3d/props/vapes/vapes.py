@@ -13,6 +13,7 @@ import os
 import shutil
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # props helpers live one level up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props as P  # noqa: E402
 import vape_a, vape_b, vape_c  # noqa: E402,F401  (register builders)
@@ -55,9 +56,9 @@ def main(argv=None):
         import subprocess
         here = os.path.dirname(os.path.abspath(__file__))
         for n in NAMES:
-            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
+            rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "detail", "detail.py"), "check",
                                    os.path.join(out, n + ".json"), os.path.join(out, "geo"), "--class", "prop"])
-        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "zfight.py"), "check",
+        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "zfight", "zfight.py"), "check",
                                os.path.join(out, "studio", "project.json"), os.path.join(out, "studio", "geo"), "--prop"])
     return rc
 

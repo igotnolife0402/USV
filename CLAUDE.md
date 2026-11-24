@@ -13,7 +13,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Max quality, no placeholders, scope = exactly what was asked. Owner's latest word beats any stored rule: fix that rule now.
 
 ## 0. Session start (every session)
-1. Read the hook-injected block: mode, profile, index, newest lessons, PC queue. Do not re-read those files.
+1. Read the hook-injected block: mode, profile, index, newest lessons, PC queue. Do not re-read those files. No block (sub-agent, hooks off): first call `node scripts/vault.mjs route "<task>"` and read exactly the notes, checklist and skill it names.
 2. PC QUEUE: do queued items first if the task depends on them or the owner says /pc with no task; otherwise mention them in one line. Injected files are not re-read.
 3. Pick tier (section 1), then set effort/fast mode once. Do not switch later.
 4. Open the router-named checklist before building, not after.

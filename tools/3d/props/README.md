@@ -61,7 +61,7 @@ Metal is #C9CED6, metalness 0.7, roughness 0.3.
 - Keep rounded-box radius below half the thickness and bevel steps above the 1/1000 rounding, or faces degenerate.
 
 ## Small hand-held props (vapes, phones, tools): one-shot rules (owner 2026-11-22)
-- `python3 vapes.py OUT --check --preview` is the template: one command runs mesh check, detail floor (`--class prop`) and `zfight.py check --prop`; copy it for any new small-prop set.
+- `python3 vapes/vapes.py OUT --check --preview` is the template: one command runs mesh check, detail floor (`--class prop`) and `zfight.py check --prop`; copy it for any new small-prop set.
 - `zfight --prop` = prop-scale bands (level < 4 mm, layered < 1 cm, fail > 0.02 m2): the default 12 cm band is for buildings and fails every proud detail on a 1-stud prop.
 - Build it fault-free the first time: every proud detail >= 1.2 cm in front of what it sits on (stacked bezel → screen → digits too); no hidden core inside sleeves; no ring/plate lying on a face at < 1 cm; glass `transparency >= 0.5` (zfight ignores see-through parts, liquid stays).
 - Small props are medium tier: one thread, no crew/sub-agents (spawning + merging cost more than the models).

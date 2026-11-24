@@ -26,7 +26,7 @@ status: current
 - read owner.md first; owner's best model is the detail floor (L-080)
 - every model meets domains/3d/detail.md; detail gate passes before done; tiers set pace, never detail (L-081)
 - studio editor bugs route to 3d; hub publish = file_path page index.html + files; publish only when the owner names it, else ask (L-083)
-- small props: one thread, copy tools/3d/props/vapes.py (one --check runs mesh+detail+zfight --prop); details >= 1.2 cm proud; never crew for small props (L-086)
+- small props: one thread, copy tools/3d/props/vapes/vapes.py (one --check runs mesh+detail+zfight --prop); details >= 1.2 cm proud; never crew for small props (L-086)
 - small voxel props: copy tools/3d/voxel/guns.py and write immediately; read nothing else (L-087)
 - every model, any style word, passes tools/3d/detail/detail.py (meshes+textures) before showing; voxel = textured chunky meshes (props/guns.py) (L-088)
 - mesh live builds: generator writes ready batch JSON per stage (geo+meta+project); read back meta only (count/version), never out_dir; no backslashes in heredoc python (L-089)

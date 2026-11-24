@@ -17,3 +17,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-22 2026-11-22 watch Minigame Mayhem bots in play (ObstacleRush, SpinSweep): do the waits/hops/dashes look human? not visually verified — bot-watch numbers only
 - [ ] 2026-11-23 Run `node scripts/install-global.mjs` in the vault after pulling main: installs /improve (+ improver agent) as a personal skill so it works in every folder on the PC
 - [ ] 2026-11-24 python3 tools/vfx/flipbook/vfx.py OUT fire-slash --check, upload PNG, set AssetId in VFXLibrary.lua, playtest in Studio — mobile vfx
+- [ ] 2026-11-24 open Umbrio hub project lantern-20261124 (Hurricane Lantern), visually check glass/flame/bail on phone depth - 3d lantern

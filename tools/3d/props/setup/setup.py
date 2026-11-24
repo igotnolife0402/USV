@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # props helpers live one level up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props as P  # noqa: E402
 import guns as G  # noqa: E402
@@ -70,18 +71,18 @@ def main(argv=None):
     rc = P.run(out, [NAME], 7, "--check" in a, "--preview" in a, "toon")
     proj = live(out)
     here = os.path.dirname(os.path.abspath(__file__))
-    zf = os.path.join(here, "..", "zfight", "zfight.py")
+    zf = os.path.join(here, "..", "..", "zfight", "zfight.py")
     # cut hidden same-facing faces < 12 cm apart (nested frames, parts resting on the desk), keep ids
     fx = os.path.join(out, "fix")
     rc |= subprocess.call([sys.executable, zf, "fix", proj, os.path.join(out, "geo"), fx], stdout=subprocess.DEVNULL)
     for f in os.listdir(os.path.join(fx, "geo")):
         os.replace(os.path.join(fx, "geo", f), os.path.join(out, "geo", f))
     if "--check" in a:
-        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "detail", "detail.py"), "check",
+        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "detail", "detail.py"), "check",
                                os.path.join(out, NAME + ".json"), os.path.join(out, "geo"), "--class", "prop"])
         rc |= G.attach(NAME)
         rc |= subprocess.call([sys.executable, zf, "check", proj, os.path.join(out, "geo")])
-        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "zfight", "seethru.py"), "check",
+        rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "zfight", "seethru.py"), "check",
                                proj, os.path.join(out, "geo")])
     return rc
 

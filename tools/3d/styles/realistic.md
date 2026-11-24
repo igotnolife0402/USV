@@ -83,7 +83,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L135 RISE = (F1 - F0) / NR`
 
 ## computer-setup | desk + monitor + keyboard + mouse + PC tower, 1.40 x 0.70 m desk
-- file: `tools/3d/props/setup.py` (89 lines)
+- file: `tools/3d/props/setup/setup.py` (89 lines)
 - run: `python3 setup.py OUT --check`
 - api:
   - L30 def setup(rng)
@@ -94,13 +94,13 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L26 STAGES = []`
 
 ## standing desk, riser, mat | 1.40 x 0.70 m butcher-block standing desk, walnut monitor riser, felt desk mat
-- file: `tools/3d/props/setup_desk.py` (40 lines)
+- file: `tools/3d/props/setup/setup_desk.py` (40 lines)
 - run: `python3 setup.py OUT --check`
 - api:
   - L13 def parts()
 
 ## monitor, light bar, speakers, keyboard, wrist rest, mouse | 27 in thin-bezel monitor on riser, 75% two-tone keyboard
-- file: `tools/3d/props/setup_screen.py` (83 lines)
+- file: `tools/3d/props/setup/setup_screen.py` (83 lines)
 - run: `python3 setup.py OUT --check`
 - api:
   - L19 def rbox(s, r, c)
@@ -108,7 +108,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - L40 def parts()
 
 ## pc-tower, plant | glass-front RGB tower on the desk, potted plant
-- file: `tools/3d/props/setup_tower.py` (82 lines)
+- file: `tools/3d/props/setup/setup_tower.py` (82 lines)
 - run: `python3 setup.py OUT --check`
 - api:
   - L13 def parts()

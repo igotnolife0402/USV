@@ -5,6 +5,7 @@
 import os, sys, math
 import numpy as np
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # props helpers live one level up
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import props as P
 import house as H
