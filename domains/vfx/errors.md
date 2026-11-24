@@ -8,6 +8,7 @@ triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 
 | Symptom | Cause | Fix | Seen |
 |---|---|---|---|
+| Commit lint: vfx/sheets "not referenced", "> 400 KB", "copy/version name", "> 20 items", "vfx not allowed in root" | repo-check.mjs had no rule for the binary VFX library | `VFX_LIB` exemption in scripts/repo-check.mjs (sheets indexed by vfx/index.tsv); run `node scripts/repo-check.mjs` before committing new sheets | 2026-11-24 |
 | Black screen, no error visible | Shader compile/link failed silently | Check `gl.getShaderInfoLog` / `getProgramInfoLog`; three.js logs in console | 2026-11-21 |
 | `ERROR: 0:12: '' : No precision specified for (float)` | GLSL ES fragment shader lacks precision | Add `precision highp float;` (mediump on old mobile) | 2026-11-21 |
 | `cannot convert from 'const int' to 'float'` | GLSL has no implicit int→float | Write `1.0` not `1`; cast `float(i)` | 2026-11-21 |

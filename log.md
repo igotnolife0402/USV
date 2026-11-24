@@ -498,4 +498,4 @@ improved: colour output removed; held/empty frames deduped; 59->15 uploads via 1
 
 ## [2026-11-24] build / VFX library as repo folder vfx/
 Owner: no artifact; all VFX in one place with painting rules. 676 white sheets in vfx/sheets (147 flipbook, 67 action, 462 symbol), grep index vfx/index.tsv, vfx/README.md painting rules, tools/vfx/paint.py gradient-map + texture painter (looked at fire/void output once).
-improved: vfx skill + rules now say grep vfx/index.tsv before generating; binaries rule gets the vfx/sheets exception; hub library note superseded and every pointer (index, playbook, tools.md, stylized README) repointed; router words for painting/where-are-vfx; L-187.
+improved: repo-check VFX_LIB exemption; vfx skill + rules now say grep vfx/index.tsv before generating; binaries rule gets the vfx/sheets exception; hub library note superseded and every pointer (index, playbook, tools.md, stylized README) repointed; router words for painting/where-are-vfx; L-187.

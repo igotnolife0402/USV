@@ -118,3 +118,4 @@
 {"t":"2026-11-24T08:14:04.023Z","tier":"medium","secs":63,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T08:23:00.061Z","tier":"medium","secs":122,"ok":true,"errors":0,"retry":0,"routes":["roblox","animation"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T08:29:47.466Z","tier":"complex","secs":518,"ok":true,"errors":2,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T08:40:20.838Z","tier":"medium","secs":140,"ok":true,"errors":1,"retry":1,"routes":["tools","vfx"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
