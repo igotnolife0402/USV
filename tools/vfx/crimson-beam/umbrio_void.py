@@ -109,12 +109,32 @@ grow = [k(0, [0.05, 0.05, 0.05]), k(T['open'], [1, 1, 1], 'out'), k(T['squeeze']
 
 # ---------- singularity: solid black core + violet rim shells (real 3D noise meshes, no cards) ----------
 add('rift', {'type': 'group', 'name': 'Rift', 'pos': CEN}, scale=grow)
-add('core', {'type': 'part', 'shape': 'sphere', 'name': 'Singularity', 'parent': 'rift', 'size': [10, 10, 10], 'material': 'SmoothPlastic', 'color': C['black'], 'pos': [0, 0, 0]})
-for i, (R, tr, col, axis, spd) in enumerate([(6.2, 0.55, C['rim'], 1, 160), (8.5, 0.82, C['deep'], 0, -110)]):
-    geos[f'g-vr-rim{i}'] = blob_geo(R, 0.08 + 0.04 * i, 70 + i)
+# owner 2026-11-24 "the void orb has no gradient, no texture, like 1 layer": 8 nested layers, black centre -> violet -> lilac
+# -> white photon ring + orange Doppler side; every shell textured and counter-rotating so the layers shear (visible depth)
+ORB_TEX = {
+    't-vr-shadow': {'kind': 'procedural', 'pattern': 'clouds', 'colors': ['#000000', '#1a0838'], 'scale': 3, 'seed': 4},
+    't-vr-swirl': {'kind': 'procedural', 'pattern': 'marble', 'colors': ['#12052a', '#7a3cff'], 'scale': 4, 'seed': 6},
+    't-vr-plasma': {'kind': 'procedural', 'pattern': 'clouds', 'colors': ['#5a20c0', '#f3e8ff'], 'scale': 3, 'seed': 8},
+    't-vr-streak': {'kind': 'procedural', 'pattern': 'stripes', 'colors': ['#9a5cff', '#ffffff'], 'scale': 2, 'seed': 3},
+}
+add('core', {'type': 'part', 'shape': 'sphere', 'name': 'Singularity', 'parent': 'rift', 'size': [9, 9, 9], 'material': 'SmoothPlastic', 'color': C['black'], 'pos': [0, 0, 0]})
+LAYERS = [  # name, radius, noise amp, colour, transparency, texture, spin axis, deg/s
+    ('Shadow shell', 5.5, 0.03, '#2a1450', 0.15, 't-vr-shadow', 1, 60),
+    ('Inner swirl', 6.5, 0.12, '#6a3ab0', 0.45, 't-vr-swirl', 0, -120),
+    ('Plasma shell', 7.6, 0.15, '#b090ff', 0.65, 't-vr-plasma', 1, 200),
+    ('Hot fringe', 8.6, 0.10, '#e0c8ff', 0.8, 't-vr-streak', 2, 150),
+    ('Outer haze', 11.0, 0.06, C['deep'], 0.92, None, 1, -40),
+]
+for i, (nm, R, amp, col, tr, tex, axis, spd) in enumerate(LAYERS):
+    geos[f'g-vr-orb{i}'] = blob_geo(R, amp, 70 + i)
     end = [0, 0, 0]; end[axis] = spd * T['hit']
-    add(f'rim{i}', {'type': 'mesh', 'name': f'Event horizon {i + 1}', 'geo': f'g-vr-rim{i}', 'parent': 'rift', 'material': 'ForceField', 'color': col, 'transparency': tr, 'smooth': True, 'pos': [0, 0, 0]},
-        rot=[k(0, [0, 0, 0]), k(T['hit'], r3(end))])
+    o = {'type': 'mesh', 'name': nm, 'geo': f'g-vr-orb{i}', 'parent': 'rift', 'material': 'ForceField', 'color': col, 'transparency': tr, 'smooth': True, 'pos': [0, 0, 0]}
+    if tex: o['texture'] = tex
+    add(f'orb{i}', o, rot=[k(0, [0, 0, 0]), k(T['hit'], r3(end))])
+add('photon', {'type': 'part', 'shape': 'torus', 'name': 'Photon ring', 'parent': 'rift', 'size': [17.8, 0.35, 17.8], 'material': 'Neon', 'color': C['white'], 'pos': [0, 0, 0], 'rot': [90, 0, 0]},
+    scale=[k(0, [1, 1, 1])] + [k(T['open'] + 0.35 * q, [1.04 if q % 2 else 0.97] * 3, 'smooth') for q in range(9)])
+geos['g-vr-doppler'] = tube([[math.cos(a) * 9.2, math.sin(a) * 9.2, 0.25] for a in [math.pi * (0.55 + q / 24) for q in range(25)]], [0.2 + 0.35 * math.sin(math.pi * q / 24) for q in range(25)], sides=6, cap=False)
+add('doppler', {'type': 'mesh', 'name': 'Doppler side (orange)', 'geo': 'g-vr-doppler', 'parent': 'rift', 'material': 'Neon', 'color': C['orange'], 'smooth': True, 'pos': [0, 0, 0]})
 add('vlight', {'type': 'light', 'kind': 'point', 'name': 'Rift light', 'pos': CEN, 'color': C['black'], 'intensity': 35, 'range': 120},
     color=[k(0, C['black']), k(T['open'], C['violet'], 'in'), k(T['squeeze'], C['violet']), k(T['hit'], C['black'], 'step'), k(T['flash_end'], C['white'], 'step'), k(T['len'], '#100420', 'out')])
 
@@ -172,7 +192,7 @@ for i in range(30):
 
 now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 project = {'name': 'Void Rift', 'v': 1, 'updated': now, 'objects': objs, 'anims': {'rift': {'name': 'Rift', 'len': T['len'], 'fps': 30, 'loop': True, 'tracks': tracks}},
-           'textures': {}, 'env': {'bg': '#05040a', 'grid': False, 'fog': {'color': '#05040a', 'near': 120, 'far': 400}, 'light': 'night'},
+           'textures': ORB_TEX, 'env': {'bg': '#05040a', 'grid': False, 'fog': {'color': '#05040a', 'near': 120, 'far': 400}, 'light': 'night'},
            'camera': {'pos': [0, 6, 82], 'target': [0, 22, 0], 'fov': 55, 'ortho': False}}
 meta = {'name': 'Void Rift', 'updated': now, 'count': len(objs), 'ai': True, 'building': False}
 for d in ('live', 'geo'): os.makedirs(f'{OUT}/{d}', exist_ok=True)

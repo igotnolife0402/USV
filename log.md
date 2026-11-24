@@ -385,3 +385,8 @@ improved: goal/limit in hooks + docs; budget warns at the goal; perf digest show
 Umbrio tab void-1124 (umbrio_void.py, full helper block copied): black singularity + 2 noise horizon shells, 3 rippled disk bands + orange inner edge, 6 lensing arcs, 24 infalling rocks on spirals, squeeze, impact frame, 2 shock rings, 12 spaghetti streaks, 30 embers. 110 objects read back, zfight PASS, 1 render (46 s), MP4 sent. Turn ~160 s (limit 300, goal 75 missed).
 improve 60: ~25 s brief, 15 s Sonnet, 81.2 s total (+21 FAIL), rungs 1-2.
 improved: void template; improve done-timing rule (L-156); helper-block copy via sed (no NameError).
+
+## [2026-11-24] fix / Void Rift orb layers (owner "no gradient, no texture, 1 layer")
+void-1124 v2: black core + 5 textured noise shells (clouds/marble/stripes, hue dark->lilac, counter-rotating) + pulsing photon ring + orange Doppler arc; old rim geo deleted. 115 objects read back, zfight PASS, 1 render 53 s, MP4 sent. Turn ~150 s (limit 300, goal 75 missed).
+improve 60: ~25 s brief, 13 s Sonnet, 55.5 s total (PASS), rungs 1-2.
+improved: orb layering rule (L-157); patch prepared before delivery so build started at the window; same-tab update via if_version + geo delete in one batch.

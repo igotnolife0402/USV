@@ -92,3 +92,4 @@
 {"t":"2026-11-24T10:44:43.781Z","tier":"medium","secs":418,"ok":false,"errors":0,"retry":0,"routes":["animation","vfx"],"touched":[],"signals":["slow","skill"],"mode":"mobile"}
 {"t":"2026-11-24T10:59:29.384Z","tier":"medium","secs":349,"ok":false,"errors":1,"retry":1,"routes":[],"touched":[],"signals":["errors","slow"],"mode":"mobile"}
 {"t":"2026-11-24T11:17:06.978Z","tier":"medium","secs":104,"ok":false,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T11:22:22.445Z","tier":"medium","secs":178,"ok":false,"inLimit":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
