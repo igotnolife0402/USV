@@ -421,3 +421,7 @@ improved: shock attack 2.5→3.0 (jump 3.96→2.4); kamehameha arc strike soften
 - vfx.py `bands()` + `--bands 5[,10]`: each white sheet -> 5 luminance band PNGs, one emitter each; VFX.lua `make` returns a Folder of per-band emitters (ramp colours +-2..6 RGB, flash-to-cool, core fades first), `emit`/`enable`/`recolor`, palettes inferno/abyss. batch 100: 115 s wall, 0 fails, band rebuild err <= 0.06/255; preview loops 3 staggered particles, 10/10 cards non-empty at 3 times, 0 console errors. Roblox look not visually verified (queued).
 - improve 60: ~45 s brief, 17.6 s Sonnet, 117.7 s total (FAIL, compaction between spawn and show), rungs 1-3
 - improved: library() crashed on batch.json in OUT (now skipped); preview blank-gap + negative first-frame time fixed (loop never blank); white theme collapses ramp (excluded from distinctness check, documented); router words for flat/layered vfx; L-167 rule in domains/vfx/rules.md
+
+## [2026-11-24] fix / layered VFX turn retro (452 s vs 300)
+- Root cause: full 100-sheet batch started only after all code; preview frame -1 bug cost a round; secondary "animate" route demanded 3d-editor.
+- improved: learn.mjs skill-miss now requires only the primary route's skill (tests 46/46); vfx playbook speed rule: smoke 3 families then background batch while writing preview; L-168 preview loop clamp + batch overlap rule

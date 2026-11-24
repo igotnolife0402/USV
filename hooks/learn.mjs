@@ -110,7 +110,9 @@ export function signals(turn, state = {}, extra = {}) {
   const builds = turn.writes.filter(p => !VAULT_META.test(rel(p)));
   // An owner-invoked orchestration skill (/crew, /swarm, /helpers) replaces the routed skill (L-082): no skill miss then.
   const ownerSkill = ['crew', 'swarm', 'helpers'].some(s => (turn.skills || []).includes(s));
-  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).filter(s => !(turn.skills || []).includes(s)) : [];
+  // Only the primary route's skill is required (CLAUDE.md s1: a secondary route, e.g. "animate" in a vfx preview, reads its
+  // playbook only for the part it covers); 2026-11-24 a vfx turn was flagged for not loading 3d-editor.
+  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).slice(0, 1).filter(s => !(turn.skills || []).includes(s)) : [];
   if (missedSkills.length)
     out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);
