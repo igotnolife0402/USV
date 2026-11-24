@@ -396,6 +396,9 @@ if bad: sys.exit('Failed: sheets')
 FXO = []
 def card(p, t, pos, size, life=0.4, flat=False, rot=None, parent=None, loop=False, dur=None, blend='add'):
     if t < 0 or t >= LEN: return
+    # flipbooks run on story time, so a hit-stop freezes them: a card born on a hit would hold its blank first frame through the
+    # freeze (owner 2026-11-24: "not seeing any vfx"). Pre-roll it so the freeze holds the card at its peak (~12% of life).
+    if not loop and any(abs(t - h) < 0.035 for h in HIT): t = max(0.0, t - 0.12 * life)
     life = round(min(life, LEN - t), 3); o = dict(type='flipbook', name=f'FX {p} {t:.2f}', tex='fx-' + p, grid=8, frames=64, parent=parent,
         pos=R3(pos), rot=rot or [0, 0, 0], size=round(size, 2), start=round(float(t), 3), life=life, loop=loop, dur=round(dur or life, 3),
         fps=24 if loop else round(64 / life, 2), blend=blend, flat=flat)

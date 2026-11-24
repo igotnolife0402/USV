@@ -10,3 +10,4 @@ status: current
 - Effects never vanish cleanly: they erode into lingering embers or ash (L-044)
 - for any VFX build invoke the vfx skill first and follow its done-check, even when writing a new generator (L-050)
 - match the sim to where the effect plays (air vs floor); flipbook cards are front-lit and translucent, never baked side light (L-054)
+- Hit-stops freeze flipbooks (they run on story time): a card born on a hit pre-rolls ~12% of its life so the freeze holds its peak, never its blank first frame (L-162, `tools/3d/avatar/duel/stages/build.py` card()).

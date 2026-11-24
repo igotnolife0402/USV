@@ -399,3 +399,7 @@ improved: video export hid vp.helpers but not light gizmos (diamonds in MP4, L-1
 New 7.6 s Kaito vs Ren fight (rigs reused), exported after blocking, splines, impact frames, camera, lighting, vfx: tools/3d/avatar/duel/stages/{build.py,finish.mjs}; stage-stepper preview https://claude.ai/artifact/Y3ui5QSTtM2vT1EYiWbdNc with compare-with-previous; s6 payoff sheet seen (dip, flash, burst ok); s3-s5 clips not viewed.
 improved: shots check reads anim.lint on any tab (SHOTS_LINT, with args); build gate (contacts, blade-through-body, ground tips) before render; auto IK in-betweens + Euler twin unwrap (lint 10 -> 6) and lower-residual re-solve (L-160); router words for "whole process / how it changed" (routed nowhere before).
 open: Ren wrist flip at 2.75 (L-161) still trips lint 6.
+
+## [2026-11-24] fix / Crossing preview: "5 fps" and no vfx (owner)
+Cause: stage 1 (default view) is stepped blocking by design; s6 impact cards froze on their blank first frame during hit-stops (flipbooks run on story time). Fix: hit cards pre-roll 12% of life; page opens on stage 6 and labels stage 1 as choppy on purpose; s6 re-rendered.
+improved: hit-stop flipbook pre-roll (L-162, vfx rules); preview default stage + stage-1 label; router words "no vfx / vfx missing"; frame-diff check s5 vs s6 used as the vfx outside check.

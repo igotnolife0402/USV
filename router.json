@@ -437,7 +437,10 @@
         "poison",
         "vfx generator",
         "drip",
-        "goo"
+        "goo",
+        "not seeing any vfx",
+        "no vfx",
+        "vfx missing"
       ],
       "notes": [
         "domains/vfx/playbook.md",
