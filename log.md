@@ -340,4 +340,4 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 
 ## [2026-11-24] 3d / car60 rbxmx dry-run + rerun (Failed: live upload, DB full; car200 stopped over budget)
 - car60 built locally (182 parts, 120.9k tris, zfight 0); rbxmx dry-run: 19,982 bytes, valid XML, 21 merged MeshParts (cap 19k), no file written. Views rendered; top view shows a light roof-interior area (check).
-- improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for hub DB quota; car200 builder stopped at budget per L-142.
+improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for hub DB quota; car200 builder stopped at budget per L-142.

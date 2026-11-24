@@ -68,6 +68,8 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Write Blender scripts as repo files `*.blend.py` for later execution; append to [queue/pc.md](queue/pc.md):
   `- [ ] 2026-11-21 run models/chair.blend.py in Blender MCP, export GLB, look — 3d chair asset`
 - Editor work: edit repo files of the forked editor; queue the browser test.
+- Roblox export on phone (2026-11-24): dry-run it, no file: `VIEWS_RBXMX=1 VIEWS_TAB=<tab dir> node test/run.mjs views` in tools/3d/studio (valid XML, MeshPart count, tris cap) + the 8-view sheet.
+- Live build: hub DB caps at 100 MB; on `quota_exceeded` build the tab locally, ask the owner which old test tabs to delete (L-143), never delete unasked.
 - Python generators in [tools/3d](tools/3d/README.md) need numpy (+ Pillow); if the session has them, run with an OUT folder in scratch and write the Studio JSON; else queue the run.
 
 ## Quality bar

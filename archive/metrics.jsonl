@@ -84,3 +84,5 @@
 {"t":"2026-11-23T23:21:16.309Z","tier":"medium","secs":359,"ok":false,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":["slow"],"mode":"mobile"}
 {"t":"2026-11-23T23:29:17.741Z","tier":"medium","secs":84,"ok":true,"errors":0,"retry":0,"routes":["3d","vault"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-23T23:38:11.130Z","tier":"medium","secs":110,"ok":true,"errors":0,"retry":0,"routes":["3d","owner"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T23:51:17.398Z","tier":"medium","secs":35,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T23:58:29.914Z","tier":"medium","secs":118,"ok":true,"errors":0,"retry":0,"routes":["roblox","vault"],"touched":[],"signals":["skill","improve"],"mode":"mobile"}

@@ -268,7 +268,8 @@
         "transparent side",
         "flipped faces",
         "backface",
-        "double sided"
+        "double sided",
+        "rbxmx dry-run, simulate roblox export, db full"
       ],
       "notes": [
         "domains/3d/playbook.md",
