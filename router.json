@@ -310,7 +310,11 @@
         "pose",
         "poses",
         "emote",
-        "ik"
+        "ik",
+        "fight scene",
+        "anime fight",
+        "supernova",
+        "duel"
       ],
       "notes": [
         "domains/animation/playbook.md",

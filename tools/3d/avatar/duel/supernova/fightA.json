@@ -1,0 +1,17 @@
+{"name": "fight",
+ "poses": {
+  "hurt":   {"base": "saber_guard", "Waist": [-24, 0, -18], "Neck": [18, 0, 10], "RightShoulder": [-60, 0, 40]},
+  "crouch": {"base": "saber_guard", "RightKnee": [70, 0, 0], "LeftKnee": [80, 0, 0], "Waist": [20, 0, -6]},
+  "tuck":   {"base": "saber_windup", "RightKnee": [95, 0, 0], "LeftKnee": [100, 0, 0], "RightHip": [-60, 0, 0], "LeftHip": [-55, 0, 0]},
+  "fall":   {"base": "ready", "Root": [-75, 0, 0], "Neck": [-20, 0, 0]}
+ },
+ "keys": [
+  [0, "saber_ready"], [1.2, "saber_guard"], [1.6, "saber_windup", "in"], [1.95, "saber_slash", "out"],
+  [2.5, "saber_guard"], [2.7, "saber_high", "out"], [2.85, "saber_low"], [3.15, "saber_high", "out"], [3.35, "saber_slash"],
+  [3.65, "saber_low"], [4.0, "saber_guard", "out"], [4.3, "hurt"], [5.0, "saber_guard"], [5.4, "crouch", "out"],
+  [5.8, "tuck"], [6.5, "saber_windup", "in"], [7.2, "saber_slash", "out"], [8.0, "saber_low"], [9.0, "saber_low"],
+  [9.3, "charge"], [9.7, "charge2", "out"], [10.0, "kamehameha"], [10.9, "kamehameha2"], [12.5, "kamehameha"],
+  [14.0, "kamehameha2", "out"], [14.2, "saber_guard"], [14.35, "saber_windup", "in"], [14.55, "saber_slash", "out"],
+  [14.7, "saber_high", "out"], [14.9, "saber_low"], [15.05, "saber_high", "out"], [15.25, "saber_slash"], [15.5, "saber_guard"],
+  [15.8, "charge"], [16.5, "charge2", "out"], [17.0, "fall"], [20.0, "fall"]
+ ]}

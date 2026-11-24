@@ -19,3 +19,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | iPhone freezes when playing | Root of a big build animated; shadow map per frame | Bake statics into meshes (~150 draw calls), animate sub-groups only | 2026-11-19 |
 | FBX export has no animation | Studio FBX writer has no bones/clips | Use GLB for animation | 2026-11-13 |
 | Swing trail sheet misaligned with the cut | Clip changed after the recipe was written | Re-run `avatar.py` (rewrites `swing-recipe.txt`), rebuild the sheet, check with `SHOTS_CAM` = project camera | 2026-11-16 |
+| improve delivery +18.9 s | /improve 60 cutscene delivered at 78.9 s: route sent it to roblox, so research went to finding the real tools (Umbrio anim/vfx/avatar) and the brief was sent ~20 s late | router words added; duel.py tool for two-fighter cutscenes | 2026-11-24 |

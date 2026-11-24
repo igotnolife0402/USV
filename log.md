@@ -342,3 +342,8 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 Owner: "don't respond" got a paragraph; act as if the PC mute style is applied, every session. profiles/mute.md (rebuilt; PC sync queued), MUTE line injected on every prompt, learn.mjs skips footer on no-tool / no-reply turns, L-143. improve 60: 49.5 s delivery (-10.5 FAIL: Sonnet faster than predicted).
 improved: mute rules injected every prompt (were PC-only output style); Stop hook no longer forces footer on no-work or don't-respond turns; CLAUDE.md + short skill point to one mute source; tests cover the mute skip
 prune proposal: lessons.md at 154 lines (> 150), roll L-001..L-040 into archive/
+
+## [2026-11-24] build / anime supernova duel cutscene (/improve 60)
+Umbrio tab supernova-duel-0106: 2 rigs (Kaito saber, Ren greatsword), 20 s clip, 27 effects, 15 beats (max action 1.6 s); read-back PASS (rigs, len, fx windows, no orphans/missing tex), zfight PASS. Not visually verified; shots queued for PC.
+improve 60: ~37 s brief, 20 s Sonnet, 78.9 s total (FAIL +18.9), rungs 1-3.
+improved: catalog.py 401 fallback to v1/assetId; avatar.py --clipfile clips as data + geo id sanitizing; new duel.py two-fighter cutscene tool + README; router words cutscene/duel/supernova -> animation
