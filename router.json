@@ -80,7 +80,6 @@
         "mini game",
         "spectate",
         "spectate menu",
-        "cutscene",
         "cutscenes",
         "tutorial world",
         "dash and roll",
@@ -89,7 +88,9 @@
         "dodge obstacles",
         "pathfinding",
         "post-mortem",
-        "mistakes of this game"
+        "mistakes of this game",
+        "roblox cutscene",
+        "in-game cutscene"
       ],
       "notes": [
         "domains/roblox/playbook.md",
@@ -314,7 +315,8 @@
         "fight scene",
         "anime fight",
         "supernova",
-        "duel"
+        "duel",
+        "cutscene"
       ],
       "notes": [
         "domains/animation/playbook.md",
@@ -625,7 +627,9 @@
       "exports",
       "fix how",
       "import to studio",
-      "all of the exports"
+      "all of the exports",
+      "cutscene",
+      "fight scene"
     ]
   }
 }
