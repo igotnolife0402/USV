@@ -381,3 +381,7 @@ improved: geo docs can live in the asset store at ~0 DB bytes (no loader change 
 ## [2026-11-24] build / car60 gap fix via /improve 30
 improve 30: ~12 s brief, 15.8 s Sonnet, 34.5 s total PASS (+4.5), rungs 1-2; first foreground delivery shown on time. Seethru 0.68% -> 0.54% (still FAIL < 0.30%): flipped faces seen from behind in more views than from front (body-1 56, body-2 28, rim-fr-2 39); 3 docs live via asset store, read-back not run. Not visually verified.
 improved: /improve foreground delivery PASS first try; per-face flip by view vote beats centroid flip (centroid made it worse 0.84%); discs already 0.024 m (brief claim of thick discs was wrong, checked code)
+
+## [2026-11-24] fix / gap gate + car60 hole map (/improve 30)
+improve 30: ~11 s brief, 13.1 s Sonnet, 30.0 s total PASS (0 off). Hole map: body-3 back hits at hood front (z~2.0, y~0.75, full width), body-1 at rear underside (z -1.5..-1.75, y~0.25); loft/grid_mesh caps verified closed, so cause is not the loft seam. car60 still 0.54% FAIL, not rebuilt (budget).
+improved: pre-tool gap gate blocks live geo writes that never passed seethru (tested: fail doc denied, pass doc allowed, deletes/meta allowed); seethru PASS stamps doc ids; loft/cap winding ruled out as cause
