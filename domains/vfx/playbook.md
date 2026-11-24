@@ -71,4 +71,4 @@ Run [checklists/vfx.md](checklists/vfx.md). Add new failures to [errors](domains
 - Never reuse preset sheets or recolour them in PIL: every effect is a fresh `vfx.py` recipe for the shot, coloured by `element=` per fighter (Ar cyan, Li crimson, Na white-gold).
 - Swing trails are traced from the real blade-tip path (fk.py), split until each arc is planar (< 0.1 stud), one sheet + flat card per arc (`tools/3d/avatar/duel/supernova3/build.py`).
 - Density: ~300 cards / 20 s (6x v2), <= 40 sheets; cover > 60 deg/frame pose snaps with 3-frame spark cards.
-- Library rule (owner 2026-11-24): every VFX generator run ends by adding its white sheets to the one library, Claude-Hub db `vfx` ([library](domains/vfx/library.md), `tools/vfx/library.py`); find effects by grepping `domains/vfx/library.tsv`, never by opening images.
+- Library rule (owner 2026-11-24): every VFX generator run ends by adding its white sheets to the repo folder `vfx/` (`tools/vfx/library.py`, add the set to `SRC`); find effects by grepping `vfx/index.tsv`, never by opening sheets; colour only at use time per [vfx/README.md](../../vfx/README.md).

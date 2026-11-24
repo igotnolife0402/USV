@@ -481,7 +481,8 @@
         "rotated,same vfx",
         "identical vfx, same shape, all unique, unique shapes",
         "white ones, color itself, atlas, sheets as an animation, flipbook atlas",
-        "vfx library, all vfx, animator effects, effects list, effects picker, save the same place"
+        "vfx library, all vfx, animator effects, effects list, effects picker, save the same place",
+        "where are the vfx, vfx folder, painting vfx, gradient vfx, paint vfx, vfx textures, color the vfx"
       ],
       "notes": [
         "domains/vfx/playbook.md",

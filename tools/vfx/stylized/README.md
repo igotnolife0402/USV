@@ -38,4 +38,4 @@ frames into shared 1024 atlases (64 x 128 px cells), drops empty/unchanged frame
 ParticleEmitter flipbooks cannot play a sheet sub-range: packed atlases need this player.
 
 ## Last step of every run
-Add the white sheets to the shared library (Claude-Hub db `vfx`): `python3 tools/vfx/library.py` (add the set to `SRC`), steps in [domains/vfx/library.md](../../../domains/vfx/library.md).
+Add the white sheets to the repo library `vfx/`: add the set to `SRC` in `tools/vfx/library.py`, run it, commit `vfx/` ([vfx/README.md](../../../vfx/README.md)).

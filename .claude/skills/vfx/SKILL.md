@@ -11,6 +11,9 @@ description: 'Use for visual effects, particles, explosions, magic, trails, beam
 - Size curves: start small → pop to max in 10% of life → shrink. Alpha: fade in 0-10%, fade out last 40%.
 - Budget: < 200 live particles per effect on mobile; one burst > continuous emission; Rate 0 + `:Emit(n)` for bursts.
 
+## Existing sheets first
+Every effect ever made is in `vfx/sheets` (white). `grep -i <word> vfx/index.tsv | cut -f1-5`, reuse it, paint it per [vfx/README.md](../../../vfx/README.md) (gradient map, over-life colour, texture overlay, blend). Only generate when nothing fits.
+
 ## Flipbook sheets (owner's physics generator)
 Need a texture sheet (explosion, black hole, beam, slash, dragon swing, crystal burst)? Use [tools/vfx/flipbook](tools/vfx/README.md) and follow [domains/vfx/flipbook.md](domains/vfx/flipbook.md): physics never painted, 4 stacked layers (`'a+b+c+d' --name ID`), new effect = recipe (`preset:key=v`), checks `max_step_jump` < ~3, `thin_stroke_pct` < ~10, < 60 s, look over dark + light sky, output to scratch. Emit with `VFX.lua` (Grid8x8).
 

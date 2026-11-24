@@ -17,6 +17,7 @@ triggers: [index, map, where, vault]
 - Audio tool: [tools/audio/sfx.mjs](tools/audio/sfx.mjs): procedural game SFX (coin, hit, win...) → 16-bit WAV, no deps; `node tools/audio/sfx.mjs OUT`.
 - [images](domains/images/index.md): the owner's 20 style prompts, add-ons, Roblox thumbnails rendered in Studio.
 - [math](domains/math/index.md): calculations, formulas, game balance curves, probability, vectors/CFrame (compute with code, check twice).
+- [vfx/](vfx/README.md): every VFX sheet ever made (white), `vfx/index.tsv` to grep, painting rules.
 - Tools (runnable, each with a README): [tools/3d](tools/3d/README.md), [tools/roblox](tools/roblox/README.md), [tools/vfx](tools/vfx/README.md), [tools/art](tools/art/README.md).
 
 ## Core
