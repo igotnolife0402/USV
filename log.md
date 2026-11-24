@@ -337,3 +337,7 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-24] 3d / car60 rbxmx dry-run + rerun (Failed: live upload, DB full; car200 stopped over budget)
+- car60 built locally (182 parts, 120.9k tris, zfight 0); rbxmx dry-run: 19,982 bytes, valid XML, 21 merged MeshParts (cap 19k), no file written. Views rendered; top view shows a light roof-interior area (check).
+- improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for hub DB quota; car200 builder stopped at budget per L-142.
