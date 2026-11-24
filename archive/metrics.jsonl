@@ -104,3 +104,5 @@
 {"t":"2026-11-24T05:40:25.578Z","tier":"medium","secs":452,"ok":false,"errors":0,"retry":0,"routes":["vfx","animation"],"touched":[],"signals":["slow","skill","improve"],"mode":"mobile"}
 {"t":"2026-11-24T05:51:53.330Z","tier":"medium","secs":80,"ok":true,"errors":0,"retry":0,"routes":["animation"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T05:58:02.090Z","tier":"medium","secs":765,"ok":false,"errors":0,"retry":0,"routes":["animation"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T06:17:48.340Z","tier":"medium","secs":284,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T06:31:25.890Z","tier":"medium","secs":143,"ok":true,"errors":0,"retry":0,"routes":["images"],"touched":[],"signals":[],"mode":"mobile"}

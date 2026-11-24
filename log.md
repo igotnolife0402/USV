@@ -438,3 +438,7 @@ Rebuild 2026-11-24: 100 sheets, 173 s wall, 3 fails (shock-v03 bands10 sliver la
 ## [2026-11-24] vfx / white-vfx preview on WebGL
 Owner saw flicker every 0.1-0.2 s: CPU band loops ran 7-17 fps on a throttled phone. Rewrote the preview renderer in WebGL (bands in the shader, sky in GL, viewport meta, fps readout); Pixel 7 at 4x throttle now 59-60 fps, dt median 17 ms, 0 flicker reversals on the visible card. Artifact v5.
 improved: WebGL band shader replaces load-time split() and per-pixel loops; band overlap now read from the sheet (tops-edges) instead of a fixed 0.06 that ignored the vfx.py cap; missing viewport meta made phone tests render at 980 px with all 10 cards visible; opaque GL sky fixes colour shift of additive light; real-time fps check rule in vfx playbook (L-171); router words flickering/flicker every/choppy preview.
+
+## [2026-11-24] vfx / white-vfx frozen stills fix
+improve 60: ~38 s brief, 12 s Sonnet, 53.5 s total (6.5 s early, FAIL), rungs 1-2. Owner saw frozen image: 10 per-card WebGL contexts over the phone cap. Now 1 shared context + 2D copies, per-card try/catch, reduced motion at 0.5x. frozen.cjs: iPhone 13 / Pixel 7 / reduced motion, throttle 4: all PASS (1 context, cards change, clock 1.0/0.5). Artifact v6.
+improved: shared WebGL context replaces 10 per-card contexts; tick no longer dies on one throw; reduced motion plays at 0.5x instead of a still; frozen.cjs regression check; router words frozen image/frozen preview (router sent this to images/3d-editor).

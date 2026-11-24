@@ -459,7 +459,10 @@
         "full animation",
         "flickering",
         "flicker every",
-        "choppy preview"
+        "choppy preview",
+        "frozen image",
+        "frozen preview",
+        "preview frozen"
       ],
       "notes": [
         "domains/vfx/playbook.md",
