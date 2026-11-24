@@ -403,3 +403,7 @@ open: Ren wrist flip at 2.75 (L-161) still trips lint 6.
 ## [2026-11-24] fix / Crossing preview: "5 fps" and no vfx (owner)
 Cause: stage 1 (default view) is stepped blocking by design; s6 impact cards froze on their blank first frame during hit-stops (flipbooks run on story time). Fix: hit cards pre-roll 12% of life; page opens on stage 6 and labels stage 1 as choppy on purpose; s6 re-rendered.
 improved: hit-stop flipbook pre-roll (L-162, vfx rules); preview default stage + stage-1 label; router words "no vfx / vfx missing"; frame-diff check s5 vs s6 used as the vfx outside check.
+
+## [2026-11-24] improve / fight pipeline to <= 5 min
+improve 30: ~18 s brief, ~72 s Sonnet, 89.7 s total (FAIL +59.7 s), rungs 1-3. Built `stages/fight.mjs`: one command build→finish→gate-stop→lint+chunked render→concat→payoff sheet; Crossing dry run 138 s (render 131), gate PASS, lint 6 (Ren wrist, L-161 still open).
+improved: one-command fight runner with phase timing (was 30+ min by hand); FX sheet cache keyed by recipe hash (cold build 57 s → 6.6 s); shots.mjs video wrote to SCRATCH/shots not SHOTS (parallel chunks clobbered each other); mp4 export takes frames [a,b] chunks; gate stops before render.

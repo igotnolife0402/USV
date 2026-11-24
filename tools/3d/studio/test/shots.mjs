@@ -50,7 +50,7 @@ export default async function (t) {
       const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); ims.forEach((im, i) => g.drawImage(im, (i % k) * (w + 6), Math.floor(i / k) * (h + 6), w, h))
       window.__sheet = c.toDataURL('image/jpeg', 0.85)
     }, urls)
-    const { writeFileSync, mkdirSync } = await import('node:fs'), out = join(process.env.SCRATCH || '.', 'shots')
+    const { writeFileSync, mkdirSync } = await import('node:fs'), out = process.env.SHOTS || join(process.env.SCRATCH || '.', 'shots')   // same dir as the screenshots (parallel chunks clobbered one SCRATCH/shots/clip.mp4)
     mkdirSync(out, { recursive: true }); writeFileSync(join(out, 'shots.jpg'), Buffer.from((await s.eval(() => window.__sheet)).split(',')[1], 'base64'))
     if (process.env.SHOTS_FPS) {                   // frame by frame for reviews: every frame at SHOTS_FPS, one labelled sheet per second
       const fps = +process.env.SHOTS_FPS || 12, fdir = join(out, 'frames'); mkdirSync(fdir, { recursive: true })
@@ -81,7 +81,8 @@ export default async function (t) {
       writeFileSync(join(out, 'render.png'), Buffer.from(b64.split(',')[1], 'base64'))
     }
     if (process.env.SHOTS_VIDEO) {                 // the whole clip as Export > Video (MP4) makes it
-      const b64 = await s.eval(async () => { const r = await window.studio.app.io.exportTo({ format: 'mp4', to: 'data' }); return await new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result); f.readAsDataURL(new Blob([r.data])) }) })
+      const span = (process.env.SHOTS_FRAMES || '').split('-').map(Number)   // SHOTS_FRAMES=a-b: only frames a..b-1 (parallel chunks)
+      const b64 = await s.eval(async frames => { const r = await window.studio.app.io.exportTo({ format: 'mp4', to: 'data', frames }); return await new Promise(res => { const f = new FileReader(); f.onload = () => res(f.result); f.readAsDataURL(new Blob([r.data])) }) }, span.length === 2 ? span : null)
       writeFileSync(join(out, 'clip.mp4'), Buffer.from(b64.split(',')[1], 'base64'))
     }
     s.noErrors()

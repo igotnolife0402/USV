@@ -14,6 +14,13 @@ Rigs = the supernova Kaito/Ren tab (`BASE`); everything else (choreography, timi
    - Auto in-betweens: a joint step > 90° gets up to 2 solved mid keys; then every Euler is re-expressed as the twin closest to the previous key (`near`).
    - s1 step keys; s2 `auto` + whip-in `cubic:0.7,0,1,0.6` into contacts, `out` after, overlap lag on forearm/hand/head; s3 = hit-stop warp + flash/shake; s6pre = s3 + flipbook cards fitted to each swing (sheets cached in `WORK/fx`).
 2. `PLUGINS=../../../studio/plugins node finish.mjs WORK` → s4 camera (5 eased shots + `cinePass` payoff), s5 lighting (grade, impact + rim lights), s6 vfx.
-3. Lint + render each from `tools/3d/studio`: `SHOTS_TAB=WORK/sN SHOTS_LINT='{"chest":3}' SHOTS_VIDEO=1 SHOTS_DEVICE=desktop node test/run.mjs shots`.
+**Fast path (default, 2026-11-24): one command, prompt-to-MP4.** `DEPS=<node_modules> node fight.mjs BASE WORK [--tab s6] [--jobs 3] [--stages s3]`
+runs build → finish → gate stop → lint + render (frame chunks via `SHOTS_FRAMES=a-b`, ffmpeg concat) → payoff sheet (`out/payoff.jpg`, 12 fps tile),
+prints seconds per phase and appends them to `WORK/times.jsonl`. Stage clips only with `--stages` (each is a full render).
+- Measured on Crossing (10.4 s clip, 313 frames, 4-core llvmpipe): build 6.6 s (warm FX_CACHE; cold 57 s), finish 0.1, render 131, sheet 0.1, total 138 s.
+- Render is ~95% of the time; 3 parallel chunks gave only ~13% (llvmpipe already uses every core). Cut frames, not jobs, when it must be faster.
+- FX sheets are shared across fights in `FX_CACHE` (default `WORK/../fx-cache`), keyed by recipe hash.
+
+3. Manual lint + render from `tools/3d/studio`: `SHOTS_TAB=WORK/sN SHOTS_LINT='{"chest":3}' SHOTS_VIDEO=1 SHOTS_DEVICE=desktop node test/run.mjs shots`.
 
 State 2026-11-24: lint s2 6 / s6 6 (was 10), all on Ren's wrist at the ground smash 2.75 (wrist solves to the opposite limit); preview artifact "Crossing Build Stages".

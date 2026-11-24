@@ -6,7 +6,7 @@ guessed Euler, so every clash is a real blade-on-blade contact (gate: <= 0.15 st
 
   python3 build.py BASE_STUDIO WORK     (writes WORK/s1 s2 s3 s6pre + WORK/fx + WORK/beats.json; then node finish.mjs WORK)"""
 # @style: helper
-import json, math, os, sys, copy, subprocess
+import json, math, os, sys, copy, subprocess, hashlib, shutil
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); D = os.path.dirname(HERE); sys.path.insert(0, D)
@@ -386,7 +386,17 @@ REC['nf-smoke'] = 'explosion'
 def build_sheet(item):
     name, rec = item
     if os.path.exists(os.path.join(FX, name + '.png')): return name, 'cached'
+    # FX_CACHE: sheets shared across fights, keyed by recipe + seed (a cold build spent 50 s here, 2026-11-24)
+    key = hashlib.sha1(f'{rec}|11'.encode()).hexdigest()[:12]
+    C = os.path.join(os.environ['FX_CACHE'], key) if os.environ.get('FX_CACHE') else None
+    if C and os.path.isdir(C) and any(f.endswith('.png') for f in os.listdir(C)):
+        for f in os.listdir(C): shutil.copy(os.path.join(C, f), os.path.join(FX, name + f[5:]))  # stored as sheet.<ext>
+        return name, 'cached'
     r = subprocess.run([sys.executable, VFX, FX, rec, '--name', name, '--seed', '11'], capture_output=True, text=True)
+    if r.returncode == 0 and C:
+        os.makedirs(C, exist_ok=True)
+        for f in os.listdir(FX):
+            if f.startswith(name + '.'): shutil.copy(os.path.join(FX, f), os.path.join(C, 'sheet' + f[len(name):]))
     return name, 'ok' if r.returncode == 0 else 'FAIL ' + (r.stderr.strip().splitlines() or ['?'])[-1][:160]
 with ThreadPoolExecutor(4) as ex: res = list(ex.map(build_sheet, REC.items()))
 bad = [r for r in res if r[1].startswith('FAIL')]
