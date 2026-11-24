@@ -29,4 +29,4 @@ Applies to every model from every route: Umbrio Sandbox / Studio generators, Ble
 
 ## Templates that pass (copy their approach)
 - [beast/shadow_mesh.py](../../tools/3d/beast/shadow_mesh.py): 476 custom meshes, 176k tris, 8 procedural textures (100% textured), Neon glow parts.
-- [armor/hq.py](../../tools/3d/armor/hq.py) + `vhq_*.py`: bevelled curved plates, rolled rims, rivets, tubes.
+- [armor/hq.py](../../tools/3d/armor/hq.py): bevelled curved plates, rolled rims, rivets, tubes.

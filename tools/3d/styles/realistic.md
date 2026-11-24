@@ -3,7 +3,7 @@ summary: Every realistic model template in tools/3d in one file: what, run comma
 updated: 2026-11-24
 status: current
 ---
-# realistic models (10)
+# realistic models (9)
 Read this file instead of opening templates. Then read only the line range you copy. Regenerate: `node tools/3d/styles/build.mjs`.
 
 ## tiger | Realistic SDF-anatomy tiger with painted stripes and fur, ~3.57 studs per metre
@@ -154,23 +154,3 @@ Read this file instead of opening templates. Then read only the line range you c
 - constants:
   - `L32 WHEELS = [(sx * TRACK / 2, R_TYRE, sz * WB / 2) for sz in (1, -1) for sx in (1, -1)]  # FR FL RR RL`
   - `L36 STAGES = [`
-
-## drone-a | Sci-fi quad drone from the Sonnet-only prompt
-- file: `tools/3d/models/vehicle/drones.py` (281 lines)
-- run: `python3 drones.py OUT --check --preview`
-- api:
-  - L31 def cyl(r, h, seg=24, y0=0.0)
-  - L36 def ring(r_in, r_out, h, seg=40, bev=0.02)
-  - L44 def torus(R, r, seg=40)
-  - L48 def ball(r, sub=3)
-  - L53 def blade(L, w, th, twist, r0=0.0)
-  - L68 def rotor(n, L, w, th, twist, hub_r)
-  - L72 def sweep(path, rad, seg=12)
-  - L76 def arm_path(x0, z0, x1, z1, y0, y1, n=6)
-  - L82 def drone_a(rng)
-  - L121 def drone_b(rng)
-  - L179 def drone_c(rng)
-  - L248 def live(out, name, title)
-  - L260 def main(argv=None)
-- constants:
-  - `L28 DIAG = [(1, 1), (1, -1), (-1, 1), (-1, -1)]`

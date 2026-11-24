@@ -1,39 +1,28 @@
 # armor
 
-Blocky, high-detail dragon armor (an original ember-wyrm design) fitted to the studio's R6 rig, built stage by stage straight into the live tab (numpy, ~1 s a stage). Notes: [3d playbook](../../../domains/3d/playbook.md); owner reference image [dragon-armor-reference.jpg](../../../.claude/references/dragon-armor-reference.jpg).
+Armor kit for the studio's R6 rig. The old sets (ember-wyrm `armor.py`, frost/solar/storm `sets.py`, Venomreaver `venomreaver.py` + `vhq_*.py`) were removed 2026-11-24: they failed the detail floor (6-14 parts per helm, no textures). Build new armor with `hq.py`, add textures, and save it in the model library ([3d playbook](../../../domains/3d/playbook.md)).
 
-## Steps (live tab, permanent: write each stage the moment it is made; never inspect, size or render outputs before they are in the tab)
-1. `python3 armor.py OUT <stage>`, stage = cuirass, pauldrons, arms, legs, helm → `OUT/geo/*.json` (each doc split under 200 KB) and `OUT/<stage>.json` (objects to merge into `projects/<id>`).
+## Steps (live tab, permanent: write each stage the moment it is made)
+1. Write a set generator on `hq.py` (`plate`, `rbox`, `lathe`, `rivet`, `tube`, `horn`...) that writes `OUT/geo/*.json` + `OUT/<stage>.json`, stages cuirass, pauldrons, arms, legs, helm; textures on every surface (textured_ratio >= 0.7).
 2. Replacing a piece: build an update that deletes the old children of its groups (`{"__delete__": true}`) and adds the new objects, in the same write.
-3. Reads with out_dir: use the gitignored .worktrees/ (scratchpad is refused). Project doc = collection `projects`, doc_id `<id>`. One ArtifactData batch per stage: the geo docs (`projects/<id>/geo/<gid>`) plus the project update pinned with `if_version`; keep a batch under 1 MiB (split geo over two batches if needed, the project update last).
-4. Equip: every group pops in (scale 0.01 → 1.2 → 0.95 → 1 over 0.32 s, visible from the pop); the closed helm hides the head boxes the moment it lands.
-5. Check: the studio shots check on geo and project read back from the tab.
-
-## How it works
-- Only crisp low-poly convex solids: boxes, chamfered octagon plates, shield-shaped scale tiles in offset rows, stepped frustum horns along a bezier, pyramid spikes, claws and talons, triangular fins; every face is turned outward from its solid's centre.
-- Fit: each piece is sized from the rig's own parts (torso 2x2x1, limbs 1x2x1, head 1.2) a few hundredths proud of the surface, in the joint groups, so it follows every pose. Left pieces are built and mirrored for the right.
-- One flat-shaded mesh per material per group: plate `#b3121b`, scale `#d3232b`, deep `#5e070d`, gold `#d8a842`, dark `#17100f`, bone `#efe1ba`, horn `#b79a62`, ember neon `#ff5a14`.
-- Groups: CP cuirass, LS/RS pauldrons, LV/RV vambraces and gauntlets, LG/RG cuisses, knees and greaves, LB/RB sabatons, HM dragon helm (snout, fangs, slanted ember eyes, fire in the mouth, swept horns, crest fins).
-
-## More sets (`sets.py`)
-`python3 sets.py OUT <frost|solar|storm|poison> <stage>`: the same rig, groups and stages. poison = Venomreaver (moss-green plate, toxin vials and canisters, plague-mask helm with glowing lenses and a respirator snout, acid drips; built 2026-11-21, hub project `venomreaver-p01s`). frost = Rimeguard (ice-steel knight, crystal clusters, T-visor great helm, ice crown); solar = Dawnbringer (white-and-gold paladin, sunbursts, feather wings, cross-slit helm, halo); storm = Storm Ronin (laced lamellar samurai, sode, kabuto with horns and a lightning maedate, oni mask). Each set is its own new tab: the first batch sets the project (rig + equip clip + cuirass) and `meta` with `building: true`; two more batches add pauldrons+arms and legs+helm, the last sets `building: false`.
+3. Reads with out_dir: use the gitignored .worktrees/ (scratchpad is refused). Project doc = collection `projects`, doc_id `<id>`. One ArtifactData batch per stage.
+4. Equip: every group pops in (scale 0.01 → 1.2 → 0.95 → 1 over 0.32 s); the closed helm hides the head boxes the moment it lands.
+5. Check: `tools/3d/detail` floor (`--class hero` for a set, `prop` for a lone helm) and the studio shots check on the tab read-back.
 
 ## Max-quality kit (`hq.py`, 2026-11-22): use this for every new or remade set
-Owner rule: an older set is identity reference, never the quality bar. `hq.py` replaces the flat `solids.py` blocks with smooth,
+Owner rule: an older set is identity reference, never the quality bar. `hq.py` builds smooth,
 curved, bevelled pieces: `plate` (curved shell, bulge, centre ridge, flare, rolled rim; `Plate.at/curve` put rivets and trims on
 the face), `rbox`, `lathe`, `disc`, `sphere` (dome via cut), `rivet`, `torus`, `tube` (parallel-transport sweep), `horn`, `drip`,
 `extrude`. Meshes are welded quads marked `smooth: 40` (angle), so curves shade smooth and creases stay crisp. Same groups/frames/
 writer as `Kit`, docs split under 190 KB.
-- Build: `python venomreaver.py OUT <stage>` (Venomreaver at max quality: `vhq_torso.py`, `vhq_limbs.py`, `vhq_helm.py`).
 - Audit: `python hq.py OUT` must print `clean` (no holes, no flipped faces). Preview: `python preview.py OUT x.png --focus CP`
   (painter-sorted flat preview with the rig boxes; the studio shots render is the real look check).
 
 ## Files
 | File | Does |
 |---|---|
-| `solids.py` | the solids, mirroring, the geo writer (`Kit`) |
-| `armor.py` | the ember-wyrm dragon set |
-| `sets.py` | the frost, solar and storm sets |
+| `hq.py` | max-quality kit: curved plates, rims, rivets, tubes, horns; geo writer (`Kit`) |
+| `preview.py` | fast shaded preview on the rig |
 
 ## Equip with liquid VFX (2026-11-21, Venomreaver)
 1. `python tools/vfx/liquid/liquid.py OUT <preset> --check` → 4 sheets. Upload them as hub assets (Artifact publish `asset: true`); the tool refuses scratchpad paths, so copy them into the gitignored `.worktrees/` first.

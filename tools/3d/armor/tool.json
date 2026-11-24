@@ -1,6 +1,6 @@
 {
  "name": "armor",
- "what": "Blocky high-detail dragon armor fitted to the R6 rig: low-poly plates, shield scales, stepped horns, spikes, claws, fins, ember seams",
- "run": "python3 armor.py OUT <stage> (README Steps)",
+ "what": "Max-quality armor kit (hq.py) for the R6 rig: curved bevelled plates, rims, rivets, tubes, horns; preview",
+ "run": "python3 hq.py OUT (audit) / write a set on hq.py (README Steps)",
  "prompt": "Follow README Steps; build live in the tab, one batch per stage."
 }

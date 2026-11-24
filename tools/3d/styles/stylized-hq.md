@@ -3,15 +3,8 @@ summary: Every stylized-hq model template in tools/3d in one file: what, run com
 updated: 2026-11-24
 status: current
 ---
-# stylized-hq models (3)
+# stylized-hq models (2)
 Read this file instead of opening templates. Then read only the line range you copy. Regenerate: `node tools/3d/styles/build.mjs`.
-
-## Venomreaver | curved bevelled plague-mask poison armor set on R6 rig
-- file: `tools/3d/armor/venomreaver.py` (24 lines)
-- run: `python venomreaver.py OUT <cuirass|pauldrons|arms|legs|helm>`
-- constants:
-  - `L12 MATS = {'plate': dict(material='Metal', color='#4d6b3c', metalness=0.72, roughness=0.3), 'iron': `
-  - `L17 MODULE = {'cuirass': 'vhq_torso', 'pauldrons': 'vhq_torso', 'arms': 'vhq_limbs', 'legs': 'vhq_limbs`
 
 ## Shadow Monster HQ | shadow monster, custom swept-tube meshes with textures, ~23 studs tall
 - file: `tools/3d/beast/shadow_mesh.py` (231 lines)

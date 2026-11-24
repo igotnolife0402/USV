@@ -20,7 +20,7 @@ Higher time = better prompt, by one rule: work down the value ladder below, in o
 Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner rules or built the wrong thing):
 1. Owner rules + route: the hook block (OWNER MUST, route, checklist) and `node scripts/vault.mjs route "<prompt>"`.
 2. The domain's first-read build note (3D: `domains/3d/umbrio-build.md` + `detail.md`; Roblox/web/game: the routed playbook's top section).
-3. Closest template + its api lines (3D: the playbook's which-tool table, e.g. helmets -> `tools/3d/armor/vhq_helm.py`); fix the front axis and units.
+3. Closest template + its api lines (3D: the playbook's which-tool table, e.g. helmets -> `tools/3d/armor/hq.py` kit); fix the front axis and units.
 4. Gate math with code: part counts, same-size ratio, floor class, tris, proud/coplanar gaps.
 5. Readability and look rules (`ref-quality.md`, dark-metal rule) and real references.
 6. Contradiction pass: every number in the brief agrees with every other (totals, dims vs parts, units).
