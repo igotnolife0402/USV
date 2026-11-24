@@ -401,7 +401,10 @@
         "poison",
         "vfx generator",
         "drip",
-        "goo"
+        "goo",
+        "crimson",
+        "cataclysmic",
+        "beam strike"
       ],
       "notes": [
         "domains/vfx/playbook.md",

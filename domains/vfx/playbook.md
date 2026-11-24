@@ -1,6 +1,6 @@
 ---
 summary: Fastest proven path to punchy, performant VFX: layered particles, shaders, bloom; PC screenshot-verified, mobile Artifacts
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
@@ -25,16 +25,18 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool (orange/red → gray).
 
 ## PC (/pc)
-1. Build the effect in an isolated test page `vfx/<name>.html` with a trigger key and an FPS readout.
+1. Build the effect in an isolated test page `tools/vfx/<name>/<name>.html` (+ tool.json; a root `vfx/` folder fails lint) with a trigger key and an FPS readout.
 2. Serve, open with chrome-devtools-mcp/playwright-mcp, trigger, screenshot at peak (~100 ms) and decay; console clean.
 3. Performance trace (chrome-devtools-mcp) for heavy effects: frame time ≤ 16 ms with 4x CPU throttle.
 4. Integrate into the game/site; re-screenshot in context.
 5. Roblox: build via Studio MCP run code (ParticleEmitter props), play, `look`/console check.
 
 ## Mobile fallback (/mobile)
-- No browser automation or local files. Build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `vfx/<name>.html` in the repo.
+- No browser automation or local files. Build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `tools/vfx/<name>/<name>.html` (+ tool.json; a root `vfx/` folder fails lint) in the repo.
 - Artifacts: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
 - Shader errors are invisible without a console: log `gl.getShaderInfoLog` to an on-screen `<pre>`.
+- Cloud check that works (2026-11-24): headless Chromium + [tools/vfx/shots/shoot.cjs](tools/vfx/shots/shoot.cjs); jsDelivr is unreachable there, so it serves three from a scratch `npm i three@0.186.1`. Make pages render a pure `frame(t)` from `?t=` and set `window.__done`.
+- Additive beam/glow layers: keep layer gains <= ~1.5 and bloom <= ~1, use `NeutralToneMapping`; ACES + stacked additive red reads pink-white (crimson beam, 3 tries).
 - Queue PC checks in [queue/pc.md](queue/pc.md), e.g.:
   `- [ ] 2026-11-21 perf trace explosion at 4x throttle, screenshot peak — vfx vfx/explosion.html`
 

@@ -1,0 +1,6 @@
+{
+ "name": "vfx-shots",
+ "what": "Headless Playwright frames of a deterministic three.js VFX page (?t=), serving three@0.186.1 locally because the CDN is blocked in cloud sessions; exit 1 on console or shader errors",
+ "run": "DEPS=<scratch>/deps/node_modules node tools/vfx/shots/shoot.cjs <page>.html OUT 0.8,1.6,3,6.5",
+ "prompt": "Serve the repo root on 127.0.0.1:8765 first; read one contact sheet, measure the gate numbers with PIL."
+}

@@ -80,7 +80,7 @@ export function mobileBlock(tool, ti = {}, modes = {}) {
     const runs = ti.command.replace(/<<-?\s*['"]?(\w+)['"]?[^\n]*\n[\s\S]*?\n\s*\1\s*(\n|$)/g, ' ').replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, "''");
     const m = modes.pcOnlyBash && runs.match(new RegExp(modes.pcOnlyBash, 'i'));
     if (m) return { what: `'${m[0].trim()}'`, key: m[0] };
-    const bad = outsideInstalls(ti.command, modes.mobilePackages || []);
+    const bad = outsideInstalls(runs, modes.mobilePackages || []); // quoted text (node -e tests) is data, not an install
     if (bad.length) return { what: `install of ${bad.join(', ')} (not a vault package)`, key: 'install' };
   }
   return null;
@@ -93,7 +93,7 @@ export function outsideInstalls(cmd, allowed) {
   for (const m of cmd.matchAll(re)) {
     const anyName = !!m[3];
     for (const a of (m[1] ?? m[2] ?? m[4] ?? '').trim().split(/\s+/)) {
-      if (!a || a.startsWith('-')) continue;
+      if (!a || a.startsWith('-') || /^\d*[<>]/.test(a)) continue; // shell redirects (`2>&1` leaves `2>`) are not packages
       const name = a.replace(/^['"]|['"]$/g, '').split(/(?<=.)@|==|>=|<=|~=|[<>=[]/)[0].toLowerCase();
       if (anyName || !ok.has(name)) bad.push(a);
     }

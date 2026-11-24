@@ -337,3 +337,8 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-24] build / crimson cataclysm beam (/improve 60)
+tools/vfx/crimson-beam/crimson-beam.html (three 0.186.1, artifact GJQ94bTLeBKkJA8BcA8E5d): vortex, pilot drop, r 12 beam, hit-stop, shockwaves, cracks, 600 debris, 6.7k GPU particles, push-in + shake. Check: tools/vfx/shots/shoot.cjs, 0 errors, red 39% at t=3 (try 3).
+improve 60: ~45 s brief, 14 s Sonnet, 269.8 s total (FAIL, big Write before notice), rungs 1-4.
+improved: pre-tool install check ignores redirects and quoted text; tools/vfx/shots/shoot.cjs cloud VFX screenshots; vfx playbook/errors beam gain + CDN rules; L-136 promoted into improve SKILL.

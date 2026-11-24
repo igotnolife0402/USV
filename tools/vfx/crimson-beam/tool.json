@@ -1,0 +1,6 @@
+{
+ "name": "crimson-beam",
+ "what": "Cinematic crimson cataclysm beam strike (three.js page): vortex, pilot drop, huge beam, hit-stop, shockwaves, debris, shaking push-in; ?t=<sec> renders one exact frame",
+ "run": "open tools/vfx/crimson-beam/crimson-beam.html (serve repo); artifact https://claude.ai/artifact/GJQ94bTLeBKkJA8BcA8E5d",
+ "prompt": "Tune values in the P table at the top; verify with the vfx-shots tool (see tools README)."
+}
