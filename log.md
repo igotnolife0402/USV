@@ -365,3 +365,8 @@ improved: epic-reference note + links; vfx checklist epic section; audio playboo
 ## [2026-11-24] research / every-3 s VFX study of the reference video (owner chose VFX fights only)
 8 sub-agents, Firecrawl embed screenshots every 3 s over 5 effect fights: 148/383 stills before the daily MCP credit allowance ran out. Rules -> domains/vfx/anime-vfx-reference.md (12 rules with timestamps + crimson beam plan); missing ranges queued.
 improved: anime-vfx-reference note + index links; Firecrawl daily cap documented (L-150); state/epic-frames.md result; queue item with exact missing ranges.
+
+## [2026-11-24] build / Cyan Nova (/improve 60, "using what you learned")
+Umbrio tab nova-1124 from anime-vfx-reference rules: obsidian crystal charges cyan plasma sphere, quiet dip, white impact frame, 7 plasma beams with hit rings, lit craters, chip debris, orange embers, dolly-back aftermath. 121 objects read back, zfight PASS, clip.mp4 sent. 2 render rounds (impact sphere fogged grey -> small sphere around camera).
+improve 60: ~8 s brief (52.9 s lost before start), 17 s Sonnet, 115.9 s total (+56 FAIL), rungs 1-2.
+improved: umbrio_nova.py template; impact-frame recipe in anime-vfx-reference; improve SKILL late-start rule (L-151); flipbook cyan sheets as hub assets.

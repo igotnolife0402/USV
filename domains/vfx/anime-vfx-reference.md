@@ -31,3 +31,6 @@ Missing ranges are queued (queue/pc.md). Stills 3 s apart are usually different 
 - One impact frame at 1.5 s: 2 values (white world, black silhouettes, beam kept crimson) for 1-2 frames (rule 7).
 - Light the ground crimson under the base (rule 8); dark chip debris (rule 9); wide aftermath shot at the end (rule 6).
 - Owner rule 9 still holds: one big payoff, everything else subtle; the reference itself does this.
+
+## Built from these rules
+- Cyan Nova (Umbrio tab nova-1124, `tools/vfx/crimson-beam/umbrio_nova.py`, 2026-11-24). Impact frame in Umbrio = a small white Neon sphere enclosing the camera (inside fog-near); a world-sized sphere gets fogged into a grey gradient.
