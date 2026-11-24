@@ -6,6 +6,8 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
 # VFX playbook
 
+- Any model this needs (creature, sword, prop): reuse or save it in the [model library](domains/3d/playbook.md) (`tools/3d/models/<kind>/<kind>_v<N>.py`).
+
 ## Pick the tool
 | Need | Use |
 |---|---|

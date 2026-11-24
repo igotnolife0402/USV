@@ -1,6 +1,6 @@
 ---
 summary: Every toon model template in tools/3d in one file: what, run command, functions and constants with line numbers. Generated; do not edit.
-updated: 2026-11-22
+updated: 2026-11-24
 status: current
 ---
 # toon models (6)
@@ -45,113 +45,115 @@ Read this file instead of opening templates. Then read only the line range you c
   - ...14 more
 
 ## traffic-cone, steering-wheel, dashboard, car-hood, road-sign, rock-1, rock-2, rock-3, cliff, tree, bush, cloud, palm-tree, crate, barrel | detailed Roblox-thumbnail props, 0.78 to 12 x 40 studs
-- file: `tools/3d/props/props.py` (1981 lines)
+- file: `tools/3d/models/props.py` (2019 lines)
 - run: `python3 props.py OUT <name|all> [--seed N] [--style lowpoly|toon] --check`
 - api:
-  - L42 def unit(a)
-  - L48 def rot(rx=0, ry=0, rz=0)
-  - L72 def merge(*ms)
-  - L83 def volume(m)
-  - L92 def orient(m)
-  - L99 def grid_mesh(P, wrap_rows=False, pole0=None, pole1=None)
-  - L120 def dedupe(pts, closed=False, eps=2e-3)
-  - L131 def fillet(pts, rad, n=4, closed=False)
-  - L158 def lathe(profile, seg=32, closed=False, rmod=None)
-  - L176 def frames(path, closed=False, ref=None)
-  - L195 def sweep(path, rad, seg=16, closed=False, caps="round", ref=None,
-  - L236 def rbox(size, r, seg=3, div=(1, 1, 1)
-  - L271 def rrect(hw, hh, rad, n=6)
-  - L281 def slab(hw, hh, depth, rad, bevel, nb=3, n=6)
-  - L291 def outline3d(pts2, y=0.0)
-  - L299 def icosphere(sub)
-  - L359 def smoothstep(e0, e1, x)
-  - L364 def facets(v, rng, k=7, depth=0.82, strength=0.85)
-  - L381 def blob(rng, noise, center, radius, scale=(1, 1, 1)
-  - L397 def box_uv(m, s=1.0)
-  - L408 def part(pid, mesh, color, **kw)
-  - L420 def prop(name, title)
-  - L428 def cone_r(t)
-  - L435 def band_profile(fn, t0, t1, proud=0.012, sink=0.01, n=5)
-  - L450 def traffic_cone(rng)
-  - L471 def torus_profile(R, r, n=16)
-  - L476 def gauss_wrap(th, centers, w)
-  - L485 def steering_wheel(rng)
-  - L525 def dial(x, needle_deg)
-  - L547 def vent()
-  - L559 def dashboard(rng)
-  - L623 def ground(parts, y=0.0)
-  - L632 def car_hood(rng)
-  - L672 def hex_bolt(r=0.05, h=0.04)
-  - L682 def road_sign(rng)
-  - L708 def rock_tex(key="rock", scale=3)
-  - L712 def cubeish(n, p=0.55)
-  - L717 def boulder(rng, noise, sub, scale, cube=0.0, rough=0.15, cuts=8, depth=0.8)
-  - L729 def rock_prop(rng, scale, color)
-  - L741 def rock1(rng)
-  - L746 def rock2(rng)
-  - L751 def rock3(rng)
-  - L756 def cliff(rng)
-  - L796 def blobs(rng, specs, sub=3, **kw)
-  - L805 def flat_bottom(m, y, keep=0.2)
-  - L811 def tree(rng)
-  - L842 def bush(rng)
-  - L852 def cloud(rng)
-  - L865 def frond(base, az, L=3.2, W=0.42, rng=None)
-  - L879 def palm_tree(rng)
-  - L905 def wood_tex(scale=2)
-  - L909 def nail(p, n)
-  - L922 def crate(rng)
-  - L966 def barrel(rng)
-  - L1005 def low(name)
-  - L1012 def face_normals(v, faces)
-  - L1024 def flat(m, deg=9.9)
-  - L1063 def face_uv(m, s=1.0)
-  - L1088 def lptex(*keys)
-  - L1093 def lpart(pid, mesh, color, tex=None, uv=1.0, **kw)
-  - L1106 def ccw(idx, P, n)
-  - L1115 def cbox(size, r=0.04)
-  - L1148 def offset_poly(P, d)
-  - L1158 def prism(poly, hw, ch=0.04)
-  - L1170 def plane_cuts(v, rng, k, depth, snap=0.12)
-  - L1187 def chunk(rng, sub, scale, jitter=0.15, cuts=4, cube=0.0, depth=0.8)
-  - L1199 def ring_profile(r0, r1, y0, y1, out=0.012, sink=0.01, ch=0.006)
-  - L1205 def box(size)
-  - L1218 def ring_rect(r0, r1, y0, y1, ch=0.006)
-  - L1223 def frame_ring(P2, outer, inner, z0, z1, ch=0.006)
-  - L1240 def floor_cut(m, y)
-  - L1496 def clumps(rng, specs, jitter=0.1, cuts=2)
-  - L1650 def geo_doc(m)
-  - L1659 def build(name, seed, style="lowpoly")
-  - L1668 def write_prop(out, name, seed, style="lowpoly")
-  - L1702 def check_mesh(gid, m, size)
-  - L1729 def check_flat(gid, m)
-  - L1744 def run(out, names, seed, check, preview, style="lowpoly")
-  - L1796 def hexrgb(h)
-  - L1800 def tris_of(m)
-  - L1805 def shade_part(p, M)
-  - L1831 def raster(V, C, ids, W, H)
-  - L1883 def render(parts, W, H, az=32, el=20)
-  - L1922 def label(img, text, x, y, s=3)
-  - L1933 def write_png(path, img)
-  - L1946 def contact_sheet(shots, path, tile=300, cols=5)
-  - L1960 def main(argv=None)
+  - L43 def unit(a)
+  - L49 def rot(rx=0, ry=0, rz=0)
+  - L73 def merge(*ms)
+  - L84 def volume(m)
+  - L93 def orient(m)
+  - L100 def grid_mesh(P, wrap_rows=False, pole0=None, pole1=None)
+  - L121 def dedupe(pts, closed=False, eps=2e-3)
+  - L132 def fillet(pts, rad, n=4, closed=False)
+  - L159 def lathe(profile, seg=32, closed=False, rmod=None)
+  - L177 def frames(path, closed=False, ref=None)
+  - L196 def sweep(path, rad, seg=16, closed=False, caps="round", ref=None,
+  - L237 def rbox(size, r, seg=3, div=(1, 1, 1)
+  - L272 def rrect(hw, hh, rad, n=6)
+  - L282 def slab(hw, hh, depth, rad, bevel, nb=3, n=6)
+  - L292 def outline3d(pts2, y=0.0)
+  - L300 def icosphere(sub)
+  - L360 def smoothstep(e0, e1, x)
+  - L365 def facets(v, rng, k=7, depth=0.82, strength=0.85)
+  - L382 def blob(rng, noise, center, radius, scale=(1, 1, 1)
+  - L398 def box_uv(m, s=1.0)
+  - L409 def part(pid, mesh, color, **kw)
+  - L421 def prop(name, title)
+  - L429 def cone_r(t)
+  - L436 def band_profile(fn, t0, t1, proud=0.012, sink=0.01, n=5)
+  - L451 def traffic_cone(rng)
+  - L472 def torus_profile(R, r, n=16)
+  - L477 def gauss_wrap(th, centers, w)
+  - L486 def steering_wheel(rng)
+  - L526 def dial(x, needle_deg)
+  - L548 def vent()
+  - L560 def dashboard(rng)
+  - L624 def ground(parts, y=0.0)
+  - L633 def car_hood(rng)
+  - L673 def hex_bolt(r=0.05, h=0.04)
+  - L683 def road_sign(rng)
+  - L709 def rock_tex(key="rock", scale=3)
+  - L713 def cubeish(n, p=0.55)
+  - L718 def boulder(rng, noise, sub, scale, cube=0.0, rough=0.15, cuts=8, depth=0.8)
+  - L730 def rock_prop(rng, scale, color)
+  - L742 def rock1(rng)
+  - L747 def rock2(rng)
+  - L752 def rock3(rng)
+  - L757 def cliff(rng)
+  - L797 def blobs(rng, specs, sub=3, **kw)
+  - L806 def flat_bottom(m, y, keep=0.2)
+  - L812 def tree(rng)
+  - L843 def bush(rng)
+  - L853 def cloud(rng)
+  - L866 def frond(base, az, L=3.2, W=0.42, rng=None)
+  - L880 def palm_tree(rng)
+  - L906 def wood_tex(scale=2)
+  - L910 def nail(p, n)
+  - L923 def crate(rng)
+  - L967 def barrel(rng)
+  - L1006 def low(name)
+  - L1013 def face_normals(v, faces)
+  - L1025 def flat(m, deg=9.9)
+  - L1064 def face_uv(m, s=1.0)
+  - L1089 def lptex(*keys)
+  - L1094 def lpart(pid, mesh, color, tex=None, uv=1.0, **kw)
+  - L1107 def ccw(idx, P, n)
+  - L1116 def cbox(size, r=0.04)
+  - L1149 def offset_poly(P, d)
+  - L1159 def prism(poly, hw, ch=0.04)
+  - L1171 def plane_cuts(v, rng, k, depth, snap=0.12)
+  - L1188 def chunk(rng, sub, scale, jitter=0.15, cuts=4, cube=0.0, depth=0.8)
+  - L1200 def ring_profile(r0, r1, y0, y1, out=0.012, sink=0.01, ch=0.006)
+  - L1206 def box(size)
+  - L1219 def ring_rect(r0, r1, y0, y1, ch=0.006)
+  - L1224 def frame_ring(P2, outer, inner, z0, z1, ch=0.006)
+  - L1241 def floor_cut(m, y)
+  - L1497 def clumps(rng, specs, jitter=0.1, cuts=2)
+  - L1651 def geo_doc(m)
+  - L1660 def build(name, seed, style="lowpoly")
+  - L1669 def split_mesh(m, max_tris=PART_TRIS, max_bytes=GEO_CAP - 8 * 1024)
+  - L1691 def fit_parts(parts)
+  - L1704 def write_prop(out, name, seed, style="lowpoly")
+  - L1739 def check_mesh(gid, m, size)
+  - L1766 def check_flat(gid, m)
+  - L1781 def run(out, names, seed, check, preview, style="lowpoly", tri_cap=None)
+  - L1834 def hexrgb(h)
+  - L1838 def tris_of(m)
+  - L1843 def shade_part(p, M)
+  - L1869 def raster(V, C, ids, W, H)
+  - L1921 def render(parts, W, H, az=32, el=20)
+  - L1960 def label(img, text, x, y, s=3)
+  - L1971 def write_png(path, img)
+  - L1984 def contact_sheet(shots, path, tile=300, cols=5)
+  - L1998 def main(argv=None)
 - constants:
   - `L21 GEO_CAP = 225 * 1024  # studio doc limit (prompt cap 240 KB, guide 225 KB)`
-  - `L22 TRI_CAP = 12000`
-  - `L23 LOW_TRI_CAP = 3000  # owner: low-poly props well under the toon ones`
-  - `L24 FLAT_DEG = 20.0`
-  - `L414 METAL = dict(color="#C9CED6", metalness=0.7, roughness=0.3)`
-  - `L417 PROPS = {}`
-  - `L481 FACE_Z = (90, 0, 0)  # lathe axis +Y -> +Z (front)`
-  - `L705 ROCK = ("#D99A5E", "#C4854D")`
-  - `L793 GREENS = ("#3FC24A", "#2FA83A")`
-  - `L902 WOOD = ("#B9773E", "#A0632F")`
-  - `L1002 LOW = {}`
-  - `L1076 LPTEX = {`
-  - ...4 more
+  - `L22 TRI_CAP = None  # owner 2026-11-23: no detail limit on realistic builds; fit_parts splits what a doc`
+  - `L23 PART_TRIS = 19000  # Roblox MeshPart cap: the real per-mesh limit, met by splitting, never by building`
+  - `L24 LOW_TRI_CAP = 3000  # owner: low-poly props well under the toon ones`
+  - `L25 FLAT_DEG = 20.0`
+  - `L415 METAL = dict(color="#C9CED6", metalness=0.7, roughness=0.3)`
+  - `L418 PROPS = {}`
+  - `L482 FACE_Z = (90, 0, 0)  # lathe axis +Y -> +Z (front)`
+  - `L706 ROCK = ("#D99A5E", "#C4854D")`
+  - `L794 GREENS = ("#3FC24A", "#2FA83A")`
+  - `L903 WOOD = ("#B9773E", "#A0632F")`
+  - `L1003 LOW = {}`
+  - ...5 more
 
 ## pod-vape, box-mod | Toon vape props, original designs, no logos
-- file: `tools/3d/props/vapes/vape_a.py` (165 lines)
+- file: `tools/3d/models/vapes/vape_a.py` (165 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L9 def cyl(r, h, y0=0.0, f=0.012, seg=32, rmod=None, t=(0, 0, 0)
@@ -161,7 +163,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - L96 def box_mod(rng)
 
 ## disposable-vape, vape-pen | Toon vape props (builders registered into props.PROPS)
-- file: `tools/3d/props/vapes/vape_b.py` (150 lines)
+- file: `tools/3d/models/vapes/vape_b.py` (150 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L12 def tex(pat, base, dark, light, scale=2)
@@ -172,7 +174,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - L89 def vape_pen(rng)
 
 ## mech-mod | Toon mech-mod tube vape with rebuildable dripping atomiser
-- file: `tools/3d/props/vapes/vape_c.py` (112 lines)
+- file: `tools/3d/models/vapes/vape_c.py` (112 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L18 def knurl(n, y0, y1, amp=0.011)
@@ -180,11 +182,11 @@ Read this file instead of opening templates. Then read only the line range you c
   - L28 def mech_mod(rng)
 
 ## pod-vape, box-mod, disposable-vape, vape-pen, mech-mod | Five toon vape props in a row, 1.6 studs apart
-- file: `tools/3d/props/vapes/vapes.py` (67 lines)
+- file: `tools/3d/models/vapes/vapes.py` (68 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
-  - L24 def combine(out)
-  - L46 def main(argv=None)
+  - L25 def combine(out)
+  - L47 def main(argv=None)
 - constants:
-  - `L20 NAMES = ["pod-vape", "box-mod", "disposable-vape", "vape-pen", "mech-mod"]`
-  - `L21 GAP = 1.6  # studs between vape centres`
+  - `L21 NAMES = ["pod-vape", "box-mod", "disposable-vape", "vape-pen", "mech-mod"]`
+  - `L22 GAP = 1.6  # studs between vape centres`

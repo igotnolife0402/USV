@@ -1,6 +1,6 @@
 ---
 summary: Every stylized-hq model template in tools/3d in one file: what, run command, functions and constants with line numbers. Generated; do not edit.
-updated: 2026-11-22
+updated: 2026-11-24
 status: current
 ---
 # stylized-hq models (3)

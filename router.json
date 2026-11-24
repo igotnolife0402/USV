@@ -268,7 +268,11 @@
         "transparent side",
         "flipped faces",
         "backface",
-        "double sided"
+        "double sided",
+        "model library",
+        "models folder",
+        "premade model",
+        "model v1"
       ],
       "notes": [
         "domains/3d/playbook.md",

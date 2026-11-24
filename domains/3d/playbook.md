@@ -1,10 +1,15 @@
 ---
 summary: Fastest path to quality 3D: Umbrio Sandbox mesh builds by default (realistic, live tab), tools/3d generators as templates
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, avatar, creature, voxel, props, rig, catalog, zfight]
 ---
 # 3D playbook
+
+## Model library (owner 2026-11-24, every task type)
+- Before building any model (plain, animation, vfx, game), open [tools/3d/styles/library.md](tools/3d/styles/library.md): reuse the closest kind/version, or fork it.
+- Save every model a task builds as `tools/3d/models/<kind>/<kind>_v<N>.py` (`dragon_v1.py`, `sword_v2.py`) with `# @style`, `# @model: <kind> v<N> | <look>`, `# @run` tags; never overwrite, a variation is the next N; then `node tools/3d/styles/build.mjs`.
+- Helpers live one level up (`sys.path` parent, tool calls `here, "..", ".."`); generators stay in git, geo outputs never.
 
 ## Pick the route
 | Ask | Route |
@@ -35,14 +40,14 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 | Roblox avatar from catalog items, weapons, clips, faces | [avatar](tools/3d/avatar/README.md) |
 | Realistic animal render or GLB | [creature](tools/3d/creature/README.md) (tiger: 19,552 tris, 741 KB, 3.57 studs/m, feet y=0) |
 | Block build (city, buildings) as Parts | [voxel](tools/3d/voxel/README.md) (50x50 city: 2,243 Parts, 1.46 MB rbxmx) |
-| Low-poly/cartoon props as meshes (ONLY when that style is asked; plain requests are realistic, see owner.md) | [props](tools/3d/props/README.md) (≤ 3k tris lowpoly, 12k toon) |
+| Low-poly/cartoon props as meshes (ONLY when that style is asked; plain requests are realistic, see owner.md) | [props](tools/3d/models/README.md) (≤ 3k tris lowpoly, 12k toon) |
 | Something that breaks (Voronoi pieces) | [shatter](tools/3d/shatter/README.md) |
 | Armor sets fitted to the R6 rig + equip; any helmet/helm (standalone too: `vhq_helm.py` superellipse skull, `hq.py` plate/rivet/torus kit) | [armor](tools/3d/armor/README.md) |
 | Z-fighting / flicker check and fix | [zfight](tools/3d/zfight/README.md) |
 | Editing by hand, export, render, MP4 | [studio](tools/3d/studio/README.md) |
-| Car / vehicle (lofted body, solid skin panels, pressed wheel wells, tread tyres, 5-spoke rims) | `tools/3d/props/vehicle/car.py` (57 parts, 36k tris, hero PASS, zfight 0; generic hatchback, front +Z) |
-| Small realistic metal/glass prop at metre scale (lantern, lamp, bottle) | `tools/3d/props/lamps/lantern.py` (25 parts, 26k tris, all gates + seethru PASS; wires >= 2 mm, caps="flat", no fillets < 1.5 mm: geo docs round to 1 mm, finer = degenerate faces) |
-| Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build per [umbrio-build.md](domains/3d/umbrio-build.md) (one read: template tools/3d/props/house.py, units, textures, gates, write format) |
+| Car / vehicle (lofted body, solid skin panels, pressed wheel wells, tread tyres, 5-spoke rims) | `tools/3d/models/vehicle/car.py` (57 parts, 36k tris, hero PASS, zfight 0; generic hatchback, front +Z) |
+| Small realistic metal/glass prop at metre scale (lantern, lamp, bottle) | `tools/3d/models/lantern/lantern_v1.py` (25 parts, 26k tris, all gates + seethru PASS; wires >= 2 mm, caps="flat", no fillets < 1.5 mm: geo docs round to 1 mm, finer = degenerate faces) |
+| Realistic default (house, furniture, anything with no named style) | Umbrio Sandbox mesh build per [umbrio-build.md](domains/3d/umbrio-build.md) (one read: template tools/3d/models/house.py, units, textures, gates, write format) |
 | None fits and the owner names Blender | Blender MCP (PC) below |
 
 ## PC (/pc)
@@ -81,14 +86,14 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 ## Speed tricks
 - Studio code fix fast path (2026-11-23): tests set props with `window.studio.app.set(id, {...})` in `s.eval`; part material code = core/model.js `materialFor`/`setMesh`; saved tabs for `views` renders = `.worktrees/tabs/<name>` (VIEWS_TAB); hub publish = Artifact list scope files, compare sha to `git show HEAD:<file> | sha256sum`, read url, publish saved index.html + only changed files.
 - A/B or N-build comparisons (owner 2026-11-23: 60 s vs 200 s car ran 779 s+): never write a new generator per variant. Feed each prompt into the existing template as parameters/part toggles in one script, one shared check + one views render each; if a variant needs new parts, say the time estimate before starting. A BUDGET "ship now" warning means start no new agents.
-- New generator with no template (car, 2026-11-23: 774 s): put it in a subfolder of the tool it imports (`tools/3d/props/<cat>/`: vehicle, vapes, setup, lamps; helpers one level up, so `sys.path` gets the parent and tool calls use `here, "..", ".."`; props root stays <= 20 items, new category = new subfolder); a new top-level tool folder can't import another tool and props/ is at the 20-item cap, so 2 lint rejections cost a rebuild. Patch-on-loft panels: straddle the surface first time (inner 2 cm in, outer 1.5 cm out), never `zfight fix` smooth lofts.
+- New generator with no template (car, 2026-11-23: 774 s): put it in a subfolder of the tool it imports (`tools/3d/models/<cat>/`: vehicle, vapes, setup, lamps; helpers one level up, so `sys.path` gets the parent and tool calls use `here, "..", ".."`; props root stays <= 20 items, new category = new subfolder); a new top-level tool folder can't import another tool and props/ is at the 20-item cap, so 2 lint rejections cost a rebuild. Patch-on-loft panels: straddle the surface first time (inner 2 cm in, outer 1.5 cm out), never `zfight fix` smooth lofts.
 - Gate/fixer bugs (gaps, z-fight, holes): measure first (`zfight/seethru.py`), then A/B each fixer step by disabling it on one build; edit only the step that flips the gate (2026-11-22: 8 guess loops cost ~6 min).
 - Library asset + material tweak beats modelling from scratch 10x.
 - Kitbash: arrays, mirror, bevel modifiers; low-poly style hides detail cost.
 - Geometry Nodes scatter for nature instead of hand placement.
 - In three.js, `OrbitControls` + `RoomEnvironment` + ACES = instant good look.
 
-- Building props (house, cottage): copy tools/3d/props/house.py (realistic since 2026-11-22); layout rules in [umbrio-build.md](domains/3d/umbrio-build.md) so zfight passes first run (L-097).
+- Building props (house, cottage): copy tools/3d/models/house.py (realistic since 2026-11-22); layout rules in [umbrio-build.md](domains/3d/umbrio-build.md) so zfight passes first run (L-097).
 
 ## Done
 Run [checklists/3d.md](checklists/3d.md). Add new failures to [errors](domains/3d/errors.md).

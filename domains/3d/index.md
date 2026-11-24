@@ -22,7 +22,7 @@ Models, scenes and 3D editors. PC: Blender MCP + asset libraries. Mobile: three.
 5. [Studio](domains/3d/studio.md): the owner's web 3D editor (tools/3d/studio): data, live builds, speed caps, tests, shots check.
 
 ## Tools
-- [tools/3d](tools/3d/README.md): studio, zfight gate, props, shatter, voxel, creature, beast, avatar, armor (which-tool table in the playbook).
+- [tools/3d](tools/3d/README.md): studio, zfight gate, models (versioned library, [CATALOG](tools/3d/styles/library.md)), shatter, voxel, creature, beast, avatar, armor (which-tool table in the playbook).
 - Owner reference images: [.claude/references/](.claude/references/dragon-armor-reference.jpg) (dragon armor).
 
 ## Skill and done

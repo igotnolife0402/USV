@@ -28,4 +28,4 @@ Voxel build for Roblox from code: a 3D grid of colours → greedy-merged anchore
 - three 0.186 has no `PCFSoftShadowMap`: use `PCFShadowMap`.
 
 ## Small voxel props
-Superseded 2026-11-22: plain-Part voxel items fail the owner detail floor (no textures, flat). Hand-held voxel-look items: `tools/3d/props/guns.py OUT --check` (textured meshes, detail + zfight gates, Umbrio live stages).
+Superseded 2026-11-22: plain-Part voxel items fail the owner detail floor (no textures, flat). Hand-held voxel-look items: `tools/3d/models/guns.py OUT --check` (textured meshes, detail + zfight gates, Umbrio live stages).

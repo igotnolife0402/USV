@@ -51,7 +51,7 @@ export function repoCheck(root, files = listFiles(root)) {
       if (!parts[i].startsWith('.')) (kids.get(dir) || kids.set(dir, new Set()).get(dir)).add(parts[i]);
     }
     if (CONTENT_SKIP.test(f)) continue;
-    if (JUNK.test(basename(f, extname(f)))) add(f, 'copy/version name; overwrite the original instead');
+    if (JUNK.test(basename(f, extname(f))) && !/^tools\/3d\/models\/([^/]+)\/\1_v\d+\.\w+$/.test(f)) add(f, 'copy/version name; overwrite the original instead');
     let size = 0;
     try { size = statSync(join(root, f)).size; } catch { continue; }
     if (IMG.test(f)) { if (size > IMG_CAP) add(f, `${Math.round(size / 1000)} KB > ${IMG_CAP / 1000} KB; compress it`); }

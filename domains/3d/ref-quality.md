@@ -5,7 +5,7 @@ status: current
 ---
 # Reference quality bar (owner photos 2026-11-22)
 
-The owner sent 9 real desk-setup photos as the target for ALL future builds. Template that meets it: `tools/3d/props/setup/setup.py` (+ `setup_desk/screen/tower.py`).
+The owner sent 9 real desk-setup photos as the target for ALL future builds. Template that meets it: `tools/3d/models/setup/setup.py` (+ `setup_desk/screen/tower.py`).
 
 ## What makes the references look real (apply to every model)
 1. **Real silhouettes, not boxes**: every visible slab has rounded or bevelled edges (`P.rbox` r 3-12 mm, `P.slab`); thin things are thin (monitor shell 12 mm, bezel 5 mm, mat 4 mm).

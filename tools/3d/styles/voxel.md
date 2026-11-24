@@ -1,6 +1,6 @@
 ---
 summary: Every voxel model template in tools/3d in one file: what, run command, functions and constants with line numbers. Generated; do not edit.
-updated: 2026-11-22
+updated: 2026-11-24
 status: current
 ---
 # voxel models (6)
@@ -56,7 +56,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L224 CAMS = [{'ang': 155, 'dist': 60, 'y': 15, 'look': [0, 11, -1], 'studio_pos': [24, 16, 40], 'studi`
 
 ## plasma-pistol, assault-rifle, sniper-rifle | Three original voxel-style guns, chunky chamfered blocks
-- file: `tools/3d/props/guns.py` (317 lines)
+- file: `tools/3d/models/guns.py` (317 lines)
 - run: `python3 guns.py OUT --check`
 - api:
   - L40 def pair(x0, x1, y0, y1, zin, zout, r=0.02)
@@ -79,7 +79,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - `L27 STACK = 3.4  # studs between guns in the shared tab`
 
 ## tactical-shotgun | Voxel-look pump shotgun, textured studio meshes
-- file: `tools/3d/props/shotgun.py` (101 lines)
+- file: `tools/3d/models/shotgun.py` (101 lines)
 - run: `python3 shotgun.py OUT --check`
 - api:
   - L30 def shotgun(rng)

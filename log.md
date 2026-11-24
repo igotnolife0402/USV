@@ -352,3 +352,8 @@ tools/3d/props split (vapes/, setup/, lamps/); vapes, setup and lantern --check 
 improved: props category subfolders (lint cap no longer blocks builds); route-first rule for hookless sub-agents; playbook generator-placement rule names the two-level paths; stale agent worktrees removed
 Rerun blind sword swing: routed to vfx skill, ran Playwright check, but still skipped the animation playbook and hit lint on top-level vfx/ → .claude/rules/vfx.md sends motion effects to the animation playbook; vfx test pages live in tools/vfx/pages/. Agent's NODE_PATH claim not merged (require('playwright') works from / and /tmp here).
 Slow 335 s: multi-part fix tagged medium + moved generators' '..' paths found by running (L-144); tiers.complex += fix everything, fix all.
+
+## [2026-11-24] 3d / props → models library (versioned, catalog)
+tools/3d/props renamed tools/3d/models; lantern → lantern/lantern_v1.py; styles/build.mjs now writes tools/3d/styles/library.md (28 models by kind/version, helpers excluded). Rule in 3d playbook top + checklist; animation/vfx playbooks link it. vapes, setup, lantern_v1, car --check all PASS after the move. improve 60: 58.7 s PASS.
+improved: model library rule (reuse first, save as <kind>_v<N>); generated catalog by kind; router words for model library; helper/tool scripts kept out of the catalog
+Lint fixed: repo-check exempts tools/3d/models/<kind>/<kind>_v<N> from the copy/version-name rule (owner 2026-11-24); catalog lives in tools/3d/styles/library.md so tools stay separate.

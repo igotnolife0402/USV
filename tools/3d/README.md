@@ -8,7 +8,7 @@ Outputs never go in the vault: copy a tool or pass an OUT folder in the scratchp
 |---|---|---|---|
 | [studio](studio/README.md) | Web 3D editor: parts, meshes, sculpt, anim, textures, paint, draw, VFX flipbooks, GUI, import/export (glb/gltf/obj/stl/ply/fbx/rbxmx/lua), MP4 | Serve the folder (`npx serve tools/3d/studio`); headless `node cli/studio.mjs validate|info|export scene.json out.glb`; tests `node test/run.mjs [suite]` ([tests](studio/docs/tests.md)) | both (mobile: headless CLI + edit files; browser tests PC) |
 | [zfight](zfight/README.md) | Z-fight gate: finds same-facing overlaps that flicker on phones, fixes them | `python zfight.py check project.json geo/` (exit 1 > 0.5 m2), `fix ... out/` | both |
-| [props](props/README.md) | Low-poly / toon props as Studio meshes (cone, wheel, rocks, trees, crate...) | `python props.py OUT all --check` (self-check: tris, bad faces, 225 KB, 20 s) | both |
+| [models](models/README.md) | Model library: every saved model by kind/version ([CATALOG](styles/library.md)); props.py toon props (cone, wheel, rocks, trees, crate...) | `python props.py OUT all --check` (self-check: tris, bad faces, 225 KB, 20 s) | both |
 | [shatter](shatter/README.md) | Voronoi breakable crystal + ball + physics clip | `python shatter.py OUT --pieces 100` | both |
 | [voxel](voxel/README.md) | Voxel grid → greedy-merged Parts `.rbxmx` (city template) + stages | `python city.py city.rbxmx stages`; render `render.js` | both (render PC) |
 | [creature](creature/README.md) | Realistic animal (tiger template) → fur render + Roblox GLB ≤20k tris | `python geo.py out`, `node render.js`, `python glb.py` | PC (render), both (geo/glb) |

@@ -6,8 +6,8 @@ Writes OUT/geo/*.json, OUT/<NAME>.json, OUT/live/p<i>.json + m<i>.json (Umbrio s
 --check: mesh check, detail floor (--class prop), attach (lantern scale), prop z-fight. Exit 0 = all pass.
 """
 # @style: realistic
-# @model: hurricane-lantern | Realistic red-enamel hurricane lantern: tank, brass burner, glass globe, wire guards, bail
-# @run: python3 lantern.py OUT --check
+# @model: lantern v1 | Realistic red-enamel hurricane lantern: tank, brass burner, glass globe, wire guards, bail
+# @run: python3 lantern_v1.py OUT --check
 import json
 import math
 import os
