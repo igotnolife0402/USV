@@ -37,12 +37,15 @@ export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes
 
 const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
 
+// Mute layout (owner 2026-11-24): always on, both modes; full rules in profiles/mute.md.
+const MUTE = 'MUTE (profiles/mute.md): no text between tool calls; final reply = result in <= 10 words or `Done`, then the Fixed/Next footer only after real work; "don\'t respond" = reply `Done` only. Errors, questions, requested reports exempt.';
 const BUILD = /\b(make|build|create|model|design|generate|remake|redo|add)\b/i;
 const must = () => (readIf(join(ROOT, 'profiles/must.md')) || '').replace(/^---[\s\S]*?---\s*/, '').trim();
 function buildContext(prompt, mode, router) {
   if (RELAY.test(prompt)) return `MODE=${mode}`;
   const tier = classify(prompt, router.tiers);
   const lines = [`MODE=${mode} | TIER=${tier} (target: ${TARGET[tier]})`];
+  lines.push(MUTE);
   const routes = route(prompt, router);
   if (routes.length) {
     const uniq = (a) => [...new Set(a.filter(Boolean))];

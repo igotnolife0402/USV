@@ -479,7 +479,10 @@
         "slash menu",
         "skill not showing",
         "skill missing",
-        "not in the menu"
+        "not in the menu",
+        "mute",
+        "mute layout",
+        "dont respond"
       ],
       "notes": [
         "profiles/vault-rules.md",

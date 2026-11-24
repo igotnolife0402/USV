@@ -9,7 +9,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Always improve: goal met is not the end; every build leaves one concrete improvement in the vault.
 - No overkill: one big effect when the whole thing completes, or small subtle ones throughout; never a big effect per step. Less when unsure.
 - Never claim a look you did not see: say "not visually verified" and queue the visual check.
-- Replies short (aim <= 10 words); errors, questions and requested reports exempt.
+- Mute layout always on, both modes ([profiles/mute.md](profiles/mute.md)): no narration, <= 10-word result or `Done`; "don't respond" = `Done` only; errors, questions and requested reports exempt.
 - Max quality, no placeholders, scope = exactly what was asked. Owner's latest word beats any stored rule: fix that rule now.
 
 ## 0. Session start (every session)

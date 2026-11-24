@@ -26,6 +26,7 @@ triggers: [index, map, where, vault]
 - [profiles/mobile.md](profiles/mobile.md): cloud session capabilities, PC → mobile fallback table, queue format.
 - [profiles/owner.md](profiles/owner.md): owner preferences and quality floor (both modes); read before any build.
 - [profiles/must.md](profiles/must.md): the 10 owner hard rules the prompt router injects into every build prompt.
+- [profiles/mute.md](profiles/mute.md): mute layout, always on: reply length, footer, "don't respond" = `Done`.
 - [profiles/vault-rules.md](profiles/vault-rules.md): every applied lesson rule for vault work, hooks, routing and sub-agents.
 - Checklists (definition of done): [simple](checklists/simple.md), [web](checklists/web.md), [game](checklists/game.md), [roblox](checklists/roblox.md), [3d](checklists/3d.md), [vfx](checklists/vfx.md), [audio](checklists/audio.md), [vault](checklists/vault.md).
 - [lessons.md](lessons.md): ACE rule bullets; append-only, bump h/x or tag promoted/dup in place.

@@ -73,7 +73,7 @@ export function parseTurn(lines) {
   }
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
-    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
+    errors, fails, maxRetry: Math.max(0, ...fails.values()), tools: uses.size, reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
     agentSecs: Number.isFinite(firstAgent) ? Math.round((firstAgent - t0) / 1000) : null, specSecs: Number.isFinite(firstSend) && Number.isFinite(firstAgent) ? Math.round((firstSend - firstAgent) / 1000) : null,
   };
 }
@@ -123,6 +123,8 @@ export function signals(turn, state = {}, extra = {}) {
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
   // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
   const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
+  // Mute (owner 2026-11-24): a turn with no tool calls, or a prompt saying don't reply, owes no footer or fixes.
+  if (turn.tools === 0 || NO_REPLY.test(turn.prompt || '')) return out;
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
   // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
   else if (imp != null && improvedCount(turn.lastText || '', 'fixed|improved') < 3) out.push({ kind: 'improve', text: 'fixes not listed in the reply footer (`Fixed: a, b, c`)' });
@@ -130,6 +132,7 @@ export function signals(turn, state = {}, extra = {}) {
   if (imp != null && improvedCount(turn.lastText || '', 'next|still to improve') < 3) out.push({ kind: 'improve', text: 'reply footer lacks `Next: a, b, c` (>= 3 items)' });
   return out;
 }
+export const NO_REPLY = /\b(don'?t|do not)\s+(respond|reply|answer|say anything)\b|\bno (reply|response)\b/i;
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
 const ADMIT = /\b(error|failed|fail(s|ing)?|not (done|verified|checked|working|fixed)|broken|blocked)\b/i;
 const KNOW = /^(domains|tools|checklists|\.claude\/skills)\/|^lessons\.md$/;

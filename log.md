@@ -337,3 +337,8 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-24] rule / mute layout always on
+Owner: "don't respond" got a paragraph; act as if the PC mute style is applied, every session. profiles/mute.md (rebuilt; PC sync queued), MUTE line injected on every prompt, learn.mjs skips footer on no-tool / no-reply turns, L-143. improve 60: 49.5 s delivery (-10.5 FAIL: Sonnet faster than predicted).
+improved: mute rules injected every prompt (were PC-only output style); Stop hook no longer forces footer on no-work or don't-respond turns; CLAUDE.md + short skill point to one mute source; tests cover the mute skip
+prune proposal: lessons.md at 154 lines (> 150), roll L-001..L-040 into archive/

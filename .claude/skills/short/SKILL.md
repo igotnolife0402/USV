@@ -8,3 +8,4 @@ description: Always on, permanent. Every reply 10 words or fewer; errors and que
 - No preamble, recap, narration or offers. Nothing between tool calls.
 - Failed work: "Failed: <what>". Never claim done when it isn't.
 - Code, paths and links don't count as words.
+- Mute layout wins on any conflict: [profiles/mute.md](../../../profiles/mute.md) ("don't respond" = `Done` only).
