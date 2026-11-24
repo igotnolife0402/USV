@@ -394,3 +394,8 @@ improved: cine frame counts fps-independent; clash impact frames in cine_duel + 
 Answer: anim.cine had no lighting/spacing. Added clip.camera.grade pass (exp, vignette, element tint) + light `intensity` track (anim.js), cine grade keys + cineLights impact/rim lights (cine.js), lint spacing-close/far + framing; anim 17/17. Duel preview re-rendered with grade, 6 impact lights, blue/red rims.
 improve 60: ~40 brief, ~20 Sonnet, 60.7 total (PASS)
 improved: video export hid vp.helpers but not light gizmos (diamonds in MP4, L-159); grade ramp brightened before the hit (L-158); router word "looks the same,no difference" was one merged string, split + lighting/spacing words added.
+
+## [2026-11-24] build / Crossing: new fight in 6 rendered stages (owner: see the whole process)
+New 7.6 s Kaito vs Ren fight (rigs reused), exported after blocking, splines, impact frames, camera, lighting, vfx: tools/3d/avatar/duel/stages/{build.py,finish.mjs}; stage-stepper preview artifact with compare-with-previous.
+improved: shots check reads anim.lint on any tab (SHOTS_LINT, with args); build gate (contacts, blade-through-body, ground tips) before render; auto IK in-betweens + Euler twin unwrap (lint 10 -> 6) and lower-residual re-solve (L-160); router words for "whole process / how it changed" (routed nowhere before).
+open: Ren wrist flip at 2.75 (L-161) still trips lint 6.

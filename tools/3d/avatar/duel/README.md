@@ -16,5 +16,6 @@ Fight cutscene for the Umbrio Sandbox: two `avatar.py` studio outputs merged int
 5. Upload `uploads.json` files (Artifact `asset: true`, one call), fill `<upload id of x>` in `writes.json`, one ArtifactData batch each.
 6. Read back `projects/<id>` with `out_dir .worktrees/hub`, run `zfight.py check` on it.
 
+Process demo: [stages](stages/README.md) (new 7.6 s fight rendered after each of 6 passes).
 Example: [supernova](supernova/spec.json) (20 s, Kaito saber vs Ren greatsword, supernova tie, 27 effects).
 Limits: no animated camera in the studio (fixed scene camera); poses mid-clip are not z-fight checked (rest pose only).

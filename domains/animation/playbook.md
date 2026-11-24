@@ -16,6 +16,7 @@ Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing 
 - Checks set Animate mode: the Studio animator applies clips only there or while playing.
 - Hand and blade placement is named, not guessed: wrists by two-bone IK (`ik_arm`, wrist target + elbow direction), held blades by `aim` (a direction in the root frame).
 - Fast cuts: never one key jump (a 150° Euler lerp cuts through the body or over the wrong shoulder): `arc_keys` adds slerped in-betweens so the tip draws a clean arc.
+- IK in-betweens (2026-11-24, L-160/161): after a mid key, re-solve the target from it but keep the lower-residual solve; a blade turning > 120° in one swing turns at the shoulder, so regularise the hand rot toward the previous key (a wrist flipping bound to bound = lint euler-jump that no in-between fixes).
 - Weight is timing: slow lift, long wind-up with the tip sagging behind, a held beat, a fast cut (0.22 s at 60 fps), a braked follow-through, slow recovery.
 - Root `pos` keys keep the feet on the ground in every key. Never animate the root of a big build on phones (moves every object; bake statics first).
 - Effects ride the clip: flipbooks with `start`/`life` or `show: [t0, t1]`; swing trails fitted to the tip path's plane and circle (`kind: swing`).

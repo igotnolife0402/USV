@@ -1,5 +1,5 @@
 // Check an exported tab before it goes up (no-op unless SHOTS_TAB is set): SHOTS_TAB=<OUT/studio> SHOTS_AT="1,1.9,2.2"
-// [SHOTS_CAM="x,y,z,tx,ty,tz"] [SHOTS_DEVICE=desktop] [SHOTS_RENDER=1: also render.png, 1920x1080] [SHOTS_VIDEO=1: also clip.mp4] [SHOTS_FPS=12: every frame (frames/f-XXXX.jpg) + one labelled sheet per second (sec-NN.jpg), for frame-by-frame reviews] node test/run.mjs shots -> one phone screenshot per clip time (shots-<t>.png) and shots.jpg (all of them).
+// [SHOTS_CAM="x,y,z,tx,ty,tz"] [SHOTS_DEVICE=desktop] [SHOTS_RENDER=1: also render.png, 1920x1080] [SHOTS_VIDEO=1: also clip.mp4] [SHOTS_LINT=1 or ='{"chest":3}': print anim.lint (with args)] [SHOTS_FPS=12: every frame (frames/f-XXXX.jpg) + one labelled sheet per second (sec-NN.jpg), for frame-by-frame reviews] node test/run.mjs shots -> one phone screenshot per clip time (shots-<t>.png) and shots.jpg (all of them).
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 export default async function (t) {
@@ -21,6 +21,12 @@ export default async function (t) {
     await s.eval(c => { const A = window.studio.app; A.setMode('animate'); A.select([]); const sc = A.scene.camera || {}
       A.viewport.setCamera(c ? { pos: c.slice(0, 3), target: c.slice(3) } : { pos: sc.pos || [7, 5, 9], target: sc.target || [0, 3.2, 0], fov: sc.fov }) }, cam)
     await new Promise(r => setTimeout(r, 1200))
+    if (process.env.SHOTS_LINT) {                  // anim.lint on the tab's clip (2026-11-24): exported clips had no lint read-back outside the editor
+      const la = process.env.SHOTS_LINT.startsWith('{') ? JSON.parse(process.env.SHOTS_LINT) : {}   // e.g. {"chest":3}
+      const issues = await s.eval(a => window.studio.app.exec('anim.lint', a) || [], la)
+      const by = {}; for (const i of issues) by[i.type] = (by[i.type] || 0) + 1
+      console.log('LINT ' + issues.length + ' ' + JSON.stringify(by) + ' ' + JSON.stringify(issues.slice(0, 8)))
+    }
     const urls = []
     if (process.env.SHOTS_NEAR) await s.eval(n => { window.__shotsNear = n }, +process.env.SHOTS_NEAR)
     for (const at of (process.env.SHOTS_AT || '0').split(',').map(Number)) {
