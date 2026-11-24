@@ -368,3 +368,8 @@ improve 20: 4 s brief, 11 s Sonnet, 28.2 s total (+8.2 FAIL), rungs 1. Front whe
 improved: car_p60 loft winding fixed at the source; helmet tests deleted (91 docs); front wheels live (28 docs)
 
 improved: L-143 promoted to playbook rule (x3): no upload without 1.2x free bytes
+
+## [2026-11-24] build / car60-a wheels live; car200 missing (/improve 45)
+improve 45: 26 s brief, 12 s Sonnet, 163.9 s total (+118.9 FAIL: done called late after upload work), rungs 1. car60-a all 186 geo docs live (rear wheels 26). car_p200.py is a byte copy of car_p60 (only loft fix differs) and emits the same 186 docs: the 200 s car was never built.
+improved: car60 size measured (4.5 MB/186 docs, discs 115 KB, cabin 174 KB); car200 generator found to be a car60 copy; rear wheels live
+
