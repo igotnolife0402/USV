@@ -380,3 +380,8 @@ improved: v2 template; 3D-energy rule in anime-vfx-reference; L-153; one render 
 hooks/learn.mjs GOAL_S + metrics ok (<= goal) / inLimit; budget.mjs warns at goal then 50/80/100 % of limit; prompt-router shows "goal 75 s, limit 5 min"; perf digest "% on goal, % within limit"; rollup on goal; CLAUDE.md table, must.md rule 12, owner.md speed line; tests updated, all pass.
 improve 60: ~20 s brief, 12 s Sonnet, 57.5 s total (PASS), rungs 1-2.
 improved: goal/limit in hooks + docs; budget warns at the goal; perf digest shows on-goal %; L-155.
+
+## [2026-11-24] build / Void Rift (/improve 60, "another vfx, different, within time")
+Umbrio tab void-1124 (umbrio_void.py, full helper block copied): black singularity + 2 noise horizon shells, 3 rippled disk bands + orange inner edge, 6 lensing arcs, 24 infalling rocks on spirals, squeeze, impact frame, 2 shock rings, 12 spaghetti streaks, 30 embers. 110 objects read back, zfight PASS, 1 render (46 s), MP4 sent. Turn ~160 s (limit 300, goal 75 missed).
+improve 60: ~25 s brief, 15 s Sonnet, 81.2 s total (+21 FAIL), rungs 1-2.
+improved: void template; improve done-timing rule (L-156); helper-block copy via sed (no NameError).

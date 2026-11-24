@@ -1,0 +1,182 @@
+"""Void Rift: black hole forms, accretion disk spins up, debris spirals in, squeeze, impact frame, burst (owner 2026-11-24 "another vfx, different").
+Usage: python tools/vfx/crimson-beam/umbrio_void.py OUT"""
+import base64, datetime, json, math, os, random, sys
+
+arg = lambda k, d=None: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+OUT = sys.argv[1]
+rng = random.Random(23)
+T = dict(open=1.5, squeeze=4.5, hit=4.8, flash_end=4.87, len=7.0)
+C = dict(white='#f3e8ff', violet='#9a5cff', deep='#3a1080', rim='#7a3cff', orange='#ff9a3c', black='#000000')
+CEN = [0, 25, 0]
+objs, tracks, geos = {}, {}, {}
+r3 = lambda v: [round(x, 3) for x in v]
+k = lambda t, v, e='linear': [round(t, 3), v, e]
+
+
+def add(oid, o, **tr):
+    o.setdefault('parent', 'world'); objs[oid] = o
+    if tr: tracks[oid] = tr
+
+
+def noise1(seed):
+    g = random.Random(seed); ph = [g.random() * 6.283 for _ in range(4)]
+    return lambda x: sum(math.sin(x * f + p) / f for f, p in zip((1, 2.3, 5.1, 9.7), ph)) / 1.7
+
+
+def tube(path, radii, sides=8, cap=True):
+    verts, uvs, faces, n = [], [], [], len(path)
+    for i, p in enumerate(path):
+        a, b = path[max(0, i - 1)], path[min(n - 1, i + 1)]
+        t = [b[j] - a[j] for j in range(3)]; tl = math.sqrt(sum(x * x for x in t)) or 1; t = [x / tl for x in t]
+        ref = [0, 1, 0] if abs(t[1]) < 0.9 else [1, 0, 0]
+        u = [t[1] * ref[2] - t[2] * ref[1], t[2] * ref[0] - t[0] * ref[2], t[0] * ref[1] - t[1] * ref[0]]
+        ul = math.sqrt(sum(x * x for x in u)) or 1; u = [x / ul for x in u]
+        w = [t[1] * u[2] - t[2] * u[1], t[2] * u[0] - t[0] * u[2], t[0] * u[1] - t[1] * u[0]]
+        r = radii[i] if isinstance(radii, list) else radii
+        for s in range(sides):
+            an = 2 * math.pi * s / sides
+            verts += r3([p[j] + (u[j] * math.cos(an) + w[j] * math.sin(an)) * r for j in range(3)]); uvs += [round(s / sides, 3), round(i / (n - 1), 3)]
+    for i in range(n - 1):
+        for s in range(sides):
+            a, b = i * sides + s, i * sides + (s + 1) % sides
+            faces.append([a, b, b + sides, a + sides])
+    if cap: faces += [list(range(sides))[::-1], [(n - 1) * sides + s for s in range(sides)]]
+    return {'verts': verts, 'faces': faces, 'uvs': uvs}
+
+
+def ring_geo(r_out, width, ripple, seg=96, rows=5, seed=1):
+    nz = noise1(seed); verts, uvs, faces = [], [], []
+    for i in range(rows + 1):
+        f = i / rows; r = r_out - width * f
+        for j in range(seg):
+            a = 2 * math.pi * j / seg
+            verts += r3([math.cos(a) * r, ripple * math.sin(math.pi * f) * (0.6 + 0.4 * nz(a * 6)), math.sin(a) * r]); uvs += [round(j / seg, 3), round(f, 3)]
+    for i in range(rows):
+        for j in range(seg):
+            a, b = i * seg + j, i * seg + (j + 1) % seg
+            faces.append([a, b, b + seg, a + seg])
+    return {'verts': verts, 'faces': faces, 'uvs': uvs}
+
+
+def merge(parts):
+    out = {'verts': [], 'faces': [], 'uvs': []}
+    for g in parts:
+        o = len(out['verts']) // 3
+        out['verts'] += g['verts']; out['uvs'] += g['uvs']; out['faces'] += [[i + o for i in f] for f in g['faces']]
+    return out
+
+
+def crystal_geo(seed, h_top, h_bot, r, sides=7):
+    """Faceted bipyramid with a jittered waist and a second facet ring: an obsidian shard, not a primitive."""
+    g = random.Random(seed); verts, faces = [], []
+    rings = [(0.0, r), (h_top * 0.35, r * 0.82)]
+    for y, rr in rings:
+        for s in range(sides):
+            a = 2 * math.pi * s / sides + g.uniform(-0.12, 0.12)
+            q = rr * g.uniform(0.85, 1.12); verts += r3([math.cos(a) * q, y + g.uniform(-0.15, 0.15) * r, math.sin(a) * q])
+    top = len(verts) // 3; verts += r3([g.uniform(-0.1, 0.1) * r, h_top, g.uniform(-0.1, 0.1) * r])
+    bot = top + 1; verts += [0, -h_bot, 0]
+    for s in range(sides):
+        a, b = s, (s + 1) % sides
+        faces.append([a, b, sides + b, sides + a]); faces.append([sides + a, sides + b, top]); faces.append([b, a, bot])
+    uvs = []
+    for i in range(len(verts) // 3): uvs += [round(verts[i * 3] * 0.3, 3), round(verts[i * 3 + 1] * 0.3, 3)]
+    return {'verts': verts, 'faces': faces, 'uvs': uvs}
+
+
+
+def blob_geo(R, amp, seed, lat=16, lon=28):
+    nzz = noise1(seed); verts, uvs, faces = [], [], []
+    for i in range(lat + 1):
+        th = math.pi * i / lat
+        for j in range(lon):
+            ph = 2 * math.pi * j / lon; rr = R * (1 + amp * nzz(th * 3 + ph * 2) * math.sin(th))
+            verts += r3([math.sin(th) * math.cos(ph) * rr, math.cos(th) * rr, math.sin(th) * math.sin(ph) * rr]); uvs += [round(j / lon, 3), round(i / lat, 3)]
+    for i in range(lat):
+        for j in range(lon): faces.append([i * lon + j, (i + 1) * lon + j, (i + 1) * lon + (j + 1) % lon, i * lon + (j + 1) % lon])
+    return {'verts': verts, 'faces': faces, 'uvs': uvs}
+
+
+# ---------- World: Dutch tilt 10 deg, push-in while it spins up, shake after the impact ----------
+pos, t = [], 0.0
+while t <= T['len'] + 1e-6:
+    A = 0.04 if t < T['hit'] else 1.3 * math.exp(-(t - T['hit']) * 2.5) + 0.05
+    push = 12 * min(1, t / T['squeeze'])
+    pos.append(k(t, r3([A * (rng.random() * 2 - 1), A * (rng.random() * 2 - 1) * 0.7, push]), 'smooth')); t += 0.05
+add('world', {'type': 'group', 'name': 'World', 'parent': None, 'pos': [0, 0, 0], 'rot': [0, 0, 10]}, pos=pos)
+grow = [k(0, [0.05, 0.05, 0.05]), k(T['open'], [1, 1, 1], 'out'), k(T['squeeze'], [1.05, 1.05, 1.05], 'smooth'), k(T['hit'], [0.6, 0.6, 0.6], 'in'),
+        k(T['flash_end'] + 0.1, [0.02, 0.02, 0.02], 'in')]
+
+# ---------- singularity: solid black core + violet rim shells (real 3D noise meshes, no cards) ----------
+add('rift', {'type': 'group', 'name': 'Rift', 'pos': CEN}, scale=grow)
+add('core', {'type': 'part', 'shape': 'sphere', 'name': 'Singularity', 'parent': 'rift', 'size': [10, 10, 10], 'material': 'SmoothPlastic', 'color': C['black'], 'pos': [0, 0, 0]})
+for i, (R, tr, col, axis, spd) in enumerate([(6.2, 0.55, C['rim'], 1, 160), (8.5, 0.82, C['deep'], 0, -110)]):
+    geos[f'g-vr-rim{i}'] = blob_geo(R, 0.08 + 0.04 * i, 70 + i)
+    end = [0, 0, 0]; end[axis] = spd * T['hit']
+    add(f'rim{i}', {'type': 'mesh', 'name': f'Event horizon {i + 1}', 'geo': f'g-vr-rim{i}', 'parent': 'rift', 'material': 'ForceField', 'color': col, 'transparency': tr, 'smooth': True, 'pos': [0, 0, 0]},
+        rot=[k(0, [0, 0, 0]), k(T['hit'], r3(end))])
+add('vlight', {'type': 'light', 'kind': 'point', 'name': 'Rift light', 'pos': CEN, 'color': C['black'], 'intensity': 35, 'range': 120},
+    color=[k(0, C['black']), k(T['open'], C['violet'], 'in'), k(T['squeeze'], C['violet']), k(T['hit'], C['black'], 'step'), k(T['flash_end'], C['white'], 'step'), k(T['len'], '#100420', 'out')])
+
+# ---------- accretion disk: 3 rippled ring meshes tilted 15 deg, each spinning at its own speed, orange inner edge ----------
+add('disk', {'type': 'group', 'name': 'Accretion disk', 'pos': CEN, 'rot': [15, 0, 0]}, scale=grow)
+for i, (ro, w, col, mat, tr, spd) in enumerate([(14, 5, C['white'], 'Neon', 0, 400), (22, 8, C['violet'], 'Neon', 0, 260), (32, 10, C['deep'], 'ForceField', 0.45, 180)]):
+    geos[f'g-vr-disk{i}'] = ring_geo(ro, w, 0.9 + 0.4 * i, seg=120, rows=6, seed=80 + i)
+    o = {'type': 'mesh', 'name': f'Disk band {i + 1}', 'geo': f'g-vr-disk{i}', 'parent': 'disk', 'material': mat, 'color': col, 'smooth': True, 'pos': [0, 0.3 * i, 0]}
+    if tr: o['transparency'] = tr
+    add(f'band{i}', o, rot=[k(0, [0, 0, 0]), k(T['hit'], [0, spd * T['hit'], 0])])
+add('inner', {'type': 'part', 'shape': 'torus', 'name': 'Hot inner edge', 'parent': 'disk', 'size': [18.4, 0.6, 18.4], 'material': 'Neon', 'color': C['orange'], 'pos': [0, 0.1, 0]},
+    rot=[k(0, [0, 0, 0]), k(T['hit'], [0, -500 * T['hit'], 0])])
+# lensing arcs: light bent over and under the hole (vertical half-loops around the core)
+for i in range(6):
+    R = 9 + i * 1.3; ph = i * 30
+    pts = [[math.cos(math.radians(ph)) * R * math.cos(a), R * math.sin(a), math.sin(math.radians(ph)) * R * math.cos(a)] for a in [math.pi * q / 24 for q in range(25)]]
+    geos[f'g-vr-lens{i}'] = tube(pts, [0.12 + 0.2 * math.sin(math.pi * q / 24) for q in range(25)], sides=5, cap=False)
+    add(f'lens{i}', {'type': 'mesh', 'name': f'Lensing arc {i + 1}', 'geo': f'g-vr-lens{i}', 'parent': 'rift', 'material': 'Neon', 'color': C['violet'] if i % 2 else C['white'], 'smooth': True, 'pos': [0, 0, 0]},
+        rot=[k(0, [0, 0, 0]), k(T['hit'], [0, 90 + 40 * i, 0])], visible=[k(0, False, 'step'), k(T['open'] * 0.6 + 0.1 * i, True, 'step'), k(T['flash_end'], False, 'step')])
+
+# ---------- debris: 24 lit rocks on decaying spiral orbits in the disk plane (tiny vs the 64 m disk) ----------
+for s in range(3): geos[f'g-vr-rock{s}'] = crystal_geo(90 + s, 0.8, 0.7, 0.7, sides=5)
+for i in range(24):
+    a0 = rng.random() * 6.283; r0 = 40 + rng.random() * 25; t0 = rng.random() * 1.2; t1 = T['squeeze'] - rng.random() * 1.2; keys, rot = [], []
+    for q in range(16):
+        f = q / 15; tt = t0 + (t1 - t0) * f; r = r0 * (1 - f) ** 1.6 + 4; a = a0 + 3.5 * f / max(0.15, (1 - f) ** 0.8)
+        keys.append(k(tt, r3([math.cos(a) * r, rng.uniform(-1.5, 1.5) * (1 - f), math.sin(a) * r]))); rot.append(k(tt, r3([400 * f, 700 * f, 200 * f])))
+    sc = 0.6 + rng.random() * 1.3
+    add(f'rock{i}', {'type': 'mesh', 'name': f'Infalling rock {i + 1}', 'geo': f'g-vr-rock{i % 3}', 'parent': 'disk', 'material': 'Slate', 'color': '#8a7fa8', 'smooth': False, 'pos': keys[0][1]},
+        pos=keys, rot=rot, scale=[k(0, [sc, sc, sc], 'step')], visible=[k(0, False, 'step'), k(t0, True, 'step'), k(t1, False, 'step')])
+    add(f'rglow{i}', {'type': 'part', 'shape': 'sphere', 'name': f'Rock glint {i + 1}', 'parent': 'disk', 'size': [0.4, 0.4, 0.4], 'material': 'Neon', 'color': C['orange'], 'pos': keys[0][1]},
+        pos=keys, visible=[k(0, False, 'step'), k(t0, True, 'step'), k(t1, False, 'step')])
+
+# ---------- impact frame + burst ----------
+add('impact', {'type': 'part', 'shape': 'sphere', 'name': 'Impact frame', 'parent': None, 'size': [24, 24, 24], 'pos': [0, 6, 82], 'material': 'Neon', 'color': '#ffffff'},
+    visible=[k(0, False, 'step'), k(T['hit'], True, 'step'), k(T['flash_end'], False, 'step')])
+geos['g-vr-shock'] = ring_geo(10, 1.6, 1.2, seg=120, seed=91)
+for oid, tmax, end, col in [('shock1', 1.4, 8.0, C['white']), ('shock2', 2.1, 6.0, C['violet'])]:
+    add(oid, {'type': 'mesh', 'name': f'Shock ring {oid[-1]}', 'geo': 'g-vr-shock', 'parent': 'disk', 'material': 'Neon', 'color': col, 'smooth': True, 'pos': [0, 0, 0]},
+        visible=[k(0, False, 'step'), k(T['flash_end'], True, 'step'), k(T['flash_end'] + tmax, False, 'step')],
+        scale=[k(T['flash_end'], [0.1, 1, 0.1]), k(T['flash_end'] + tmax, [end, 1, end], 'out')], color=[k(T['flash_end'], col), k(T['flash_end'] + tmax, C['black'], 'in')])
+geos['g-vr-streak'] = tube([[x, 0, 0] for x in (0, 8, 16, 24, 32)], [0.9, 0.7, 0.5, 0.3, 0.05], sides=6)
+for i in range(12):
+    yaw = 360 * i / 12 + rng.uniform(-10, 10); pitch = rng.uniform(-35, 35); t0 = T['flash_end'] + rng.random() * 0.15
+    add(f'streak{i}', {'type': 'mesh', 'name': f'Spaghetti streak {i + 1}', 'geo': 'g-vr-streak', 'material': 'Neon', 'color': C['white'] if i % 3 == 0 else C['violet'], 'smooth': True,
+                       'pos': CEN, 'rot': [0, round(yaw, 1), round(pitch, 1)]},
+        scale=[k(t0, [0.05, 1, 1]), k(t0 + 0.5, [2.2, 1, 1], 'out'), k(T['len'], [3.0, 0.3, 0.3], 'out')],
+        visible=[k(0, False, 'step'), k(t0, True, 'step')], color=[k(t0, C['white']), k(T['len'], C['deep'], 'in')])
+for i in range(30):
+    a, el = rng.random() * 6.283, rng.uniform(-0.6, 0.6); sp = 25 + rng.random() * 30; t0 = T['flash_end'] + rng.random() * 0.4
+    d = [math.cos(a) * math.cos(el), math.sin(el), math.sin(a) * math.cos(el)]
+    add(f'ember{i}', {'type': 'part', 'shape': 'sphere', 'name': f'Ember {i + 1}', 'size': [0.35, 0.35, 0.35], 'material': 'Neon', 'color': C['orange'], 'pos': CEN},
+        pos=[k(t0, CEN), k(T['len'], r3([CEN[j] + d[j] * sp for j in range(3)]), 'out')], visible=[k(0, False, 'step'), k(t0, True, 'step')],
+        color=[k(t0, C['orange']), k(T['len'], '#40102a')])
+
+now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+project = {'name': 'Void Rift', 'v': 1, 'updated': now, 'objects': objs, 'anims': {'rift': {'name': 'Rift', 'len': T['len'], 'fps': 30, 'loop': True, 'tracks': tracks}},
+           'textures': {}, 'env': {'bg': '#05040a', 'grid': False, 'fog': {'color': '#05040a', 'near': 120, 'far': 400}, 'light': 'night'},
+           'camera': {'pos': [0, 6, 82], 'target': [0, 22, 0], 'fov': 55, 'ortho': False}}
+meta = {'name': 'Void Rift', 'updated': now, 'count': len(objs), 'ai': True, 'building': False}
+for d in ('live', 'geo'): os.makedirs(f'{OUT}/{d}', exist_ok=True)
+dump = lambda o, p: json.dump(o, open(p, 'w'), separators=(',', ':'))
+dump(project, f'{OUT}/live/p.json'); dump(meta, f'{OUT}/live/m.json')
+for gid, g in geos.items(): dump(g, f'{OUT}/geo/{gid}.json')
+print(json.dumps({'objects': len(objs), 'tracks': len(tracks), 'geos': len(geos), 'project_kb': round(os.path.getsize(f'{OUT}/live/p.json') / 1024, 1)}))

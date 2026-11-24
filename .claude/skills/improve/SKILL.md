@@ -34,6 +34,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - Never write the brief while `advice` says keep researching (2026-11-23: the 200 s car brief stopped at 113 s, wasting 87 s): spend it on rungs 4-7 (gate math, contradiction pass, depth) and re-check `left`.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
+- Call `done` the moment the prompt arrives inside the window, before any build command (2026-11-24 Void Rift: done ran after the build write, +21 s).
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this
