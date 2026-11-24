@@ -47,6 +47,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - No allocation per frame in update loops; no shader compile hitch at first trigger (warm up).
 
 ## Speed tricks
+- Umbrio VFX in one read (2026-11-24, 474 s spent finding these): template `tools/vfx/crimson-beam/umbrio_beam.py`; glow = `Neon` (core) / `ForceField` + `transparency` 0.45-0.88 (layers); torus lies flat, `size [dia, tube, dia]`, expand rings by scaling from a full-size torus (scaling a small one fattens the tube into a disc); tracks pos/rot/scale/color/visible only (fade = color to black); no camera track (shake = root group); `env.light: night`, fog `{color,near,far}`; keep sky effects below the view top (~target y + tan(fov/2)*dist). MP4: shots dir needs project.json, meta.json, geo/, uploads.json `{}`; ~90 s per run on llvmpipe, so get the layout right in one run.
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.
 - Additive blending makes anything look 2x better on dark backgrounds.
 - Value noise / fbm in shader covers fire, smoke, water, clouds.
