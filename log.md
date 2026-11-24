@@ -491,3 +491,7 @@ improved: one file per effect instead of a sheet; GIF 1-bit alpha limit document
 ## [2026-11-24] build / unique VFX grammar
 unique.py: 33-element grammar, pair-once, frame-once, blurred silhouette gate; 67 unique action flipbooks + 30 symbols + GIFs (target 140 not met).
 improved: element grammar replaces param variants; perceptual blurred gate calibrated on owner's complaint; Pool render 6.9 min -> 1 min; faint-scatter filter.
+
+## [2026-11-24] build / white-only VFX atlases
+pack.py: 67 effects -> 15 white 1024 atlases (2.9 MB, was 24 MB) + VFXAtlas.luau player; unique.py no longer writes colour sheets.
+improved: colour output removed; held/empty frames deduped; 59->15 uploads via 128 px cells; router words for atlas/white requests.

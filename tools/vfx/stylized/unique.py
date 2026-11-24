@@ -204,7 +204,7 @@ def render(job):
     ws = Image.new('RGBA', (1024, 1024))
     for f in range(F):
         r_, c_ = divmod(f, 4); ws.paste(A.white(Ls[r_ * C:(r_ + 1) * C, c_ * C:(c_ + 1) * C]), (c_ * 256, r_ * 256))
-    ws.save(f'{out}/action/{name}.png'); Image.fromarray((col * 255 + .5).astype(np.uint8)).resize((1024, 1024), Image.LANCZOS).save(f'{out}/action/{name}-color.png')
+    ws.save(f'{out}/action/{name}.png')   # white only (owner 2026-11-24): the game colours it; colour previews wasted time and space
     return dict(empty=sum(m.max() < .05 for m in ms), jump=A.jump(ms))
 
 

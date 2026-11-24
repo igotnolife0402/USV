@@ -479,7 +479,8 @@
         "symbol,icon,different shape,repeating",
         "slash,smash,wind,flipbook pack",
         "rotated,same vfx",
-        "identical vfx, same shape, all unique, unique shapes"
+        "identical vfx, same shape, all unique, unique shapes",
+        "white ones, color itself, atlas, sheets as an animation, flipbook atlas"
       ],
       "notes": [
         "domains/vfx/playbook.md",

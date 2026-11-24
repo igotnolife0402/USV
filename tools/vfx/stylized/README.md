@@ -30,3 +30,9 @@ Owner: param variants of one design read as identical (ring+star vs ring+cracks)
 each element capped, big-outline FRAME elements used once, sparse effects dropped, blurred rotation/mirror-invariant gate corr < 0.66.
 `python3 unique.py SYM_DIR OUTDIR [140] [60]` then `python3 gifs.py OUTDIR/action GIFDIR`. ~1 min on 4 cores. Current grammar yields ~67 unique;
 more needs new elements, not looser gates.
+
+## pack.py (2026-11-24, replaces GIFs + colour sheets)
+Owner: white only (game tints via ImageColor3), no GIFs, no wasted sheets. `python3 pack.py OUTDIR/action PACKDIR` packs all effects'
+frames into shared 1024 atlases (64 x 128 px cells), drops empty/unchanged frames as holds, writes VFXAtlas.luau
+(`play(adornee, name, {color,size,duration})`, BillboardGui + ImageRectOffset). 67 effects: 24 MB -> 15 atlases, 2.9 MB.
+ParticleEmitter flipbooks cannot play a sheet sub-range: packed atlases need this player.
