@@ -362,3 +362,8 @@ seethru 22.2% -> 0.68% by flipping 4 inward-wound shells (cabin, body-1..3), pus
 improved: seethru measured (root cause found: inward winding); 4 shells fixed live; L-145 + errors row: seethru before live upload
 
 improved: errors row + L-146: pin only uploaded ids
+
+## [2026-11-24] fix / car60 Next list (/improve 20)
+improve 20: 4 s brief, 11 s Sonnet, 28.2 s total (+8.2 FAIL), rungs 1. Front wheels live; rear wheels refused by quota after deleting helmets hv-k/m/t. car_p60 loft() now orients shells by signed volume (both winding directions tested).
+improved: car_p60 loft winding fixed at the source; helmet tests deleted (91 docs); front wheels live (28 docs)
+

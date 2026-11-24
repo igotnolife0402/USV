@@ -94,7 +94,13 @@ def loft(sec, z0, z1, nz, nt):
         rows.append(np.column_stack([x, y, np.full(nt, z)]))
     G = np.array(rows)
     c0, c1 = G[0].mean(0), G[-1].mean(0)
-    return P.grid_mesh(G, False, c0, c1)
+    m = P.grid_mesh(G, False, c0, c1)
+    # section direction decides winding; body/cabin came out inward (22% see-through, L-145): orient by signed volume
+    V = m.v
+    vol = sum(np.dot(V[f[0]], np.cross(V[f[k]], V[f[k + 1]])) for f in m.f for k in range(1, len(f) - 1))
+    if vol < 0:
+        m.f = [f[::-1] for f in m.f]
+    return m
 
 
 def solid(O, I):
