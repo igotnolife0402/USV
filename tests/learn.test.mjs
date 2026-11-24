@@ -85,9 +85,9 @@ test('metrics: one line per owner turn, digest names weak routes, promote list',
   assert.equal(L.recordMetrics(t, { tier: 'simple', routes: ['vfx'] }, [], 'pc'), false, 'deduped');
   const path = join(process.env.VAULT_ROOT, L.METRICS);
   const row = JSON.parse(readFileSync(path, 'utf8').trim());
-  assert.equal(row.ok, true); assert.equal(row.errors, 2);
+  assert.equal(row.inLimit, true); assert.equal(row.ok, row.secs <= 15, 'ok = on goal (limit/4)'); assert.equal(row.errors, 2);
   const many = Array.from({ length: 5 }, (_, i) => JSON.stringify({ t: at(i), tier: 'medium', secs: 400, ok: false, errors: 1, routes: ['roblox'], signals: ['slow'] })).join('\n');
-  assert.match(L.perfDigest(many), /0% on target.*weakest routes: roblox \(5\)/);
+  assert.match(L.perfDigest(many), /0% on goal.*weakest routes: roblox \(5\)/);
   assert.deepEqual(L.toPromote('- [L-001] (h:2 x:0) a\n- [L-002] (h:0 x:1) b\n- [L-003] (h:3 x:0) c → promoted: x.md'), ['L-001']);
 });
 
@@ -99,7 +99,7 @@ test('rollupMetrics: past months become a summary note, current month stays', ()
     { t: '2026-11-02T10:00:00.000Z', tier: 'simple', secs: 20, ok: true, errors: 0, routes: [], signals: [] },
   ].map(r => JSON.stringify(r)).join('\n') + '\n');
   assert.deepEqual(rollupMetrics(root, '2026-11-21'), ['2026-10']);
-  assert.match(readFileSync(join(root, 'archive', 'metrics-2026-10.md'), 'utf8'), /turns: 2; on target: 50%[\s\S]*roblox \(1\)/);
+  assert.match(readFileSync(join(root, 'archive', 'metrics-2026-10.md'), 'utf8'), /turns: 2; on goal: 50%[\s\S]*roblox \(1\)/);
   assert.equal(readFileSync(join(root, 'archive', 'metrics.jsonl'), 'utf8').trim().split('\n').length, 1);
   assert.deepEqual(rollupMetrics(root, '2026-11-21'), [], 'idempotent');
 });

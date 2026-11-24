@@ -375,3 +375,8 @@ improved: umbrio_nova.py template; impact-frame recipe in anime-vfx-reference; i
 Umbrio tab nova2-1124 (umbrio_nova2.py): 14 m crystal with cyan facet veins + 12 orbit shards + glints; 3D energy = 3 noise shells, 8 shell arcs, 3 tilted orbit rings (no facing card); thick helix-wrapped beams, 90 m shock rings, dust wall, 30 spikes, final flash, falling crystal fragments. 202 objects read back, zfight PASS, MP4 sent, 1 render run. Gate miss: crystal 0.4 % of frame at t=1.5 (target 3 %).
 improve 60: ~20 s brief, 16 s Sonnet, 57.2 s total (PASS), rungs 1-3.
 improved: v2 template; 3D-energy rule in anime-vfx-reference; L-153; one render run per build held.
+
+## [2026-11-24] fix / tier time = absolute limit, goal = limit/4 (owner)
+hooks/learn.mjs GOAL_S + metrics ok (<= goal) / inLimit; budget.mjs warns at goal then 50/80/100 % of limit; prompt-router shows "goal 75 s, limit 5 min"; perf digest "% on goal, % within limit"; rollup on goal; CLAUDE.md table, must.md rule 12, owner.md speed line; tests updated, all pass.
+improve 60: ~20 s brief, 12 s Sonnet, 57.5 s total (PASS), rungs 1-2.
+improved: goal/limit in hooks + docs; budget warns at the goal; perf digest shows on-goal %; L-155.

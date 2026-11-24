@@ -4,10 +4,12 @@
 import { readInput, emit, safe, isMain } from './lib.mjs';
 import { loadTurnState, saveTurnState, TARGET_S, readTail, parseTurn } from './learn.mjs';
 
+// Owner 2026-11-24: fractions of the tier LIMIT; 0.25 is the goal (4x faster than the limit).
 export const STEPS = [
-  [0.5, 'half the budget used: no new research; finish the build, then one check'],
-  [0.8, 'ship now: run the one check, commit, reply; log anything unfinished as Next'],
-  [1.0, 'over target: stop work, commit what passes, reply with Failed/Next for the rest'],
+  [0.25, 'GOAL passed (limit/4): no new research or extras; finish the one build step left, one check, reply'],
+  [0.5, 'half the LIMIT used: ship the working subset now'],
+  [0.8, '80 % of the LIMIT: commit and reply now; log anything unfinished as Next'],
+  [1.0, 'LIMIT hit (absolute): stop work, commit what passes, reply with Failed/Next for the rest'],
 ];
 
 // Returns { msg, fired } for the newest step crossed and not yet announced, else null.
@@ -18,7 +20,7 @@ export function budgetNote(state, now = Date.now()) {
   let idx = -1;
   STEPS.forEach(([f], i) => { if (secs >= f * target) idx = i; });
   if (idx < fired) return null;
-  return { fired: idx + 1, msg: `BUDGET ${Math.round(secs)}s of ${target}s (${state.tier || 'medium'}): ${STEPS[idx][1]}.` };
+  return { fired: idx + 1, msg: `BUDGET ${Math.round(secs)}s (goal ${target / 4}s, limit ${target}s) (${state.tier || 'medium'}): ${STEPS[idx][1]}.` };
 }
 
 if (isMain(import.meta.url)) safe(() => {

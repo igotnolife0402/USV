@@ -38,6 +38,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - ALWAYS textures + custom meshes + real 3D thickness, any style (owner 2026-11-22, repeated): "voxel" = a voxel LOOK built from chunky textured mesh parts, never plain untextured Parts or a flat 1-stud slab; size readable (rifle ~9 studs). Gate: detail.py must pass before showing. Template: tools/3d/props/guns.py.
 - Scope = what was asked. A model is only that model: no ground, scenery or props unless asked. A named theme (e.g. "grassy meadow") is built first, everywhere the camera sees.
 - "Build me X" means the built thing in the target tool (Studio, editor, page), not code that describes it, unless scripts are asked for.
+- Speed (owner 2026-11-24): the tier time is an ABSOLUTE LIMIT, never the goal; the goal is 4x faster than the limit for every tier (simple 15 s, medium 75 s, complex 7.5 min).
 - Asked to go faster: offer only lossless speedups (parallel work, fewer reads, reuse, batched fixes). Never silently drop a requested feature or check; over budget → ship the working subset and list exactly what is left.
 - Judge by an outside check (script, measurement, screenshot), pass/fail. No self-scores or 1-12 ratings.
 

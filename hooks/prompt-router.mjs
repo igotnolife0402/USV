@@ -35,14 +35,14 @@ export function fastPath(prompt, routes = []) {
 }
 export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes); return [...new Set((f && 'skill' in f ? [f.skill] : routes.map(r => r.skill)).filter(Boolean))]; };
 
-const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
+const TARGET = { simple: 'goal 15 s, limit 1 min', medium: 'goal 75 s, limit 5 min', complex: 'goal 7.5 min, limit 30 min' };   // owner 2026-11-24: limit is absolute, goal = limit/4
 
 const BUILD = /\b(make|build|create|model|design|generate|remake|redo|add)\b/i;
 const must = () => (readIf(join(ROOT, 'profiles/must.md')) || '').replace(/^---[\s\S]*?---\s*/, '').trim();
 function buildContext(prompt, mode, router) {
   if (RELAY.test(prompt)) return `MODE=${mode}`;
   const tier = classify(prompt, router.tiers);
-  const lines = [`MODE=${mode} | TIER=${tier} (target: ${TARGET[tier]})`];
+  const lines = [`MODE=${mode} | TIER=${tier} (${TARGET[tier]})`];
   const routes = route(prompt, router);
   if (routes.length) {
     const uniq = (a) => [...new Set(a.filter(Boolean))];

@@ -4,7 +4,9 @@ import { openSync, readSync, closeSync, fstatSync, appendFileSync, mkdirSync, wr
 import { join, relative, isAbsolute } from 'node:path';
 import { ROOT, readIf, today } from './lib.mjs';
 
-export const TARGET_S = { simple: 60, medium: 300, complex: 1800 };
+// Owner 2026-11-24: tier times are ABSOLUTE LIMITS; the goal is 4x faster than the limit for every tier.
+export const TARGET_S = { simple: 60, medium: 300, complex: 1800 };   // limit (hard)
+export const GOAL_S = Object.fromEntries(Object.entries(TARGET_S).map(([k, v]) => [k, v / 4]));   // goal: 15 / 75 / 450 s
 export const METRICS = 'archive/metrics.jsonl';
 const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
 // The owner says the last result was bad. Short prompts only (pasted logs are not corrections).
@@ -99,7 +101,7 @@ export function signals(turn, state = {}, extra = {}) {
   if (turn.errors.length >= 1)
     out.push({ kind: 'errors', text: `${turn.errors.length} tool error(s), worst retry x${turn.maxRetry}: ${turn.errors.slice(0, 3).map(e => `${e.tool} \`${e.what}\` → ${e.text}`).join(' | ')}` });
   const target = TARGET_S[tier];
-  if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s vs ${tier} target ${target}s` });
+  if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s, over the ${tier} LIMIT ${target}s (goal ${target / 4}s)` });
   if ((turn.skills || []).includes('crew') && turn.agentSecs != null && turn.agentSecs > 30) out.push({ kind: 'slow', text: `crew spawned workers ${turn.agentSecs}s after the prompt (cap 30s)` });
   if ((turn.skills || []).includes('crew') && turn.specSecs != null && turn.specSecs > 90) out.push({ kind: 'slow', text: `crew sent build specs ${turn.specSecs}s after spawning (cap 90s): brain worked alone` });
   if (turn.prompt.length < 1500 && CORRECTION.test(turn.prompt))
@@ -174,7 +176,7 @@ export function recordMetrics(turn, state, sigs, mode) {
   const t = new Date(turn.t0).toISOString();
   if (readIf(path).slice(-4000).includes(`"t":"${t}"`)) return false;
   const tier = state.tier || 'medium';
-  const line = { t, tier, secs: turn.secs, ok: turn.secs <= (TARGET_S[tier] || 300), errors: turn.errors.length, retry: turn.maxRetry,
+  const line = { t, tier, secs: turn.secs, ok: turn.secs <= (GOAL_S[tier] || 75), inLimit: turn.secs <= (TARGET_S[tier] || 300), errors: turn.errors.length, retry: turn.maxRetry,
     routes: state.routes || [], touched: domainsOf(turn.reads), signals: sigs.map(s => s.kind), mode };
   try { mkdirSync(join(ROOT, 'archive'), { recursive: true }); appendFileSync(path, JSON.stringify(line) + '\n'); return true; } catch { return false; }
 }
@@ -183,13 +185,14 @@ export function recordMetrics(turn, state, sigs, mode) {
 export function perfDigest(text, n = 40) {
   const rows = text.split('\n').filter(Boolean).slice(-n).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
   if (rows.length < 3) return '';
-  const pct = Math.round(100 * rows.filter(r => r.ok).length / rows.length);
+  const onGoal = r => r.secs <= (GOAL_S[r.tier] || 75), inLimit = r => r.secs <= (TARGET_S[r.tier] || 300);
+  const pct = Math.round(100 * rows.filter(onGoal).length / rows.length), lim = Math.round(100 * rows.filter(inLimit).length / rows.length);
   const avg = (t) => { const r = rows.filter(x => x.tier === t); return r.length ? `${t} ${Math.round(r.reduce((s, x) => s + x.secs, 0) / r.length)}s` : null; };
   const bad = {};
-  for (const r of rows) if (!r.ok || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
+  for (const r of rows) if (!inLimit(r) || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
   const worst = Object.entries(bad).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([d, c]) => `${d} (${c})`).join(', ');
   const corr = rows.filter(r => (r.signals || []).includes('correction')).length;
-  return `PERF last ${rows.length} turns: ${pct}% on target; avg ${['simple', 'medium', 'complex'].map(avg).filter(Boolean).join(', ')}; owner corrections ${corr}` +
+  return `PERF last ${rows.length} turns: ${pct}% on goal (4x under limit), ${lim}% within limit; avg ${['simple', 'medium', 'complex'].map(avg).filter(Boolean).join(', ')}; owner corrections ${corr}` +
     (worst ? `; weakest routes: ${worst}. Read that domain's errors.md before working there.` : '.');
 }
 

@@ -15,3 +15,4 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 9. No overkill: one big effect at completion or small subtle ones; less when unsure.
 10. Replies short; never claim a look you did not see.
 11. Always improve, every task: find and fix >= 3 real problems (speed, routing, rules, notes, tools), as many as possible; log `improved: a; b; c` and end the reply with a tiny footer `Fixed: a, b, c` + `Next: a, b, c` (2-5 word phrases; vault edits count; Next = >= 3 things not yet fixed); measure the run's speed and fix its slowest phase.
+12. Speed (owner 2026-11-24): tier time = ABSOLUTE LIMIT (simple 1 min, medium 5 min, complex 30 min); GOAL = 4x faster (15 s / 75 s / 7.5 min). One render per build, reuse templates, no research after the first build step.
