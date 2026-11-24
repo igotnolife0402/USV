@@ -2,7 +2,8 @@ import { join, resolve, relative } from 'node:path';
 import { homedir } from 'node:os';
 import { ROOT, readInput, emit, safe, getMode, readIf, isMain } from './lib.mjs';
 import { isNote } from '../scripts/vault-lint.mjs';
-import { readTail, parseTurn, retryCapHit } from './learn.mjs';
+import { readTail, parseTurn, retryCapHit, loadTurnState, TARGET_S } from './learn.mjs';
+import { budgetGate } from './budget.mjs';
 
 const deny = (reason) => emit({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } });
 
@@ -108,6 +109,13 @@ if (isMain(import.meta.url)) safe(() => {
   if (/Roblox_Studio__(screen_capture|video_capture|character_navigation)$/.test(tool) ||
       (/Roblox_Studio__(execute_luau|multi_edit)$/.test(tool) && /CurrentCamera|\.CameraType|BindToRenderStep|Camera\.CFrame|cam\.CFrame/.test(JSON.stringify(ti))))
     return deny('Owner rule: never move or capture the Roblox Studio camera (no screenshots, videos, cinematics, camera code). Check looks from the export instead: Sandbox studio shots render (tools/3d/studio test/run.mjs shots) or the exported file.');
+
+  // Hard tier clock: deny new agents past 50 %, all non-wrap-up work past 100 % (owner 2026-11-24)
+  if (transcript_path) {
+    const t0 = parseTurn(readTail(transcript_path, 1_500_000)).t0, st = loadTurnState(session_id);
+    const why = budgetGate(tool, ti, (Date.now() - t0) / 1000, TARGET_S[st.tier || 'medium']);
+    if (why) return deny(why);
+  }
 
   // 3-try cap: the exact same call already failed 3 times this turn -> change approach instead of looping.
   if (transcript_path && /^(Bash|PowerShell|mcp__)/.test(tool)) {

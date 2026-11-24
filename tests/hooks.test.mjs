@@ -175,3 +175,14 @@ test('fast path: creature asks skip the generic 3d reads', async () => {
   assert.deepEqual(skillsFor(p, route(p, router)), []);
   assert.equal(fastPath('make a glb of a chair', route('make a glb of a chair', router)), null);
 });
+
+test('budget gate: no agents past 50 %, only wrap-up past 100 % (owner 2026-11-24)', async () => {
+  const { budgetGate } = await import('../hooks/budget.mjs');
+  assert.match(budgetGate('Agent', {}, 160, 300), /no new sub-agents/);
+  assert.equal(budgetGate('Agent', {}, 100, 300), null);
+  assert.equal(budgetGate('Bash', { command: 'git commit -m x' }, 320, 300), null);
+  assert.equal(budgetGate('Edit', { file_path: '/v/log.md' }, 320, 300), null);
+  assert.match(budgetGate('Bash', { command: 'node build.mjs' }, 320, 300), /over target/);
+  assert.match(budgetGate('Edit', { file_path: '/v/tools/a.js' }, 320, 300), /over target/);
+  assert.equal(budgetGate('Bash', { command: 'node build.mjs' }, NaN, 300), null);
+});

@@ -26,6 +26,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 6. Contradiction pass: every number in the brief agrees with every other (totals, dims vs parts, units).
 7. Depth: more distinct parts, wear, sub-assemblies, build stages, then repeat 4 and 6 for the additions.
 - Budget under ~15 s: no Sonnet; write the outline yourself from rung 1 only, then build.
+- Think time counts inside the tier budget (owner 2026-11-24): a medium build after /improve 120 has 180 s left; the pre-tool hook denies new agents past 50 % and all non-wrap-up work past 100 %.
 - Measure: log `improve <s>: <s> brief, <s> Sonnet, <s> total, rungs 1-<n>` in log.md.
 
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)

@@ -341,3 +341,7 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 ## [2026-11-24] 3d / car60 rbxmx dry-run + rerun (Failed: live upload, DB full; car200 stopped over budget)
 - car60 built locally (182 parts, 120.9k tris, zfight 0); rbxmx dry-run: 19,982 bytes, valid XML, 21 merged MeshParts (cap 19k), no file written. Views rendered; top view shows a light roof-interior area (check).
 improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for hub DB quota; car200 builder stopped at budget per L-142.
+
+## [2026-11-24] vault / hard tier clock in hooks (improve 30: 29.6 s PASS)
+- Owner: medium = 5 min, stop overrunning. Warnings failed 3x, so pre-tool now enforces it.
+improved: budgetGate denies new agents past 50 % of target; denies all non-wrap-up tools past 100 %; improve skill counts think time inside the tier budget; Agent/Task/Workflow added to the PreToolUse matcher; stale clocks fail open (test 47/47)

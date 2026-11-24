@@ -10,6 +10,21 @@ export const STEPS = [
   [1.0, 'over target: stop work, commit what passes, reply with Failed/Next for the rest'],
 ];
 
+// Hard gate (owner 2026-11-24: warnings alone let medium runs reach 774 s, 779 s, ~600 s). Returns a deny reason or null.
+// >= 50 %: no new sub-agents. >= 100 %: only wrap-up (git, log/lessons/errors/router edits, reading the budget); reply and stop.
+const WRAP = /^\s*(cd [^;&|]+&&\s*)?(git |node scripts\/(vault|improve-timer)\.mjs|echo |date)/;
+export function budgetGate(tool, ti = {}, secs, target) {
+  // > 6 h = stale or resumed turn clock (test fixtures, an overnight resume): fail open
+  if (!Number.isFinite(secs) || !target || secs > 21600) return null;
+  if (secs >= 0.5 * target && /^(Agent|Task|Workflow)$/.test(tool))
+    return `BUDGET ${Math.round(secs)}s of ${target}s: no new sub-agents after half the budget; finish with what is running`;
+  if (secs < target) return null;
+  if (/^(Read|Grep|Glob|TaskStop|ToolSearch)$/.test(tool)) return null;
+  if (tool === 'Bash' && WRAP.test(String(ti.command || ''))) return null;
+  if (/^(Edit|Write)$/.test(tool) && /(^|\/)(log|lessons|router)\.(md|json)$|errors\.md$|queue\/pc\.md$/.test(String(ti.file_path || ''))) return null;
+  return `BUDGET ${Math.round(secs)}s of ${target}s: over target. Only wrap-up is allowed (git commit/push, log.md, lessons, errors, router). Reply Failed/Next and stop`;
+}
+
 // Returns { msg, fired } for the newest step crossed and not yet announced, else null.
 export function budgetNote(state, now = Date.now()) {
   const target = TARGET_S[state.tier] || 300;
