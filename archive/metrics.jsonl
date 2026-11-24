@@ -87,3 +87,4 @@
 {"t":"2026-11-24T09:13:30.984Z","tier":"medium","secs":474,"ok":false,"errors":0,"retry":0,"routes":["tools","3d"],"touched":[],"signals":["slow"],"mode":"mobile"}
 {"t":"2026-11-24T09:27:48.964Z","tier":"medium","secs":377,"ok":false,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":["slow"],"mode":"mobile"}
 {"t":"2026-11-24T10:01:53.990Z","tier":"medium","secs":156,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T10:09:46.896Z","tier":"medium","secs":296,"ok":true,"errors":1,"retry":1,"routes":["animation","audio"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
