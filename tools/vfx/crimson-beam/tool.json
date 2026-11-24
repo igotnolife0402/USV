@@ -1,6 +1,6 @@
 {
  "name": "crimson-beam",
- "what": "Cinematic crimson cataclysm beam strike (three.js page): vortex, pilot drop, huge beam, hit-stop, shockwaves, debris, shaking push-in; ?t=<sec> renders one exact frame",
- "run": "open tools/vfx/crimson-beam/crimson-beam.html (serve repo); artifact https://claude.ai/artifact/GJQ94bTLeBKkJA8BcA8E5d",
+ "what": "Crimson cataclysm beam strike. Main build = Umbrio Sandbox tab 'Crimson Beam' (project cbeam-1124) from umbrio_beam.py; crimson-beam.html is the old standalone page (superseded, owner 2026-11-24)",
+ "run": "python tools/vfx/crimson-beam/umbrio_beam.py .worktrees/beam --id <pid>; write live/p.json, live/m.json, geo/* to the hub db; MP4 via studio shots SHOTS_VIDEO=1",
  "prompt": "Tune values in the P table at the top; verify with the vfx-shots tool (see tools README)."
 }

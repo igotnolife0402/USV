@@ -5,7 +5,7 @@ status: current
 ---
 OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule):
 1. Honest: done only after an outside check (script, read-back, screenshot); else "Failed: <what>".
-2. Tool = Umbrio Sandbox. No Blender, Customuse or Roblox AI generators unless the owner names them.
+2. Tool = Umbrio Sandbox for every 3D build: models, VFX, animations, scenes (owner 2026-11-24); previews = MP4 file, never a separate HTML artifact. No Blender, Customuse or Roblox AI generators unless the owner names them.
 3. Every 3D model: live-built stage by stage into a fresh Umbrio tab, then read back. A PNG or local files is NOT done.
 4. Style: realistic unless the owner names one (toon, low-poly, voxel only when asked).
 5. Custom meshes + textures + real thickness, as many parts as possible (no detail limits: build max detail, then at the very end cut useless triangles or split/compress so gates pass), detail floor gate; never placeholders or plain primitives.

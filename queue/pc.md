@@ -17,3 +17,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-22 2026-11-22 watch Minigame Mayhem bots in play (ObstacleRush, SpinSweep): do the waits/hops/dashes look human? not visually verified — bot-watch numbers only
 - [ ] 2026-11-23 Run `node scripts/install-global.mjs` in the vault after pulling main: installs /improve (+ improver agent) as a personal skill so it works in every folder on the PC
 - [ ] 2026-11-24 Watch tools/vfx/crimson-beam/crimson-beam.html on phone + desktop Chrome; judge feel, deepen crimson if still pink; check fps on a mid phone — headless frames passed red 39% / 0 errors; feel and fps not visually verified
+- [ ] 2026-11-24 Open Umbrio tab 'Crimson Beam' (cbeam-1124) on phone + PC, play Strike anim; judge shake/push-in feel and pilot beam visibility — headless MP4 + frames passed; feel not visually verified on device

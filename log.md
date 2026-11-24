@@ -342,3 +342,8 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 tools/vfx/crimson-beam/crimson-beam.html (three 0.186.1, artifact GJQ94bTLeBKkJA8BcA8E5d): vortex, pilot drop, r 12 beam, hit-stop, shockwaves, cracks, 600 debris, 6.7k GPU particles, push-in + shake. Check: tools/vfx/shots/shoot.cjs, 0 errors, red 39% at t=3 (try 3).
 improve 60: ~45 s brief, 14 s Sonnet, 269.8 s total (FAIL, big Write before notice), rungs 1-4.
 improved: pre-tool install check ignores redirects and quoted text; tools/vfx/shots/shoot.cjs cloud VFX screenshots; vfx playbook/errors beam gain + CDN rules; L-136 promoted into improve SKILL.
+
+## [2026-11-24] fix / VFX builds go to Umbrio, previews are MP4 (owner correction)
+Cause: vfx playbook + vfx skill + studio.md mobile lines said "three.js HTML Artifact", must.md rule 2 scoped Umbrio to 3D models only, vfx/animation routes never named umbrio-build. Rebuilt beam as Umbrio tab cbeam-1124 (150 objects, 149 tracks, read-back 150, zfight PASS), clip.mp4 1.6 MB sent.
+improve 60: ~40 s brief, 18 s Sonnet, 66.9 s total (+6.9 FAIL), rungs 1-3.
+improved: vfx/studio/must rules -> Umbrio + MP4; router vfx+animation load umbrio-build; mp4-muxer allowed on mobile (studio deps); tools/vfx/crimson-beam/umbrio_beam.py generator.

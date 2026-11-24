@@ -16,7 +16,7 @@
   ],
   "pcOnlySkills": "computer-use|chrome-browser|built-in-browser|roblox-vfx-pipeline",
   "pcOnlyBash": "\\b(blender|osascript|powershell|pwsh|winget|choco|brew|xdg-open|explorer\\.exe|cmd\\.exe|npx|wget|rojo|roblox ?studio)\\b|\\.exe\\b|\\bopen\\s+-a\\b|(^|[;&|]\\s*)start\\s|\\b[A-Za-z]:\\\\|\\bgit\\s+clone\\b|\\bapt(-get)?\\s+install\\b|\\bcurl\\b[^|;&]*\\s-[A-Za-z]*[oO]\\b",
-  "mobilePackages": ["three", "three-mesh-bvh", "three-bvh-csg", "numpy", "pillow", "trimesh", "scipy", "rtree"],
+  "mobilePackages": ["three", "three-mesh-bvh", "three-bvh-csg", "mp4-muxer", "numpy", "pillow", "trimesh", "scipy", "rtree"],
   "fallbacks": [
     { "match": "Roblox|rojo|roblox", "use": "edit .luau files in the Rojo layout in the repo and queue Studio steps in queue/pc.md" },
     { "match": "blender", "use": "prototype as a three.js artifact and save a bpy script for PC, queue the run" },

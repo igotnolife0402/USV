@@ -32,8 +32,8 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 5. Roblox: build via Studio MCP run code (ParticleEmitter props), play, `look`/console check.
 
 ## Mobile fallback (/mobile)
-- No browser automation or local files. Build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `tools/vfx/<name>/<name>.html` (+ tool.json; a root `vfx/` folder fails lint) in the repo.
-- Artifacts: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
+- Build every effect/animation in a fresh **Umbrio Sandbox** tab (hub db docs via ArtifactData, recipe [umbrio-build](domains/3d/umbrio-build.md)): Neon/ForceField parts, point lights, anim tracks, flipbook `shape: beam`. Preview for the owner = **MP4** (`SHOTS_VIDEO=1 node test/run.mjs shots` in tools/3d/studio → clip.mp4, sent as a file), never a standalone HTML artifact (owner 2026-11-24).
+- Standalone three.js pages only when the owner asks for a web page: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
 - Shader errors are invisible without a console: log `gl.getShaderInfoLog` to an on-screen `<pre>`.
 - Cloud check that works (2026-11-24): headless Chromium + [tools/vfx/shots/shoot.cjs](tools/vfx/shots/shoot.cjs); jsDelivr is unreachable there, so it serves three from a scratch `npm i three@0.186.1`. Make pages render a pure `frame(t)` from `?t=` and set `window.__done`.
 - Additive beam/glow layers: keep layer gains <= ~1.5 and bloom <= ~1, use `NeutralToneMapping`; ACES + stacked additive red reads pink-white (crimson beam, 3 tries).
