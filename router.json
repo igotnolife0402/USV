@@ -502,7 +502,10 @@
         "why you missed",
         "log mistakes",
         "logged mistakes",
-        "learning loop"
+        "learning loop",
+        "build fixed version",
+        "apply fixes",
+        "fixes apply"
       ],
       "notes": [
         "profiles/vault-rules.md",

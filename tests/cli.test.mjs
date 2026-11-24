@@ -105,3 +105,17 @@ test('fix list: add as you go, done moves them into log.md improved line and cle
   assert.match(r(j(root, 'log.md'), 'utf8'), /improved: first fix; second fix\n$/);
   assert.match(run('list').stdout, /"pending": 0/);
 });
+
+test('fix --build: done refuses until fix built, then logs it', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync: w, readFileSync: r } = await import('node:fs');
+  const { tmpdir } = await import('node:os'); const { join: j } = await import('node:path'); const { spawnSync: sp } = await import('node:child_process');
+  const root = mkdtempSync(j(tmpdir(), 'fixb-')); mkdirSync(j(root, 'state'));
+  w(j(root, 'log.md'), '# Log\n## [2026-11-24] t / x\n');
+  const run = (...a) => sp('node', [j(process.cwd(), 'scripts', 'vault.mjs'), 'fix', ...a], { env: { ...process.env, VAULT_ROOT: root }, encoding: 'utf8' });
+  run('add', 'rule fix'); run('add', '--build', 'arm targets in reach');
+  const no = run('done');
+  assert.equal(no.status, 1); assert.match(no.stderr, /arm targets in reach/);
+  assert.equal(run('built', 'all').status, 0);
+  assert.equal(run('done').status, 0);
+  assert.match(r(j(root, 'log.md'), 'utf8'), /improved: rule fix; arm targets in reach\n$/);
+});

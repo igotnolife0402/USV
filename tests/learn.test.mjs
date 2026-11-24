@@ -167,3 +167,11 @@ test('owner-preferred tools: Blender is denied unless the owner names it (Umbrio
   assert.match(run('make a poison armor model'), /Umbrio Sandbox/);
   assert.equal(run('make it in blender please'), '');
 });
+
+test('unbuilt build fix blocks Stop until fix built', () => {
+  const t = { ...L.parseTurn(transcript('build it', []).split('\n')), tools: 5 };
+  const s = L.signals(t, { tier: 'medium' }, { improved: 12, unbuilt: ['macarena arms out of reach'] });
+  assert.deepEqual(s.map(x => x.kind), ['unbuilt']);
+  assert.match(L.learnReason(s, { lessonsChanged: true, routerChanged: true, nextId: 'L-1' }), /BUILD THE FIX/);
+  assert.deepEqual(L.signals(t, { tier: 'medium' }, { improved: 12, unbuilt: [] }).map(x => x.kind), []);
+});

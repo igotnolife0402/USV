@@ -133,6 +133,8 @@ export function signals(turn, state = {}, extra = {}) {
   // `improved: a; b; ...`; NOT listed in the reply (owner: telling them wastes tokens), so no reply-footer check.
   const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
   if (imp != null && imp < MIN_FIXES) out.push({ kind: 'improve', text: `${imp}/${MIN_FIXES} improvements logged` });
+  // Build fixes must reach the current deliverable (owner 2026-11-24): a fix queued instead of built is not done.
+  if ((extra.unbuilt || []).length) out.push({ kind: 'unbuilt', text: `${extra.unbuilt.length} build fix(es) not applied yet: ${extra.unbuilt.slice(0, 3).join(' | ')}` });
   return out;
 }
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
@@ -148,10 +150,12 @@ export const nextLessonId = (text) => {
 // Stop-hook instruction: diagnose, fix the note, record the lesson, retune the router. Kept short.
 export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged = false, nextId }) {
   const need = sigs.filter(s => s.kind === 'router' ? !routerChanged
-    : s.kind === 'improve' ? true : s.kind === 'honesty' || !lessonsChanged);
+    : s.kind === 'improve' || s.kind === 'unbuilt' ? true : s.kind === 'honesty' || !lessonsChanged);
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
+  const ub = need.find(s => s.kind === 'unbuilt');
+  if (ub) steps.push(`BUILD THE FIX (owner 2026-11-24): ${ub.text}. Apply each to the current deliverable, rebuild, re-run its check, then node scripts/vault.mjs fix built <n|all>. Queue only PC-only steps; never reply "Failed + queued" when the fix can run here.`);
   if (need.some(s => s.kind === 'improve')) steps.push(`ALWAYS IMPROVE (owner rule 2026-11-24, every round, every project): log each fix as you spot it (node scripts/vault.mjs fix add "..."), implement them all at the very end, then fix done writes them to log.md; at least ${MIN_FIXES} real fixes (target 20+): speed (cut the slowest phase), routing (router.json words), rules, notes, hooks, tools, templates; make each impossible to repeat (rule/hook/test). Add one line to this turn's log.md entry: \`improved: <fix 1>; <fix 2>; ...\` (>= ${MIN_FIXES} items). Do NOT list them in the reply (wastes tokens). Real fixes only, no filler.`);
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',

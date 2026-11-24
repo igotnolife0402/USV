@@ -126,13 +126,13 @@ def _legs(k, roll=0):                    # knee dip k deg, pelvis roll compensat
     return {'RightHip': (k * 0.5, -roll, 0), 'LeftHip': (k * 0.5, -roll, 0), 'RightKnee': (k, 0, 0), 'LeftKnee': (k, 0, 0),
             'RightAnkle': (-k * 0.5, 0, 0), 'LeftAnkle': (-k * 0.5, 0, 0)}
 _mx = lambda v: (-v[0], v[1], v[2])     # right-side target/pole -> left side
-MAC_HAND = {                             # right-side (wrist target, elbow pole, wrist euler); the left side mirrors
-    'fwd_down': ((-0.62, -1.95, 1.5), (-0.5, 0.3, -1), (0, 0, -90)),
-    'fwd_up':   ((-0.62, -1.95, 1.5), (-0.5, 0.3, -1), (0, 0, 90)),
-    'shoulder': ((0.72, -0.62, 1.55), (-1, -0.2, -0.4), (0, 0, 0)),
+MAC_HAND = {   # right-side (wrist target, elbow pole, wrist euler); left mirrors. R15 reach 1.47 stud from the shoulder (-0.99, -0.15, 1.59): keep targets <= 1.45
+    'fwd_down': ((-0.85, -1.6, 1.5), (-0.5, 0.3, -1), (0, 0, -90)),
+    'fwd_up':   ((-0.85, -1.6, 1.5), (-0.5, 0.3, -1), (0, 0, 90)),
+    'shoulder': ((0.35, -0.62, 1.45), (-1, -0.2, -0.4), (0, 0, 0)),
     'head':     ((-0.25, 0.6, 2.45), (-1, -0.2, 0.7), (0, 0, 0)),
-    'front_hip': ((0.5, -0.72, 0.1), (-1, 0.2, 0), (0, 0, 0)),
-    'back_hip': ((-0.88, 0.62, 0.1), (-0.8, 1, 0.3), (0, 0, 0)),
+    'front_hip': ((0.05, -0.6, 0.7), (-1, 0.2, 0), (0, 0, 0)),
+    'back_hip': ((-0.75, 0.5, 0.55), (-0.8, 1, 0.3), (0, 0, 0)),
 }
 def _mac(r, l, k=6, sway=0, roll=0, waist=(0, 0, 0), neck=(0, 0, 0), shift=None, cross=False):
     P = dict(_legs(k, roll), Root=(0, roll, 0), Waist=waist, Neck=neck, shift=shift or (sway, 0, 0), ik={})
