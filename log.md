@@ -350,3 +350,4 @@ improved: budgetGate denies new agents past 50 % of target; denies all non-wrap-
 Body, trim, glass, lights, mirrors, suspension and 2 rear brakes are live; the 4 wheels (54 docs) were refused by the 100 MB DB quota after deleting car-a, computer-setup-1122/1122b, dab-a/b/c geo (owner approved).
 improved: delete batches pre-built with if_version so freeing space is 1 call per 50 docs; geo uploads sized by batch before sending; projects/meta pinned by returned version (no re-read)
 
+improved: L-143 bumped (x:2, promote next): free by bytes not doc count; errors.md row with du sizing rule; wheel docs measured (1.3 MB) for next prune
