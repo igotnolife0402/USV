@@ -478,7 +478,8 @@
         "200 vfx, batch vfx, unique effects, white textures",
         "symbol,icon,different shape,repeating",
         "slash,smash,wind,flipbook pack",
-        "rotated,same vfx"
+        "rotated,same vfx",
+        "identical vfx, same shape, all unique, unique shapes"
       ],
       "notes": [
         "domains/vfx/playbook.md",

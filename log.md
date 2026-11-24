@@ -487,3 +487,7 @@ improved: rotation-invariant gate; canonical angles; slash sweep/fade overlap (j
 ## [2026-11-24] build / vfx flipbooks as GIFs
 tools/vfx/stylized/gifs.py: 140 effects -> 280 looping GIFs (colour + white-on-black), 16 frames, 50 ms, 25 s; frames of one GIF read back and viewed.
 improved: one file per effect instead of a sheet; GIF 1-bit alpha limit documented in README; white GIFs composited on black so glow survives.
+
+## [2026-11-24] build / unique VFX grammar
+unique.py: 33-element grammar, pair-once, frame-once, blurred silhouette gate; 67 unique action flipbooks + 30 symbols + GIFs (target 140 not met).
+improved: element grammar replaces param variants; perceptual blurred gate calibrated on owner's complaint; Pool render 6.9 min -> 1 min; faint-scatter filter.

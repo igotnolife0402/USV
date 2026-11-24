@@ -24,3 +24,9 @@ status: current
 
 ## gifs.py (2026-11-24, owner: "save them as gifs")
 `python3 gifs.py OUTDIR/action GIFDIR [50]` (~25 s for 140) → one looping 16-frame 256 px GIF per effect: `colour/` on the navy backdrop, `white/` white-on-black (GIF alpha is 1-bit, so glow cannot be transparent; use additive/screen). Roblox ParticleEmitter still needs the Grid4x4 PNG sheet.
+
+## unique.py (2026-11-24, replaces actions.py for packs)
+Owner: param variants of one design read as identical (ring+star vs ring+cracks). Each effect = 1-2 of 33 distinct elements, unordered pair used once,
+each element capped, big-outline FRAME elements used once, sparse effects dropped, blurred rotation/mirror-invariant gate corr < 0.66.
+`python3 unique.py SYM_DIR OUTDIR [140] [60]` then `python3 gifs.py OUTDIR/action GIFDIR`. ~1 min on 4 cores. Current grammar yields ~67 unique;
+more needs new elements, not looser gates.
