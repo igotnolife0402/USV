@@ -329,7 +329,8 @@
         "zoom in",
         "push-in",
         "smooth animation",
-        "baseline animation"
+        "baseline animation",
+        "animations"
       ],
       "notes": [
         "domains/animation/playbook.md",
@@ -486,8 +487,6 @@
         "routing",
         "gate",
         "selftest",
-        "standard",
-        "standards",
         "commands",
         "improve skill",
         "prompt improver",
