@@ -377,3 +377,7 @@ improved: car60 size measured (4.5 MB/186 docs, discs 115 KB, cabin 174 KB); car
 ## [2026-11-24] fix / geo to asset store + /improve delivery
 car60-cabin geo moved to the hub asset store ({asset:id}); read-back sha256 identical; hub render not visually verified. /improve: improver now foreground, prompt shown in <details> + done in the very next response.
 improved: geo docs can live in the asset store at ~0 DB bytes (no loader change needed); /improve delivery root cause fixed (background result hidden behind build calls); measured text-level packing = 0% so no wasted encoder work
+
+## [2026-11-24] build / car60 gap fix via /improve 30
+improve 30: ~12 s brief, 15.8 s Sonnet, 34.5 s total PASS (+4.5), rungs 1-2; first foreground delivery shown on time. Seethru 0.68% -> 0.54% (still FAIL < 0.30%): flipped faces seen from behind in more views than from front (body-1 56, body-2 28, rim-fr-2 39); 3 docs live via asset store, read-back not run. Not visually verified.
+improved: /improve foreground delivery PASS first try; per-face flip by view vote beats centroid flip (centroid made it worse 0.84%); discs already 0.024 m (brief claim of thick discs was wrong, checked code)
