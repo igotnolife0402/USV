@@ -45,6 +45,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - No allocation per frame in update loops; no shader compile hitch at first trigger (warm up).
 
 ## Speed tricks
+- Flipbook preset tuning: sweep params x seeds in ONE pooled script that prints max_step_jump per combo (2026-11-24: 6 serial probes cost ~4 min); edit a code line by replacing the whole line, never by appending a comment mid-line (it swallowed `; tt = ...`).
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.
 - Additive blending makes anything look 2x better on dark backgrounds.
 - Value noise / fbm in shader covers fire, smoke, water, clouds.
