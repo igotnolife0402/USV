@@ -475,3 +475,7 @@ improved: identical-shape repeats fixed by rotate/squash/mirror vary(); square h
 ## [2026-11-24] build / vfx 200 distinct symbols
 tools/vfx/stylized/symbols.py: owner said batch repeated; 200 new whites now one distinct symbol/emblem each, max_corr 0.799, 0 empty, all 4 sheets viewed. Minor near-kin left: 2 chess kings, 2 hollow rings.
 improved: font glyphs filtered (tofu, letters, clip-art SKIP); procedural emblems fill shortfall; stricter 0.80 corr gate; batch.py import shadowing fixed via importlib path.
+
+## [2026-11-24] build / vfx pack 70/30: 140 animated action flipbooks + 60 symbols
+tools/vfx/stylized/actions.py: 22 action kinds (slash/smash/wind/others) as Grid4x4 flipbooks in recolor style; 60 symbols picked farthest-first. improve 30: brief 13 s, total 52.4 s (FAIL +22.4).
+improved: action generator added (owner's main need); flipbook step-jump metric reused from flipbook/vfx.py; slash crescents thickened + spark trails after viewing frames; beam grow slowed (jump 6.4 -> 4.0).

@@ -18,3 +18,6 @@ status: current
 
 ## symbols.py (2026-11-24, owner: "all should be a different shape icon symbol")
 `python3 symbols.py - OUTDIR [N]` → N whites `NNN_UXXXX_hue.png` + `sheetK-color.png`, same recolor() style. Every cell is a different silhouette: curated Unicode symbol ranges (DejaVu/OpenSymbol, tofu + clip-art filtered by SKIP) interleaved with procedural superformula / emblem / star / lissajous / spiral / rose shapes; corr gate MAXC 0.80 on 32×32 light. Last run: 200 made, max_corr 0.799, 0 empty, gradient 45-48°, all 4 sheets viewed.
+
+## actions.py (2026-11-24, owner: "mostly animated slashes, smashes, wind and all others; 70/30 with symbols")
+`python3 actions.py SYM_DIR OUTDIR [140] [60]` (~7 min) → `OUTDIR/action/NNN_kind_hue.png` white Grid4x4 flipbooks (16 frames, 1024 px) + `-color.png`, `OUTDIR/symbols/` the 60 most distinct symbols.py whites (farthest-first pick). 22 kinds: slash, x-slash, claw, spin, smash, slam, punch, star hit, gust, spiral gust, dash lines, tornado, explosion, fire, lightning, splash, beam hit, magic, heal, dust, ice, smoke; quota 30/30/25/55. Timing grow 0-.25, peak, noise erosion .55-1, lingering motes. Gates: peak-frame corr < 0.85, `max_step_jump` (flipbook/vfx.py metric) < ~3, empty frames.
