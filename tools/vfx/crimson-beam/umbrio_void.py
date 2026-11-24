@@ -190,6 +190,20 @@ for i in range(30):
         pos=[k(t0, CEN), k(T['len'], r3([CEN[j] + d[j] * sp for j in range(3)]), 'out')], visible=[k(0, False, 'step'), k(t0, True, 'step')],
         color=[k(t0, C['orange']), k(T['len'], '#40102a')])
 
+# ---------- v3 (owner 2026-11-24 "quality horrible" vs an Interstellar-style reference): the hero is the physics ray-traced
+# black hole (VFX Generator black-hole preset, BH_FRAME_PX=512 BH_GRID=4, tinted pink-white), replacing the primitive orb + disk.
+if '--hero-bh' in sys.argv:
+    for oid in [o for o in list(objs) if o.split('_')[0].rstrip('0123456789') in ('core', 'orb', 'photon', 'doppler', 'band', 'inner', 'lens', 'rock', 'rglow')]:
+        objs.pop(oid); tracks.pop(oid, None)
+    for g in [g for g in list(geos) if g.split('-')[2].rstrip('0123456789') in ('orb', 'doppler', 'disk', 'lens', 'rock')]: geos.pop(g)
+    ORB_TEX.clear(); ORB_TEX['t-vr-bh'] = {'asset': arg('--hero-bh')}
+    add('bh', {'type': 'flipbook', 'name': 'Ray-traced black hole', 'parent': 'rift', 'tex': 't-vr-bh', 'grid': 4, 'frames': 16, 'fps': 8, 'loop': True, 'life': 2.0,
+               'start': 0, 'dur': T['flash_end'] + 0.1, 'size': 70, 'blend': 'normal', 'pos': [0, 0, 0]})
+    sg = random.Random(5)
+    for i in range(160):                                  # star field far behind (reference has stars)
+        add(f'star{i}', {'type': 'part', 'shape': 'sphere', 'name': f'Star {i + 1}', 'parent': None, 'size': [s_ := round(sg.uniform(0.25, 0.9), 2)] * 3, 'material': 'Neon',
+                         'color': sg.choice(['#ffffff', '#ffe8f0', '#e8ecff', '#fff4e0']), 'pos': r3([sg.uniform(-260, 260), sg.uniform(-120, 200), sg.uniform(-320, -180)])})
+
 now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 project = {'name': 'Void Rift', 'v': 1, 'updated': now, 'objects': objs, 'anims': {'rift': {'name': 'Rift', 'len': T['len'], 'fps': 30, 'loop': True, 'tracks': tracks}},
            'textures': ORB_TEX, 'env': {'bg': '#05040a', 'grid': False, 'fog': {'color': '#05040a', 'near': 120, 'far': 400}, 'light': 'night'},

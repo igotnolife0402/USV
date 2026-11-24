@@ -390,3 +390,7 @@ improved: void template; improve done-timing rule (L-156); helper-block copy via
 void-1124 v2: black core + 5 textured noise shells (clouds/marble/stripes, hue dark->lilac, counter-rotating) + pulsing photon ring + orange Doppler arc; old rim geo deleted. 115 objects read back, zfight PASS, 1 render 53 s, MP4 sent. Turn ~150 s (limit 300, goal 75 missed).
 improve 60: ~25 s brief, 13 s Sonnet, 55.5 s total (PASS), rungs 1-2.
 improved: orb layering rule (L-157); patch prepared before delivery so build started at the window; same-tab update via if_version + geo delete in one batch.
+
+## [2026-11-24] build / Void Rift v3: ray-traced hero (owner "quality is horrible" + Interstellar-style reference)
+blackhole.py frame size now env-tunable (BH_FRAME_PX=512 BH_GRID=4: 80 s, 2048 px sheet), tinted pink-white to the reference, uploaded as hub asset; umbrio_void.py --hero-bh swaps the primitive orb/disk for the ray-traced card + 160 stars, keeps squeeze/impact/burst. New tab void3-1124, 210 objects read back, zfight PASS, 1 render, MP4 sent.
+improved: blackhole.py BH_FRAME_PX/BH_GRID; --hero-bh path in umbrio_void.py; realistic-phenomena rule applied (L-158).

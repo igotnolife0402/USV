@@ -10,13 +10,16 @@ import numpy as np
 import img
 from img import fbm, smooth as ss
 
-S, SS, G = 128, 2, 8               # frame px, supersampling, grid (8x8 = 64 frames: smooth motion beats resolution)
+import os
+# frame px, supersampling, grid (8x8 = 64 frames: smooth motion beats resolution). Hero shots (owner 2026-11-24 'quality horrible' at 128 px):
+# BH_FRAME_PX=512 BH_GRID=4 -> 16 sharp frames on a 2048 px sheet.
+S, SS, G = int(os.environ.get('BH_FRAME_PX', 128)), 2, int(os.environ.get('BH_GRID', 8))
 INC = math.radians(73)             # observer 17 degrees above the disk plane: the far side arcs over the shadow, near side reads as a band
 HALF = 14.5                        # frame half-width in M (tight: every feature gets more pixels)
 R_IN, R_OUT = 6.0, 14.0            # ISCO to outer edge
 D0 = 100.0                         # ray start distance
 ENTRY = {'id': 'special/black-hole', 'element': 'special', 'shape': 'black-hole', 'style': 'base', 'file': 'special/black-hole.png',
-         'size': 'L', 'sheetPx': S * G, 'framePx': S, 'frames': G * G, 'FlipbookLayout': 'Grid8x8', 'FlipbookMode': 'Loop',
+         'size': 'L', 'sheetPx': S * G, 'framePx': S, 'frames': G * G, 'FlipbookLayout': f'Grid{G}x{G}', 'FlipbookMode': 'Loop',
          'FlipbookFramerate': 24.0, 'Lifetime': 2.667, 'LightEmission': 0.0, 'SizeStuds': [10, 25], 'Orientation': 'FacingCamera',
          'tileableX': False, 'LightInfluence': 0, 'note': 'ray-traced Schwarzschild black hole: lensed accretion disk, photon ring, shadow; LightEmission 0, set LightInfluence 0'}
 
