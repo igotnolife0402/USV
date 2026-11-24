@@ -370,3 +370,8 @@ improved: anime-vfx-reference note + index links; Firecrawl daily cap documented
 Umbrio tab nova-1124 from anime-vfx-reference rules: obsidian crystal charges cyan plasma sphere, quiet dip, white impact frame, 7 plasma beams with hit rings, lit craters, chip debris, orange embers, dolly-back aftermath. 121 objects read back, zfight PASS, clip.mp4 sent. 2 render rounds (impact sphere fogged grey -> small sphere around camera).
 improve 60: ~8 s brief (52.9 s lost before start), 17 s Sonnet, 115.9 s total (+56 FAIL), rungs 1-2.
 improved: umbrio_nova.py template; impact-frame recipe in anime-vfx-reference; improve SKILL late-start rule (L-151); flipbook cyan sheets as hub assets.
+
+## [2026-11-24] build / Cyan Nova v2 (/improve 60, owner 6/10 "orb not crystal, looks 2d, underwhelming")
+Umbrio tab nova2-1124 (umbrio_nova2.py): 14 m crystal with cyan facet veins + 12 orbit shards + glints; 3D energy = 3 noise shells, 8 shell arcs, 3 tilted orbit rings (no facing card); thick helix-wrapped beams, 90 m shock rings, dust wall, 30 spikes, final flash, falling crystal fragments. 202 objects read back, zfight PASS, MP4 sent, 1 render run. Gate miss: crystal 0.4 % of frame at t=1.5 (target 3 %).
+improve 60: ~20 s brief, 16 s Sonnet, 57.2 s total (PASS), rungs 1-3.
+improved: v2 template; 3D-energy rule in anime-vfx-reference; L-153; one render run per build held.
