@@ -356,3 +356,8 @@ improved: L-143 bumped (x:2, promote next): free by bytes not doc count; errors.
 100 MB per-artifact cap, not expandable via tools; options: pack geo, assets, 2nd hub, prune.
 improved: playbook rule that the DB cap is fixed + ways out; router 3d words database full/storage limit/quota; improve skill: short questions still deliver at think time
 
+
+## [2026-11-24] fix / car60 gaps
+seethru 22.2% -> 0.68% by flipping 4 inward-wound shells (cabin, body-1..3), pushed live (v2). car200 not built; wheels still blocked by quota.
+improved: seethru measured (root cause found: inward winding); 4 shells fixed live; L-145 + errors row: seethru before live upload
+
