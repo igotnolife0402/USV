@@ -1,3 +1,0 @@
-- avatar IK targets: assert front axis with a one-frame render before writing a full clip (macarena beat-1 arm went sideways)
-- studio shots deps: document npm i three three-mesh-bvh three-bvh-csg mp4-muxer@5.2.2 into SCRATCH/deps (2 failed runs)
-- improve timer: Stop-hook commit turn delayed delivery +13.6 s; deliver before ending turn

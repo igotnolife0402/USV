@@ -34,7 +34,8 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 
 ## Mobile fallback (/mobile)
 - Edit the spec files and Studio clip JSON (`anim` tracks: `[[t, value, ease]]`) in the repo; run the Python build if numpy exists in the session.
-- Preview: a three.js Artifact that tweens the key poses with the same `smooth` ease.
+- Preview: the studio shots run works in cloud sessions (Playwright + llvmpipe, verified 2026-11-24, 47 s): install deps once (`npm i three@0.186.1 three-mesh-bvh@0.9.16 three-bvh-csg@0.0.18 mp4-muxer@5.2.2` in `$SCRATCH/deps`), then `SHOTS_TAB=OUT/studio SHOTS_AT=... SHOTS_VIDEO=1 SCRATCH=$SCRATCH node tools/3d/studio/test/run.mjs shots` -> real MP4; queue only if it fails.
+- First key pose check (2026-11-24 Macarena): render ONE frame of the first IK pose (`SHOTS_AT=<t>`) before writing the whole clip; a wrong front axis wastes the full build.
 - Queue: `- [ ] YYYY-MM-DD shots check SHOTS_VIDEO=1 for <clip> — mobile-edited animation` in [queue/pc.md](queue/pc.md).
 
 ## Done

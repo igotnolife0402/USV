@@ -19,3 +19,6 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | iPhone freezes when playing | Root of a big build animated; shadow map per frame | Bake statics into meshes (~150 draw calls), animate sub-groups only | 2026-11-19 |
 | FBX export has no animation | Studio FBX writer has no bones/clips | Use GLB for animation | 2026-11-13 |
 | Swing trail sheet misaligned with the cut | Clip changed after the recipe was written | Re-run `avatar.py` (rewrites `swing-recipe.txt`), rebuild the sheet, check with `SHOTS_CAM` = project camera | 2026-11-16 |
+| Macarena forward arm pointed sideways | IK wrist targets typed from the rig-frame note, never rendered before the full clip | Render one frame of the first IK pose first; fix targets; queued fix in queue/pc.md | 2026-11-24 |
+| Studio shots fail: mp4-muxer import | SHOTS_VIDEO needs mp4-muxer@5.2.2 in deps, not listed | Install it with the three deps (playbook Mobile fallback) | 2026-11-24 |
+| arm sideways | Macarena IK wrist targets typed blind; full clip built before one frame was rendered, forward arm went sideways | one-frame render first | 2026-11-24 |
