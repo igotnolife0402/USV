@@ -89,3 +89,4 @@
 {"t":"2026-11-24T10:01:53.990Z","tier":"medium","secs":156,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T10:09:46.896Z","tier":"medium","secs":296,"ok":true,"errors":1,"retry":1,"routes":["animation","audio"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
 {"t":"2026-11-24T10:15:13.103Z","tier":"medium","secs":220,"ok":true,"errors":0,"retry":0,"routes":["images","vfx"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T10:44:43.781Z","tier":"medium","secs":418,"ok":false,"errors":0,"retry":0,"routes":["animation","vfx"],"touched":[],"signals":["slow","skill"],"mode":"mobile"}

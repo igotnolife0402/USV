@@ -58,6 +58,7 @@ Trigger the effect 3 times against the real scene background; screenshot at peak
 - [ ] Particle budget respected; readable against background.
 
 ## Time target
+- Invoke this skill on every VFX build turn, even if it was loaded earlier in the session (Stop hook checks per turn, L-152). One shots run per build: put new Umbrio tricks (impact sphere, flipbook orientation) in that first run.
 Single effect < 5 min. Effect library (5+ presets) → one preset per pass.
 
 ## Mobile
