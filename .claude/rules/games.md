@@ -11,3 +11,4 @@ paths: ["**/game/**","domains/games/**"]
 - Artifacts: no external assets; draw shapes and synthesize SFX; pin CDN versions.
 - PC: verify by automation (console clean, input changes state, screenshot) before done.
 - Done = checklists/game.md; new failures go into domains/games/errors.md.
+- Cloud sessions: headless Chromium + Playwright are preinstalled (`require('playwright')` from any dir, no install); screenshot-check pages there (profiles/mobile.md).

@@ -342,5 +342,6 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 New `STACKS['fire-slash']` in tools/vfx/flipbook/vfx.py: flame-arc body + dim Na slash halo + crisp white-hot slash edge + 180 embers. --check: 4.6 s, max_step_jump 1.32, thin_stroke_pct 5.0; sheet looked at over dark + light sky (scratch only). Studio upload + playtest queued.
 improved: fire-slash saved as reusable stack + recipes doc; router vfx route now names flipbook.md + "fire slash" word; vfx skill/playbook mobile lines fixed (cloud runs flipbook, not three.js fallback)
 
-## [2026-11-24] vault / blind routing test (3 fresh sub-agents: vfx, model, anim+vfx) — in progress
-/improve 60 delivered 45 s (FAIL -15 s: no Monitor wait-out). Audit pending agent reports.
+## [2026-11-24] vault / blind routing test (3 fresh sub-agents: vfx, model, anim+vfx; Failed: anim route, lantern commit)
+improve 60: 45 s delivered (FAIL -15 s, no wait-out). VFX: vfx skill, playbook, flipbook tool, scratch out: pass, merged. Lantern: 3d playbook, umbrio-build, hub tab, .worktrees out: pass, but commit blocked (tools/3d/props at 20-item cap). Sword swing: animation playbook never read (router cut), Roblox luau put in tools/vfx: not merged.
+improved: routeNotes interleaves notes per route; animation words sword swing/attack animation; 4 mobile playbooks + 3 path rules state Playwright is preinstalled; .claude/worktrees gitignored (L-143)

@@ -19,3 +19,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | iPhone freezes when playing | Root of a big build animated; shadow map per frame | Bake statics into meshes (~150 draw calls), animate sub-groups only | 2026-11-19 |
 | FBX export has no animation | Studio FBX writer has no bones/clips | Use GLB for animation | 2026-11-13 |
 | Swing trail sheet misaligned with the cut | Clip changed after the recipe was written | Re-run `avatar.py` (rewrites `swing-recipe.txt`), rebuild the sheet, check with `SHOTS_CAM` = project camera | 2026-11-16 |
+| anim+vfx ask built Roblox luau in tools/vfx, skipped animation playbook | blind sub-agent sword swing: router top-2 cut dropped animation (sword hit 3d), vfx notes filled all 4 slots, so no animation playbook read; agent also thought Playwright was missing | routeNotes in prompt-router + vault.mjs; router words; .claude/rules Playwright line | 2026-11-24 |

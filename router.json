@@ -310,7 +310,10 @@
         "pose",
         "poses",
         "emote",
-        "ik"
+        "ik",
+        "swing animation",
+        "attack animation",
+        "slash animation"
       ],
       "notes": [
         "domains/animation/playbook.md",

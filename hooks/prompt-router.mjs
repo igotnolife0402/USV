@@ -33,6 +33,8 @@ export function fastPath(prompt, routes = []) {
   for (const r of routes) for (const f of r.fast || []) if ((f.words || []).some(w => hit(prompt, w))) return f;
   return null;
 }
+// Notes interleaved per route so a second route keeps its playbook when the first has 4+ notes.
+export const routeNotes = (routes, max = 4) => { const out = [], lists = routes.map(r => r.notes || []); for (let i = 0; out.length < max && lists.some(l => i < l.length); i++) for (const l of lists) if (l[i] && !out.includes(l[i]) && out.length < max) out.push(l[i]); return out; };
 export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes); return [...new Set((f && 'skill' in f ? [f.skill] : routes.map(r => r.skill)).filter(Boolean))]; };
 
 const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
@@ -47,7 +49,7 @@ function buildContext(prompt, mode, router) {
   if (routes.length) {
     const uniq = (a) => [...new Set(a.filter(Boolean))];
     const f = fastPath(prompt, routes);
-    const paths = f ? f.read || [] : uniq(routes.flatMap(r => r.notes || [])).slice(0, 4);
+    const paths = f ? f.read || [] : routeNotes(routes);
     const notes = paths.map(n => {
       const s = fm(readIf(join(ROOT, n))).data?.summary;
       return s ? `${n} (${s})` : n;

@@ -13,7 +13,7 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { readIf, fm, today } from '../hooks/lib.mjs';
-import { classify, route } from '../hooks/prompt-router.mjs';
+import { classify, route, routeNotes } from '../hooks/prompt-router.mjs';
 import { nextLessonId, perfDigest, toPromote, METRICS } from '../hooks/learn.mjs';
 import { lintAll } from './vault-lint.mjs';
 
@@ -27,7 +27,7 @@ export function routeInfo(prompt) {
   const r = router(), routes = route(prompt, r);
   return {
     tier: classify(prompt, r.tiers), routes: routes.map(x => x.id),
-    notes: [...new Set(routes.flatMap(x => x.notes || []))].slice(0, 4).map(n => ({ path: n, summary: summary(n) })),
+    notes: routeNotes(routes).map(n => ({ path: n, summary: summary(n) })),
     checklist: [...new Set(routes.map(x => x.checklist).filter(Boolean))],
     skills: [...new Set(routes.map(x => x.skill).filter(Boolean))].map(s => ({ name: s, path: `.claude/skills/${s}/SKILL.md`, exists: existsSync(P(`.claude/skills/${s}/SKILL.md`)) })),
   };

@@ -11,3 +11,4 @@ paths: ["**/*.html","**/*.css","**/*.tsx","**/*.jsx","domains/web/**"]
 - Artifacts: pin every CDN version; no external images or fonts.
 - No new npm dependency for what a few lines of code or native HTML/CSS can do.
 - Done = checklists/web.md; new failures go into domains/web/errors.md.
+- Cloud sessions: headless Chromium + Playwright are preinstalled (`require('playwright')` from any dir, no install); screenshot-check pages there (profiles/mobile.md).

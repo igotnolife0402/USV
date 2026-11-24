@@ -14,3 +14,4 @@ paths: ["**/*vfx*/**","**/*.glsl","domains/vfx/**","tools/vfx/**"]
 - Flipbook checks: 64 frames Grid8x8 1024 px, `max_step_jump` < ~3, `thin_stroke_pct` < ~10, build < 60 s, look once over dark and light sky; outputs to scratch, never the repo.
 - Nothing vanishes clean (erode into lingering particles); beams are 3D volumes, not camera cards; dragon `PACK` presets only on the dragon.
 - Done = checklists/vfx.md; new failures go into domains/vfx/errors.md.
+- Cloud sessions: headless Chromium + Playwright are preinstalled (`require('playwright')` from any dir, no install); screenshot-check pages there (profiles/mobile.md).
