@@ -27,6 +27,8 @@ Shared shape: build (push-in + escalation) -> dip -> flash + freeze -> shake -> 
 | loop | - | one 360 deg orbit, 16 `auto` keys + one past each end (seamless) | - | none | - | - | - | - |
 - Warp: speed 1 -> 0.6 -> slow into the payoff, frozen `hold` frames, 0.5 -> 1; the clip gets longer, the story length stays. A clip with its own warp keeps it (`cine.warp: 'kept'`).
 - Flash = `clip.camera.flash` keys (-1 black .. 1 white), a full-frame pass like the bars, so viewport, shots and MP4 show it.
+- Overrides: any preset number per call (`push`, `fov`, `slow`, `hold`, `flash`, `dip`, `shake`, `back`, ...). A shot that already starts close: `push: 0.2` (45 % pushed the duel camera into an occluding arm, 2026-11-24).
+- Clip already cuts to a wide shot on the payoff (fights, blasts): cut on the flash peak, no close-up hold; held close, the duel camera sat inside the blast sphere for 0.8 s of white. Example: `tools/3d/avatar/duel/preview/cine_duel.mjs` (cine + cut on flash + 3-frame hit-stops on every clash + shots that enter moving).
 - One big effect only (owner rule 9): one payoff per pass; for a fight with several clashes, cine the final blow and use hit-stop holds for the rest.
 
 ## Lint (anim.lint) baseline faults

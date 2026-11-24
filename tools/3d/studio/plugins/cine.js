@@ -49,8 +49,12 @@ export function cinePass(c, o = {}, view = {}) {
   if (base.warp) next.warp = clone(base.warp); else delete next.warp
   delete next.cine
   if (o.off) return next
-  const kind = o.kind || 'impact', K = CINE[kind]
-  if (!K) throw new Error(`cine kind is impact, burst or loop (got ${kind})`)
+  const kind = o.kind || 'impact'
+  if (!CINE[kind]) throw new Error(`cine kind is impact, burst or loop (got ${kind})`)
+  // Any preset number can be overridden per clip (2026-11-24 duel: a shot that starts close pushed 45 % into an occluding arm;
+  // push 0.2 kept both fighters in frame).
+  const K = { ...CINE[kind] }
+  for (const k of Object.keys(K)) if (k !== 'build' && Number.isFinite(+o[k]) && o[k] !== null && o[k] !== '') K[k] = +o[k]
   const len = +base.len || 2, fps = +c.fps || 30, cam = next.camera ||= {}
   if (kind === 'loop') return loopPass(next, K, o, view, base)
 

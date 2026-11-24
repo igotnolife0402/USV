@@ -426,9 +426,12 @@ export default async function (t) {
       const lum = { before: luma(0.5), dip: luma(pc - 0.2), peak: luma(pc + 0.02), after: luma(c.len - 0.1) }
       const once = JSON.stringify(A.scene.anims[cid]); A.exec('anim.cine', { payoff: 2.5 }); const twice = JSON.stringify(A.scene.anims[cid])
       const lint = A.exec('anim.lint')
+      // per-call override: push 0.2 closes 20 % of the distance instead of 45 % (camera at the payoff stays farther out)
+      const dAt = () => { const k = A.scene.anims[cid].camera.pos.find(q => Math.abs(q[0] - 2.5) < 1e-4)[1]; return Math.hypot(k[0], k[1] - 0.5, k[2] - 1.5) }
+      const d45 = dAt(); A.exec('anim.cine', { payoff: 2.5, push: 0.2 }); const d20 = dAt(); A.exec('anim.cine', { payoff: 2.5 })
       A.exec('anim.cine', { off: true }); const off = A.scene.anims[cid]
       return { res, len: c.len, storyEnd: w.at(-1)[1], minSlope: Math.min(...slopes.filter(v => v > 0)), holdFrames: Math.round(slopes.reduce((n, v, i) => v === 0 ? n + (w[i + 1][0] - w[i][0]) * 30 : n, 0)),
-        posEases: cam.pos.map(k => k[2] || 'linear'), nPos: cam.pos.length, flash: cam.flash.map(k => +k[1]), shake: cam.shake.map(k => +k[1]), lum, same: once === twice, lint,
+        posEases: cam.pos.map(k => k[2] || 'linear'), nPos: cam.pos.length, flash: cam.flash.map(k => +k[1]), shake: cam.shake.map(k => +k[1]), lum, same: once === twice, lint, push: [d45, d20],
         off: { len: off.len, warp: off.warp, camera: off.camera, cine: off.cine } }
     })
     t.ok(r.len > 4 && r.storyEnd === 4, 'slow-mo stretches the clip, story length kept: ' + r.len)
@@ -440,6 +443,7 @@ export default async function (t) {
     t.ok(r.lum.dip < r.lum.before * 0.92 && r.lum.peak > r.lum.before + 60 && Math.abs(r.lum.after - r.lum.before) < 6, 'frame dims, flashes, settles: ' + JSON.stringify(r.lum))
     t.ok(r.same, 're-running anim.cine replaces its own keys (idempotent)')
     t.eq(r.lint, [], 'a cine clip lints to 0 issues')
+    t.ok(r.push[1] > r.push[0] * 1.3, 'push override keeps the camera farther out: ' + r.push.map(v => v.toFixed(2)))
     t.ok(r.off.len === 4 && !r.off.warp && !r.off.camera && !r.off.cine, 'off restores the clip: ' + JSON.stringify(r.off))
     s.noErrors()
   })

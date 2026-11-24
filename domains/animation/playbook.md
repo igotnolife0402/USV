@@ -1,6 +1,6 @@
 ---
 summary: Animation rules - key poses not frames, one spec drives every output, sine ramps, animate in Studio, weight is timing
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing, clip, pose, ik]
 ---
@@ -9,7 +9,7 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing numbers, rig rules, workflow, gates).
 
 ## Rules (owner, from the old vault)
-- Key poses, not frames: a few keys per joint on the motion's turning points, `smooth` (sine in-out) between. Orc: 114 keys (was 793), within 1.5° of the exact motion (`key_poses`, tol 1.5° rot / 0.05 stud pos).
+- Key poses, not frames: a few keys per joint on the motion's turning points, `auto` (Hermite, no stop) through continuous motion, `smooth` only where the move really starts or stops, impacts `out` + hit-stop (owner floor 2026-11-24: [cinematic-baseline](cinematic-baseline.md)). Orc: 114 keys (was 793), within 1.5° of the exact motion (`key_poses`, tol 1.5° rot / 0.05 stud pos).
 - One motion spec per creature drives every output (Studio clip, Roblox Lua, video); change the spec, never one output.
 - Action ramps are sine-shaped (no linear jerks); the same `window()` shape in Python, Lua and JS ([snippets](domains/animation/snippets/README.md)).
 - Animate inside the Studio: export the rig at rest plus a key-pose clip; never bake/pre-pose meshes. The rig is a group per joint at its pivot, meshes at rest under it; a pose = the groups' rotations.

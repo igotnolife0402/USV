@@ -330,12 +330,17 @@
         "push-in",
         "smooth animation",
         "baseline animation",
-        "animations"
+        "animations",
+        "fighting preview",
+        "fight preview",
+        "before and after",
+        "cinematic floor"
       ],
       "notes": [
+        "domains/animation/umbrio-animator.md",
+        "domains/animation/cinematic-baseline.md",
         "domains/animation/playbook.md",
-        "domains/animation/rules.md",
-        "domains/animation/index.md"
+        "domains/animation/rules.md"
       ],
       "checklist": "checklists/3d.md",
       "skill": "3d-editor"

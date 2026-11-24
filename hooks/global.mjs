@@ -45,7 +45,7 @@ export function promptContext(prompt, sid) {
       const s = fm(readIf(join(ROOT, n))).data?.summary; return `${V}/${n}${s ? ` (${s})` : ''}`; }).join('; ')}`);
   }
   if (BUILD.test(prompt) || routes.some(r => r.id !== 'vault')) lines.push(must());
-  return lines.join('\n').slice(0, 2800);
+  return lines.join('\n').slice(0, 3600);   // 2800 cut the owner rules mid-rule (2026-11-24)
 }
 
 function stop(input) {

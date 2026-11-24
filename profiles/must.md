@@ -1,6 +1,6 @@
 ---
 summary: The owner's hard rules, injected by the prompt router into every build prompt so they can never be skipped; detail lives in owner.md.
-updated: 2026-11-22
+updated: 2026-11-24
 status: current
 ---
 OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule):
@@ -15,3 +15,4 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 9. No overkill: one big effect at completion or small subtle ones; less when unsure. Cutscenes/fights (owner 2026-11-24): dense, violent fx (5x), still fitted to the action.
 10. Replies short; never claim a look you did not see.
 11. Always improve, every task: find and fix >= 3 real problems (speed, routing, rules, notes, tools), as many as possible; log `improved: a; b; c` and end the reply with a tiny footer `Fixed: a, b, c` + `Next: a, b, c` (2-5 word phrases; vault edits count; Next = >= 3 things not yet fixed); measure the run's speed and fix its slowest phase.
+12. Animations (owner 2026-11-24, floor = the owner's old projects): `auto` eases through motion, hit-stops on impacts, `anim.lint` 0; fights, cutscenes, payoffs and loops also get `anim.cine`, then a 12 fps sheet check of the payoff (domains/animation/cinematic-baseline.md).

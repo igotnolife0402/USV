@@ -379,3 +379,9 @@ Owner refs (outshot, confetti-cannon, Shenron loop, combo14) measured frame by f
 improve 90: ~60 s brief, 17 s Sonnet, 85.3 s total (PASS), rungs 1-3.
 improved: anim.cine one-call cinematic floor; camera.flash dip/flash pass; lint motion-stop/camera-robotic/static-camera/payoff-flat/loop-seam; cinematic-baseline note with measured ref numbers; router tiers += animations, cinematic, frame by frame (this run tagged medium, real work complex)
 - learn: 2 tool errors (sed on .js, L-045 bumped; push check via bare fetch) + skill miss: 'my standard' hit vault route, 'animations' plural missed animation → L-154, router words fixed.
+
+## [2026-11-24] feature / fight preview before/after + cinematic floor for every session (/improve 60)
+Supernova Duel rendered twice headless (out3 vs cine_duel.mjs: anim.cine push 0.2, cut on the flash, 3-frame hit-stops on 5 clashes, shots enter moving); before/after Artifact https://claude.ai/artifact/EZcowSNZJYgCNRQmBwpHHy with beat chips that seek both clips at the same story time. 12 fps sheets of the payoff read: push-in close, flash at 15.75 s hides the cut to wide, blast reads.
+improve 60: ~40 s brief, ~16 s Sonnet, 67.9 s total (FAIL +7.9), rungs 1-3.
+improved: anim.cine takes per-call overrides (push, fov, slow, hold, flash...) + test; must.md rule 12 (animation floor for every build prompt) and hook context caps 3000/2800 -> 3600 so it arrives whole; animation route now loads umbrio-animator + cinematic-baseline first; playbook/rules/3d-editor skill say auto eases + hit-stops + lint 0 + cine on payoffs; router words fighting preview, fight preview, before and after, cinematic floor.
+- learn: L-155 duel cine occlusion/white-out, L-156 hook cap truncation; lint fix: cine_duel imports via PLUGINS env (tools never reach into each other).

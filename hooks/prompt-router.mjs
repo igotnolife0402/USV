@@ -66,7 +66,8 @@ function buildContext(prompt, mode, router) {
     if (!routes.length) lines.push('NO ROUTE: run `node scripts/vault.mjs find <main noun>`, then read that domain playbook + checklist before building.');
     lines.push(must());
   }
-  return lines.join('\n').slice(0, 3000);
+  // 3600: at 3000 the owner rules were cut mid-rule on a routed prompt (2026-11-24, rule 12 lost its tail).
+  return lines.join('\n').slice(0, 3600);
 }
 
 if (isMain(import.meta.url)) safe(() => {
