@@ -29,3 +29,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | Owner saw bad frames a 5-shot sheet missed | Review sampled frames, not every frame | Every-frame review rule (playbook Frame review) | 2026-11-24 |
 | owner: cat vomited over my keyboard | Macarena verified with a 5-shot contact sheet; owner found swapped palms, hands through face and body, invisible hip roll | 3 review passes, 10 defects fixed | 2026-11-24 |
 | Owner: stop sending all the frames | Verification sheets sent with the MP4 | Review silently; send only the deliverable (profiles/owner.md) | 2026-11-24 |
+| Owner: hip roll reads as a side-to-side butt wiggle, clip choppy | Hip roll moved the whole root sideways (feet slid with it) and every beat held identical keys with stop-start eases | ik_leg + plant in avatar.py; 16-key linear pelvis circles; hit/up/pre bounce keys per beat | 2026-11-24 |

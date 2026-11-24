@@ -140,8 +140,10 @@ MAC_HAND = {   # right side: (wrist target, elbow pole, wrist euler, left-side o
     'hip_side':  ((-1.25, 0.00, 0.55), (-1, 0.3, 0), (0, 0, 0), None),    # via key: front hip -> back pocket passes outside the thigh
     'clap':      ((-0.12, -0.75, 1.25), (-0.5, 0, -1), (0, 0, 0), None),
 }
-def _mac(r, l, k=4, sway=0, roll=0, waist=(0, 0, 0), neck=(0, 0, 0), shift=None, cross=False):
-    P = dict(_legs(k, roll), Root=(0, roll, 0), Waist=waist, Neck=neck, shift=shift or (sway, 0, 0), ik={})
+def _mac(r, l, k=4, sway=0, roll=0, waist=(0, 0, 0), neck=(0, 0, 0), shift=None, cross=False, pelvis=(0, 0), plant=True):
+    # pelvis=(pitch, tilt) deg on the root; plant: feet pinned by leg IK (knee dip k), so sway/rolls move the hips, never slide the feet
+    P = dict(_legs(k, roll), Root=(pelvis[0], pelvis[1] + roll, 0), Waist=waist, Neck=neck, shift=shift or (sway, 0, 0), ik={})
+    if plant: P['plant'] = k
     for side, h, f in (('Right', r, lambda v: v), ('Left', l, _mx)):
         t, pole, w, off = MAC_HAND[h]; t = f(t)
         if side == 'Left' and off: t = (t[0] + off[0], t[1] + off[1], t[2] + off[2])   # left forearm over the right; always, or it jumps when the right moves on
@@ -149,37 +151,47 @@ def _mac(r, l, k=4, sway=0, roll=0, waist=(0, 0, 0), neck=(0, 0, 0), shift=None,
     return P
 _SEQ = ['fwd_down', 'fwd_up', 'shoulder', 'head', 'front_hip', 'back_hip']
 POSES['mac_ready'] = _mac('rest', 'rest', k=3)
-CLIPS['macarena'] = [(0, 'mac_ready'), (round(MAC_T - 0.15, 3), 'mac_ready')]
+POSES['mac_lead'] = _mac('rest', 'rest', k=9, waist=(1, 0, 0))          # count-in bounce: the body never stands dead still
+CLIPS['macarena'] = [(0, 'mac_ready'), (round(MAC_T / 2, 3), 'mac_lead'), (round(MAC_T - 0.15, 3), 'mac_ready')]
 r = l = 'rest'; prev_lean = 0
 VIA = {'head': 'up_side', 'front_hip': 'down_side', 'back_hip': 'hip_side'}   # every cross-body move gets an outside via key
-for b in range(12):                      # beats 1-12: one hand per beat, snap 0.15 s, hold the rest of the beat
+for b in range(12):                      # beats 1-12: one hand per beat (snap 0.15 s); the body grooves the whole beat
     move = _SEQ[b // 2]
     if b % 2 == 0: r = move
     else: l = move
     side = 1 if b % 2 == 0 else -1       # right arm moving = sway toward -X
     cross = move in ('shoulder', 'front_hip') and b % 2 == 1
     lean = (10, 0, 0) if 'front_hip' in (r, l) else (0, 0, 0)   # keep the lean while a hand is still on the front hip (reach)
-    hit, hold = f'mac_{b + 1}', f'mac_{b + 1}_hold'
-    POSES[hit] = _mac(r, l, k=11, sway=-0.08 * side, waist=(lean[0] + 2, 0, 5 * side), neck=(4, 0, -3 * side), cross=cross)
-    POSES[hold] = _mac(r, l, k=3, sway=-0.04 * side, waist=(lean[0], 0, 3 * side), neck=(0, 0, -2 * side), cross=cross)
+    hit, up, pre = f'mac_{b + 1}', f'mac_{b + 1}_up', f'mac_{b + 1}_pre'
+    # bounce: knees down on the hit, up mid-beat, starting down again before the next hit; three different keys, no dead hold
+    POSES[hit] = _mac(r, l, k=12, sway=-0.08 * side, waist=(lean[0] + 2, 0, 5 * side), neck=(4, 0, -3 * side), cross=cross)
+    POSES[up] = _mac(r, l, k=2, sway=-0.05 * side, waist=(lean[0], 0, 3 * side), neck=(0, 0, -2 * side), cross=cross)
+    POSES[pre] = _mac(r, l, k=6, sway=-0.02 * side, waist=(lean[0] + 1, 0, 1 * side), neck=(1, 0, -1 * side), cross=cross)
     t = (b + 1) * MAC_T
     if move in VIA:                      # moving hand arcs outside face/chest/thigh, never through the body
         via = f'mac_{b + 1}_via'; vr, vl = ((VIA[move], l) if side == 1 else (r, VIA[move]))
         # full lean of before/after: half lean pushed the other hand (still on the front hip) out of reach
-        POSES[via] = _mac(vr, vl, k=7, sway=-0.06 * side, waist=(max(lean[0], prev_lean) + 2, 0, 4 * side), cross=False)
+        POSES[via] = _mac(vr, vl, k=9, sway=-0.05 * side, waist=(max(lean[0], prev_lean) + 2, 0, 4 * side), cross=False)
         CLIPS['macarena'].append((round(t - 0.075, 3), via))
     prev_lean = lean[0]
-    CLIPS['macarena'] += [(round(t, 3), hit, 'out'), (round(t + 0.25, 3), hold), (round(t + MAC_T - 0.15, 3), hold)]
-for i in range(12):                      # beats 13-14: 3 hip rolls, hands in the back pockets
-    a_ = i * math.pi / 2; nm = f'mac_roll{i}'
-    x, y = 0.25 * math.cos(a_), 0.15 * math.sin(a_)   # 0.12 was invisible from the front camera (frame review)
-    POSES[nm] = _mac('back_hip', 'back_hip', k=9, roll=-48 * x, waist=(0, 40 * x, -20 * y), shift=(x, y, 0))
-    CLIPS['macarena'].append((round(13 * MAC_T + i * 2 * MAC_T / 12, 3), nm))
-POSES['mac_crouch'] = _mac('back_hip', 'back_hip', k=22, waist=(6, 0, 0))                     # load for the hop
-POSES['mac_clap'] = _mac('clap', 'clap', k=0, neck=(-6, 0, 0), shift=(0, 0, 0.25))           # "Hey!": clap in the air
-POSES['mac_land'] = _mac('rest', 'rest', k=16, waist=(4, 0, 0))
-CLIPS['macarena'] += [(round(14.85 * MAC_T, 3), 'mac_crouch', 'out'), (round(15.25 * MAC_T, 3), 'mac_clap', 'in'),
-                      (round(15.6 * MAC_T, 3), 'mac_land', 'out'), (round(16 * MAC_T, 3), 'mac_ready')]
+    CLIPS['macarena'] += [(round(t, 3), hit), (round(t + MAC_T / 2, 3), up), (round(t + MAC_T - 0.15, 3), pre)]
+# beats 13-14: 2 hip circles, hands in the back pockets, feet planted. The pelvis travels a circle (side + front/back) and
+# tips with it (tilt to the side, pitch forward when back = butt out), so the chest and head stay still over the feet:
+# an isolation, not the whole body sliding side to side (owner 2026-11-24). Dense linear keys = constant speed, no stops.
+N_RC = 16; R0 = 13 * MAC_T; RL = 1.7 * MAC_T             # ends before the hop's crouch
+for i in range(2 * N_RC + 1):
+    ph = 2 * math.pi * i / N_RC; g = min(1, i / 4, (2 * N_RC - i) / 4)     # radius eases in/out over a quarter circle
+    x, y = -0.20 * g * math.sin(ph), -0.16 * g * math.cos(ph)       # front, right, back (butt out), left
+    nm = f'mac_roll{i}'
+    # +pitch tips the top forward, -tilt tips it toward -X: the pelvis tips against its own offset, the chest stays put
+    POSES[nm] = _mac('back_hip', 'back_hip', k=26, shift=(x, y, 0), pelvis=(42 * y, -36 * x),
+                     waist=(2 + 4 * y, -3 * x, 0), neck=(-35 * y, 30 * x, 0))
+    CLIPS['macarena'].append((round(R0 + RL * i / (2 * N_RC), 3), nm, 'linear' if i < 2 * N_RC else 'smooth'))
+POSES['mac_crouch'] = _mac('back_hip', 'back_hip', k=30, waist=(6, 0, 0))                     # load for the hop
+POSES['mac_clap'] = _mac('clap', 'clap', k=0, neck=(-6, 0, 0), shift=(0, 0, 0.25), plant=False)   # "Hey!": clap in the air
+POSES['mac_land'] = _mac('rest', 'rest', k=18, waist=(4, 0, 0))
+CLIPS['macarena'] += [(round(14.95 * MAC_T, 3), 'mac_crouch', 'out'), (round(15.25 * MAC_T, 3), 'mac_clap', 'in'),
+                      (round(15.6 * MAC_T, 3), 'mac_land'), (round(16 * MAC_T, 3), 'mac_ready')]
 CLIP = opt('--clip', '')
 POSE = POSES[opt('--pose', 'wave')]
 BG = opt('--bg', '#0b0f1a')                       # studio sky behind effects
@@ -403,6 +415,20 @@ def ik_arm(side, target, pole):
     sp.rotation_euler = (Rp.transposed() @ Rs).to_euler('XYZ')
     piv[lo_].rotation_euler = (Rs.transposed() @ Re).to_euler('XYZ')
 
+def ik_leg(side, target):
+    """Two-bone leg IK: the ankle lands on `target` (world), knee bends forward (-Y), foot kept flat (rest orientation),
+    so the pelvis can move while the feet stay planted."""
+    up, lo_, ft = side + 'UpperLeg', side + 'LowerLeg', side + 'Foot'; sp = piv[up]; S = sp.matrix_world.translation
+    a, b = (REST[lo_] - REST[up]).length, (REST[ft] - REST[lo_]).length; fwd = Vector((0, -1, 0))
+    v = target - S; d = min(max(v.length, abs(a - b) + 1e-3), a + b - 1e-4); u = v.normalized()
+    along = (a * a - b * b + d * d) / (2 * d); h = math.sqrt(max(a * a - along * along, 0))
+    E = S + u * along + (fwd - u * fwd.dot(u)).normalized() * h; T = S + u * d
+    Rs = frame(E - S, fwd) @ frame(REST[lo_] - REST[up], fwd).transposed()
+    Re = frame(T - E, fwd) @ frame(REST[ft] - REST[lo_], fwd).transposed()
+    sp.rotation_euler = (sp.parent.matrix_world.to_3x3().normalized().transposed() @ Rs).to_euler('XYZ')
+    piv[lo_].rotation_euler = (Rs.transposed() @ Re).to_euler('XYZ')
+    piv[ft].rotation_euler = Re.transposed().to_euler('XYZ')         # world rotation back to rest: sole flat on the ground
+
 def set_pose(P):
     """Pose by joint name (rig frame degrees; 'ik' places wrists, see POSES), then lift so the lowest point stands on
     the ground. -> (lo, hi)."""
@@ -419,7 +445,11 @@ def set_pose(P):
         ik_arm('Left', g - fwd * 0.5, root.matrix_world.to_3x3() @ Vector((0.8, 0.2, -0.6)))
     sx, sy, sz = P.get('shift', (0, 0, 0))   # root offset (root frame x/y; z = hop height above the ground)
     root.location += root.matrix_world.to_3x3() @ Vector((sx, sy, 0))
-    W = np.concatenate([o.world_verts() for o in meshes]); lo, hi = Vector(W.min(0)), Vector(W.max(0))
+    if 'plant' in P and RIG != 'R6':     # feet stay on their rest spots; the pelvis drops so a knee dip of `plant` deg still reads
+        L = (REST['RightFoot'] - REST['RightUpperLeg']).length; root.location.z -= L * (1 - math.cos(math.radians(P['plant'] / 2)))
+        for s in ('Right', 'Left'):
+            ik_leg(s, REST[s + 'Foot'].copy())
+    W =np.concatenate([o.world_verts() for o in meshes]); lo, hi = Vector(W.min(0)), Vector(W.max(0))
     root.location.z -= lo.z - sz; hi.z -= lo.z - sz; lo.z = sz
     return lo, hi
 

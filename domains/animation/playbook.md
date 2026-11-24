@@ -46,5 +46,12 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 - Tools: `tools/3d/avatar/framesheets.py` (sheets), `ikcheck.py` (reach); see its README.
 - Cross-body moves: outside via keys (`VIA` in tools/3d/avatar/avatar.py) with the full lean of the surrounding poses.
 
+## Dance and emote motion (owner 2026-11-24: "wiggles his butt side to side", "choppy")
+- Feet planted: `plant` key in the pose (avatar.py `ik_leg`) pins both ankles to their rest spots; never move the root with feet attached unless the move is a step or hop.
+- Isolations (hip roll, chest pop): the pelvis travels its path AND tips against its own offset (pitch 42 deg/stud depth, tilt 36 deg/stud side) so chest and head stay over the feet.
+- Cyclic motion: >= 12 linear keys per cycle, radius eased in/out over a quarter cycle; never 4 quarter keys with sine eases (dead stop at each key).
+- Holds: no two identical keys in a row; each beat = hit (knees down) -> up (mid-beat) -> pre (next dip), so the body never freezes.
+- Check: `ikcheck.py` prints worst foot slide (pass <= 0.03 stud).
+
 ## Done
 [checklists/3d.md](checklists/3d.md) + frame review pass with 0 defects. New failure → [errors](domains/animation/errors.md).

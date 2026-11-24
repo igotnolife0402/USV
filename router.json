@@ -323,7 +323,14 @@
         "every single frame",
         "looks bad",
         "review silently",
-        "stop sending"
+        "stop sending",
+        "choppy",
+        "not smooth",
+        "wiggle",
+        "wiggles",
+        "side to side",
+        "hip roll",
+        "feet slide"
       ],
       "notes": [
         "domains/3d/umbrio-build.md",
