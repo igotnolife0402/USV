@@ -627,7 +627,9 @@
       "sub agents",
       "subagents",
       "test all pathways",
-      "routing test"
+      "routing test",
+      "fix everything",
+      "fix all"
     ]
   }
 }
