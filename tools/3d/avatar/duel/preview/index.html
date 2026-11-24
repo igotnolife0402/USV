@@ -43,12 +43,13 @@ video { width: 100%; max-width: 100%; aspect-ratio: 1100 / 616; background: #000
 <div class="wrap">
   <header>
     <h1>Supernova Duel <span>Before / After</span></h1>
-    <p class="lede">The same fight, same rigs, same effects. The bottom clip has the new cinematic floor: a slow push into the final blow, a dark dip and flash that hide the cut, and a short freeze on every clash.</p>
+    <p class="lede">The same fight, same rigs, same effects. The bottom clip has the new cinematic floor: a slow push into the final blow, a dark dip and flash that hide the cut, and impact frames on every clash: a freeze, a half-speed recoil and a small flash.</p>
   </header>
 
   <div class="controls">
     <button class="main" id="play" type="button">Play both</button>
     <button id="layout" type="button">Side by side</button>
+    <button id="speed" type="button">Half speed</button>
     <span class="meta">Beats jump both clips to the same story moment</span>
   </div>
   <div class="beats" id="beats"></div>
@@ -68,16 +69,16 @@ video { width: 100%; max-width: 100%; aspect-ratio: 1100 / 616; background: #000
     <div><b>Push-in</b><p>From 12.2 s the camera creeps, then speeds into the blow (eased, not linear), with the lens tightening.</p></div>
     <div><b>Slow-mo</b><p>Time drops to 0.6x, then 0.3x into the blow, so the last 0.9 s of the fight takes 2.5 s.</p></div>
     <div><b>Dip + flash</b><p>The frame darkens for 4 frames, then flashes white. The wide shot cuts in under the flash.</p></div>
-    <div><b>Hit-stops</b><p>Every clash freezes 3 frames (3.6, 5.4, 5.85, 6.3, 7.0 s) so each hit lands.</p></div>
+    <div><b>Impact frames</b><p>Every clash freezes 0.12 s, recoils at half speed, and pops a small white flash sized to the hit (3.6, 5.4, 5.85, 6.3, 7.0 s).</p></div>
     <div><b>Camera eases</b><p>Every shot now enters already moving and settles, instead of starting from a dead stop at each cut.</p></div>
   </section>
 
-  <p class="note">Rendered headless (software WebGL, 30 fps, 1100x616). The after clip is 2.2 s longer: slow-mo and freezes add time, the story is unchanged.</p>
+  <p class="note">Rendered headless (software WebGL, 30 fps, 1100x616). The after clip is 3.4 s longer: slow-mo and freezes add time, the story is unchanged.</p>
 </div>
 
 <script>
 // story time -> after-clip time (the clip's warp, inverted); the before clip runs on story time
-const WARP = [[0,0],[3.6,3.6],[3.65,3.6],[5.45,5.4],[5.5,5.4],[5.95,5.85],[6,5.85],[6.45,6.3],[6.5,6.3],[7.2,7],[7.25,7],[13.17,12.92],[13.57,13.16],[15.7033,13.8],[15.77,13.8],[16.27,14.05],[22.22,20]]
+const WARP = [[0,0],[3.6,3.6],[3.72,3.6],[4.02,3.75],[5.67,5.4],[5.79,5.4],[6.09,5.55],[6.39,5.85],[6.51,5.85],[6.81,6],[7.11,6.3],[7.23,6.3],[7.53,6.45],[8.08,7],[8.2,7],[8.5,7.15],[14.27,12.92],[14.67,13.16],[16.8033,13.8],[16.9367,13.8],[17.4367,14.05],[23.3867,20]]
 function clipAt(s) { for (let i = 1; i < WARP.length; i++) { const [c0, s0] = WARP[i - 1], [c1, s1] = WARP[i]; if (s <= s1 && s1 > s0) return c0 + (c1 - c0) * (s - s0) / (s1 - s0) } return WARP.at(-1)[0] }
 const BEATS = [['Clash 1', 3.6], ['Clash 2', 5.4], ['Clash 3', 5.85], ['Clash 4', 6.3], ['Clash 5', 7.0], ['Build', 12.2], ['Final blow', 13.6, true], ['Blast', 14.3]]
 const vb = document.getElementById('vb'), va = document.getElementById('va')
@@ -90,6 +91,8 @@ for (const [name, s, pay] of BEATS) {
 document.getElementById('play').onclick = () => { vb.currentTime = 0; va.currentTime = 0; vb.play().catch(() => {}); va.play().catch(() => {}) }
 const lay = document.getElementById('layout'), scr = document.getElementById('screens')
 lay.onclick = () => { scr.classList.toggle('side'); lay.textContent = scr.classList.contains('side') ? 'Stacked' : 'Side by side' }
+const sp = document.getElementById('speed')
+sp.onclick = () => { const r = vb.playbackRate === 1 ? 0.5 : 1; vb.playbackRate = va.playbackRate = r; sp.textContent = r === 1 ? 'Half speed' : 'Full speed' }
 const tick = () => { document.getElementById('tb').textContent = vb.currentTime.toFixed(2) + ' s'; document.getElementById('ta').textContent = va.currentTime.toFixed(2) + ' s'; requestAnimationFrame(tick) }
 tick()
 </script>

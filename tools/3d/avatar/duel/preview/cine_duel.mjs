@@ -37,11 +37,19 @@ n.camera.shake = orig.shake
 // settles (camera-robotic lint). Keys inside the cine window keep their own eases.
 const ENTER = 'cubic:0.3,0.4,0.6,1'
 for (const chn of ['pos', 'target', 'fov']) n.camera[chn] = n.camera[chn].map(k => k[0] < payoff - 1.6 - 1e-4 || k[0] > th + 1e-4 ? [k[0], k[1], k[2] === 'smooth' ? ENTER : k[2]] : k)
-// 4. Hit-stop on every clash: 3 frozen frames (story time stands still) inside the clip's warp, before the cine slow-down.
-const H = 3 / fps, w = n.warp, a = w.find(k => k[1] > 0 && k[1] < payoff && k[0] !== k[1]) || w[1]
+// 4. Impact frames on every clash (owner 2026-11-24: "both replays are the same" - 3 frames at 60 fps = 0.05 s, invisible):
+// freeze 0.12 s, then 0.5x for 0.15 story-s so the recoil reads; a small white pop scaled by the clash's own shake
+// (small effects per step, the one big flash stays on the final blow).
+const FREEZE = 0.12, SLOW = 0.15, w = n.warp
 const out = [[0, 0]]
 let off = 0
-for (const t of clashes.sort((x, y) => x - y)) { out.push([+(t + off).toFixed(4), t]); off += H; out.push([+(t + off).toFixed(4), t]) }
+for (const t of clashes.sort((x, y) => x - y)) {
+  out.push([+(t + off).toFixed(4), t]); off += FREEZE; out.push([+(t + off).toFixed(4), t])
+  off += SLOW; out.push([+(t + SLOW + off).toFixed(4), +(t + SLOW).toFixed(4)])
+}
+const pops = clashes.flatMap(t => { const s = sample(orig.shake.map(k => [k[0], [k[1]], k[2]]), t + 1e-3, 'pos')[0] || 0.1
+  return [[+(t - 1e-3).toFixed(4), 0, 'linear'], [t, +Math.min(0.35, 2 * s).toFixed(3), 'out'], [+(t + 0.14).toFixed(4), 0, 'linear']] })
+n.camera.flash = [...pops, ...(n.camera.flash || [])].sort((x, y) => x[0] - y[0])
 for (const k of w.slice(1)) out.push([+(k[0] + off).toFixed(4), k[1]])
 n.warp = out; n.len = +(n.len + off).toFixed(4); n.cine.hitstops = clashes
 p.anims[name] = n

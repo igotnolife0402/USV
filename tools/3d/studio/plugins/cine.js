@@ -55,7 +55,9 @@ export function cinePass(c, o = {}, view = {}) {
   // push 0.2 kept both fighters in frame).
   const K = { ...CINE[kind] }
   for (const k of Object.keys(K)) if (k !== 'build' && Number.isFinite(+o[k]) && o[k] !== null && o[k] !== '') K[k] = +o[k]
-  const len = +base.len || 2, fps = +c.fps || 30, cam = next.camera ||= {}
+  // Frame counts (hold, dip) are measured on the owner's 30 fps refs, so they stay 30 fps frames whatever the clip's fps:
+  // at the clip's 60 fps a 4-frame hit-stop shrank to 0.067 s and the owner saw no difference (2026-11-24).
+  const len = +base.len || 2, fps = 30, cam = next.camera ||= {}
   if (kind === 'loop') return loopPass(next, K, o, view, base)
 
   const p = +o.payoff

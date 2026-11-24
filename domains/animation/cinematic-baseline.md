@@ -29,6 +29,8 @@ Shared shape: build (push-in + escalation) -> dip -> flash + freeze -> shake -> 
 - Flash = `clip.camera.flash` keys (-1 black .. 1 white), a full-frame pass like the bars, so viewport, shots and MP4 show it.
 - Overrides: any preset number per call (`push`, `fov`, `slow`, `hold`, `flash`, `dip`, `shake`, `back`, ...). A shot that already starts close: `push: 0.2` (45 % pushed the duel camera into an occluding arm, 2026-11-24).
 - Clip already cuts to a wide shot on the payoff (fights, blasts): cut on the flash peak, no close-up hold; held close, the duel camera sat inside the blast sphere for 0.8 s of white. Example: `tools/3d/avatar/duel/preview/cine_duel.mjs` (cine + cut on flash + 3-frame hit-stops on every clash + shots that enter moving).
+- Frame counts (`hold`, the dip) are 30 fps ref frames at any clip fps (a 60 fps duel halved them to 0.05-0.07 s: owner saw no change, 2026-11-24).
+- Clash impact frames (smaller hits before the payoff): 0.12 s freeze, then 0.5x for 0.15 story-s, white pop = 2x the clash shake (<= 0.35, 0.14 s decay). A before/after must differ visibly at 1x: compare a frame per beat (PSNR) before showing it.
 - One big effect only (owner rule 9): one payoff per pass; for a fight with several clashes, cine the final blow and use hit-stop holds for the rest.
 
 ## Lint (anim.lint) baseline faults

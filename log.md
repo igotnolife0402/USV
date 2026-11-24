@@ -385,3 +385,7 @@ Supernova Duel rendered twice headless (out3 vs cine_duel.mjs: anim.cine push 0.
 improve 60: ~40 s brief, ~16 s Sonnet, 67.9 s total (FAIL +7.9), rungs 1-3.
 improved: anim.cine takes per-call overrides (push, fov, slow, hold, flash...) + test; must.md rule 12 (animation floor for every build prompt) and hook context caps 3000/2800 -> 3600 so it arrives whole; animation route now loads umbrio-animator + cinematic-baseline first; playbook/rules/3d-editor skill say auto eases + hit-stops + lint 0 + cine on payoffs; router words fighting preview, fight preview, before and after, cinematic floor.
 - learn: L-155 duel cine occlusion/white-out, L-156 hook cap truncation; lint fix: cine_duel imports via PLUGINS env (tools never reach into each other).
+
+## [2026-11-24] fix / fight preview looked the same (owner)
+Root cause: anim.cine hold/dip counted clip frames, so the 60 fps duel got 0.05-0.07 s freezes, and the before clip already had clash shakes. cine.js frame counts now 30 fps ref frames (anim 16/16); cine_duel clashes get 0.12 s freeze + 0.5x recoil + white pop sized to the shake; page gains half-speed toggle.
+improved: cine frame counts fps-independent; clash impact frames in cine_duel + baseline note; before/after must differ per beat (L-157) + router words looks the same, no difference.
