@@ -39,3 +39,15 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 
 ## Done
 [checklists/3d.md](checklists/3d.md) + clip watched once (shots/MP4). New failure → [errors](domains/animation/errors.md).
+
+## Cutscene rules (fight scenes; from the supernova duel critique 2026-11-24, every number measured by FK on the tab)
+- Choreograph contact, not swings: every clash is a key where both blade segments meet (FK distance <= 0.15 stud) at a named contact point; the duel had 0 of 300 samples under 0.15 (strike moments 0.57-2.92 apart), so blades passed through each other.
+- Spacing = reach: fighter gap at a clash ~ blade length x 0.8 (4.2/4.6 blades -> gap ~3.5), not 2.2; at 2.2 the saber went through Ren's torso at 10 samples (1.95, 2.0, 3.25, 7.15, 15.2...).
+- Blades stay above the ground: Ren's tip was below y=0 for 2.65 s (53/300 samples); gate tip y >= 0.05 in every sample.
+- Effects ride the contact point: place clash fx at the FK contact (they sat 0.54-2.56 studs off), parent beams/charges to the hands, never a fixed world x=0.
+- Impact = hold: freeze both rigs 0.08-0.15 s at each contact (repeat the key), then a braked follow-through; no strike may lerp straight on (no holds existed).
+- Fast cuts get `arc_keys` in-betweens (none were used: 0.15-0.35 s single Euler jumps).
+- Camera: Umbrio has no timeline camera track (2026-11-24); until one exists, frame wide enough for both blades and plan cuts as separate bookmarks; a cutscene needs a camera track for "epic" (push-ins, shake, low angles).
+- Distinct fighters: different outfit ids and per-fighter fx tint (both wore shirt 144076358 / pants 144076760; every fx was stock colour).
+- Ending lands on something: the last 1.5 s showed an empty black frame (19.5 s); end on a held silhouette, crater or drifting embers that are visible.
+- Gate before upload: run the FK checker (blade-blade min distance at each clash, blade-through-torso, tip below ground, fx-to-contact offset) and fail on any miss.

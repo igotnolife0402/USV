@@ -20,3 +20,8 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | FBX export has no animation | Studio FBX writer has no bones/clips | Use GLB for animation | 2026-11-13 |
 | Swing trail sheet misaligned with the cut | Clip changed after the recipe was written | Re-run `avatar.py` (rewrites `swing-recipe.txt`), rebuild the sheet, check with `SHOTS_CAM` = project camera | 2026-11-16 |
 | improve delivery +18.9 s | /improve 60 cutscene delivered at 78.9 s: route sent it to roblox, so research went to finding the real tools (Umbrio anim/vfx/avatar) and the brief was sent ~20 s late | router words added; duel.py tool for two-fighter cutscenes | 2026-11-24 |
+| Fight reads as both swinging through each other (owner 2026-11-24) | Clips authored per fighter with no shared contact keys; gap 2.2 vs 4.2/4.6 blades | Contact-key choreography + FK gate (playbook Cutscene rules): blade-blade <= 0.15 at each clash, saber through Ren's torso at 10 samples | 2026-11-24 |
+| Greatsword tip under the floor 2.65 s | gs_strike/gs_follow poses authored standing alone, root lowered by knockback path | Gate tip y >= 0.05 every sample | 2026-11-24 |
+| Kamehameha with hands 2.1 studs apart, saber still lit | Blade card show [0.8, 16.6] spans the beam; kamehameha pose on a yawed R15 kit | Hide or sheathe the weapon for two-hand moves; check palm distance <= 0.5 | 2026-11-24 |
+| Strikes land together (1.9 / 1.95 s) | Both clips keyed on the same beat | Stagger attacker/defender >= 0.3 s | 2026-11-24 |
+| Last 2.4 s empty black frame | Fighters hidden at 17.6, embers too faint to read | Hold aftermath visible to the end | 2026-11-24 |
