@@ -394,3 +394,8 @@ improved: orb layering rule (L-157); patch prepared before delivery so build sta
 ## [2026-11-24] build / Void Rift v3: ray-traced hero (owner "quality is horrible" + Interstellar-style reference)
 blackhole.py frame size now env-tunable (BH_FRAME_PX=512 BH_GRID=4: 80 s, 2048 px sheet), tinted pink-white to the reference, uploaded as hub asset; umbrio_void.py --hero-bh swaps the primitive orb/disk for the ray-traced card + 160 stars, keeps squeeze/impact/burst. New tab void3-1124, 210 objects read back, zfight PASS, 1 render, MP4 sent.
 improved: blackhole.py BH_FRAME_PX/BH_GRID; --hero-bh path in umbrio_void.py; realistic-phenomena rule applied (L-158).
+
+## [2026-11-24] rule + build / VFX house style (owner, permanent) + Void Rift v4 anime
+Permanent rule for ALL VFX: must.md rule 13 + vfx SKILL "House style" (one anime cel style, clear >= 4-step gradients, reference = structure only, max detail many parts, fast via templates). Void v4 (void4-1124, --anime): 317 objects, 4 cel photon tori, 8 lensed arcs, 16 speed lines, Doppler arcs, 160 stars + 12 sparkles; 1 render; MP4 sent. Defect: disk bands render flat white (Neon ignores gradient texture) -> L-159, fix next.
+improve 120: ~45 s brief, 17 s Sonnet, 123.9 s total (PASS), rungs 1-6.
+improved: permanent VFX house-style rule in must.md + vfx skill; errors row Neon vs gradient texture; --anime path in umbrio_void.py.

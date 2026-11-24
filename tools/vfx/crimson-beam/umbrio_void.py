@@ -204,6 +204,58 @@ if '--hero-bh' in sys.argv:
         add(f'star{i}', {'type': 'part', 'shape': 'sphere', 'name': f'Star {i + 1}', 'parent': None, 'size': [s_ := round(sg.uniform(0.25, 0.9), 2)] * 3, 'material': 'Neon',
                          'color': sg.choice(['#ffffff', '#ffe8f0', '#e8ecff', '#fff4e0']), 'pos': r3([sg.uniform(-260, 260), sg.uniform(-120, 200), sg.uniform(-320, -180)])})
 
+# ---------- v4 anime house style (owner 2026-11-24: "make it look like the reference but in the other style", "CLEARER GRADIENTS",
+# max detail): reference structure (black shadow, lensed arc over the top, disk band in front, bright Doppler side, stars)
+# drawn as cel bands. Every gradient = stacked bands with 2-colour `gradient` textures: 8 clear steps white -> navy.
+if '--anime' in sys.argv:
+    for oid in [o for o in list(objs) if o.split('_')[0].rstrip('0123456789') in ('core', 'orb', 'photon', 'doppler', 'band', 'inner', 'lens')]:
+        objs.pop(oid); tracks.pop(oid, None)
+    for g in [g for g in list(geos) if g.split('-')[2].rstrip('0123456789') in ('orb', 'doppler', 'disk', 'lens')]: geos.pop(g)
+    ORB_TEX.clear()
+    STEPS = ['#ffffff', '#ffd0f0', '#ff7ad9', '#e040ff', '#c02cff', '#7a1ee0', '#4a0f8a', '#1a0640']
+    for i in range(len(STEPS) - 1):
+        ORB_TEX[f't-va-g{i}'] = {'kind': 'procedural', 'pattern': 'gradient', 'colors': [STEPS[i], STEPS[i + 1]], 'count': 1, 'scale': 1}
+    add('core', {'type': 'part', 'shape': 'sphere', 'name': 'Shadow', 'parent': 'rift', 'size': [17, 17, 17], 'material': 'SmoothPlastic', 'color': C['black'], 'pos': [0, 0, 0]})
+    # photon ring: 4 cel tori facing the camera, hard steps white -> pink -> magenta -> deep violet
+    for i, (d, tb, col) in enumerate([(18.4, 0.7, STEPS[0]), (19.8, 0.8, STEPS[2]), (21.4, 0.9, STEPS[4]), (23.2, 1.0, STEPS[6])]):
+        add(f'photon{i}', {'type': 'part', 'shape': 'torus', 'name': f'Photon ring {i + 1}', 'parent': 'rift', 'size': [d, tb, d], 'material': 'Neon', 'color': col, 'pos': [0, 0, -0.2 * i], 'rot': [90, 0, 0]},
+            scale=[k(0, [1, 1, 1])] + [k(T['open'] + 0.3 * q + 0.07 * i, [1.03 if q % 2 else 0.98] * 3, 'smooth') for q in range(10)])
+    # disk: 5 abutting gradient bands r 11 -> 41 (inner band shares the next band's edge, no overlap), inner spins fastest
+    for i in range(5):
+        geos[f'g-va-disk{i}'] = ring_geo(11 + 6 * (i + 1), 6, 0.5 + 0.35 * i, seg=144, rows=6, seed=120 + i)
+        add(f'band{i}', {'type': 'mesh', 'name': f'Disk band {i + 1}', 'geo': f'g-va-disk{i}', 'parent': 'disk', 'material': 'Neon', 'color': '#ffffff', 'texture': f't-va-g{i + 1 if i else 0}', 'smooth': True, 'pos': [0, 0.08 * i, 0]},
+            rot=[k(0, [0, 0, 0]), k(T['hit'], [0, (420 - 70 * i) * T['hit'], 0])])
+    # anime speed lines riding the disk
+    for i in range(16):
+        g = random.Random(200 + i); r = g.uniform(13, 39); a0 = g.uniform(0, 6.283); span = g.uniform(0.5, 1.2)
+        pts = [[math.cos(a0 + span * q / 12) * r, 0.9 + 0.2 * (i % 3), math.sin(a0 + span * q / 12) * r] for q in range(13)]
+        geos[f'g-va-speed{i}'] = tube(pts, [0.06 + 0.16 * math.sin(math.pi * q / 12) for q in range(13)], sides=4, cap=False)
+        add(f'speed{i}', {'type': 'mesh', 'name': f'Speed line {i + 1}', 'geo': f'g-va-speed{i}', 'parent': 'disk', 'material': 'Neon', 'color': STEPS[1 + i % 3], 'smooth': True, 'pos': [0, 0, 0]},
+            rot=[k(0, [0, 0, 0]), k(T['hit'], [0, (520 - 8 * r) * T['hit'], 0])], visible=[k(0, False, 'step'), k(T['open'] * 0.8, True, 'step'), k(T['flash_end'], False, 'step')])
+    # lensed disk image: 5 stacked half-arcs over the top (the far side of the disk bent by gravity) + 3 under it, same steps
+    for i in range(8):
+        over = i < 5; R = (12.5 + 1.1 * i) if over else (12.2 + 1.0 * (i - 5)); col = STEPS[i if over else (i - 5) * 2 + 1]
+        a0, a1 = (0.08, 0.92) if over else (1.12, 1.88)
+        pts = [[math.cos(math.pi * (a0 + (a1 - a0) * q / 28)) * R * 1.25, math.sin(math.pi * (a0 + (a1 - a0) * q / 28)) * R, 0.3] for q in range(29)]
+        geos[f'g-va-lens{i}'] = tube(pts, [0.25 + (0.55 if over else 0.3) * math.sin(math.pi * q / 28) for q in range(29)], sides=5, cap=False)
+        add(f'lens{i}', {'type': 'mesh', 'name': f'Lensed arc {i + 1}', 'geo': f'g-va-lens{i}', 'parent': 'rift', 'material': 'Neon', 'color': col, 'smooth': True, 'pos': [0, 0, -0.6]})
+    # Doppler bright side: the approaching (left) side of the disk burns white-pink
+    for i, (col, w) in enumerate([(STEPS[0], 0.9), (STEPS[1], 0.6)]):
+        pts = [[-math.cos(math.radians(a)) * (12 + 5 * i), 0.6 + 0.3 * i, math.sin(math.radians(a)) * (12 + 5 * i)] for a in range(-55, 56, 5)]
+        geos[f'g-va-dop{i}'] = tube(pts, [w * (0.3 + 0.7 * math.sin(math.pi * q / (len(pts) - 1))) for q in range(len(pts))], sides=5, cap=False)
+        add(f'doppler{i}', {'type': 'mesh', 'name': f'Doppler side {i + 1}', 'geo': f'g-va-dop{i}', 'parent': 'disk', 'material': 'Neon', 'color': col, 'smooth': True, 'pos': [0, 0, 0]})
+    # stars + 12 four-point sparkles
+    sg = random.Random(5)
+    for i in range(160):
+        sz = round(sg.uniform(0.25, 0.9), 2)
+        add(f'star{i}', {'type': 'part', 'shape': 'sphere', 'name': f'Star {i + 1}', 'parent': None, 'size': [sz] * 3, 'material': 'Neon',
+                         'color': sg.choice(['#ffffff', '#ffe8f6', '#e8e4ff']), 'pos': r3([sg.uniform(-260, 260), sg.uniform(-120, 200), sg.uniform(-320, -180)])})
+    for i in range(12):
+        p0 = r3([sg.uniform(-150, 150), sg.uniform(-40, 120), sg.uniform(-200, -140)]); L = sg.uniform(3, 6)
+        for j, rot in enumerate(([0, 0, 0], [0, 0, 90])):
+            add(f'spark{i}_{j}', {'type': 'part', 'shape': 'box', 'name': f'Sparkle {i + 1}.{j + 1}', 'parent': None, 'size': [L, 0.18, 0.18], 'material': 'Neon', 'color': '#ffe0f6', 'pos': p0, 'rot': rot},
+                scale=[k(0, [1, 1, 1])] + [k(0.4 + 0.6 * q + 0.1 * i, [0.4 if q % 2 else 1.0, 1, 1], 'smooth') for q in range(10)])
+
 now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 project = {'name': 'Void Rift', 'v': 1, 'updated': now, 'objects': objs, 'anims': {'rift': {'name': 'Rift', 'len': T['len'], 'fps': 30, 'loop': True, 'tracks': tracks}},
            'textures': ORB_TEX, 'env': {'bg': '#05040a', 'grid': False, 'fog': {'color': '#05040a', 'near': 120, 'far': 400}, 'light': 'night'},

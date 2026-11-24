@@ -4,6 +4,12 @@ description: 'Use for visual effects, particles, explosions, magic, trails, beam
 ---
 # vfx — Roblox + three.js effects
 
+## House style (owner 2026-11-24, permanent, every VFX in every session)
+- One shared anime cel style ([anime-vfx-reference](domains/vfx/anime-vfx-reference.md)) so all effects look good together: white core -> saturated body -> dark same-hue edge in hard bands.
+- Gradients CLEARLY visible: >= 4 distinct colour steps per gradient, neighbours far apart in value (Umbrio: stack bands, each with a 2-colour `gradient` texture, or opaque-ish cel shells).
+- A reference image gives structure and part count only; never copy its style (2026-11-24: copied a photoreal black hole, owner rejected it).
+- Max detail always: many layered parts (pro reference = dozens of distinct elements), not 2-3. Speed comes from templates, never from skipping detail; end early only when nothing better is possible.
+
 ## Design rules (both engines)
 - Layer every effect, back to front: SMOKE (slow, dark/grey, alpha, long) → GLOW (soft additive, big, short) → CORE (bright, small, the shape) → SPARKS (fast, tiny, additive, gravity). Optional: shockwave ring, ground decal, light flash.
 - Timing: anticipation 0-0.1 s → impact 0-0.08 s (brightest, biggest) → follow-through 0.2-0.6 s → dissipation 0.5-2 s. Fast in, slow out. Total hit effect <= 0.5 s; explosion <= 1.5 s; ambient loops seamless.
