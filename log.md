@@ -499,3 +499,7 @@ improved: colour output removed; held/empty frames deduped; 59->15 uploads via 1
 ## [2026-11-24] build / VFX library as repo folder vfx/
 Owner: no artifact; all VFX in one place with painting rules. 676 white sheets in vfx/sheets (147 flipbook, 67 action, 462 symbol), grep index vfx/index.tsv, vfx/README.md painting rules, tools/vfx/paint.py gradient-map + texture painter (looked at fire/void output once).
 improved: repo-check VFX_LIB exemption; vfx skill + rules now say grep vfx/index.tsv before generating; binaries rule gets the vfx/sheets exception; hub library note superseded and every pointer (index, playbook, tools.md, stylized README) repointed; router words for painting/where-are-vfx; L-187.
+
+## [2026-11-24] improve / 20-vfx cinematic brief
+improve 60: ~31 s brief, ~19 s Sonnet, 74.8 s total (FAIL +14.8), rungs 1-3. 20 slugs verified in vfx/index.tsv, painted to scratch; Umbrio tab not built yet.
+improved: improve skill bans per-file loops before the prompt shows; L-136 bumped, L-189 added; lessons.md at the 200-line cap: 40 oldest applied lessons moved to archive/lessons-2026-11.md.
