@@ -356,3 +356,8 @@ improved: vfx playbook depth rule + v2 template with tube() helper; flipbook she
 ## [2026-11-24] fix / beam v2 white core (owner: "white middle looks pretty bad")
 cbeam2-1124 core: solid white Neon 9 m tube -> translucent hot-red ForceField 4.4 m tube (new geo g-c2-core2, old deleted); read-back 205, zfight PASS, MP4 sent.
 improved: vfx playbook core rule; umbrio_beam2.py core; L-147 lesson; old geo cleaned from hub.
+
+## [2026-11-24] research / epic anime-fight reference study (/improve 120)
+youtu.be/ljMl9px0WXI (35:12 AMV): youtube blocked + yt-dlp blocked on mobile, so 13 Firecrawl embed stills (one per chapter) -> domains/animation/epic-reference.md (10 measured rules: 2-tone impact frame 9:12, complementary accents, dark desaturated base, letterbox 9.6-12.4 %, diagonals...). Every-3 s/frame-by-frame/audio queued for PC.
+improve 120: ~95 s brief, 22 s Sonnet, 140.2 s total (+20 FAIL), rungs 1-2.
+improved: epic-reference note + links; vfx checklist epic section; audio playbook impact layering; router words epic/anime fight/impact frame/hit-stop; improve SKILL slow-call rule (L-148).

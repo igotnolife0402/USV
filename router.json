@@ -310,7 +310,11 @@
         "pose",
         "poses",
         "emote",
-        "ik"
+        "ik",
+        "epic",
+        "anime fight",
+        "impact frame",
+        "hit-stop"
       ],
       "notes": [
         "domains/3d/umbrio-build.md",

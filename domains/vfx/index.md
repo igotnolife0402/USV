@@ -31,3 +31,4 @@ Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox
 
 ## Default pipeline (owner rule 2026-11-21)
 - Liquid effects: [tools/vfx/liquid](tools/vfx/liquid/README.md) (VFX Generator); other effects: [tools/vfx/flipbook](tools/vfx/flipbook/README.md). Then import the layered sheets into **Umbrio Sandbox** and attach to the animation ([profiles/tools.md](profiles/tools.md)). Never Blender unless the owner names it.
+- Epic look: [epic-reference](domains/animation/epic-reference.md) (2-tone impact frame, complementary accent, dark desaturated base, letterbox for big beats).

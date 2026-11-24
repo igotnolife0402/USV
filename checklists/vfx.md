@@ -20,3 +20,6 @@ triggers: [vfx, particle, beam, trail, shader, aura, slash]
 - mobile: Artifact preview (web) or code review + append "trigger in Studio, screenshot" to queue/pc.md.
 ## Log
 - log.md entry (effect, path, key params). Errors → [vfx errors](domains/vfx/errors.md) + lesson.
+## Epic (when the owner asks for epic/cinematic)
+- [ ] [epic-reference](domains/animation/epic-reference.md) rules 1-4 applied: one 2-tone impact frame at the climax, a complementary accent, dark desaturated base, letterbox only for the big beat.
+- [ ] Still one big climax effect, subtle accents elsewhere (owner rule 9).
