@@ -316,7 +316,14 @@
         "anime fight",
         "supernova",
         "duel",
-        "cutscene"
+        "cutscene",
+        "animator",
+        "rigging",
+        "rig",
+        "slerp",
+        "time warp",
+        "slow-mo",
+        "lint animation"
       ],
       "notes": [
         "domains/animation/playbook.md",

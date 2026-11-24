@@ -26,3 +26,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | Strikes land together (1.9 / 1.95 s) | Both clips keyed on the same beat | Stagger attacker/defender >= 0.3 s | 2026-11-24 |
 | Last 2.4 s empty black frame | Fighters hidden at 17.6, embers too faint to read | Hold aftermath visible to the end | 2026-11-24 |
 | raters saw ~10 stills in a different framing | duel raters judged 12 stills from a forced 7,5,9 shots camera, not the owner's saved view; owner: go frame by frame | shots.mjs SHOTS_FPS + scene camera default | 2026-11-24 |
+| slow, low-quality animation work | duel work took hours: animator lerped Euler per axis, stopped at every key, had no slow-mo, IK or lint, so fixes were hand-run offline | sample.js + anim.ik/mirror/lint + rulebook | 2026-11-24 |

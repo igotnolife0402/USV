@@ -11,6 +11,7 @@ triggers: [animation, animate, clip, key pose, keyframe, keyframes, easing, ease
 Motion for 3D pieces: key poses with `smooth` (sine in-out) tweens in the Studio animator; one motion spec per creature drives the Studio clip, the Roblox script and the MP4.
 
 ## Read in this order
+0. [Umbrio animator rules](domains/animation/umbrio-animator.md): read first for any Umbrio animation, rig or cutscene (slerp, auto ease, warp, IK, mirror, lint, timing numbers).
 1. [Playbook](domains/animation/playbook.md): rules, which tool, PC vs mobile.
 2. [Errors](domains/animation/errors.md): symptom → fix.
 3. [Pipeline](domains/animation/pipeline.md): spec → key poses → Studio clip → Roblox KeyframeSequence / Lua → MP4.

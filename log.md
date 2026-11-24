@@ -367,3 +367,8 @@ improved: letterbox bars in Umbrio; fk.py reusable FK + contact solver; tint.py 
 Tab supernova-duel-iii-0155: v2 choreography + camera, 300 flipbooks (v2 49), 35 new sheets (none from v1/v2), 16 trail arcs traced from FK tip paths (plane residual < 0.1), per-fighter Ar/Li colour. Gate PASS, read-back = built, zfight PASS; frames reviewed headless; phone fps queued.
 improve 120: ~88 s brief, 21 s Sonnet, 121.2 s total (PASS), rungs 1-4.
 improved: fitted swing-trail generator (FK tip trace, planar split); owner rule 9 cutscene exception; vfx playbook Cutscene VFX section; duel fx can ride rig groups
+
+## [2026-11-24] feature / Umbrio animator quality upgrade (/improve 240)
+New plugins/sample.js (one sampler: rot slerp with spin fallback, 'auto' Hermite + 'cubic:' eases, clip.warp time remap) used by viewport, GLB bake, Roblox export (30 fps bake for auto/cubic/warp/big turns), fk.py; anim.ik (two-bone), anim.mirror, anim.lint (euler-jump, pose-snap, dead-hold, robotic). Tests anim 14/14; roblox 1/7, core boot cap and vfx shadow fail identically at HEAD (pre-existing). Hub v52 shas = local. Duel III contacts unchanged under slerp.
+improve 240: ~210 s brief, 25 s Sonnet, 238 s total (PASS), rungs 1-4.
+improved: one shared sampler (viewport = exports = fk.py); IK/mirror/lint in Umbrio; animator rulebook with timing numbers; router words animator/rig/ik/slow-mo

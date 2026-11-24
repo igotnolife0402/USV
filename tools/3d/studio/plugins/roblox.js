@@ -1,4 +1,5 @@
 // Roblox: .rbxmx + Lua builder export (parts, models, lights, strokes, R6 rig with KeyframeSequences), .rbxmx/.rbxm import.
+import { sample as animSample, storyAt } from './sample.js'
 // Everything above "Plugin" is pure (no DOM): cli/studio.mjs imports these writers and readers too.
 import * as THREE from 'three'
 import * as M from '../core/model.js'
@@ -468,16 +469,21 @@ export function sampleTrack(keys, t) {
   }
   return keys[keys.length - 1][1]
 }
-const sampleObj = (tr, t) => { if (!tr) return undefined; const v = {}; for (const ch of ['pos', 'rot', 'scale']) if (tr[ch]?.length) v[ch] = sampleTrack(tr[ch], t); return v }
-const easeAt = (tr, t) => { let e = 'linear'; for (const ch of ['rot', 'pos']) for (const k of tr?.[ch] || []) if (k[0] <= t + 1e-6) e = k[2] || 'linear'; return e }
+// One sampler (2026-11-24): the animator's own (slerp rotations, auto/cubic eases, clip.warp), so exports play what the viewport plays.
+let CLIP = null
+const sampleObj = (tr, t) => { if (!tr) return undefined; const v = {}, ts = storyAt(CLIP, t); for (const ch of ['pos', 'rot', 'scale']) if (tr[ch]?.length) v[ch] = animSample(tr[ch], ts, ch); return v }
+const needsBake = a => !!a?.warp?.length || Object.values(a?.tracks || {}).some(tr => Object.values(tr || {}).some(ks => Array.isArray(ks) && ks.some(k => k?.[2] === 'auto' || String(k?.[2] || '').startsWith('cubic:') || (Array.isArray(k?.[1]) && k[1].length === 3 && false))))
+const easeAt = (tr, t) => { if (needsBake(CLIP)) return 'linear'; let e = 'linear'; for (const ch of ['rot', 'pos']) for (const k of tr?.[ch] || []) if (k[0] <= t + 1e-6) e = k[2] || 'linear'; return EASE[e] ? e : 'linear' }
 
 function keyframeSeq(ctx, a, aid, gid, rig, nodes, C0, extra = []) {
   const tracks = a.tracks || {}, involved = new Set([gid, ...desc(ctx.kids, gid)])
   const used = Object.keys(tracks).filter(id => involved.has(id) && tracks[id])
   if (!used.length) return null
-  const times = new Set([0])
+  const times = new Set([0]); CLIP = a
   if (+a.len > 0) times.add(+a.len)
   for (const id of used) for (const ch of Object.values(tracks[id])) if (Array.isArray(ch)) for (const k of ch) if (Number.isFinite(+k?.[0])) times.add(+k[0])
+  const dense = needsBake(a) || used.some(id => (tracks[id].rot || []).some((k, i, ks) => i && k[1].some((v, j) => Math.abs(v - ks[i - 1][1][j]) > 45)))
+  if (dense) for (let i = 0; i <= Math.round((+a.len || 1) * 30); i++) times.add(+(i / 30).toFixed(4))   // auto/cubic/warp or big turns: bake 30 fps poses
   const rest = {}, off = {}
   for (const k in rig) { rest[k] = propOf(nodes[k], 'CFrame')[2]; const o = rigid(ctx.world(rig[k])); off[k] = rmul(rinv({ R: o.R, t: o.t }), rest[k]) }
   for (const e of extra) { const o = rigid(ctx.world(e.id)); e.off = rmul(rinv({ R: o.R, t: o.t }), propOf(e.n, 'CFrame')[2]) }

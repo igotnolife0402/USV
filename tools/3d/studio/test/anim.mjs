@@ -337,4 +337,72 @@ export default async function (t) {
     await s.shot('phone-anim.png')
     s.noErrors()
   })
+
+  await t.test('quality sampler: rot slerps (spins keep Euler), auto passes through keys without stopping, cubic ease, warp slow-mo', async () => {
+    const s = await t.open()
+    await s.project('Sampler', { empty: true })
+    const r = await s.eval(async () => {
+      const THREE = await import('three'), { sample, easeFn } = window.studio.app.anim, D = Math.PI / 180
+      const a = [0, 0, 0], b = [0, 90, 90], mid = sample([[0, a], [1, b]], 0.5, 'rot')
+      const qa = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), qb = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 90 * D, 90 * D))
+      const want = qa.clone().slerp(qb, 0.5), got = new THREE.Quaternion().setFromEuler(new THREE.Euler(mid[0] * D, mid[1] * D, mid[2] * D))
+      const spin = sample([[0, [0, 0, 0]], [1, [0, 360, 0]]], 0.5, 'rot')
+      const K = [[0, [0], 'auto'], [1, [1], 'auto'], [2, [3], 'auto'], [3, [4]]]
+      const v = (t, h = 1e-3) => (sample(K, t + h, 'pos')[0] - sample(K, t - h, 'pos')[0]) / (2 * h)
+      const cub = easeFn('cubic:0.42,0,0.58,1'), sm = easeFn('ease')
+      return { err: got.angleTo(want) / D, spin: spin[1], through: [sample(K, 1, 'pos')[0], sample(K, 2, 'pos')[0]], vmid: v(1), vend: v(2.5),
+               cub: [cub(0.25), cub(0.5), cub(0.75)], sm: sm(0.5) }
+    })
+    t.ok(r.err < 0.5, 'slerp midpoint within 0.5 deg: ' + r.err)
+    t.near(r.spin, 180, 0.01, 'a 360 spin keeps the Euler path')
+    t.near(r.through, [1, 3], 1e-6, 'auto passes through its keys')
+    t.ok(Math.abs(r.vmid) > 0.5, 'auto keeps speed through the middle key: ' + r.vmid)
+    t.near(r.cub[1], 0.5, 0.01, 'cubic ease is symmetric'); t.ok(r.cub[0] < 0.25 && r.cub[2] > 0.75, 'cubic ease in-out shape')
+    const w = await s.eval(() => {
+      const A = window.studio.app, id = A.addPart ? null : null
+      return null
+    })
+    const id = await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Warp', len: 2, fps: 30 })
+    const pos = await s.eval(([id, cid]) => {
+      const A = window.studio.app
+      A.patchAnim(cid, { tracks: { [id]: { pos: [[0, [0, 0.5, 0]], [2, [4, 0.5, 0]]] } }, warp: [[0, 0], [1, 0.25], [2, 2]] })
+      A.setTime(1); const x1 = A.viewport.objects.get(id).position.x
+      A.setTime(0.5); const xh = A.viewport.objects.get(id).position.x
+      return { x1, xh, story: A.anim.story(1) }
+    }, [id, cid])
+    t.near(pos.story, 0.25, 1e-6, 'story time at clip 1 s'); t.near(pos.x1, 0.5, 1e-3, 'object at story 0.25 s (slow-mo)'); t.near(pos.xh, 0.25, 1e-3, 'half-speed ramp')
+    s.noErrors()
+  })
+
+  await t.test('rigging: two-bone IK lands the hand on its target, mirror copies L->R, lint flags jumps and dead holds', async () => {
+    const s = await t.open()
+    await s.project('Rig', { empty: true })
+    await s.run('anim.mode')
+    const r = await s.eval(async () => {
+      const A = window.studio.app, add = o => A.exec('parts.box', o)
+      // a chain: shoulder group at (0,3,0), elbow group 1 stud down, wrist group 1 stud further
+      const sh = A.add({ type: 'group', name: 'LeftShoulder', pos: [0, 3, 0], rot: [0, 0, 0] })
+      const el = A.add({ type: 'group', name: 'LeftElbow', parent: sh, pos: [0, -1, 0], rot: [0, 0, 0] })
+      const wr = A.add({ type: 'group', name: 'LeftWrist', parent: el, pos: [0, -1, 0], rot: [0, 0, 0] })
+      const rs = A.add({ type: 'group', name: 'RightShoulder', pos: [2, 3, 0], rot: [0, 0, 0] })
+      const cid = A.exec('anim.new', { name: 'IK', len: 6, fps: 30 }); A.setTime(1)
+      const ik = A.exec('anim.ik', { chain: [sh, el, wr], target: [1.2, 2.4, 0.3], pole: [0, 3, 2], t: 1 })
+      const n = A.exec('anim.mirror', { t: 1 })
+      const c = A.scene.anims[A.anim.clip]
+      const mir = [c.tracks[sh].rot.at(-1)[1], c.tracks[rs]?.rot?.at(-1)?.[1]]
+      // a bad clip: a 170 deg jump, then a 3 s hold
+      A.patchAnim(A.anim.clip, { loop: false, tracks: { ...c.tracks, [el]: { rot: [[0, [0, 0, 0]], [0.05, [170, 0, 0]], [1, [170, 0, 0]]] } } })
+      const bad = A.exec('anim.lint')
+      return { ik, mir, n, types: [...new Set(bad.map(i => i.type))], bad: bad.slice(0, 4) }
+    })
+    t.ok(r.ik.reached && r.ik.miss < 0.01, 'IK end on target: ' + JSON.stringify(r.ik))
+    t.ok(r.n >= 1, 'mirror wrote the right side'); t.near(r.mir[1], [r.mir[0][0], -r.mir[0][1], -r.mir[0][2]], 1e-3, 'mirrored rot = [x,-y,-z]')
+    t.ok(r.types.includes('euler-jump') && r.types.includes('dead-hold') && r.types.includes('pose-snap'), 'lint flags jump, snap, hold: ' + JSON.stringify(r.bad))
+    const clean = await s.eval(() => { const A = window.studio.app, c = A.exec('anim.new', { name: 'Clean', len: 2, fps: 30 }); const o = Object.keys(A.scene.objects)[0]
+      A.patchAnim(A.anim.clip, { tracks: { [o]: { rot: [[0, [0, 0, 0], 'auto'], [1, [0, 40, 0], 'auto'], [2, [0, 0, 0]]] } } }); return A.exec('anim.lint') })
+    t.eq(clean, [], 'a clean clip lints to 0 issues')
+    s.noErrors()
+  })
 }

@@ -63,7 +63,7 @@ function sheet(app, id) {
     img.onload = () => {
       e.tex = new THREE.Texture(img); e.tex.colorSpace = THREE.SRGBColorSpace; e.tex.needsUpdate = true; e.ready = true
       for (const o of live) if (o.userData.fb?.tex === id) bind(o)
-      frameAll(app.time || 0)
+      frameAll(app.anim?.story ? app.anim.story(app.time || 0) : (app.time || 0))
     }
     img.src = d.data
   }).catch(() => {})
@@ -261,7 +261,7 @@ export default {
     }
   },
   init(app) {
-    APP = app; app.on('time', t => frameAll(t))
+    APP = app; app.on('time', t => frameAll(app.anim?.story ? app.anim.story(t) : t))
     try { if (!document.getElementById('pl-vfx')) { const st = document.createElement('style'); st.id = 'pl-vfx'; st.textContent = CSS; document.head.append(st) } } catch {}
   }
 }

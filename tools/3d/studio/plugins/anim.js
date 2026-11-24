@@ -37,31 +37,12 @@ const CH = ['pos', 'rot', 'scale', 'color', 'visible']
 const XF = ['pos', 'rot', 'scale']
 const CH_LABEL = { pos: 'Position', rot: 'Rotation', scale: 'Scale', color: 'Color', visible: 'Visible' }
 const CH_COL = { pos: '#e5484d', rot: '#3fb950', scale: '#3d8bfd', color: '#ffa23a', visible: '#8b93a1' }
-const EASES = ['linear', 'ease', 'smooth', 'in', 'out', 'step', 'bounce', 'elastic']
+import { EASES, EASE, easeFn, isEase, sample, storyAt, mix, hexRGB, rgbHex } from './sample.js'
+export { EASE, easeFn, isEase, sample, storyAt }
 const EASE_LABEL = { linear: 'Linear', ease: 'Ease in-out', smooth: 'Smooth (sine)', in: 'Ease in', out: 'Ease out', step: 'Constant', bounce: 'Bounce', elastic: 'Elastic' }
 const D2R = Math.PI / 180
 const SEP = '\u0001'
 
-function outBounce(x) {
-  const n = 7.5625, d = 2.75
-  if (x < 1 / d) return n * x * x
-  if (x < 2 / d) return n * (x -= 1.5 / d) * x + 0.75
-  if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + 0.9375
-  return n * (x -= 2.625 / d) * x + 0.984375
-}
-export const EASE = {
-  linear: x => x,
-  ease: x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
-  smooth: x => (1 - Math.cos(Math.PI * x)) / 2,   // sine in-out: keys on a wave's peaks replay the wave exactly
-  in: x => x * x * x,
-  out: x => 1 - Math.pow(1 - x, 3),
-  step: () => 0,
-  bounce: outBounce,
-  elastic: x => x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * (2 * Math.PI / 3)) + 1
-}
-
-const hexRGB = h => { const n = parseInt(String(h || '#000000').slice(1, 7), 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255] }
-const rgbHex = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')
 const add = (a, b) => a.map((v, i) => v + (b[i] || 0))
 const mul = (a, b) => a.map((v, i) => v * (Array.isArray(b) ? b[i] : b))
 const mk = (t, v, e) => e && e !== 'linear' ? [t, v, e] : [t, v]
@@ -70,23 +51,6 @@ const r4 = t => Math.round(t * 1e4) / 1e4
 const ref = (id, ch, t) => id + SEP + ch + SEP + r4(t)
 const ratio = (a, b) => Math.abs(b) > 1e-9 ? a / b : a
 
-function mix(a, b, e, ch) {
-  if (ch === 'visible') return e >= 1 ? b : a
-  if (ch === 'color') { const p = hexRGB(a), q = hexRGB(b); return rgbHex(p.map((v, i) => v + (q[i] - v) * e)) }
-  return a.map((v, i) => v + ((b[i] ?? v) - v) * e)
-}
-// Sample one channel's keys [[t, value, ease?], ...] at time t (ease belongs to the segment's first key).
-export function sample(keys, t, ch) {
-  const n = keys?.length
-  if (!n) return undefined
-  if (n === 1 || t <= keys[0][0]) return keys[0][1]
-  if (t >= keys[n - 1][0]) return keys[n - 1][1]
-  let lo = 0, hi = n - 1
-  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (keys[m][0] <= t) lo = m; else hi = m }
-  const a = keys[lo], b = keys[hi], span = b[0] - a[0]
-  const u = span > 0 ? (t - a[0]) / span : 1
-  return mix(a[1], b[1], (EASE[a[2]] || EASE.linear)(u), ch)
-}
 function normVal(ch, v) {
   if (ch === 'visible') return !!v
   if (ch === 'color') return typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : '#ffffff'
@@ -308,12 +272,12 @@ function evaluate(t = A?.time || 0, force = false) {
   if (c) for (const oid in c.tracks || {}) {
     const o = vp.objects.get(oid), obj = A.obj(oid)
     if (!o || !obj || !c.tracks[oid]) continue
-    poseObj(o, obj, c.tracks[oid], t)
+    poseObj(o, obj, c.tracks[oid], storyAt(c, t))
     next.add(oid)
   }
   for (const oid of S.posed) if (!next.has(oid)) { const o = vp.objects.get(oid); if (o) unpose(o) }
   S.posed = next
-  camDrive(vp, c, t)
+  camDrive(vp, c, storyAt(c, t))
   const m = on && isModelRef(id) ? modelClip(id) : null
   if (S.mix && (!m || S.mix.key !== m.key || S.mix.root !== m.o)) stopMix()
   if (m) {
@@ -496,7 +460,7 @@ function toClips(opts = {}) {
       const obj = A.obj(oid), o = node(oid)
       if (!obj || !tr || (byId && !o)) continue                   // not in the export copy (a temporary model)
       const nm = opts.nodeName ? opts.nodeName(oid) : o ? o.uuid : oid
-      const bake = (ch, size, fn) => { const v = new Float32Array((n + 1) * size); for (let i = 0; i <= n; i++) v.set(fn(sample(tr[ch], times[i], ch)), i * size); return v }
+      const bake = (ch, size, fn) => { const v = new Float32Array((n + 1) * size); for (let i = 0; i <= n; i++) v.set(fn(sample(tr[ch], storyAt(a, times[i]), ch)), i * size); return v }
       if (tr.pos?.length) tracks.push(new THREE.VectorKeyframeTrack(nm + '.position', times, bake('pos', 3, v => v)))
       if (tr.rot?.length) {
         let prev = null
@@ -1150,7 +1114,7 @@ const commands = {
     run(app, a = {}) {
       if (!app.obj(a.id)) throw new Error('Set key needs {id, ch, t, value}')
       if (!KEYS[a.ch]) throw new Error('Channel must be pos, rot, scale, color or visible')
-      if (a.ease && !EASES.includes(a.ease)) throw new Error('Unknown easing: ' + a.ease)
+      if (a.ease && !isEase(a.ease)) throw new Error('Unknown easing: ' + a.ease)
       const { id, c } = ensureClip(app), next = clone(c), t = snap(+a.t || 0, fpsOf(c))
       setKeyIn(next, a.id, a.ch, t, a.value ?? posedVal(c, a.id, a.ch, t), a.ease)
       app.putAnim(id, next)
@@ -1177,6 +1141,74 @@ const commands = {
   'anim.camFollow': {
     label: 'Follow clip camera', icon: 'camera', noUndo: true, checked: () => S.camFollow,
     run: (app, a = {}) => { S.camFollow = a.on != null ? !!a.on : !S.camFollow; evaluate(); return S.camFollow }
+  },
+  // Two-bone IK (2026-11-24): place a hand/foot/blade by its world target; the bend side comes from the pole. Keys upper + lower.
+  'anim.ik': {
+    label: 'IK: place a limb', icon: 'an-key', mode: 'animate',
+    run(app, a = {}) {
+      const [ua, la, ea] = a.chain || [], vp = app.viewport, O = id => vp.objects.get(id)
+      if (![ua, la, ea].every(id => O(id))) throw new Error('anim.ik needs chain: [upper, lower, end] object ids')
+      const { id, c } = ensureClip(app), t = snap(a.t ?? app.time ?? 0, fpsOf(c)), next = clone(c)
+      app.setTime?.(t); evaluate(t, true)
+      const U = O(ua), L = O(la), E = O(ea), W = o => { o.updateWorldMatrix(true, false); return new THREE.Vector3().setFromMatrixPosition(o.matrixWorld) }
+      const pa = W(U), pb = W(L), pc = W(E), T = new THREE.Vector3(...a.target), l1 = pa.distanceTo(pb), l2 = pb.distanceTo(pc)
+      let d = pa.distanceTo(T); const reach = d <= l1 + l2 - 1e-4 && d >= Math.abs(l1 - l2) + 1e-4
+      d = Math.min(Math.max(d, Math.abs(l1 - l2) + 1e-4), l1 + l2 - 1e-4)
+      const u = T.clone().sub(pa).normalize(), pole = a.pole ? new THREE.Vector3(...a.pole) : pb.clone()
+      let nrm = pole.clone().sub(pa); nrm.sub(u.clone().multiplyScalar(nrm.dot(u)))
+      if (nrm.lengthSq() < 1e-9) nrm.set(0, 1, 0).sub(u.clone().multiplyScalar(u.y)); nrm.normalize()
+      const cosA = Math.min(1, Math.max(-1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d))), elbow = pa.clone().add(u.multiplyScalar(l1 * cosA)).add(nrm.multiplyScalar(l1 * Math.sqrt(1 - cosA * cosA)))
+      const aim = (o, from, to, dst) => {          // turn o (world) so the from->to bone points at dst, then store as its local rotation
+        const q = new THREE.Quaternion().setFromUnitVectors(to.clone().sub(from).normalize(), dst.clone().sub(from).normalize())
+        const wq = o.getWorldQuaternion(new THREE.Quaternion()), pq = o.parent ? o.parent.getWorldQuaternion(new THREE.Quaternion()) : new THREE.Quaternion()
+        o.quaternion.copy(pq.invert().multiply(q.multiply(wq))); o.updateMatrixWorld(true)
+      }
+      aim(U, pa, pb, elbow); aim(L, W(L), W(E), T)
+      const deg = o => { const e = new THREE.Euler().setFromQuaternion(o.quaternion, 'XYZ'); return [e.x / D2R, e.y / D2R, e.z / D2R] }
+      setKeyIn(next, ua, 'rot', t, deg(U), a.ease); setKeyIn(next, la, 'rot', t, deg(L), a.ease)
+      app.putAnim(id, next); evaluate(t, true)
+      return { reached: reach, miss: +W(E).distanceTo(new THREE.Vector3(...a.target)).toFixed(4) }
+    }
+  },
+  // Mirror a pose Left <-> Right by object name at t (rot [x,-y,-z], pos [-x,y,z] in the joint's own frame).
+  'anim.mirror': {
+    label: 'Mirror pose L/R', icon: 'an-key', mode: 'animate',
+    run(app, a = {}) {
+      const { id, c } = ensureClip(app), t = snap(a.t ?? app.time ?? 0, fpsOf(c)), next = clone(c), objs = app.scene.objects
+      const byName = new Map(Object.entries(objs).map(([k, o]) => [o.name, k])), from = a.from || 'Left', to = from === 'Left' ? 'Right' : 'Left'
+      let n = 0
+      for (const [k, o] of Object.entries(objs)) {
+        if (!o.name?.includes(from)) continue
+        const dst = byName.get(o.name.replace(from, to)); if (!dst) continue
+        const r = posedVal(c, k, 'rot', t), p = c.tracks?.[k]?.pos?.length ? posedVal(c, k, 'pos', t) : null
+        setKeyIn(next, dst, 'rot', t, [r[0], -r[1], -r[2]]); if (p) setKeyIn(next, dst, 'pos', t, [-p[0], p[1], p[2]]); n++
+      }
+      app.putAnim(id, next); return n
+    }
+  },
+  // Lint the current clip (read-only): the faults the 2026-11-24 duel critique found by hand, found in one call.
+  'anim.lint': {
+    label: 'Lint animation', icon: 'an-key', noUndo: true,
+    run(app, a = {}) {
+      const c = a.id ? anims()[a.id] : cur(); if (!c) return []
+      const out = [], fps = fpsOf(c), len = lenOf(c), q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), e = new THREE.Euler()
+      const quat = (q, r) => q.setFromEuler(e.set(r[0] * D2R, r[1] * D2R, r[2] * D2R))
+      for (const [oid, tr] of Object.entries(c.tracks || {})) {
+        const ks = tr.rot || []
+        for (let i = 1; i < ks.length; i++) { const dv = Math.max(...ks[i][1].map((v, j) => Math.abs(v - ks[i - 1][1][j]))); if (dv > 120 && dv < 180) out.push({ type: 'euler-jump', id: oid, t: ks[i][0], value: +dv.toFixed(1) }) }
+        if (ks.length >= 4 && ks.slice(0, -1).every(k => !k[2] || k[2] === 'smooth' || k[2] === 'linear')) out.push({ type: 'robotic', id: oid, t: ks[0][0], value: ks.length })
+        if (ks.length > 1) { let last = -1
+          for (let i = 1; i <= Math.round(len * fps); i++) {
+            const t0 = storyAt(c, (i - 1) / fps), t1 = storyAt(c, i / fps), ang = quat(q0, sample(ks, t0, 'rot')).angleTo(quat(q1, sample(ks, t1, 'rot'))) / D2R
+            if (ang > 60 && i / fps - last > 0.25) { last = i / fps; out.push({ type: 'pose-snap', id: oid, t: +(i / fps).toFixed(3), value: +ang.toFixed(1) }) }
+          } }
+      }
+      const sig = t => JSON.stringify(Object.values(c.tracks || {}).map(tr => Object.entries(tr).map(([ch, k]) => k?.length ? sample(k, storyAt(c, t), ch) : 0)))
+      let runStart = 0, prev = sig(0)
+      for (let t = 0.1; t <= len + 1e-6; t += 0.1) { const s = sig(t); if (s !== prev) { if (t - 0.1 - runStart > 2) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(t - 0.1 - runStart).toFixed(2) }); runStart = t; prev = s } }
+      if (len - runStart > 2 && c.loop === false) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(len - runStart).toFixed(2) })
+      return out
+    }
   },
   'anim.autokey': { label: 'Auto-key', icon: 'an-rec', noUndo: true, checked: () => S.autokey, run: (app, a = {}) => { S.autokey = a.on != null ? !!a.on : !S.autokey; syncUI(); return S.autokey } },
   'anim.deleteKeys': {
@@ -1227,7 +1259,7 @@ const commands = {
     label: 'Set easing', icon: 'an-ease', enabled: (app, a) => !!cur() && refsOf(a).size > 0,
     run(app, a = {}) {
       if (!a.ease) { keyMenu(innerWidth / 2, innerHeight / 2); return null }
-      if (!EASES.includes(a.ease)) throw new Error('Easing must be one of ' + EASES.join(', '))
+      if (!isEase(a.ease)) throw new Error('Easing must be one of ' + EASES.join(', ') + ', auto or cubic:x1,y1,x2,y2')
       const c = needClip(), next = clone(c)
       let n = 0
       eachKey(next, refsOf(a), (k, oid, ch, i) => { next.tracks[oid][ch][i] = mk(k[0], k[1], a.ease); n++ })
@@ -1317,7 +1349,7 @@ const plugin = {
     Animate: ['anim.mode', '-', 'anim.new', 'anim.rename', 'anim.duplicate', 'anim.set', 'anim.loop', 'anim.delete', '-',
       'anim.play', 'anim.stop', 'anim.start', 'anim.end', 'anim.prevKey', 'anim.nextKey', 'anim.time', 'anim.speed', '-',
       'anim.key', 'anim.autokey', 'anim.copyKeys', 'anim.pasteKeys', 'anim.deleteKeys', 'anim.clear', '-',
-      'anim.camKey', 'anim.camFollow', 'anim.camClear', '-',
+      'anim.camKey', 'anim.camFollow', 'anim.camClear', '-', 'anim.ik', 'anim.mirror', 'anim.lint', '-',
       'anim.spin', 'anim.bob', 'anim.bounce', 'anim.pulse', 'anim.walk', 'anim.wave']
   },
   modes: [{ id: 'animate', label: 'Animate', icon: 'an-mode', order: 20, gizmo: true }],
@@ -1377,7 +1409,7 @@ const plugin = {
       return true
     }
     app.anim = {
-      toClips, sample, EASE,
+      toClips, sample, EASE, easeFn, story: t => storyAt(cur(), t ?? app.time ?? 0),
       evaluate: t => evaluate(t ?? app.time ?? 0, true),
       rest: restAll, play, pause, stop,
       get playing() { return S.playing },

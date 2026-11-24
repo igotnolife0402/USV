@@ -6,6 +6,8 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 ---
 # Animation playbook
 
+Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing numbers, rig rules, workflow, gates).
+
 ## Rules (owner, from the old vault)
 - Key poses, not frames: a few keys per joint on the motion's turning points, `smooth` (sine in-out) between. Orc: 114 keys (was 793), within 1.5° of the exact motion (`key_poses`, tol 1.5° rot / 0.05 stud pos).
 - One motion spec per creature drives every output (Studio clip, Roblox Lua, video); change the spec, never one output.
