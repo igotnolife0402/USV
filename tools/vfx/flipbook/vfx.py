@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Roblox flipbook VFX: python3 vfx.py OUT <preset|preset:key=v,key=v|a+b+c+d|all> [--name ID] [--seed N] [--check]   (README "Recipes", "Layers")
+"""Roblox flipbook VFX: python3 vfx.py OUT <preset|preset:key=v,key=v|a+b+c+d|all> [--name ID] [--seed N] [--check] [--bands 5[,10]] [--color]   (README "Recipes", "Layers")
 Writes OUT/<preset>.png (one 1024 px sheet), OUT/<preset>.json (its emitter settings) and OUT/VFXLibrary.lua (all built
 presets, for VFX.lua). --check also writes OUT/<preset>.jpg (sheet over a dark and a light sky), prints timing and the
 preset's own checks, and fails any preset over 60 s (owner's cap; VFX_NO_CAP=1 skips it on slow CI runners)."""
@@ -106,7 +106,45 @@ def white(frames):
     return [np.dstack([g[i], g[i], g[i], frames[i][..., 3]]) for i in range(len(frames))]
 
 
-def build(out, spec, seed, check, name=None, color=False):
+def layer_colors(id, cols):
+    """Band colours, darkest first: 5 per palette colour, the brightest 5 take colour 1. Same maths as VFX.lua layerColors and
+    the preview: RAMP step, then a +-2..6 RGB jitter seeded by id + band index so no two layers match (owner 2026-11-24)."""
+    nc, res = len(cols), []
+    for k in range(5 * nc):
+        c = cols[nc - 1 - k // 5]; mode, f = RAMP[k % 5]
+        rgb = [v * f if mode == 0 else v + (255 - v) * f for v in c]
+        h = 0
+        for b in f'{id}#{k}'.encode(): h = (h * 31 + b) % 16777216
+        res.append(tuple(int(min(255, max(0, round(v + (2 + (h >> (4 * i)) % 5) * (1 if (h >> (12 + i)) & 1 else -1))))) for i, v in enumerate(rgb)))
+    return res
+
+
+RAMP = ((0, 0.45), (0, 0.7), (0, 1.0), (1, 0.35), (1, 0.7))   # band 0..4 dark->bright: (0, k) = colour*k, (1, k) = colour lerp white k
+
+
+def bands(frames, n=5, ov=0.06):
+    """Owner 2026-11-24: one tinted sheet is flat (Roblox Color is per particle, not per pixel). Split the white sheet by
+    luminance into n soft bands (smoothstep edges +-ov) whose alphas sum to the sheet's alpha; band k = one texture = one
+    emitter with its own colour, so the effect gets a real dark->bright gradient. Edges sit halfway between even steps and
+    the sheet's luminance quantiles, so every band holds pixels (all n layers show) and edges are >= 0.5/n apart.
+    Returns (band frame lists, edges, tops); grey_k = L / top_k keeps the detail inside each band (L ~= sum w_k grey_k top_k)."""
+    a = np.stack(frames).astype(np.float32) / 255
+    L, A = a[..., 0], a[..., 3]
+    vis = A > 0.05
+    q = np.quantile(L[vis], np.arange(1, n) / n) if vis.any() else np.arange(1, n) / n
+    edges = [round(float(0.5 * q[j] + 0.5 * (j + 1) / n), 4) for j in range(n - 1)]
+    s = [np.ones_like(L)] + [img.smooth(e - ov, e + ov, L) for e in edges] + [np.zeros_like(L)]
+    tops = [min(1.0, round(e + ov, 4)) for e in edges] + [1.0]
+    out = []
+    for k in range(n):
+        w = s[k] - s[k + 1]
+        g = (np.clip(L / tops[k], 0, 1) * 255 + 0.5).astype(np.uint8)
+        al = (A * w * 255 + 0.5).astype(np.uint8)
+        out.append([np.dstack([g[i], g[i], g[i], al[i]]) for i in range(len(frames))])
+    return out, edges, tops
+
+
+def build(out, spec, seed, check, name=None, color=False, nbands=(5,)):
     t0 = time.time()
     if spec in STACKS: name, spec = name or spec, STACKS[spec]
     parts = [recipe(s) for s in spec.split('+')]
@@ -119,6 +157,14 @@ def build(out, spec, seed, check, name=None, color=False):
     if not color: frames = white(frames)   # --color keeps the physical colours
     sh = img.sheet(frames, os.path.join(out, name + '.png'))
     entry = dict(id=name, file=name + '.png', white=not color, frames=len(frames), framePx=frames[0].shape[0], sheetPx=sh.shape[0], **entry)
+    if not color:
+        bd = {}
+        for n in nbands:   # each band set = n textures; 5 per theme colour (10 for a 2-colour palette)
+            fs, edges, tops = bands(frames, n)
+            files = [f'{name}-b{k}of{n}.png' for k in range(n)]
+            for f, b in zip(files, fs): img.sheet(b, os.path.join(out, f))
+            bd[n] = dict(edges=edges, tops=tops, files=files)
+        entry['bands'] = bd
     json.dump(entry, open(os.path.join(out, name + '.json'), 'w'), indent=1)
     dt = time.time() - t0
     if check:
@@ -165,15 +211,18 @@ def lua(v):
     if isinstance(v, bool): return 'true' if v else 'false'
     if isinstance(v, (int, float)): return repr(v)
     if isinstance(v, (list, tuple)): return '{' + ', '.join(lua(x) for x in v) + '}'
+    if isinstance(v, dict): return '{' + ', '.join(f'[{lua(int(k) if str(k).isdigit() else k)}] = {lua(x)}' for k, x in v.items()) + '}'
     return '"' + str(v).replace('"', '\\"') + '"'
 
 
 def library(out):
     """VFXLibrary.lua from every entry JSON in OUT (white sheets: VFX.make(id, parent, studs, theme) tints them)."""
-    lib = [json.load(open(os.path.join(out, f))) for f in sorted(os.listdir(out)) if f.endswith('.json')]
-    rows = [f'\t["{e["id"]}"] = {{ ' + ', '.join(f'{k} = {lua(v)}' for k, v in e.items()) + ', AssetId = 0 },' for e in lib]
+    lib = [json.load(open(os.path.join(out, f))) for f in sorted(os.listdir(out)) if f.endswith('.json') and f != 'batch.json']
+    ids = lambda e: {int(n): [0] * int(n) for n in e.get('bands', {})}   # paste each band PNG's id here, same order as files
+    rows = [f'\t["{e["id"]}"] = {{ ' + ', '.join(f'{k} = {lua(v)}' for k, v in e.items()) + f', AssetId = 0, BandIds = {lua(ids(e))} }},' for e in lib]
     open(os.path.join(out, 'VFXLibrary.lua'), 'w').write('-- Generated by vfx.py. Upload each PNG and paste its id into AssetId.\n'
-        '-- white = true: greyscale sheet, colour it per scene with VFX.make(id, parent, studs, "fire"|"ice"|...|Color3).\nreturn {\n' + '\n'.join(rows) + '\n}\n')
+        '-- white = true: greyscale sheet; bands[n].files = n luminance-band PNGs (upload each, ids into BandIds[n] in order).\n'
+        '-- VFX.make(id, parent, studs, "fire"|{"fire","holy"}|Color3) builds one emitter per band, each its own colour.\nreturn {\n' + '\n'.join(rows) + '\n}\n')
     return lib
 
 
@@ -181,10 +230,11 @@ if __name__ == '__main__':
     a = sys.argv[1:]
     out, which = a[0], a[1]
     seed = int(a[a.index('--seed') + 1]) if '--seed' in a else 1
+    nb = tuple(int(x) for x in a[a.index('--bands') + 1].split(',')) if '--bands' in a else (5,)
     os.makedirs(out, exist_ok=True)
     slow = []
     for n in ([*PRESETS, *STACKS] if which == 'all' else [which]):
-        e, dt = build(out, n, seed, '--check' in a, a[a.index('--name') + 1] if '--name' in a else None, '--color' in a)
+        e, dt = build(out, n, seed, '--check' in a, a[a.index('--name') + 1] if '--name' in a else None, '--color' in a, nb)
         if dt > CAP_S:
             slow.append(f'{n} {dt:.0f}s')
     lib = library(out)

@@ -1,5 +1,5 @@
 """Build a library of white flipbook sheets in parallel, then verify every one (2026-11-24, owner: 100 white VFX, faster, same quality).
-  python3 batch.py OUT [--jobs 4] [--only shock,slash] [--color]
+  python3 batch.py OUT [--jobs 4] [--only shock,slash] [--color] [--bands 5[,10]]
 OUT gets <family>-vNN.png/.json/.jpg, VFXLibrary.lua and batch.json (seconds + checks per sheet). Exit 1 if any sheet fails.
 A variant is a recipe (preset params + seed), never new code: 10 families x 10 variants, v01 = the tuned default."""
 import io, json, os, sys, time, contextlib
@@ -41,11 +41,11 @@ JOBS = [(f'{f}-v{i + 1:02d}', spec, 1 + i * 7) for f in sorted(FAMILIES, key=lam
 TRIES = 3   # a seed whose sparks happen to pop (one bright twinkle, one long arc) is rebuilt on the next seed; same recipe
 
 def one(job):
-    name, spec, seed, out, color = job
+    name, spec, seed, out, color, nb = job
     for k in range(TRIES):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
-            _, dt = vfx.build(out, spec, seed + 1000 * k, True, name, color)
+            _, dt = vfx.build(out, spec, seed + 1000 * k, True, name, color, nb)
         line = [l for l in buf.getvalue().splitlines() if l.startswith('{')][-1]
         r = verify(out, dict(json.loads(line), id=name, spec=spec, seed=seed + 1000 * k, seconds=round(dt, 1), tries=k + 1), color)
         if not r['fail']: break
@@ -64,6 +64,18 @@ def verify(out, r, color):
     if r.get('max_step_jump', 0) >= 3: bad.append(f"step jump {r['max_step_jump']}")
     if r.get('thin_stroke_pct', 0) >= 10: bad.append(f"thin {r['thin_stroke_pct']}")
     if r['seconds'] > vfx.CAP_S: bad.append(f"{r['seconds']} s")
+    if not color:   # band textures must rebuild the sheet: sum_k grey_k*top_k*alpha_k ~= grey*alpha, sum_k alpha_k ~= alpha
+        e = json.load(open(os.path.join(out, r['id'] + '.json')))
+        for n, b in e['bands'].items():
+            lum, al = np.zeros(a.shape[:2], np.float32), np.zeros(a.shape[:2], np.float32)
+            mass = []
+            for f, top in zip(b['files'], b['tops']):
+                t = np.asarray(Image.open(os.path.join(out, f)).convert('RGBA')).astype(np.float32) / 255
+                lum += t[..., 0] * top * t[..., 3]; al += t[..., 3]; mass.append(float(t[..., 3].sum()))
+            el = float(np.abs(lum - a[..., 0] * a[..., 3])[vis].mean() * 255); ea = float(np.abs(al - a[..., 3])[vis].mean() * 255)
+            r = dict(r, **{f'band{n}_err': round(max(el, ea), 2), f'band{n}_minshare': round(min(mass) / max(sum(mass), 1e-6), 3)})
+            if max(el, ea) > 2: bad.append(f'bands{n} rebuild err {max(el, ea):.2f}/255')
+            if min(mass) / max(sum(mass), 1e-6) < 0.01: bad.append(f'bands{n} empty layer')
     return dict(r, saturation=round(sat, 4), visible_pct=round(float(vis.mean() * 100), 1), fail=bad)
 
 if __name__ == '__main__':
@@ -72,7 +84,8 @@ if __name__ == '__main__':
     n = int(a[a.index('--jobs') + 1]) if '--jobs' in a else 4
     only = a[a.index('--only') + 1].split(',') if '--only' in a else None
     color = '--color' in a
-    jobs = [(nm, sp, sd, out, color) for nm, sp, sd in JOBS if not only or nm.rsplit('-v', 1)[0] in only]
+    nb = tuple(int(x) for x in a[a.index('--bands') + 1].split(',')) if '--bands' in a else (5,)
+    jobs = [(nm, sp, sd, out, color, nb) for nm, sp, sd in JOBS if not only or nm.rsplit('-v', 1)[0] in only]
     t0 = time.time()
     with ProcessPoolExecutor(n) as ex:
         res = list(ex.map(one, jobs))

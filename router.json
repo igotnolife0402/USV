@@ -446,7 +446,7 @@
         "not seeing any vfx",
         "no vfx",
         "vfx missing",
-        "white vfx,recolor,recolour,theme vfx,100 vfx,vfx library,vfx batch"
+        "white vfx,recolor,recolour,theme vfx,100 vfx,vfx library,vfx batch,vfx layers,band textures,vfx gradient,flat vfx,multicolor vfx,multicolored vfx"
       ],
       "notes": [
         "domains/vfx/playbook.md",

@@ -416,3 +416,8 @@ improved: runner checks joined frame count vs clip (seam drop/double was uncheck
 White greyscale default in vfx.py (`--color` opts out), VFX.lua themes (fire, ice, poison, void, holy, blood, Color3) + `VFX.recolor`, batch.py (10 families x 10 variants, 4-process pool, per-PNG verify, reseed on fail): 100/100 pass, 102 s wall (377 s serial), PNG zlib 9→6. Batch-of-10 Artifact: https://claude.ai/artifact/KrWLS8qnPpjDkPu6QEqYQA (preview only, not visually verified in Roblox; queued).
 improve 60: ~40 s brief, ~16 s Sonnet, 58.3 s total, rungs 1-3
 improved: shock attack 2.5→3.0 (jump 3.96→2.4); kamehameha arc strike softened (jump 3.3-6.5→1.7-2.6 on 6 seeds); glints attack param; PNG save 0.72→0.13 s; batch reseed loop; vault.library() shared; L-165 + router words
+
+## [2026-11-24] build / layered band-texture VFX (5 per colour)
+- vfx.py `bands()` + `--bands 5[,10]`: each white sheet -> 5 luminance band PNGs, one emitter each; VFX.lua `make` returns a Folder of per-band emitters (ramp colours +-2..6 RGB, flash-to-cool, core fades first), `emit`/`enable`/`recolor`, palettes inferno/abyss. batch 100: 115 s wall, 0 fails, band rebuild err <= 0.06/255; preview loops 3 staggered particles, 10/10 cards non-empty at 3 times, 0 console errors. Roblox look not visually verified (queued).
+- improve 60: ~45 s brief, 17.6 s Sonnet, 117.7 s total (FAIL, compaction between spawn and show), rungs 1-3
+- improved: library() crashed on batch.json in OUT (now skipped); preview blank-gap + negative first-frame time fixed (loop never blank); white theme collapses ramp (excluded from distinctness check, documented); router words for flat/layered vfx; L-167 rule in domains/vfx/rules.md

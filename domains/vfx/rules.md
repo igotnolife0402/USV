@@ -12,4 +12,5 @@ status: current
 - match the sim to where the effect plays (air vs floor); flipbook cards are front-lit and translucent, never baked side light (L-054)
 - Hit-stops freeze flipbooks (they run on story time): a card born on a hit pre-rolls ~12% of its life so the freeze holds its peak, never its blank first frame (L-162, `tools/3d/avatar/duel/stages/build.py` card()).
 - Every sheet ships white (greyscale, alpha kept); colour comes from the scene (VFX.make theme / emitter Color), never baked in, unless the owner asks for `--color` (owner 2026-11-24)
+- One tinted white sheet is flat (Roblox Color is per particle, not per pixel): colour through band textures, >= 5 luminance bands per colour, one emitter each (vfx.py `bands`, VFX.lua `make`); never a single-emitter tint (owner 2026-11-24).
 - Variant libraries: `batch.py` (recipes x seeds, 4-process pool, per-PNG verify, reseed on fail); never hand-pick seeds
