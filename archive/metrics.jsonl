@@ -110,3 +110,4 @@
 {"t":"2026-11-24T07:00:30.231Z","tier":"medium","secs":387,"ok":false,"errors":0,"retry":0,"routes":["3d","vfx"],"touched":[],"signals":["slow","skill"],"mode":"mobile"}
 {"t":"2026-11-24T07:07:56.402Z","tier":"medium","secs":4,"ok":true,"errors":0,"retry":0,"routes":["3d","vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T07:13:41.513Z","tier":"medium","secs":153,"ok":true,"errors":0,"retry":0,"routes":["images"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T07:25:39.636Z","tier":"medium","secs":257,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"mobile"}
