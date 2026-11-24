@@ -456,7 +456,10 @@
         "in editer",
         "in the editor",
         "still blinking",
-        "full animation"
+        "full animation",
+        "flickering",
+        "flicker every",
+        "choppy preview"
       ],
       "notes": [
         "domains/vfx/playbook.md",
