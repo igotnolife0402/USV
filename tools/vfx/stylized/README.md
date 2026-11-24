@@ -21,3 +21,6 @@ status: current
 
 ## actions.py (2026-11-24, owner: "mostly animated slashes, smashes, wind and all others; 70/30 with symbols")
 `python3 actions.py SYM_DIR OUTDIR [140] [60]` (~7 min) → `OUTDIR/action/NNN_kind_hue.png` white Grid4x4 flipbooks (16 frames, 1024 px) + `-color.png`, `OUTDIR/symbols/` the 60 most distinct symbols.py whites (farthest-first pick). 22 kinds: slash, x-slash, claw, spin, smash, slam, punch, star hit, gust, spiral gust, dash lines, tornado, explosion, fire, lightning, splash, beam hit, magic, heal, dust, ice, smoke; quota 30/30/25/55. Timing grow 0-.25, peak, noise erosion .55-1, lingering motes. Gates: peak-frame corr < 0.85, `max_step_jump` (flipbook/vfx.py metric) < ~3, empty frames.
+
+## gifs.py (2026-11-24, owner: "save them as gifs")
+`python3 gifs.py OUTDIR/action GIFDIR [50]` (~25 s for 140) → one looping 16-frame 256 px GIF per effect: `colour/` on the navy backdrop, `white/` white-on-black (GIF alpha is 1-bit, so glow cannot be transparent; use additive/screen). Roblox ParticleEmitter still needs the Grid4x4 PNG sheet.

@@ -483,3 +483,7 @@ improved: action generator added (owner's main need); flipbook step-jump metric 
 ## [2026-11-24] fix / vfx no rotated copies
 actions.py: canonical angle per kind, uniqueness gate checks 8 rotations x mirror. Run: 140 made, 501 redraws, max_corr 0.914 (gate 0.85 missed on some), 95/2240 empty frames, 8 jumpy (beams, lightning); peak contact sheets viewed: heal/beam/smash variants look alike, dust/ice faint.
 improved: rotation-invariant gate; canonical angles; slash sweep/fade overlap (jump 11 -> < 3); rule recorded as lesson.
+
+## [2026-11-24] build / vfx flipbooks as GIFs
+tools/vfx/stylized/gifs.py: 140 effects -> 280 looping GIFs (colour + white-on-black), 16 frames, 50 ms, 25 s; frames of one GIF read back and viewed.
+improved: one file per effect instead of a sheet; GIF 1-bit alpha limit documented in README; white GIFs composited on black so glow survives.
