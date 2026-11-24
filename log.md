@@ -407,3 +407,7 @@ improved: hit-stop flipbook pre-roll (L-162, vfx rules); preview default stage +
 ## [2026-11-24] improve / fight pipeline to <= 5 min
 improve 30: ~18 s brief, ~72 s Sonnet, 89.7 s total (FAIL +59.7 s), rungs 1-3. Built `stages/fight.mjs`: one command build→finish→gate-stop→lint+chunked render→concat→payoff sheet; Crossing dry run 138 s (render 131), gate PASS, lint 6 (Ren wrist, L-161 still open).
 improved: one-command fight runner with phase timing (was 30+ min by hand); FX sheet cache keyed by recipe hash (cold build 57 s → 6.6 s); shots.mjs video wrote to SCRATCH/shots not SHOTS (parallel chunks clobbered each other); mp4 export takes frames [a,b] chunks; gate stops before render.
+
+## [2026-11-24] test / fight.mjs fresh run
+Fresh WORK, warm FX cache: 147 s to MP4 (build 8.3, render 137.8), gate PASS, 313/313 frames, lint 6 (Ren wrist, L-161 open) so the runner prints FAIL.
+improved: runner checks joined frame count vs clip (seam drop/double was unchecked); runner deletes .chunks after concat (~3 MB per render left behind); README records the re-test timing.

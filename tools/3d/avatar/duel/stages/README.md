@@ -17,7 +17,7 @@ Rigs = the supernova Kaito/Ren tab (`BASE`); everything else (choreography, timi
 **Fast path (default, 2026-11-24): one command, prompt-to-MP4.** `DEPS=<node_modules> node fight.mjs BASE WORK [--tab s6] [--jobs 3] [--stages s3]`
 runs build → finish → gate stop → lint + render (frame chunks via `SHOTS_FRAMES=a-b`, ffmpeg concat) → payoff sheet (`out/payoff.jpg`, 12 fps tile),
 prints seconds per phase and appends them to `WORK/times.jsonl`. Stage clips only with `--stages` (each is a full render).
-- Measured on Crossing (10.4 s clip, 313 frames, 4-core llvmpipe): build 6.6 s (warm FX_CACHE; cold 57 s), finish 0.1, render 131, sheet 0.1, total 138 s.
+- Measured on Crossing (10.4 s clip, 313 frames, 4-core llvmpipe): build 6.6 s (warm FX_CACHE; cold 57 s), finish 0.1, render 131, sheet 0.1, total 138 s. Re-test from a fresh WORK: 147 s (render 138), 313/313 frames; the runner now fails on a frame-count mismatch at the chunk seams and deletes `.chunks`.
 - Render is ~95% of the time; 3 parallel chunks gave only ~13% (llvmpipe already uses every core). Cut frames, not jobs, when it must be faster.
 - FX sheets are shared across fights in `FX_CACHE` (default `WORK/../fx-cache`), keyed by recipe hash.
 

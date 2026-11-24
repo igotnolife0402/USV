@@ -32,6 +32,10 @@ async function render (tab, lint) {
   }))
   const list = join(WORK, '.chunks', `${tab}.txt`); writeFileSync(list, parts.filter(Boolean).map(p => `file '${p}'`).join('\n'))
   await run('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', join(OUT, `${tab}.mp4`)])
+  // seam check: a dropped or doubled chunk frame would still play, so count the joined frames against the clip
+  const got = +(await run('ffprobe', ['-v', 'error', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-of', 'csv=p=0', join(OUT, `${tab}.mp4`)])).trim()
+  if (got !== n) throw new Error(`${tab}.mp4 has ${got} frames, clip has ${n}`)
+  rmSync(join(WORK, '.chunks'), { recursive: true, force: true })   // ~3 MB of chunk MP4s + screenshots per render
   return { log: logs[0], n, len: clip.len, warp: clip.warp }
 }
 const lintOf = log => { const m = log.match(/LINT (\d+)/); return m ? +m[1] : null }
