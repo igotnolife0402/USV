@@ -38,6 +38,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - The build usually continues in the improver's hand-back turn: run `fix add` there as you go; the Stop hook now checks working relay turns (2026-11-24).
 - Never end the turn while the improver runs (2026-11-24 Macarena: turn ended to wait, the Stop-hook commit round cost +13.6 s): wait with Monitor in the same turn.
 - Call `done` the moment the prompt arrives inside the window, before any build command (2026-11-24 Void Rift: done ran after the build write, +21 s).
+- Delivery lines in the brief name the deliverable only (MP4, model, page); verification sheets/frames are reviewed silently, never sent (owner 2026-11-24).
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this

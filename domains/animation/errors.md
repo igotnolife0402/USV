@@ -28,3 +28,4 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | Held hand left the hip, arm straightened mid-move | Via key used half the lean, target out of reach | Via waist = max(lean before, after) + 2 | 2026-11-24 |
 | Owner saw bad frames a 5-shot sheet missed | Review sampled frames, not every frame | Every-frame review rule (playbook Frame review) | 2026-11-24 |
 | owner: cat vomited over my keyboard | Macarena verified with a 5-shot contact sheet; owner found swapped palms, hands through face and body, invisible hip roll | 3 review passes, 10 defects fixed | 2026-11-24 |
+| Owner: stop sending all the frames | Verification sheets sent with the MP4 | Review silently; send only the deliverable (profiles/owner.md) | 2026-11-24 |

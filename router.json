@@ -321,7 +321,9 @@
         "frame by frame",
         "every frame",
         "every single frame",
-        "looks bad"
+        "looks bad",
+        "review silently",
+        "stop sending"
       ],
       "notes": [
         "domains/3d/umbrio-build.md",

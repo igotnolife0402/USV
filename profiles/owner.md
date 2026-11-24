@@ -16,6 +16,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.
 - Never claim a look you did not see. No screenshot possible → say "not visually verified" and queue the visual check in [queue/pc.md](queue/pc.md).
 - Replies: short (aim 10 words or fewer). Errors, questions and requested reports are exempt. No fixes footer: fixes are logged, never listed (owner 2026-11-24).
+- Deliver only the final result (owner 2026-11-24): verification renders, frame sheets and probe shots are reviewed silently and never sent; send the MP4/model/page itself.
 
 ## Default tool: Umbrio Sandbox (owner rule 2026-11-21)
 - UI, models, animation, textures, sound effects and VFX on animations are made in the owner's own **Umbrio Sandbox** (Claude-Hub tile, code `tools/3d/studio`; [profiles/tools.md](profiles/tools.md)). The owner rates it above Blender.

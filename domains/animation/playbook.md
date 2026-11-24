@@ -40,7 +40,7 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 
 ## Frame review (owner 2026-11-24: "always go frame by frame, EVERY SINGLE FRAME")
 - Render ALL frames at >= 10 fps (`SHOTS_AT=0,0.1,...,<len>`) from two fixed cameras: front + 3/4 (`SHOTS_CAM`), both framing the whole body, head included.
-- Tile into labeled 8-frame sheets (4x2, frame + time label); read every sheet of both cameras. Check per frame: palms/facing, hands through head or body, arm straightening (out of reach), foot slide/float, loop seam last vs first.
+- Tile into labeled 8-frame sheets (4x2, frame + time label); read every sheet of both cameras, silently: send the owner only the final MP4, never sheets or frames (owner 2026-11-24). Check per frame: palms/facing, hands through head or body, arm straightening (out of reach), foot slide/float, loop seam last vs first.
 - Write each defect as `F<n>: <what>`; fix all, rebuild, IK check (<= 0.05 stud), re-render, re-review every frame. Done = a full pass with 0 defects. Macarena needed 3 passes (8 defects, then 2, then 0).
 - Clearing render dirs: `rm -rf "${N:?}"/shots` (unguarded vars are blocked).
 - Tools: `tools/3d/avatar/framesheets.py` (sheets), `ikcheck.py` (reach); see its README.
