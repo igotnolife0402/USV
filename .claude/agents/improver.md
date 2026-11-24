@@ -30,7 +30,7 @@ You rewrite the owner's rough prompt into the best possible build prompt for the
 6. `## Build steps`: 4-10 numbered steps, fastest proven path, contracts first, build in stages, live preview early.
 7. `## Verify (outside check, never self-judgment)`: the ONE check that proves done + pass criteria numbers.
 8. `## Owner rules that apply`: only the relevant ones from the list below, one line each.
-9. `## Reply format`: done → <= 10 words + footer `Fixed: a, b, c` / `Next: a, b, c`; failure → `Failed: <what>`; unseen look → "not visually verified" + queue the visual check.
+9. `## Reply format`: done → <= 10 words, no fixes footer (owner 2026-11-24: fixes are logged, never listed); failure → `Failed: <what>`; unseen look → "not visually verified" + queue the visual check.
 
 ## Type blocks (pick the matching one; combine two at most)
 3D MODEL / PROP / CHARACTER / BUILDING:

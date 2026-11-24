@@ -24,7 +24,7 @@ Rule: never say "failed"/"can't" when a fallback exists. Do the fallback, queue 
 | PC tool | Mobile next-best | Queue for PC |
 |---|---|---|
 | Roblox Studio MCP | Edit .luau files in Rojo layout in the repo; static-check logic | "sync via Rojo / paste into Studio, playtest" |
-| Blender MCP | three.js Artifact preview + bpy script saved in the repo | "run script in Blender, export glb" |
+| Blender MCP | fresh Umbrio Sandbox tab (hub db docs) + MP4 preview (owner 2026-11-24); bpy only when the owner names Blender | "run script in Blender, export glb" (only if Blender was named) |
 | Browser testing (Chrome/preview) | Headless Chromium + Playwright (preinstalled, `require("playwright")`, verified 2026-11-23): one small screenshot; else Artifact preview + node checks | "visual check in Chrome" if layout-critical |
 | Computer use | none | the full step |
 | agent-audio / audio gen | procedural WebAudio or jsfxr params in code | "generate final SFX with agent-audio" if needed |

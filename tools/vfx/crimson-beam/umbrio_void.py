@@ -139,7 +139,7 @@ add('vlight', {'type': 'light', 'kind': 'point', 'name': 'Rift light', 'pos': CE
     color=[k(0, C['black']), k(T['open'], C['violet'], 'in'), k(T['squeeze'], C['violet']), k(T['hit'], C['black'], 'step'), k(T['flash_end'], C['white'], 'step'), k(T['len'], '#100420', 'out')])
 
 # ---------- accretion disk: 3 rippled ring meshes tilted 15 deg, each spinning at its own speed, orange inner edge ----------
-add('disk', {'type': 'group', 'name': 'Accretion disk', 'pos': CEN, 'rot': [15, 0, 0]}, scale=grow)
+add('disk', {'type': 'group', 'name': 'Accretion disk', 'pos': CEN, 'rot': [25 if '--anime' in sys.argv else 15, 0, 0]}, scale=grow)   # anime: 25 deg so the bands read
 for i, (ro, w, col, mat, tr, spd) in enumerate([(14, 5, C['white'], 'Neon', 0, 400), (22, 8, C['violet'], 'Neon', 0, 260), (32, 10, C['deep'], 'ForceField', 0.45, 180)]):
     geos[f'g-vr-disk{i}'] = ring_geo(ro, w, 0.9 + 0.4 * i, seg=120, rows=6, seed=80 + i)
     o = {'type': 'mesh', 'name': f'Disk band {i + 1}', 'geo': f'g-vr-disk{i}', 'parent': 'disk', 'material': mat, 'color': col, 'smooth': True, 'pos': [0, 0.3 * i, 0]}
@@ -223,7 +223,7 @@ if '--anime' in sys.argv:
     # disk: 5 abutting gradient bands r 11 -> 41 (inner band shares the next band's edge, no overlap), inner spins fastest
     for i in range(5):
         geos[f'g-va-disk{i}'] = ring_geo(11 + 6 * (i + 1), 6, 0.5 + 0.35 * i, seg=144, rows=6, seed=120 + i)
-        add(f'band{i}', {'type': 'mesh', 'name': f'Disk band {i + 1}', 'geo': f'g-va-disk{i}', 'parent': 'disk', 'material': 'Neon', 'color': '#ffffff', 'texture': f't-va-g{i + 1 if i else 0}', 'smooth': True, 'pos': [0, 0.08 * i, 0]},
+        add(f'band{i}', {'type': 'mesh', 'name': f'Disk band {i + 1}', 'geo': f'g-va-disk{i}', 'parent': 'disk', 'material': 'Neon', 'color': STEPS[1 + i], 'smooth': True, 'pos': [0, 0.08 * i, 0]},
             rot=[k(0, [0, 0, 0]), k(T['hit'], [0, (420 - 70 * i) * T['hit'], 0])])
     # anime speed lines riding the disk
     for i in range(16):

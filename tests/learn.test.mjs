@@ -108,7 +108,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   const V = join(BASE, 'stop learn vault');
   const g = (...a) => spawnSync('git', a, { cwd: V, encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))) });
   mkdirSync(V, { recursive: true }); g('init', '-q'); g('config', 'user.name', 't'); g('config', 'user.email', 't@t');
-  put(V, 'log.md', `# Log\n## [${today()}] test / x\nimproved: a; b; c\n`);   // the hook's own (local) date, not UTC
+  put(V, 'log.md', `# Log\n## [${today()}] test / x\nimproved: a; b; c; d; e; f; g; h; i; j\n`);   // the hook's own (local) date, not UTC
   const FM = '---\nsummary: l\nupdated: 2026-11-21\nstatus: current\n---\n';
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n`);
   g('add', '-A'); g('commit', '-qm', 'init');
@@ -141,16 +141,12 @@ test('honesty: claiming done after a failed last call is flagged; admitting it i
   assert.ok(!L.signals(fixed, { tier: 'medium' }).some(s => s.kind === 'honesty'));
 });
 
-test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays are slow signals', () => {
+test('always improve: every task needs >= 10 logged fixes, none listed in the reply; crew spawn/spec delays are slow signals', () => {
   const clean = L.parseTurn(transcript('make a landing page', [use('w', 'Write', { file_path: 'C:/x/site/index.html' }, 5), res('w', 'ok', false, 6)]).split('\n'));
-  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 1 });
-  assert.deepEqual(sigs.map(s => s.kind), ['improve', 'improve'], 'fixes not logged + backlog not listed');
-  assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
-  assert.match(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, knowChanged: true, nextId: 'L-1' }), /at least 3/, 'a note change alone is not 3 fixes');
-  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['fixes not listed in the reply footer (`Fixed: a, b, c`)', 'reply footer lacks `Next: a, b, c` (>= 3 items)'], 'logged but not told to the owner');
-  assert.equal(L.signals({ ...clean, lastText: 'Fixed: sub-agent delay, realistic style, candy now kills\nNext: house rebuild, old plugin, spec template\nDone' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0, 'tiny footer passes');
-  assert.equal(L.signals({ ...clean, lastText: 'Improved: a; b; c\nStill to improve:\n1. d\n2. e\n3. f' }, { tier: 'simple' }, { improved: 3 }).length, 0, 'long form still accepted');
-  assert.ok(L.signals({ ...clean, lastText: 'Fixed: a, b, c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Next/.test(s.text)), 'backlog list required');
+  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 3 });
+  assert.deepEqual(sigs.map(s => s.kind), ['improve'], 'only 3 of 10 fixes logged');
+  assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE[\s\S]*at least 10/);
+  assert.equal(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 10 }).length, 0, '10 logged, no reply footer needed (owner: wastes tokens)');
   assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
   assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
   const crew = { ...clean, skills: ['crew'], agentSecs: 45, specSecs: 120 };

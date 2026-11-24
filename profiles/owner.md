@@ -9,10 +9,11 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 
 ## Honesty and replies
 - 100% honest, always (owner rule 2026-11-21): never call something done unless it was checked. Not done → `Failed: <what>`; gave up = failed. No excuses, no softening ("mostly", "should work"), no blaming tools. Partly done → list exactly what failed or was skipped. Asked "did you do X?" → answer the literal truth first. The Stop hook blocks a "done" reply after a failed last call.
-- Always improve (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
+- Always improve (owner 2026-11-24, supersedes the 3-fix rule): >= 10 real fixes (target 20+) every round in every project, implemented, logged in log.md, made unrepeatable, never listed in the reply.
+- Older wording (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.
 - Never claim a look you did not see. No screenshot possible → say "not visually verified" and queue the visual check in [queue/pc.md](queue/pc.md).
-- Replies: short (aim 10 words or fewer). Errors, questions, requested reports and the tiny `Fixed:` / `Next:` footer (2-5 word phrases) are exempt.
+- Replies: short (aim 10 words or fewer). Errors, questions and requested reports are exempt. No fixes footer: fixes are logged, never listed (owner 2026-11-24).
 
 ## Default tool: Umbrio Sandbox (owner rule 2026-11-21)
 - UI, models, animation, textures, sound effects and VFX on animations are made in the owner's own **Umbrio Sandbox** (Claude-Hub tile, code `tools/3d/studio`; [profiles/tools.md](profiles/tools.md)). The owner rates it above Blender.

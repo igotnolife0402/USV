@@ -6,6 +6,7 @@ import { ROOT, readIf, today } from './lib.mjs';
 
 // Owner 2026-11-24: tier times are ABSOLUTE LIMITS; the goal is 4x faster than the limit for every tier.
 export const TARGET_S = { simple: 60, medium: 300, complex: 1800 };   // limit (hard)
+export const MIN_FIXES = 10;   // owner 2026-11-24: >= 10 fixes logged + implemented every round (target 20+)
 export const GOAL_S = Object.fromEntries(Object.entries(TARGET_S).map(([k, v]) => [k, v / 4]));   // goal: 15 / 75 / 450 s
 export const METRICS = 'archive/metrics.jsonl';
 const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
@@ -123,13 +124,10 @@ export function signals(turn, state = {}, extra = {}) {
   // Honesty: the reply claims success while the last tool call failed (owner rule: never claim done unless checked).
   if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
-  // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
+  // Always improve (owner 2026-11-24, every round, every project): >= 10 real fixes (target 20+) implemented and logged as
+  // `improved: a; b; ...`; NOT listed in the reply (owner: telling them wastes tokens), so no reply-footer check.
   const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
-  if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
-  // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
-  else if (imp != null && improvedCount(turn.lastText || '', 'fixed|improved') < 3) out.push({ kind: 'improve', text: 'fixes not listed in the reply footer (`Fixed: a, b, c`)' });
-  // ...and what is still left: >= 3 concrete next improvements, so the owner sees the backlog (owner 2026-11-22).
-  if (imp != null && improvedCount(turn.lastText || '', 'next|still to improve') < 3) out.push({ kind: 'improve', text: 'reply footer lacks `Next: a, b, c` (>= 3 items)' });
+  if (imp != null && imp < MIN_FIXES) out.push({ kind: 'improve', text: `${imp}/${MIN_FIXES} improvements logged` });
   return out;
 }
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
@@ -149,7 +147,7 @@ export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged =
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
-  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Vault edits (rules, routing, hooks, notes) count. Add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>` AND end your reply with a tiny footer: `Fixed: <2-5 words>, <..>, <..>` then `Next: <2-5 words>, <..>, <..>` (>= 3 things not yet fixed), then Done. No sentences. Real fixes only, no filler.');
+  if (need.some(s => s.kind === 'improve')) steps.push(`ALWAYS IMPROVE (owner rule 2026-11-24, every round, every project): find, implement and log at least ${MIN_FIXES} real fixes (target 20+): speed (cut the slowest phase), routing (router.json words), rules, notes, hooks, tools, templates; make each impossible to repeat (rule/hook/test). Add one line to this turn's log.md entry: \`improved: <fix 1>; <fix 2>; ...\` (>= ${MIN_FIXES} items). Do NOT list them in the reply (wastes tokens). Real fixes only, no filler.`);
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',

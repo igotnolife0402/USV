@@ -488,7 +488,13 @@
         "slash menu",
         "skill not showing",
         "skill missing",
-        "not in the menu"
+        "not in the menu",
+        "every round",
+        "every project",
+        "things to fix",
+        "log it",
+        "perm rule",
+        "permanent rule"
       ],
       "notes": [
         "profiles/vault-rules.md",

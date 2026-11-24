@@ -6,6 +6,8 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
 # VFX playbook
 
+House style for every effect (owner 2026-11-24, permanent): anime cel bands, >= 4 clearly visible colour steps, max detail; see [anime-vfx-reference](domains/vfx/anime-vfx-reference.md) and the vfx skill.
+
 ## Pick the tool
 | Need | Use |
 |---|---|
