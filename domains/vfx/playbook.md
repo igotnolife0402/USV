@@ -25,7 +25,7 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool (orange/red → gray).
 
 ## PC (/pc)
-1. Build the effect in an isolated test page `vfx/<name>.html` with a trigger key and an FPS readout.
+1. Build the effect in an isolated test page `tools/vfx/pages/<name>.html` with a trigger key and an FPS readout.
 2. Serve, open with chrome-devtools-mcp/playwright-mcp, trigger, screenshot at peak (~100 ms) and decay; console clean.
 3. Performance trace (chrome-devtools-mcp) for heavy effects: frame time ≤ 16 ms with 4x CPU throttle.
 4. Integrate into the game/site; re-screenshot in context.
@@ -33,11 +33,11 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 
 ## Mobile fallback (/mobile)
 - Sheet effects: run the flipbook tool in the cloud session as on PC ([flipbook](domains/vfx/flipbook.md)); queue only upload + Studio playtest.
-- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Otherwise build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `vfx/<name>.html` in the repo.
+- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Otherwise build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `tools/vfx/pages/<name>.html` in the repo.
 - Artifacts: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
 - Shader errors are invisible without a console: log `gl.getShaderInfoLog` to an on-screen `<pre>`.
 - Queue PC checks in [queue/pc.md](queue/pc.md), e.g.:
-  `- [ ] 2026-11-21 perf trace explosion at 4x throttle, screenshot peak — vfx vfx/explosion.html`
+  `- [ ] 2026-11-21 perf trace explosion at 4x throttle, screenshot peak — vfx tools/vfx/pages/explosion.html`
 
 ## Quality bar
 - Readable at a glance: clear silhouette, value contrast vs background, max ~0.5 s for gameplay hits.

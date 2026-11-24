@@ -15,3 +15,4 @@ paths: ["**/*vfx*/**","**/*.glsl","domains/vfx/**","tools/vfx/**"]
 - Nothing vanishes clean (erode into lingering particles); beams are 3D volumes, not camera cards; dragon `PACK` presets only on the dragon.
 - Done = checklists/vfx.md; new failures go into domains/vfx/errors.md.
 - Cloud sessions: headless Chromium + Playwright are preinstalled (`require('playwright')` from any dir, no install); screenshot-check pages there (profiles/mobile.md).
+- Effect riding a motion (swing, slash, attack animation): read domains/animation/playbook.md first; trails follow the clip's tip path.
