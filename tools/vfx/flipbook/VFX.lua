@@ -3,6 +3,10 @@
 -- 1. Upload the preset's PNG, paste its id into VFXLibrary (AssetId). Put VFX and VFXLibrary side by side.
 -- 2. local e = VFX.make("explosion", somePart)       -- Enabled = false
 -- 3. e:Emit(1) for one-shots; e.Enabled = true for loops (black-hole).
+-- Sheets are white (greyscale) by default, so one sheet serves every theme: VFX.make(id, part, nil, "ice"),
+-- VFX.make(id, part, 12, Color3.fromRGB(255, 0, 128)), or VFX.recolor(e, "void") on an existing emitter.
+-- Color multiplies the texture: bright pixels take the theme colour, dark ones stay dark. Each particle flashes
+-- white for its first 12 % (the hot impact), then holds the theme. A per-pixel white-hot core needs a baked copy (tint.py).
 local Library = require(script.Parent:WaitForChild("VFXLibrary"))
 
 local VFX = {}
@@ -13,7 +17,31 @@ local ORIENT = {
 	VelocityPerpendicular = Enum.ParticleOrientation.VelocityPerpendicular,
 }
 
-function VFX.make(id: string, parent: Instance, studs: number?): ParticleEmitter
+VFX.THEMES = {
+	fire = Color3.fromHex("ff7a1a"),
+	ice = Color3.fromHex("6fd6ff"),
+	poison = Color3.fromHex("7dff4a"),
+	void = Color3.fromHex("9b5cff"),
+	holy = Color3.fromHex("ffd86b"),
+	blood = Color3.fromHex("d4142a"),
+}
+
+export type Theme = string | Color3
+
+function VFX.recolor(p: ParticleEmitter, theme: Theme?)
+	if theme == nil then
+		p.Color = ColorSequence.new(Color3.new(1, 1, 1))
+		return
+	end
+	local c: Color3? = if typeof(theme) == "Color3" then theme else VFX.THEMES[theme]
+	assert(c, "VFX: unknown theme " .. tostring(theme))
+	local hot = Color3.new(1, 1, 1):Lerp(c, 0.35)
+	p.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, hot), ColorSequenceKeypoint.new(0.12, c), ColorSequenceKeypoint.new(1, c),
+	})
+end
+
+function VFX.make(id: string, parent: Instance, studs: number?, theme: Theme?): ParticleEmitter
 	local e = Library[id]
 	assert(e, "VFX: unknown effect " .. id)
 	assert(e.AssetId ~= 0, "VFX: upload " .. e.file .. " and set its AssetId first")
@@ -44,6 +72,9 @@ function VFX.make(id: string, parent: Instance, studs: number?): ParticleEmitter
 	p.Rotation = NumberRange.new(0)
 	p.RotSpeed = NumberRange.new(0)
 	p.Rate = if loop then 2 / life else 0
+	if e.white ~= false then
+		VFX.recolor(p, theme)   -- coloured (--color) sheets keep their own colours
+	end
 	p.LockedToPart = true
 	p.Enabled = false
 	p.Parent = parent

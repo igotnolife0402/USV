@@ -411,3 +411,8 @@ improved: one-command fight runner with phase timing (was 30+ min by hand); FX s
 ## [2026-11-24] test / fight.mjs fresh run
 Fresh WORK, warm FX cache: 147 s to MP4 (build 8.3, render 137.8), gate PASS, 313/313 frames, lint 6 (Ren wrist, L-161 open) so the runner prints FAIL.
 improved: runner checks joined frame count vs clip (seam drop/double was unchecked); runner deletes .chunks after concat (~3 MB per render left behind); README records the re-test timing.
+
+## [2026-11-24] build / 100 white VFX + themes
+White greyscale default in vfx.py (`--color` opts out), VFX.lua themes (fire, ice, poison, void, holy, blood, Color3) + `VFX.recolor`, batch.py (10 families x 10 variants, 4-process pool, per-PNG verify, reseed on fail): 100/100 pass, 102 s wall (377 s serial), PNG zlib 9→6. Batch-of-10 Artifact: https://claude.ai/artifact/KrWLS8qnPpjDkPu6QEqYQA (preview only, not visually verified in Roblox; queued).
+improve 60: ~40 s brief, ~16 s Sonnet, 58.3 s total, rungs 1-3
+improved: shock attack 2.5→3.0 (jump 3.96→2.4); kamehameha arc strike softened (jump 3.3-6.5→1.7-2.6 on 6 seeds); glints attack param; PNG save 0.72→0.13 s; batch reseed loop; vault.library() shared; L-165 + router words

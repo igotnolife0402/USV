@@ -445,7 +445,8 @@
         "goo",
         "not seeing any vfx",
         "no vfx",
-        "vfx missing"
+        "vfx missing",
+        "white vfx,recolor,recolour,theme vfx,100 vfx,vfx library,vfx batch"
       ],
       "notes": [
         "domains/vfx/playbook.md",

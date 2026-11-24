@@ -142,7 +142,8 @@ def charge_maps(S, t, seed, arcs):
     return core.astype(np.float32), env.astype(np.float32)
 
 
-LIFE = (0.5, 1.0, 0.8, 0.58, 0.38, 0.2)       # an arc's brightness by age (frames): strike, then decay; 3 alive at once
+LIFE = (0.3, 0.75, 1.0, 0.8, 0.58, 0.38, 0.2)   # an arc's brightness by age (frames): 3-frame strike, then decay; 3-4 alive at once.
+# 2026-11-24: the 2-frame strike (0.5, 1.0, ...) popped on most seeds (max_step_jump 3.3-6.5, only seed 1 passed); this one: 1.7-2.6 on 6 seeds
 
 
 def make_arcs(S, seed, n=32, at=None):
