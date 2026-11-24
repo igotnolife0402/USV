@@ -47,7 +47,7 @@ export function parseTurn(lines) {
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
   let tEnd = t0;
   const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set(), skills = new Set();
-  let firstAgent = NaN, firstSend = NaN;
+  let firstAgent = NaN, firstSend = NaN, tools = 0;
   let lastText = '', lastErr = false; // final reply + whether the last tool result was a real failure
   for (const m of String(prompt).matchAll(/<command-name>\s*\/?([\w:-]+)/g)) skills.add(m[1].split(':').pop()); // slash command
   for (const e of E.slice(start + 1)) {
@@ -57,6 +57,7 @@ export function parseTurn(lines) {
       if (b?.type === 'text' && e.type === 'assistant' && b.text?.trim()) lastText = b.text;
       if (b?.type === 'tool_result') lastErr = !!b.is_error && !NOISE.test(resultText(b)) && !/^(Grep|Glob)$/.test(uses.get(b.tool_use_id)?.name || '');
       if (b?.type === 'tool_use') {
+        tools++;
         uses.set(b.id, { name: b.name, input: b.input || {} });
         if (b.name === 'Agent' && Number.isNaN(firstAgent)) firstAgent = ts;
         if (b.name === 'SendMessage' && Number.isNaN(firstSend)) firstSend = ts;
@@ -76,7 +77,7 @@ export function parseTurn(lines) {
   }
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
-    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
+    tools, errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
     agentSecs: Number.isFinite(firstAgent) ? Math.round((firstAgent - t0) / 1000) : null, specSecs: Number.isFinite(firstSend) && Number.isFinite(firstAgent) ? Math.round((firstSend - firstAgent) / 1000) : null,
   };
 }
@@ -94,9 +95,13 @@ export function improvedCount(logText = '', label = 'improved') {
   const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;
   return inline + listed;
 }
+export const relayWorked = (t) => (t.errors || []).length > 0 || (t.writes || []).length > 0 || (t.tools || 0) >= RELAY_WORK;
+const RELAY_WORK = 3; // tool calls: a relay that only reads a result and replies stays quiet
 export function signals(turn, state = {}, extra = {}) {
   const out = [];
-  if (turn.relay) return out; // agent/system relays are not owner tasks
+  // Relays (agent hand-back, task notification) are not owner tasks, UNLESS the owner's task continued in them:
+  // 2026-11-24 Macarena: the whole build ran in the improver's hand-back turn, 4 errors, and nothing was learned.
+  if (turn.relay && !relayWorked(turn)) return out;
   const tier = state.tier || 'medium';
   // Any real error counts, on any task however small (pictures, models, math, vault upkeep).
   if (turn.errors.length >= 1)
@@ -169,7 +174,7 @@ export function loadTurnState(sid) { try { return JSON.parse(readIf(stateFile(si
 
 // One metrics line per owner turn (deduped by turn start). Committed, rolled up monthly.
 export function recordMetrics(turn, state, sigs, mode) {
-  if (turn.relay || !Number.isFinite(turn.t0)) return false;
+  if ((turn.relay && !relayWorked(turn)) || !Number.isFinite(turn.t0)) return false;   // working relays are owner work too
   const path = join(ROOT, METRICS);
   const t = new Date(turn.t0).toISOString();
   if (readIf(path).slice(-4000).includes(`"t":"${t}"`)) return false;

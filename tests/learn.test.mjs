@@ -49,8 +49,11 @@ test('signals: errors, slow, correction, router miss; relays give none', () => {
   assert.deepEqual(L.signals(one, { tier: 'simple', routes: ['images'] }).map(s => s.kind), ['errors'], 'one error on a tiny task still teaches');
   const task = L.parseTurn(transcript('make it learn from every error and when it was super slow', []).split('\n'));
   assert.equal(L.signals(task, { tier: 'medium', routes: [] }).length, 0, 'a task description is not a correction');
+  const idle = L.parseTurn(transcript('<task-notification> done', []).split('\n'));
+  assert.equal(L.signals(idle, {}).length, 0, 'a relay that does no work stays quiet');
   const relay = L.parseTurn(transcript('<task-notification> done', failing).split('\n'));
-  assert.equal(L.signals(relay, {}).length, 0);
+  assert.ok(L.signals(relay, { tier: 'medium' }).map(s => s.kind).includes('errors'), 'work continued in a relay turn still teaches (Macarena 2026-11-24)');
+  assert.ok(L.signals({ ...idle, tools: 12 }, { tier: 'medium' }, { improved: 0 }).map(s => s.kind).includes('improve'), 'a working relay needs the 10 fixes too');
   const vault = L.signals(t, { tier: 'medium', routes: ['vault'] }).map(s => s.kind);
   assert.ok(!vault.includes('router'), 'vault upkeep may read any domain');
 });
