@@ -10,7 +10,7 @@ It is an edit, so letterbox bars and grade are partly the editor's, not the orig
 
 ## Limits of this study (honest)
 - Mobile: youtube.com is blocked from the cloud network and yt-dlp install is blocked by the mobile hook, so there is no video file, no audio, no frame-by-frame.
-- What was done: 13 stills via Firecrawl screenshots of `youtube.com/embed/<id>?start=<s>&autoplay=1&mute=1` (1 still per call, ~15 s, 1 credit), at chapter start + 20 s and 8:20.
+- What was done: 13 stills via Firecrawl screenshots of `youtube.com/embed/<id>?start=<s>&autoplay=1&mute=1` (1 still per call, ~15 s, 1 credit; the daily MCP allowance ran out after ~160 calls on 2026-11-24), at chapter start + 20 s and 8:20.
 - "Every 3rd second" (704 stills), frame-by-frame and the SFX study are queued for the PC (queue/pc.md). Rows marked *unmeasured* are general practice until then.
 
 ## Chapters (s)
@@ -41,6 +41,9 @@ Queen vs Bowa 9 · Wang vs Mushan 217 · Phainon vs Nanook 319 · Sukuna vs Maho
 
 ## SFX: impact layering (general practice, NOT measured from this video)
 Whoosh pre-hit (rising, 150-300 ms) → 1-3 frames of near silence → crack transient (bright, < 30 ms) + sub boom (40-60 Hz, 0.5-1.5 s) → debris/rubble tail (1-2 s) → low rumble bed. See [audio playbook](domains/audio/playbook.md).
+
+## Every-3 s VFX study
+See [anime-vfx-reference](domains/vfx/anime-vfx-reference.md) (148 stills from 5 fights, 12 rules).
 
 ## Apply to the crimson beam (next build)
 - Rule 1: at impact 1.5 s, 1-2 frames of white env + black ink parts, beam kept crimson.

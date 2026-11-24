@@ -361,3 +361,7 @@ improved: vfx playbook core rule; umbrio_beam2.py core; L-147 lesson; old geo cl
 youtu.be/ljMl9px0WXI (35:12 AMV): youtube blocked + yt-dlp blocked on mobile, so 13 Firecrawl embed stills (one per chapter) -> domains/animation/epic-reference.md (10 measured rules: 2-tone impact frame 9:12, complementary accents, dark desaturated base, letterbox 9.6-12.4 %, diagonals...). Every-3 s/frame-by-frame/audio queued for PC.
 improve 120: ~95 s brief, 22 s Sonnet, 140.2 s total (+20 FAIL), rungs 1-2.
 improved: epic-reference note + links; vfx checklist epic section; audio playbook impact layering; router words epic/anime fight/impact frame/hit-stop; improve SKILL slow-call rule (L-148).
+
+## [2026-11-24] research / every-3 s VFX study of the reference video (owner chose VFX fights only)
+8 sub-agents, Firecrawl embed screenshots every 3 s over 5 effect fights: 148/383 stills before the daily MCP credit allowance ran out. Rules -> domains/vfx/anime-vfx-reference.md (12 rules with timestamps + crimson beam plan); missing ranges queued.
+improved: anime-vfx-reference note + index links; Firecrawl daily cap documented (L-150); state/epic-frames.md result; queue item with exact missing ranges.
