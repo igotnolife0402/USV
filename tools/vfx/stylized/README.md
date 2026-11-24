@@ -9,3 +9,6 @@ status: current
 - shapes.py: glint, big_glint, ring, portal, tornado, swirl, orb, magic_circle (11 kinds), icons, cloud, bubbles, fireball, lava, sparkle_box, wind, cluster, sparks, rune_ring, slash_glint, crosshair.
 - First run 2026-11-24: 31/62 cells within hue 20 deg + sat 0.1. Weak: tornado/portal fill (ours = lines), big-glint softness, swirl saturation, white glints.
 - Reference recreation: extract the image from the session jsonl to scratch, sample hues per cell, check with `sheet.py OUT REF` (L-177).
+
+## recolor.py (2026-11-24, owner: identical shapes + strong gradient/pattern)
+`python3 recolor.py REF.jpg OUT_PREFIX` → `-white.png` (exact ref shapes as white light + alpha), `-color.png` (ref hues, ±26° hue-shift gradient to a white core, per-effect pattern: voronoi / flow stripes / hex / rune rings, soft-blended), `-compare.png`. Gates printed: shape_corr ≥ 0.95, hue_family ≤ 20°, gradient_spread ≥ 30° (last: 0.963 / 9.2 / 51.6). Use this, not sheet.py, when shapes must match a reference.

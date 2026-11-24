@@ -473,7 +473,8 @@
         "glow halo",
         "reference image",
         "realistic vfx",
-        "recreate the image"
+        "recreate the image",
+        "identical shape, recolor reference, recolour, gradient texture, pattern texture"
       ],
       "notes": [
         "domains/vfx/playbook.md",

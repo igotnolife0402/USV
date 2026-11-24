@@ -461,3 +461,8 @@ improved: grid.py look tool (preview compositing in numpy, no browser); frame pi
 New tools/vfx/stylized (style/shapes/sheet): 62 effects at the reference layout in ~1 s, hues sampled from the reference, flipbook HSV ramp + halos. Compare check 31/62 cells within hue 20 deg + sat 0.1: Failed on the rest (tornado/portal fill, glint softness, swirl saturation).
 improve 30: brief ~20 s, Sonnet 15 s, 66.2 s total (FAIL +36), rungs 1.
 improved: stylized generator + per-cell compare gate; halo pad + round add-window (no square halo edges); hues sampled from ref, not guessed; tools/vfx README row
+
+## [2026-11-24] build / recolor reference VFX sheet (identical shapes)
+tools/vfx/stylized/recolor.py: white sheet from ref pixels + strong hue-shift gradient + soft-blended per-effect patterns; gates shape 0.963, hue 9.2°, gradient 51.6°; viewed.
+improve 120: ~138 s brief, 12 s Sonnet, 168.6 s total (FAIL +48.6), rungs 1-4.
+improved: pixel-mask recolour replaces procedural reshaping; pattern seams fixed by soft blend; router words for recolour/gradient; lesson on spawning at send_brief_at.
