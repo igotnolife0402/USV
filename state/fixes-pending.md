@@ -1,1 +1,0 @@
-- animation verify: every frame at >=10 fps from fixed front + 3/4 cams, never a 5-shot contact sheet

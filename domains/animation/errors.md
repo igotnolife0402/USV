@@ -1,6 +1,6 @@
 ---
 summary: Known animation failures (Studio clips, rigs, Roblox playback, swings) with cause and fix
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [animation error, clip not playing, pose wrong, swing through body, jerky motion]
 ---
@@ -22,3 +22,9 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | Macarena forward arm pointed sideways | IK wrist targets typed from the rig-frame note, never rendered before the full clip | Render one frame of the first IK pose first; fix targets; queued fix in queue/pc.md | 2026-11-24 |
 | Studio shots fail: mp4-muxer import | SHOTS_VIDEO needs mp4-muxer@5.2.2 in deps, not listed | Install it with the three deps (playbook Mobile fallback) | 2026-11-24 |
 | arm sideways | Macarena IK wrist targets typed blind; full clip built before one frame was rendered, forward arm went sideways | one-frame render first | 2026-11-24 |
+| Palm-down beat showed palm up | Wrist euler sign guessed; hand +X is the palm normal | Probe the palm normal (`palm.py`), fwd_down = (0,0,90) | 2026-11-24 |
+| Crossed hand jumped when the other arm moved | Left cross offset applied only on the crossing beat | Apply the offset whenever that hand target is held | 2026-11-24 |
+| Hand passed through face/crotch on cross-body moves | Straight joint interpolation between key poses | Outside via key per move (`VIA` map), full lean | 2026-11-24 |
+| Held hand left the hip, arm straightened mid-move | Via key used half the lean, target out of reach | Via waist = max(lean before, after) + 2 | 2026-11-24 |
+| Owner saw bad frames a 5-shot sheet missed | Review sampled frames, not every frame | Every-frame review rule (playbook Frame review) | 2026-11-24 |
+| owner: cat vomited over my keyboard | Macarena verified with a 5-shot contact sheet; owner found swapped palms, hands through face and body, invisible hip roll | 3 review passes, 10 defects fixed | 2026-11-24 |

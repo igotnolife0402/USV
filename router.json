@@ -317,7 +317,11 @@
         "hit-stop",
         "macarena",
         "dance",
-        "dance emote"
+        "dance emote",
+        "frame by frame",
+        "every frame",
+        "every single frame",
+        "looks bad"
       ],
       "notes": [
         "domains/3d/umbrio-build.md",
