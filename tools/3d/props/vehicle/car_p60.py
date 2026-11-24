@@ -327,7 +327,7 @@ def car(rng):
         p.append(P.part(pid, m, PAINT, smooth=True, texture="paint", **M_PAINT))
 
     # ---- painted panels
-    add("hood", patch(body_sec, 1.02, 1.95, TOP - 1.2, TOP + 1.2, -0.02, 0.035, 16, 24), PAINT, "paint", **M_PAINT)
+    add("hood", patch(body_sec, 1.02, 1.95, TOP - 1.2, TOP + 1.2, -0.02, 0.045, 16, 24), PAINT, "paint", **M_PAINT)
     hatch = P.merge(patch(cab_sec, -1.71, -1.62, TOP - 0.95, TOP + 0.95, -0.02, 0.04, 6, 20),       # spoiler lip
                     patch(cab_sec, -2.04, -1.958, TOP - 1.3, TOP + 1.3, -0.02, 0.035, 4, 20),     # glass base
                     patch(body_sec, -2.12, -1.98, TOP - 0.75, TOP + 0.75, -0.02, 0.035, 8, 20))    # tailgate top
@@ -357,7 +357,7 @@ def car(rng):
     # ---- glass, pillars, window trims, roof
     add("windshield", patch(cab_sec, 0.30, 1.00, TOP - 0.95, TOP + 0.95, -0.02, 0.035, 14, 20), GLASS, "glass",
         **M_GLASS)
-    add("rear-glass", patch(cab_sec, -1.95, -1.76, TOP - 0.95, TOP + 0.95, -0.02, 0.035, 8, 20), GLASS, "glass",
+    add("rear-glass", patch(cab_sec, -1.95, -1.76, TOP - 0.95, TOP + 0.95, -0.02, 0.045, 8, 20), GLASS, "glass",
         **M_GLASS)
     wins = (("f", 0.08, 0.86), ("r", -1.15, -0.08), ("q", -1.58, -1.22))
     for tag, z0, z1 in wins:
@@ -567,7 +567,9 @@ def main(argv=None):
     rc |= subprocess.call([sys.executable, os.path.join(here, "..", "..", "zfight", "zfight.py"), "fix", proj,
                            os.path.join(out, "geo"), fx, "--prop"], stdout=subprocess.DEVNULL)
     for f in os.listdir(os.path.join(fx, "geo")):
-        if f in (NAME + "-body.json", NAME + "-cabin.json"):
+        # fit_parts splits big meshes into body-1, body-2...: an exact-name skip missed them, so the cut holed the floor
+        # and deck (car60 seethru 0.6 %, owner 2026-11-24 "gaps everywhere"); match the split names too
+        if re.match(re.escape(NAME) + r"-(body|cabin)(-\d+(p\d+)?)?\.json$", f):
             continue  # cut smooth lofts lose their box UVs (rendered white, 2026-11-23); the panels' cuts suffice
         os.replace(os.path.join(fx, "geo", f), os.path.join(out, "geo", f))
     if "--check" in a:

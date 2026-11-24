@@ -182,7 +182,10 @@ test('budget gate: no agents past 50 %, only wrap-up past 100 % (owner 2026-11-2
   assert.equal(budgetGate('Agent', {}, 100, 300), null);
   assert.equal(budgetGate('Bash', { command: 'git commit -m x' }, 320, 300), null);
   assert.equal(budgetGate('Edit', { file_path: '/v/log.md' }, 320, 300), null);
-  assert.match(budgetGate('Bash', { command: 'node build.mjs' }, 320, 300), /over target/);
-  assert.match(budgetGate('Edit', { file_path: '/v/tools/a.js' }, 320, 300), /over target/);
+  // owner 2026-11-24 "done NOW": 100-200 % still builds, only research stops; past 200 % wrap-up only
+  assert.equal(budgetGate('Bash', { command: 'node build.mjs' }, 320, 300), null);
+  assert.match(budgetGate('WebSearch', {}, 320, 300), /no research/);
+  assert.match(budgetGate('Bash', { command: 'node build.mjs' }, 620, 300), /over target/);
+  assert.match(budgetGate('Edit', { file_path: '/v/tools/a.js' }, 620, 300), /over target/);
   assert.equal(budgetGate('Bash', { command: 'node build.mjs' }, NaN, 300), null);
 });

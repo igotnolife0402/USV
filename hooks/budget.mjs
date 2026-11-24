@@ -19,6 +19,10 @@ export function budgetGate(tool, ti = {}, secs, target) {
   if (secs >= 0.5 * target && /^(Agent|Task|Workflow)$/.test(tool))
     return `BUDGET ${Math.round(secs)}s of ${target}s: no new sub-agents after half the budget; finish with what is running`;
   if (secs < target) return null;
+  // owner 2026-11-24: "when I tell you to do something it means done NOW": 100-200 % still finishes the asked build
+  // (build + check calls), only research stops; past 200 % wrap-up only
+  if (secs < 2 * target) return /^(WebSearch|WebFetch|mcp__Firecrawl__.*)$/.test(tool)
+    ? `BUDGET ${Math.round(secs)}s of ${target}s: over target, no research; finish the owner's ask now` : null;
   if (/^(Read|Grep|Glob|TaskStop|ToolSearch)$/.test(tool)) return null;
   if (tool === 'Bash' && WRAP.test(String(ti.command || ''))) return null;
   if (/^(Edit|Write)$/.test(tool) && /(^|\/)(log|lessons|router)\.(md|json)$|errors\.md$|queue\/pc\.md$/.test(String(ti.file_path || ''))) return null;

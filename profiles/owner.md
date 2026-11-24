@@ -8,6 +8,7 @@ triggers: [owner, preference, preferences, quality, detail, polish, style, taste
 Mode-free rules: they hold on both devices. The owner's latest word beats any stored copy (this file included): update the line it contradicts in the same task.
 
 ## Honesty and replies
+- Owner orders = this turn (owner 2026-11-24): "when I tell you to do something it means I want it done NOW". Never move the asked work to Next; the budget gate allows build/check calls up to 2x the tier target for it. Next lists only things the owner did not ask for.
 - 100% honest, always (owner rule 2026-11-21): never call something done unless it was checked. Not done → `Failed: <what>`; gave up = failed. No excuses, no softening ("mostly", "should work"), no blaming tools. Partly done → list exactly what failed or was skipped. Asked "did you do X?" → answer the literal truth first. The Stop hook blocks a "done" reply after a failed last call.
 - Always improve (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.

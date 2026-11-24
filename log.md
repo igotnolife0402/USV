@@ -385,3 +385,7 @@ improved: /improve foreground delivery PASS first try; per-face flip by view vot
 ## [2026-11-24] fix / gap gate + car60 hole map (/improve 30)
 improve 30: ~11 s brief, 13.1 s Sonnet, 30.0 s total PASS (0 off). Hole map: body-3 back hits at hood front (z~2.0, y~0.75, full width), body-1 at rear underside (z -1.5..-1.75, y~0.25); loft/grid_mesh caps verified closed, so cause is not the loft seam. car60 still 0.54% FAIL, not rebuilt (budget).
 improved: pre-tool gap gate blocks live geo writes that never passed seethru (tested: fail doc denied, pass doc allowed, deletes/meta allowed); seethru PASS stamps doc ids; loft/cap winding ruled out as cause
+
+## [2026-11-24] fix / car60 gaps root cause + do-it-now rule (/improve 30)
+improve 30: 38.3 s FAIL (+8.3; timer start ran at 8 s). Root cause of all car60 gaps: zfight fix cut split body docs (exact-name skip). Regex skip + hood/rear-glass 0.045 thick: seethru 0.00%, zfight PASS on live read-back of 182 docs; 8 docs uploaded. Not visually verified.
+improved: root cause found by cutting variants instead of flipping faces; budget gate lets the owner ask finish up to 2x target; owner rule "orders = this turn" in CLAUDE.md + owner.md
