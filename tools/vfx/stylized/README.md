@@ -15,3 +15,6 @@ status: current
 
 ## batch.py (2026-11-24, owner: save the 62 as white + 200 more, same style, unique)
 `python3 batch.py REF.jpg OUTDIR [N]` (~65 s) → `OUTDIR/ref/` 62 whites (256 px, white RGB, light = alpha, radial edge fade), `OUTDIR/new/` N whites + `sheetK-color.png`. New cells = shapes.py families or back+front combos, random rotate/squash/mirror, ref palette hues, all through the same `recolor()`. Gates: uniqueness (32x32 light corr ≤ 0.92, 30 tries, least-similar kept), empty 0, per sheet gradient ≥ 30°, hue ≤ 20°. Last: 200 made, max corr 0.92, gradient 32-41°.
+
+## symbols.py (2026-11-24, owner: "all should be a different shape icon symbol")
+`python3 symbols.py - OUTDIR [N]` → N whites `NNN_UXXXX_hue.png` + `sheetK-color.png`, same recolor() style. Every cell is a different silhouette: curated Unicode symbol ranges (DejaVu/OpenSymbol, tofu + clip-art filtered by SKIP) interleaved with procedural superformula / emblem / star / lissajous / spiral / rose shapes; corr gate MAXC 0.80 on 32×32 light. Last run: 200 made, max_corr 0.799, 0 empty, gradient 45-48°, all 4 sheets viewed.

@@ -475,7 +475,8 @@
         "realistic vfx",
         "recreate the image",
         "identical shape, recolor reference, recolour, gradient texture, pattern texture",
-        "200 vfx, batch vfx, unique effects, white textures"
+        "200 vfx, batch vfx, unique effects, white textures",
+        "symbol,icon,different shape,repeating"
       ],
       "notes": [
         "domains/vfx/playbook.md",

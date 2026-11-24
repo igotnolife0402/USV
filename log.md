@@ -471,3 +471,7 @@ improved: pixel-mask recolour replaces procedural reshaping; pattern seams fixed
 tools/vfx/stylized/batch.py: ref cells cut as whites; 200 new via shapes.py + recolor(); unique corr ≤ 0.92, 0 empty, gradient 32-41°; sheet 2 + whites viewed, sheets 0,1,3 viewed only sheet 0 earlier run.
 improve 60: 28 s brief, 14 s Sonnet, 65.1 s total (FAIL +5.1), rungs 1-3.
 improved: identical-shape repeats fixed by rotate/squash/mirror vary(); square halo box removed by radial edge fade; ring-heavy combos rebalanced; uniqueness keeps least-similar try.
+
+## [2026-11-24] build / vfx 200 distinct symbols
+tools/vfx/stylized/symbols.py: owner said batch repeated; 200 new whites now one distinct symbol/emblem each, max_corr 0.799, 0 empty, all 4 sheets viewed. Minor near-kin left: 2 chess kings, 2 hollow rings.
+improved: font glyphs filtered (tofu, letters, clip-art SKIP); procedural emblems fill shortfall; stricter 0.80 corr gate; batch.py import shadowing fixed via importlib path.
