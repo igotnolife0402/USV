@@ -118,6 +118,56 @@ def arc_keys(path, n=5):
 # the heavy cut, super quick (0.22 s at 60 fps): a held beat, then over the top (in), full speed down, braked into the follow-through (out)
 CLIPS['greatsword'] += arc_keys([(1.75, 'gs_windup2', 'in'), (1.83, 'gs_top', 'linear'), (1.89, 'gs_strike', 'out'), (1.97, 'gs_follow', 'linear')], 6) + \
                        [(1.97, 'gs_follow'), (2.85, 'gs_recover'), (3.7, 'gs_ready'), (4.3, 'gs_ready')]
+# Macarena emote (2026-11-24): 103 BPM, one 16-beat cycle (9.32 s) that loops. One hand per beat, R then L; wrists by IK
+# (root frame: right -X, front -Y, up Z), palms by wrist roll; knees dip on every beat, hips sway toward the active arm,
+# a two-beat hip circle, then a small hop that lands back in the start pose (no yaw: a looping emote can't keep turning).
+MAC_T = 60 / 103
+def _legs(k, roll=0):                    # knee dip k deg, pelvis roll compensated so the feet stay flat
+    return {'RightHip': (k * 0.5, -roll, 0), 'LeftHip': (k * 0.5, -roll, 0), 'RightKnee': (k, 0, 0), 'LeftKnee': (k, 0, 0),
+            'RightAnkle': (-k * 0.5, 0, 0), 'LeftAnkle': (-k * 0.5, 0, 0)}
+_mx = lambda v: (-v[0], v[1], v[2])     # right-side target/pole -> left side
+MAC_HAND = {                             # right-side (wrist target, elbow pole, wrist euler); the left side mirrors
+    'fwd_down': ((-0.62, -1.95, 1.5), (-0.5, 0.3, -1), (0, 0, -90)),
+    'fwd_up':   ((-0.62, -1.95, 1.5), (-0.5, 0.3, -1), (0, 0, 90)),
+    'shoulder': ((0.72, -0.62, 1.55), (-1, -0.2, -0.4), (0, 0, 0)),
+    'head':     ((-0.25, 0.6, 2.45), (-1, -0.2, 0.7), (0, 0, 0)),
+    'front_hip': ((0.5, -0.72, 0.1), (-1, 0.2, 0), (0, 0, 0)),
+    'back_hip': ((-0.88, 0.62, 0.1), (-0.8, 1, 0.3), (0, 0, 0)),
+}
+def _mac(r, l, k=6, sway=0, roll=0, waist=(0, 0, 0), neck=(0, 0, 0), shift=None, cross=False):
+    P = dict(_legs(k, roll), Root=(0, roll, 0), Waist=waist, Neck=neck, shift=shift or (sway, 0, 0), ik={})
+    for side, h, f in (('Right', r, lambda v: v), ('Left', l, _mx)):
+        if h is None: continue
+        t, pole, w = MAC_HAND[h]; t = f(t)
+        if cross and side == 'Left': t = (t[0], t[1] - 0.22, t[2] - 0.08)   # left forearm crosses over the right
+        P['ik'][side] = (t, f(pole)); P[side + 'Wrist'] = w if side == 'Right' else (w[0], w[1], -w[2])
+    for side, h in (('Right', r), ('Left', l)):
+        if h is None: P[side + 'Shoulder'], P[side + 'Elbow'] = (-3, 6 if side == 'Right' else -6, 0), (-12, 0, 0)
+    return P
+_SEQ = ['fwd_down', 'fwd_up', 'shoulder', 'head', 'front_hip', 'back_hip']
+POSES['mac_ready'] = _mac(None, None, k=4)
+CLIPS['macarena'] = [(0, 'mac_ready')]
+r = l = None
+for b in range(12):                      # beats 1-12: one hand per beat
+    move = _SEQ[b // 2]
+    if b % 2 == 0: r = move
+    else: l = move
+    side = 1 if b % 2 == 0 else -1       # sway and lean toward the active arm (right = -X)
+    hit, dip = f'mac_{b + 1}', f'mac_{b + 1}_up'
+    POSES[hit] = _mac(r, l, k=14, sway=-0.08 * side, waist=(2, 4 * -side, 6 * side), neck=(5, 0, 0), cross=move == 'shoulder')
+    POSES[dip] = _mac(r, l, k=5, sway=-0.05 * side, waist=(0, 3 * -side, 4 * side), neck=(0, 0, 0), cross=move == 'shoulder')
+    t = (b + 1) * MAC_T
+    CLIPS['macarena'] += [(round(t, 3), hit), (round(t + 0.3, 3), dip)]
+for i, (x, rl, wy) in enumerate([(-0.18, 6, -12), (0.0, 0, 0), (0.18, -6, 12), (0.0, 0, 0)]):   # hip circle, beats 13-14
+    nm = f'mac_circle{i}'
+    POSES[nm] = _mac('back_hip', 'back_hip', k=12, roll=rl, waist=(0, -rl * 1.3, wy), shift=(x, -0.12 if i == 1 else (0.12 if i == 3 else 0), 0))
+    CLIPS['macarena'].append((round(12.5 * MAC_T + i * MAC_T * 0.5, 3), nm))
+POSES['mac_crouch'] = _mac('back_hip', 'back_hip', k=30, waist=(8, 0, 0), neck=(-4, 0, 0))                     # beat 15: load
+POSES['mac_air'] = dict(_mac(None, None, k=4, neck=(-6, 0, 0), shift=(0, 0, 0.35)),                            # "Hey!" hop
+                        RightShoulder=(-20, 30, 0), LeftShoulder=(-20, -30, 0), RightAnkle=(20, 0, 0), LeftAnkle=(20, 0, 0))
+POSES['mac_land'] = _mac(None, None, k=26, waist=(6, 0, 0))
+CLIPS['macarena'] += [(round(14.6 * MAC_T, 3), 'mac_crouch', 'out'), (round(15.0 * MAC_T, 3), 'mac_air', 'in'),
+                      (round(15.4 * MAC_T, 3), 'mac_land'), (round(16 * MAC_T, 3), 'mac_ready')]
 CLIP = opt('--clip', '')
 POSE = POSES[opt('--pose', 'wave')]
 BG = opt('--bg', '#0b0f1a')                       # studio sky behind effects
@@ -355,8 +405,10 @@ def set_pose(P):
     if P.get('two_hand') and RIG != 'R6':  # the left hand grabs the grip just below the right
         g, fwd = grip()
         ik_arm('Left', g - fwd * 0.5, root.matrix_world.to_3x3() @ Vector((0.8, 0.2, -0.6)))
+    sx, sy, sz = P.get('shift', (0, 0, 0))   # root offset (root frame x/y; z = hop height above the ground)
+    root.location += root.matrix_world.to_3x3() @ Vector((sx, sy, 0))
     W = np.concatenate([o.world_verts() for o in meshes]); lo, hi = Vector(W.min(0)), Vector(W.max(0))
-    root.location.z -= lo.z; hi.z -= lo.z; lo.z = 0
+    root.location.z -= lo.z - sz; hi.z -= lo.z - sz; lo.z = sz
     return lo, hi
 
 HANDP = piv['RightHand'] if RIG != 'R6' else piv['RightArm']                 # rest: the grip at the right hand's centre, forward (-Y)

@@ -24,3 +24,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-24 Play Umbrio tab 'Cyan Nova' (nova-1124) on phone + PC; check plasma sheets load from hub assets, judge impact frame + barrage feel — headless used data-url sheet copies; not visually verified on device
 - [ ] 2026-11-24 Play Umbrio tab 'Cyan Nova v2' (nova2-1124): judge crystal readability, 3D shells, payoff; if crystal still small, move camera closer (crystal was 0.4% of frame headless) — MP4 sent; not visually verified on device
 - [ ] 2026-11-24 Hi-res black hole: run tools/vfx/flipbook/blackhole.py with S=1024 (or a still mode) tinted pink-white like the owner's Interstellar-style reference; use as hero layer in Void Rift — mobile 128 px frames too blurry; owner said quality horrible
+- [ ] 2026-11-24 Macarena clip: fix beat 1-4 arm targets (arm reads sideways, not forward), re-render shots — tools/3d/avatar/avatar.py MAC_HAND, --clip macarena

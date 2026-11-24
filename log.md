@@ -407,3 +407,6 @@ improved: Stop hook enforces >= 10 logged fixes; Fixed/Next footer requirement r
 ## [2026-11-24] rule / log fixes as you go, implement at the end (owner)
 vault.mjs fix add|list|done (state/fixes-pending.md); rules, hook text, skill, checklist updated; tests pass.
 improved: vault.mjs fix add/list/done running fix list (state/fixes-pending.md); cli test covers fix add, list, done into log.md; must.md rule 11: log as you go, implement at the end; CLAUDE.md s5 fix workflow; owner.md fix workflow line; Stop hook reason text teaches fix add / fix done; improve skill: never spawn before send_brief_at unless LATE START; vault checklist: fix list empty, >= 10 moved to log; state/README documents fixes-pending.md; vault-rules: no backticks inside hook template literals + run learn test after hook text edits; vault.mjs usage header lists fix commands; L-162 lesson for the fix workflow applied
+
+## [2026-11-24] build / Macarena emote clip
+improve 30: 43.6 s FAIL (+13.6). avatar.py mac_* poses + macarena clip (9.33 s, 495 keys), set_pose shift/hop; shots+MP4 rendered; beat 1-4 arm placement wrong (sideways). Failed visual gate; queued fix.
