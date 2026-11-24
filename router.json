@@ -462,7 +462,12 @@
         "choppy preview",
         "frozen image",
         "frozen preview",
-        "preview frozen"
+        "preview frozen",
+        "144p",
+        "pixelated",
+        "low res",
+        "blurry preview",
+        "dark rings"
       ],
       "notes": [
         "domains/vfx/playbook.md",

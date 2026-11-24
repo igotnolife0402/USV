@@ -31,7 +31,9 @@ VFX.PALETTES = { inferno = { "fire", "holy" }, abyss = { "void", "ice" } }
 
 -- per ramp step (dark -> bright): colour mode (0 = scale, 1 = toward white) and amount, size, LightEmission
 local RAMP = { { 0, 0.45 }, { 0, 0.7 }, { 0, 1.0 }, { 1, 0.35 }, { 1, 0.7 } }
-local SIZE = { 1.06, 1.03, 1.0, 0.98, 0.96 }
+-- every band of one sheet at the SAME size: bands are luminance cuts of one image, so a per-band scale misaligns
+-- them and the sky shows through at each edge (dark contour rings, light down to 24%; owner 2026-11-24 "144p")
+local SIZE = { 1.0, 1.0, 1.0, 1.0, 1.0 }
 local GLOW = { 0.2, 0.4, 0.6, 0.85, 1.0 }
 
 export type Theme = string | Color3 | { string | Color3 }

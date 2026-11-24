@@ -442,3 +442,8 @@ improved: WebGL band shader replaces load-time split() and per-pixel loops; band
 ## [2026-11-24] vfx / white-vfx frozen stills fix
 improve 60: ~38 s brief, 12 s Sonnet, 53.5 s total (6.5 s early, FAIL), rungs 1-2. Owner saw frozen image: 10 per-card WebGL contexts over the phone cap. Now 1 shared context + 2D copies, per-card try/catch, reduced motion at 0.5x. frozen.cjs: iPhone 13 / Pixel 7 / reduced motion, throttle 4: all PASS (1 context, cards change, clock 1.0/0.5). Artifact v6.
 improved: shared WebGL context replaces 10 per-card contexts; tick no longer dies on one throw; reduced motion plays at 0.5x instead of a still; frozen.cjs regression check; router words frozen image/frozen preview (router sent this to images/3d-editor).
+
+## [2026-11-24] fix / white-vfx preview "144p"
+Preview canvas now CSS width x min(DPR,2) with adaptive step-down (fps<45), sheets kept at 1024 (128 px cells), band SIZE unified (VFX.lua + preview). Ring metric light/ideal p1 0.24 -> 1.00; frozen.cjs 6/6 PASS, rt.cjs 52 fps @4x throttle (PX 370 software GL). Artifact v7. Not verified on phone/Roblox.
+improve 60: brief 97 s (late), Sonnet 13 s, 119.7 s total (+59.7 FAIL), rungs 1-3.
+improved: VFX.lua band SIZE misalignment (Roblox rings too); adaptive preview resolution; ring metric script (scratch ring.py); router words 144p/pixelated/low res/dark rings; L-173 rule in vfx playbook
