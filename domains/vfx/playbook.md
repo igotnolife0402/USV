@@ -1,6 +1,6 @@
 ---
 summary: Fastest proven path to punchy, performant VFX: layered particles, shaders, bloom; PC screenshot-verified, mobile Artifacts
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
@@ -32,7 +32,8 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 5. Roblox: build via Studio MCP run code (ParticleEmitter props), play, `look`/console check.
 
 ## Mobile fallback (/mobile)
-- No browser automation or local files. Build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `vfx/<name>.html` in the repo.
+- Sheet effects: run the flipbook tool in the cloud session as on PC ([flipbook](domains/vfx/flipbook.md)); queue only upload + Studio playtest.
+- No browser automation or local files. Otherwise build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `vfx/<name>.html` in the repo.
 - Artifacts: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
 - Shader errors are invisible without a console: log `gl.getShaderInfoLog` to an on-screen `<pre>`.
 - Queue PC checks in [queue/pc.md](queue/pc.md), e.g.:

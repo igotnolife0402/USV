@@ -53,6 +53,11 @@ STACKS = {'dragon-swing': 'flame-arc:radius=0.3,width=0.04,k0=700,k1=1100,k_ref=
                           '+dragon:radius=0.3,scale=1.55,overshoot=26,gain=1.35'
                           '+slash:radius=0.3,width=0.03,decay=6,gain=0.55,core=1.2'
                           '+embers:radius=0.3,n=150,kelvin=2300,speed=5,cool=18,gravity=0.07,gain=2',
+          # fire sword slash: flame body, dim orange halo, white-hot crisp edge (hero), cooling embers that linger
+          'fire-slash': 'flame-arc:width=0.08,k0=750,k1=1200,k_ref=1400,density=0.9,flame=1.2,soot=0.4'
+                        '+slash:element=Na,width=0.13,decay=14,core=0,gain=0.3'
+                        '+slash:element=Na,width=0.035,decay=6,core=1.6,gain=1.0'
+                        '+embers:n=180,kelvin=2400,speed=5,cool=20,gravity=0.06,drag=0.92,gain=1.8',
           # glass or crystal breaking: wave + flash, big fast glints, fine glints, slow lingering dust
           'crystal-burst': 'shock:grow=0.32,width=0.045,core=1.2'
                            '+glints:n=90,speed=4.2,size=1,shine=40,life_f=26,gain=1.3'

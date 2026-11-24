@@ -14,6 +14,7 @@ A new effect is a preset's params, never new code; every effect is 4 stacked rec
 `python3 vfx.py OUT 'a+b+c+d' --name ID --check`: each recipe builds 64 frames, then they are composited bottom-first (premultiplied over) into one sheet; the first layer's emitter settings, the longest Lifetime. Save a good stack in `STACKS` (`vfx.py`) so `vfx.py OUT <name>` and `all` rebuild it pixel-identically.
 - `crystal-burst` (in `STACKS`): `shock` (blast wave + flash) + big fast `glints` + fine `glints` + slow lingering `glints` dust; ~5 s, max_step_jump 2.95. For glass, crystal and ice breaking (shatter tool).
 - `dragon-swing` (in `STACKS`, `vfx.py OUT dragon-swing`): `flame-arc` wake + `dragon` + crisp `slash` + `embers`, default swing; the avatar tool writes the same stack fitted to a real clip (`OUT/swing-recipe.txt`).
+- `fire-slash` (in `STACKS`, `vfx.py OUT fire-slash`, 2026-11-24): `flame-arc` body + wide dim `slash` halo (Na) + crisp white-hot `slash` edge (hero) + 180 lingering `embers`; 4.6 s build, max_step_jump 1.32, thin_stroke_pct 5.0. Fire sword swing without the dragon.
 - Layer ideas: a body, an afterimage/halo, a hot core, particles; give each a role, don't repeat one look 4 times.
 
 Hi-res stills for renders: `python3 kamehameha.py OUT --render 2048` → `kamehameha-beam-hd.png` (2048 x 512, the bulb where it leaves the hands at the left) and `kamehameha-charge-hd.png` (768 px). Measured: Cherenkov alone is a pale lavender-blue (0.43, 0.55, 1.0 linear), so the Ar II lines carry the cyan (0.0, 0.22, 1.0).

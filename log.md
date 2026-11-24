@@ -337,3 +337,7 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-24] vfx / fire-slash flipbook stack (done on mobile, PC step queued)
+New `STACKS['fire-slash']` in tools/vfx/flipbook/vfx.py: flame-arc body + dim Na slash halo + crisp white-hot slash edge + 180 embers. --check: 4.6 s, max_step_jump 1.32, thin_stroke_pct 5.0; sheet looked at over dark + light sky (scratch only). Studio upload + playtest queued.
+improved: fire-slash saved as reusable stack + recipes doc; router vfx route now names flipbook.md + "fire slash" word; vfx skill/playbook mobile lines fixed (cloud runs flipbook, not three.js fallback)

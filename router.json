@@ -363,6 +363,7 @@
         "effects",
         "aura",
         "slash",
+        "fire slash",
         "explosion",
         "impact",
         "sparkle",
@@ -406,6 +407,7 @@
       "notes": [
         "domains/vfx/playbook.md",
         "domains/vfx/rules.md",
+        "domains/vfx/flipbook.md",
         "domains/vfx/index.md"
       ],
       "checklist": "checklists/vfx.md",

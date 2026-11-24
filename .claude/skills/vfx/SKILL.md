@@ -61,4 +61,4 @@ Trigger the effect 3 times against the real scene background; screenshot at peak
 Single effect < 5 min. Effect library (5+ presets) → one preset per pass.
 
 ## Mobile
-No Studio. Build the effect as a single-file three.js HTML Artifact (CDN import map, button to trigger, preset JSON visible) to judge timing/layers, then write the Roblox version as a `.luau` module in the repo that constructs the emitters in code (`src/shared/VFX/<Name>.luau` with `play(cframe)`). Queue: `- [ ] YYYY-MM-DD playtest VFX <Name> in Studio, tune sizes/textures — mobile build`.
+No Studio. Sheet effects (slash, burst, beam): python3+numpy+Pillow exist in cloud sessions, so build and `--check` the flipbook exactly as on PC; queue only the upload + playtest. Otherwise build the effect as a single-file three.js HTML Artifact (CDN import map, button to trigger, preset JSON visible) to judge timing/layers, then write the Roblox version as a `.luau` module in the repo that constructs the emitters in code (`src/shared/VFX/<Name>.luau` with `play(cframe)`). Queue: `- [ ] YYYY-MM-DD playtest VFX <Name> in Studio, tune sizes/textures — mobile build`.
