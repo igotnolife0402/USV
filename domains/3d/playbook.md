@@ -78,6 +78,7 @@ triggers: [blender mcp, 3d model, three.js editor, mini-blender, glb, armor, ava
 - Lit to read form: environment + key light, shadows on, tone mapping ACES/AgX, sRGB output.
 
 ## Speed tricks
+- Known red suites in the cloud runner (2026-11-24, identical at HEAD): roblox 1/7, core boot cap (833 KB > 800), vfx shadow stand-in. Do not re-baseline with git stash (cost ~3 min); compare against this list.
 - Studio code fix fast path (2026-11-23): tests set props with `window.studio.app.set(id, {...})` in `s.eval`; part material code = core/model.js `materialFor`/`setMesh`; saved tabs for `views` renders = `.worktrees/tabs/<name>` (VIEWS_TAB); hub publish = Artifact list scope files, compare sha to `git show HEAD:<file> | sha256sum`, read url, publish saved index.html + only changed files.
 - A/B or N-build comparisons (owner 2026-11-23: 60 s vs 200 s car ran 779 s+): never write a new generator per variant. Feed each prompt into the existing template as parameters/part toggles in one script, one shared check + one views render each; if a variant needs new parts, say the time estimate before starting. A BUDGET "ship now" warning means start no new agents.
 - New generator with no template (car, 2026-11-23: 774 s): put it in a subfolder of the tool it imports (`tools/3d/props/<cat>/`, helpers one level up); a new top-level tool folder can't import another tool and props/ is at the 20-item cap, so 2 lint rejections cost a rebuild. Patch-on-loft panels: straddle the surface first time (inner 2 cm in, outer 1.5 cm out), never `zfight fix` smooth lofts.

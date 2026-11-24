@@ -641,7 +641,11 @@
       "more vfx",
       "premade vfx",
       "rebuild the cutscene",
-      "whole cutscene"
+      "whole cutscene",
+      "animator",
+      "rigging",
+      "improve how",
+      "sampler"
     ]
   }
 }
