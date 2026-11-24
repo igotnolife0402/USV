@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wyvern Pet Loop</title>
+<style>
+  :root { --bg0: #0b1720; --bg1: #24485a; --ink: #e8f6fb; --muted: #9fbac6; --panel: rgba(8, 20, 28, 0.72); --accent: #7ff6ff; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --panel: rgba(8, 20, 28, 0.66); } }
+  :root[data-theme="dark"] { --panel: rgba(8, 20, 28, 0.72); }
+  html, body { margin: 0; height: 100%; background: var(--bg0); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; touch-action: none; }
+  .hud { position: fixed; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 10px; align-items: center; background: var(--panel); padding: 10px 12px; border-radius: 12px; backdrop-filter: blur(6px); }
+  .hud button { min-width: 44px; min-height: 44px; border: 0; border-radius: 10px; background: #1c3a47; color: var(--ink); font-size: 16px; cursor: pointer; }
+  .hud input[type=range] { flex: 1; accent-color: var(--accent); min-height: 44px; }
+  .hud .t { font-variant-numeric: tabular-nums; min-width: 92px; color: var(--muted); }
+  .move { position: fixed; top: 16px; left: 16px; background: var(--panel); padding: 6px 12px; border-radius: 10px; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; font-size: 13px; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Wyvern pet loop preview</h1>
+<div class="move" id="move">glide</div>
+<div class="hud"><button id="play" aria-label="Play or pause">❚❚</button><input id="scrub" type="range" min="0" max="16" step="0.01" value="0" aria-label="Loop time"><span class="t" id="tl">0.00 / 16 s</span><button id="spd" aria-label="Playback speed">1x</button></div>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+/*@@MODULES@@*/
+const { TUNE, BODY } = M_spec;
+const { bake, pose, wingAngles, jawAngle, wingAxes, V } = M_motion;
+const { build, WING_PTS, JAW_HINGE } = M_geo;
+const { scales, membrane } = M_texture;
+const { PLAYER_POSE } = M_pose;
+
+const B = bake(), parts = build();
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+// sky gradient
+{ const c = document.createElement('canvas'); c.width = 2; c.height = 256; const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
+  gr.addColorStop(0, '#7fb3c8'); gr.addColorStop(0.55, '#24485a'); gr.addColorStop(1, '#0b1720'); g.fillStyle = gr; g.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t; }
+scene.fog = new THREE.Fog(0x24485a, 140, 320);
+const cam = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.5, 1000);
+scene.add(new THREE.HemisphereLight(0xcfeeff, 0x1a2a30, 1.1));
+const sun = new THREE.DirectionalLight(0xfff2dd, 2.4); sun.position.set(40, 80, 30); scene.add(sun);
+const rim = new THREE.DirectionalLight(0x7ff6ff, 0.9); rim.position.set(-50, 20, -60); scene.add(rim);
+const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, cam));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.4, 0.88));
+
+// textures
+const tex = (W, H, data, srgb) => { const t = new THREE.DataTexture(data, W, H, THREE.RGBAFormat); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.needsUpdate = true; return t; };
+const sc = scales(), mem = membrane();
+const MATS = {
+  scales: new THREE.MeshStandardMaterial({ map: tex(sc.W, sc.H, sc.color, true), normalMap: tex(sc.W, sc.H, sc.normal, false), roughness: 0.62, metalness: 0.05 }),
+  membrane: new THREE.MeshStandardMaterial({ map: tex(mem.W, mem.H, mem.color, true), emissive: 0x3c5f66, emissiveIntensity: 0.35, transparent: true, roughness: 0.8, side: THREE.DoubleSide, depthWrite: false }), // faint backlit glow
+  eye: new THREE.MeshStandardMaterial({ color: 0x7ff6ff, emissive: 0x7ff6ff, emissiveIntensity: 2.2 }),
+};
+MATS.scales.normalScale.set(0.9, 0.9);
+
+// meshes, grouped by anchor
+const root = new THREE.Group(); scene.add(root);
+const anchors = {}, meshByName = {};
+const anchorOf = (n) => anchors[n] ??= (() => { const g = new THREE.Group(); g.matrixAutoUpdate = false; root.add(g); return g; })();
+for (const p of parts) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p.pos.flat(), 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(p.nrm.flat(), 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(p.uv.flat(), 2));
+  g.setIndex(p.idx); g.computeTangents?.();
+  const m = new THREE.Mesh(g, MATS[p.mat]); m.matrixAutoUpdate = false; m.renderOrder = p.mat === 'membrane' ? 2 : 0;
+  anchorOf(p.anchor).add(m); meshByName[p.name] = m;
+}
+const axR = wingAxes(WING_PTS, 1), axL = wingAxes(WING_PTS, -1);
+const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+const aboutAxis = (pt, axis, ang) => new THREE.Matrix4().makeTranslation(pt[0], pt[1], pt[2]).multiply(new THREE.Matrix4().makeRotationAxis(v3(axis), ang)).multiply(new THREE.Matrix4().makeTranslation(-pt[0], -pt[1], -pt[2]));
+const frameMat = (q) => { const z = V.mul(q.look, -1), x = V.cross(q.up, z); return new THREE.Matrix4().makeBasis(v3(x), v3(q.up), v3(z)).setPosition(v3(q.pos)); };
+
+// player mannequin (R15 proportions, approximate) posed from PLAYER_POSE (same table as PlayerPose.luau)
+const player = new THREE.Group(); scene.add(player);
+const skin = new THREE.MeshStandardMaterial({ color: 0xd9b48f, roughness: 0.7 }), shirt = new THREE.MeshStandardMaterial({ color: 0x1f2b3a, roughness: 0.8 }), pants = new THREE.MeshStandardMaterial({ color: 0x2a2f36, roughness: 0.85 });
+const R15 = { // name: [parent, joint pos in parent space, part size, part centre offset from joint, material]
+  LowerTorso: [null, [0, -0.2, 0], [2, 0.4, 1], [0, 0, 0], pants], UpperTorso: ['LowerTorso', [0, 0.2, 0], [2, 1.6, 1], [0, 0.8, 0], shirt],
+  Head: ['UpperTorso', [0, 1.6, 0], [1.2, 1.2, 1.2], [0, 0.6, 0], skin],
+  RightUpperArm: ['UpperTorso', [1.25, 1.35, 0], [0.9, 1.2, 0.9], [0.15, -0.5, 0], shirt], RightLowerArm: ['RightUpperArm', [0.15, -1.05, 0], [0.8, 1.1, 0.8], [0, -0.5, 0], skin],
+  LeftUpperArm: ['UpperTorso', [-1.25, 1.35, 0], [0.9, 1.2, 0.9], [-0.15, -0.5, 0], shirt], LeftLowerArm: ['LeftUpperArm', [-0.15, -1.05, 0], [0.8, 1.1, 0.8], [0, -0.5, 0], skin],
+  RightUpperLeg: ['LowerTorso', [0.5, -0.2, 0], [0.95, 1.2, 0.95], [0, -0.6, 0], pants], RightLowerLeg: ['RightUpperLeg', [0, -1.2, 0], [0.9, 1.2, 0.9], [0, -0.6, 0], pants], RightFoot: ['RightLowerLeg', [0, -1.2, 0], [0.9, 0.3, 1.2], [0, -0.15, -0.15], pants],
+  LeftUpperLeg: ['LowerTorso', [-0.5, -0.2, 0], [0.95, 1.2, 0.95], [0, -0.6, 0], pants], LeftLowerLeg: ['LeftUpperLeg', [0, -1.2, 0], [0.9, 1.2, 0.9], [0, -0.6, 0], pants], LeftFoot: ['LeftLowerLeg', [0, -1.2, 0], [0.9, 0.3, 1.2], [0, -0.15, -0.15], pants],
+};
+const jointOf = { UpperTorso: 'Waist', Head: 'Neck', RightUpperArm: 'RightShoulder', RightLowerArm: 'RightElbow', LeftUpperArm: 'LeftShoulder', LeftLowerArm: 'LeftElbow', RightUpperLeg: 'RightHip', RightLowerLeg: 'RightKnee', RightFoot: 'RightAnkle', LeftUpperLeg: 'LeftHip', LeftLowerLeg: 'LeftKnee', LeftFoot: 'LeftAnkle' };
+const pj = {};
+for (const [n, [par, jp, size, off, mat]] of Object.entries(R15)) {
+  const j = new THREE.Group(); j.position.set(...jp); (par ? pj[par] : player).add(j); pj[n] = j;
+  const a = PLAYER_POSE[jointOf[n]]; if (a) j.rotation.set(a[0] * Math.PI / 180, a[1] * Math.PI / 180, a[2] * Math.PI / 180, 'XYZ');
+  const box = new THREE.Mesh(new THREE.BoxGeometry(...size).translate(...off), mat); j.add(box);
+}
+player.rotation.y = Math.PI; // spec +Z is the player's front; R15 faces -Z
+
+// ---------- VFX ----------
+const fxMat = (c, o = 1) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true });
+class Trail { // ribbon between two points, faded by age
+  constructor(life, w0, color, max = 90) { this.life = life; this.hist = []; this.max = max;
+    this.geo = new THREE.BufferGeometry(); this.pos = new Float32Array(max * 6); this.col = new Float32Array(max * 6);
+    this.geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3)); this.geo.setAttribute('color', new THREE.BufferAttribute(this.col, 3));
+    const idx = []; for (let i = 0; i < max - 1; i++) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); this.geo.setIndex(idx);
+    this.c = new THREE.Color(color); this.mesh = new THREE.Mesh(this.geo, fxMat(color)); this.mesh.frustumCulled = false; scene.add(this.mesh); this.w0 = w0; }
+  push(t, a, b, k = 1) { this.hist.unshift({ t, a, b, k }); while (this.hist.length > this.max || (this.hist.length && t - this.hist.at(-1).t > this.life)) this.hist.pop(); }
+  clear() { this.hist.length = 0; }
+  update(t) {
+    const h = this.hist;
+    for (let i = 0; i < this.max; i++) {
+      const e = h[Math.min(i, h.length - 1)]; if (!e) { this.pos.fill(0); break; }
+      const age = Math.min(1, (t - e.t) / this.life), w = (1 - age), mid = V.mul(V.add(e.a, e.b), 0.5);
+      const A = V.add(mid, V.mul(V.sub(e.a, mid), w)), Bq = V.add(mid, V.mul(V.sub(e.b, mid), w));
+      this.pos.set(A, i * 6); this.pos.set(Bq, i * 6 + 3);
+      const f = (1 - age) * (0.7) * e.k * (i < h.length ? 1 : 0);
+      for (const o of [0, 3]) { this.col[i * 6 + o] = this.c.r * f; this.col[i * 6 + o + 1] = this.c.g * f; this.col[i * 6 + o + 2] = this.c.b * f; }
+    }
+    this.geo.attributes.position.needsUpdate = this.geo.attributes.color.needsUpdate = true;
+  }
+}
+const WIND = 0xdff8ff;
+const trails = { tipR: new Trail(0.6, 0.4, WIND), tipL: new Trail(0.6, 0.4, WIND), tail: new Trail(0.9, 1.2, WIND), spiralA: new Trail(0.5, 0.5, WIND), spiralB: new Trail(0.5, 0.5, WIND) };
+// streaks (speed lines + ambient wind) and puffs as instanced quads
+const streakGeo = new THREE.PlaneGeometry(1, 1), streaks = [], puffs = [];
+const softTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,0.9)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+function spawnStreak(p, dir, len, life, op) { const m = new THREE.Mesh(streakGeo, new THREE.MeshBasicMaterial({ color: WIND, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); m.position.set(...p); m.lookAt(m.position.clone().add(v3(dir))); m.scale.set(0.12, 0.12, 1); m.userData = { len, life, born: clock, op }; m.rotateY(Math.PI / 2); scene.add(m); streaks.push(m); }
+function spawnPuff(p, life) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: 0xeef9ff, transparent: true, opacity: 0.5, depthWrite: false })); m.position.set(...p); m.userData = { life, born: clock, v: [(Math.random() - .5) * 10, (Math.random() - .5) * 6, (Math.random() - .5) * 10] }; scene.add(m); puffs.push(m); }
+const ring = new THREE.Mesh(new THREE.RingGeometry(0.92, 1, 96), new THREE.MeshBasicMaterial({ color: 0xdff8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); scene.add(ring);
+let ringBorn = -9;
+
+// ---------- update ----------
+let clock = 0, prev = null, prevT = 0;
+const toWorld = (q, p) => { const z = V.mul(q.look, -1), x = V.cross(q.up, z); return V.add(q.pos, V.add(V.add(V.mul(x, p[0]), V.mul(q.up, p[1])), V.mul(z, p[2]))); };
+const wingPt = (seg2, ax, sx, key, wa) => { const m = [WING_PTS[key][0] * sx, WING_PTS[key][1], WING_PTS[key][2]];
+  let p = V.add(ax.E, V.rotAxis(V.sub(m, ax.E), ax.ko, wa.outer)); p = V.add(ax.S, V.rotAxis(V.sub(p, ax.S), ax.ki, wa.inner)); return toWorld(seg2, p); };
+function apply(t) {
+  const P = pose(B, t), byName = Object.fromEntries(P.parts.map((q) => [q.name, q]));
+  for (const [n, g] of Object.entries(anchors)) { g.matrix.copy(frameMat(byName[n])); }
+  const wa = wingAngles(P);
+  for (const [s, ax] of [['R', axR], ['L', axL]]) {
+    const inner = aboutAxis(ax.S, ax.ki, wa.inner), outer = inner.clone().multiply(aboutAxis(ax.E, ax.ko, wa.outer));
+    meshByName[`Wing${s}Inner`].matrix.copy(inner); meshByName[`Wing${s}InnerMem`].matrix.copy(inner);
+    meshByName[`Wing${s}Outer`].matrix.copy(outer); meshByName[`Wing${s}OuterMem`].matrix.copy(outer);
+  }
+  const jm = aboutAxis(JAW_HINGE, [1, 0, 0], -jawAngle(P)); meshByName.Jaw.matrix.copy(jm);
+  player.position.y = 0.6 * Math.sin(t * Math.PI * 2 / 4); player.rotation.y = Math.PI + t * Math.PI * 2 / TUNE.LOOP_LEN;
+  return P;
+}
+function fx(P, t, dt, live) {
+  const seg2 = P.parts.find((q) => q.name === 'TorsoSeg2'), wa = wingAngles(P), tb = P.parts.at(-1);
+  if (!live) { Object.values(trails).forEach((tr) => tr.clear()); }
+  const fadeWing = 1 - P.fold * 0.7;
+  // narrow wingtip ribbon: tip and a point 0.4 toward the wrist
+  for (const [tr, ax, sx] of [[trails.tipR, axR, 1], [trails.tipL, axL, -1]]) { const a = wingPt(seg2, ax, sx, 'F1', wa), w = wingPt(seg2, ax, sx, 'W', wa), b = V.add(a, V.mul(V.norm(V.sub(w, a)), 0.4)); tr.push(clock, a, b, fadeWing); }
+  { const tip = tb.back, side = V.norm(V.cross(tb.look, tb.up)); trails.tail.push(clock, V.add(tip, V.mul(side, 0.6)), V.sub(tip, V.mul(side, 0.6)), 1); }
+  // wind spirals around the torso, dashes only
+  const t2 = P.parts.find((q) => q.name === 'TorsoSeg3'), ang = clock * Math.PI * 2 * 3;
+  for (const [tr, o] of [[trails.spiralA, 0], [trails.spiralB, Math.PI]]) {
+    const p = toWorld(t2, [Math.cos(ang + o) * 3.6, Math.sin(ang + o) * 3.6, 1]), q2 = toWorld(t2, [Math.cos(ang + o) * 3.1, Math.sin(ang + o) * 3.1, 1]);
+    tr.push(clock, p, q2, P.dash);
+  }
+  Object.values(trails).forEach((tr) => tr.update(clock));
+  if (!live) return;
+  const head = P.parts[0];
+  // speed lines (Rate 60 during dash), ambient wind (Rate 6)
+  if (Math.random() < 60 * dt * P.dash) spawnStreak(V.add(head.pos, [(Math.random() - .5) * 14, (Math.random() - .5) * 10, (Math.random() - .5) * 14]), head.look, 6, 0.35, 0.55);
+  if (Math.random() < 6 * dt) spawnStreak([(Math.random() - .5) * 90, (Math.random() - .5) * 40, (Math.random() - .5) * 90], [1, 0.05, 0.3], 9, 1.6, 0.18);
+  // dash start puff (12 particles) and the single shockwave at the flare
+  if (prev && prev.dash < 0.5 && P.dash >= 0.5) for (let i = 0; i < 12; i++) spawnPuff(V.add(seg2.pos, [(Math.random() - .5) * 4, (Math.random() - .5) * 3, (Math.random() - .5) * 4]), 0.9);
+  if (prev && prev.flare < 0.8 && P.flare >= 0.8) ringBorn = clock;
+}
+function fxTick(dt) {
+  for (let i = streaks.length - 1; i >= 0; i--) { const m = streaks[i], a = (clock - m.userData.born) / m.userData.life; if (a >= 1) { scene.remove(m); m.material.dispose(); streaks.splice(i, 1); continue; } m.scale.set(m.userData.len * (0.4 + a), 0.1, 1); m.material.opacity = m.userData.op * (1 - a); }
+  for (let i = puffs.length - 1; i >= 0; i--) { const m = puffs[i], a = (clock - m.userData.born) / m.userData.life; if (a >= 1) { scene.remove(m); puffs.splice(i, 1); continue; } m.position.add(v3(m.userData.v).multiplyScalar(dt)); m.scale.setScalar(2 + 5 * a); m.material.opacity = 0.45 * (1 - a); }
+  const ra = (clock - ringBorn) / 0.8;
+  if (ra >= 0 && ra < 1 && prev) { const ch = prev.parts.find((q) => q.name === 'TorsoSeg1'); ring.position.set(...ch.pos); ring.lookAt(0, 0, 0); ring.scale.setScalar(2 + 28 * (1 - (1 - ra) ** 3)); ring.material.opacity = 0.6 * (1 - ra); } else ring.material.opacity = 0;
+}
+
+// ---------- camera + UI ----------
+let yaw = 0.6, pitch = 0.32, dist = 115, drag = null;
+addEventListener('pointerdown', (e) => { if (e.target === renderer.domElement) drag = [e.clientX, e.clientY]; });
+addEventListener('pointerup', () => drag = null);
+addEventListener('pointermove', (e) => { if (!drag) return; yaw -= (e.clientX - drag[0]) * 0.005; pitch = Math.max(-1.2, Math.min(1.3, pitch + (e.clientY - drag[1]) * 0.005)); drag = [e.clientX, e.clientY]; });
+addEventListener('wheel', (e) => { dist = Math.max(40, Math.min(260, dist * (1 + e.deltaY * 0.001))); }, { passive: true });
+addEventListener('resize', () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
+const playBtn = document.getElementById('play'), scrub = document.getElementById('scrub'), tl = document.getElementById('tl'), spdBtn = document.getElementById('spd'), moveEl = document.getElementById('move');
+let playing = true, speed = 1, t = 0;
+playBtn.onclick = () => { playing = !playing; playBtn.textContent = playing ? '❚❚' : '▶'; };
+spdBtn.onclick = () => { speed = speed === 1 ? 0.25 : speed === 0.25 ? 0.5 : 1; spdBtn.textContent = speed + 'x'; };
+scrub.oninput = () => { t = +scrub.value; prev = null; };
+function frame(dt, live) {
+  if (playing && live) t = (t + dt * speed) % TUNE.LOOP_LEN;
+  clock += live ? dt * speed : 0;
+  const P = apply(t); fx(P, t, dt * speed, live && playing); fxTick(dt * speed); prev = P;
+  cam.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, Math.sin(pitch) * dist + 4, Math.cos(yaw) * Math.cos(pitch) * dist); cam.lookAt(0, 3, 0);
+  scrub.value = t; tl.textContent = `${t.toFixed(2)} / ${TUNE.LOOP_LEN} s`; moveEl.textContent = B.moves[B.tags[Math.floor(P.sHead / B.ds) % B.n]];
+  composer.render();
+}
+let last = performance.now();
+function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (!window.__frozen) frame(dt, true); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+// test hook: jump to time t, warm the trails over the previous 0.6 s, render once.
+window.__sim = (tt, opts = {}) => { window.__frozen = true; if (opts.yaw != null) yaw = opts.yaw; if (opts.pitch != null) pitch = opts.pitch; if (opts.dist) dist = opts.dist;
+  t = (tt - 0.9 + TUNE.LOOP_LEN) % TUNE.LOOP_LEN; prev = null; playing = true; for (let i = 0; i < 54; i++) frame(1 / 60, true); playing = false;
+  const P = pose(B, tt); return { sHead: P.sHead, head: P.parts[0].pos, dash: P.dash, flare: P.flare }; };
+window.__ready = true;
+</script>
+</body>
+</html>

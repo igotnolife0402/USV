@@ -5,6 +5,7 @@ Generated `out/` folders are not committed: rerun the build.
 
 | Tool | Does | Run | Mode |
 |---|---|---|---|
+| `wyvern/` | 50-stud wyvern pet showcase loop: spec -> GLB mesh + textures, baked Luau LocalScript (path, wings, VFX, player pose), three.js preview, loop tests ([README](wyvern/README.md)) | `node export-glb.mjs && node gen-luau.mjs && node build-preview.mjs && node test/sim.mjs` (in `tools/roblox/wyvern`) | both |
 | `rbxmx-check.mjs` | Pre-delivery check of any `.rbxmx`: tags balance, every `<Ref>` resolves, unique referents, every script has `Source` | `node tools/roblox/rbxmx-check.mjs file.rbxmx` (`--self-test` for its own test) | both |
 | `pack-scripts.mjs` | Packs Luau files (layout.json tree) into an Umbrio `.rbxmx` so world + code upload and insert as ONE Model asset (no pasting scripts through MCP) | `node tools/roblox/pack-scripts.mjs world.rbxmx out.rbxmx layout.json`, then rbxmx-check | pc |
 | `detail.luau` + `detail-check.mjs` | Detail-floor gate for models built in Studio: the chunk (swap `MODEL_NAME`, run via execute_luau, read-only) returns raw counts; the checker compares them to `tools/3d/detail/floor.json` | `node tools/roblox/detail-check.mjs <metrics.json \| -> [--class prop\|hero\|scene]` (exit 1 on fail, 2 bad input) | PC (Studio MCP); checker both |

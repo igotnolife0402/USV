@@ -314,3 +314,8 @@ improved (follow-up): sed/perl .mjs rule also ignores quoted text (same root cau
 ## [2026-11-23] skill / improve missing from new-session menu (owner screenshot)
 Cause: pre-session `/` menu lists built-ins only; repo skills load after the clone. Documented the workaround (type in full / send a first message) and the account-skill route.
 improved: mobile profile note on pre-session menu; improve skill + standalone README note; router words for skill-not-showing asks
+
+## [2026-11-24] build / wyvern pet showcase loop (/improve 80)
+tools/roblox/wyvern: one spec -> GLB (39 parts, 34.6k tris, scale atlas + normal map), baked Luau LocalScript (path follow, wings, jaw, VFX, R15 anime pose), three.js preview artifact. test/sim.mjs all 7 PASS (body clearance 19.3, wingtips 4.8, seam 1.7e-8 / 0.64 %); 4 headless shots, 0 console errors. Not run in Studio (queued); Luau not analyzed (binary blocked).
+improve 80: brief ~45 s, Sonnet 24 s, done logged 185.8 s (late: hand-back arrived mid-build), rungs 1-3.
+improved: improve skill runs timer done on hand-back (L-136); mobile profile CDN-403 headless workaround (L-137); pre-tool install check ignores heredoc data + test (L-135 promoted); animation route skill 3d-editor -> roblox + wyvern/pet router words + complex tier words; animation playbook/index + tools/roblox index list the wyvern tool; roblox errors row for blocked luau binary

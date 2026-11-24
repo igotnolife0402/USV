@@ -76,7 +76,8 @@ test('pre-tool mobile: device.py checks (PC-only shell, outside installs, skills
   for (const [t, i] of [['Read', {}], ['mcp__github__get_me', {}], ['mcp__claude-code-remote__get_session', {}], ['Skill', { skill: 'website' }],
     ['Bash', { command: 'node scripts/vault-lint.mjs --all | tail -5' }], ['Bash', { command: 'npm i three@0.186.1 three-mesh-bvh@0.9.16' }],
     ['Bash', { command: 'pip install numpy==2.5.3 pillow' }], ['Bash', { command: 'npm install' }], ['Bash', { command: 'npm start' }],
-    ['Bash', { command: 'git push -u origin claude/x' }], ['Bash', { command: 'curl -s https://api.github.com/x' }]]) allow(t, i);
+    ['Bash', { command: 'git push -u origin claude/x' }], ['Bash', { command: 'curl -s https://api.github.com/x' }],
+    ['Bash', { command: "python3 - <<'EOF'\nnote = 'npm i three@<pin> in the scratchpad and page.route it'\nEOF\necho ok" }]]) allow(t, i); // L-135: heredoc text is data
   assert.deepEqual(outsideInstalls('cargo install ripgrep', ['ripgrep']), ['ripgrep'], 'cargo/go/gem are always outside');
 });
 

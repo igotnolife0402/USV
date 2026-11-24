@@ -78,7 +78,7 @@ export function mobileBlock(tool, ti = {}, modes = {}) {
     const runs = ti.command.replace(/<<-?\s*['"]?(\w+)['"]?[^\n]*\n[\s\S]*?\n\s*\1\s*(\n|$)/g, ' ').replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, "''");
     const m = modes.pcOnlyBash && runs.match(new RegExp(modes.pcOnlyBash, 'i'));
     if (m) return { what: `'${m[0].trim()}'`, key: m[0] };
-    const bad = outsideInstalls(ti.command, modes.mobilePackages || []);
+    const bad = outsideInstalls(runs, modes.mobilePackages || []); // same data stripping (L-135 recurred 2026-11-24: npm text in a python heredoc)
     if (bad.length) return { what: `install of ${bad.join(', ')} (not a vault package)`, key: 'install' };
   }
   return null;

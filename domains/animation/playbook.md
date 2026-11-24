@@ -24,6 +24,7 @@ triggers: [animation, key pose, keyframe, easing, walk cycle, idle, attack swing
 | Creature idle/attack loop for Roblox + video | [beast](tools/3d/beast/README.md) `ANIM` spec (sine terms + action windows) |
 | Roblox avatar pose, emote, weapon swing | [avatar](tools/3d/avatar/README.md) `POSES` + `CLIPS` (`--pose`, `--clip`) |
 | Simple prop motion (bob, spin, pulse, walk, wave) | Studio animator presets (`anim.js`: bob, pulse, swing, walk...) |
+| Long creature flying a showcase loop around the player (pet, boss intro) | [wyvern](tools/roblox/wyvern/README.md): path moves + `dur` in `spec.mjs`, chord follow-the-leader body, baked Luau tables, headless `test/sim.mjs` |
 | Anything in Blender | Blender MCP keyframes (PC), export GLB with animation (FBX from Studio has none) |
 
 ## PC (/pc)

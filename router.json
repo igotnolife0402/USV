@@ -89,7 +89,11 @@
         "dodge obstacles",
         "pathfinding",
         "post-mortem",
-        "mistakes of this game"
+        "mistakes of this game",
+        "wyvern",
+        "dragon pet",
+        "pet animation",
+        "circling the player"
       ],
       "notes": [
         "domains/roblox/playbook.md",
@@ -302,7 +306,10 @@
         "pose",
         "poses",
         "emote",
-        "ik"
+        "ik",
+        "flight path",
+        "circling",
+        "loop path"
       ],
       "notes": [
         "domains/animation/playbook.md",
@@ -310,7 +317,7 @@
         "domains/animation/index.md"
       ],
       "checklist": "checklists/3d.md",
-      "skill": "3d-editor"
+      "skill": "roblox"
     },
     {
       "id": "images",
@@ -611,7 +618,10 @@
       "exports",
       "fix how",
       "import to studio",
-      "all of the exports"
+      "all of the exports",
+      "wyvern",
+      "dragon pet",
+      "pet animation"
     ]
   }
 }

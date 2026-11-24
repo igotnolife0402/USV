@@ -1,0 +1,7 @@
+{
+ "name": "wyvern",
+ "what": "50-stud wyvern pet showcase loop around the floating player: GLB mesh + scale textures, baked Luau LocalScript (path, wings, VFX, anime pose), three.js preview",
+ "run": "node export-glb.mjs && node gen-luau.mjs && node build-preview.mjs && node test/sim.mjs (in tools/roblox/wyvern)",
+ "prompt": "Change spec.mjs (moves + dur, MOVE_FX, BODY) or geo.mjs, rerun the run line; test/sim.mjs must PASS. Keep Spine.luau in step with motion.mjs. Studio import units = Studs.",
+ "url": "https://claude.ai/artifact/6cttUuV6YZLUb5eAuYRrGs"
+}

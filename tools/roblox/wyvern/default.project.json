@@ -1,0 +1,7 @@
+{
+  "name": "WyvernPet",
+  "tree": {
+    "$className": "DataModel",
+    "StarterPlayer": { "StarterPlayerScripts": { "WyvernPet": { "$path": "src/client/WyvernPet" } } }
+  }
+}
