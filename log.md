@@ -356,4 +356,4 @@ improved: baseline.py makes the rules measurable; capture.mjs routes the CDN to 
 
 ## [2026-11-25] vfx / Elemental Onslaught: 31.5 s six-element cinematic (first playable pass)
 Original hooded sorcerer; poison, fire, darkness, light, rock, spellbook attacks (3 crew-workers on a lib.js contract) + converging finale beam, crack web, dome. Rendered via capture.mjs (local http + routed three); viewed 1 s overviews twice and finale frames. Pass 2 fixed: fire/light whiteouts, camera too close, tendrils too thick, finale camera inside the dome.
-improved: lib.js attack contract lets workers build in parallel; capture.mjs serves ES modules over local http; whiteout + camera fixes from the first look
+improved: lib.js attack contract lets workers build in parallel; capture.mjs serves ES modules over local http; whiteout + camera fixes from the first look; complex-tier words for long cinematics (L-148)
