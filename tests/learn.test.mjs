@@ -51,6 +51,8 @@ test('signals: errors, slow, correction, router miss; relays give none', () => {
   assert.equal(L.signals(task, { tier: 'medium', routes: [] }).length, 0, 'a task description is not a correction');
   const relay = L.parseTurn(transcript('<task-notification> done', failing).split('\n'));
   assert.equal(L.signals(relay, {}).length, 0);
+  const dot = L.parseTurn(transcript('.', []).split('\n'));
+  assert.equal(L.signals(dot, { tier: 'medium' }, { improved: 0 }).length, 0, 'a bare "." nudge asks for no improve footer');
   const vault = L.signals(t, { tier: 'medium', routes: ['vault'] }).map(s => s.kind);
   assert.ok(!vault.includes('router'), 'vault upkeep may read any domain');
 });

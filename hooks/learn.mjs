@@ -122,7 +122,9 @@ export function signals(turn, state = {}, extra = {}) {
   if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
   // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
-  const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
+  // A contentless prompt (".", "?") with no tool work is a nudge, not a task: nothing to improve (owner 2026-11-25).
+  const idle = !/[\p{L}\p{N}]/u.test(turn.prompt) && !turn.writes.length && !turn.errors.length;
+  const imp = idle ? null : extra.improved; // null = not measured (unit calls / idle nudges); the Stop hooks always pass a number
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
   // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
   else if (imp != null && improvedCount(turn.lastText || '', 'fixed|improved') < 3) out.push({ kind: 'improve', text: 'fixes not listed in the reply footer (`Fixed: a, b, c`)' });

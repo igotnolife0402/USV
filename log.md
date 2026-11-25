@@ -337,3 +337,7 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-25] vault / bare "." prompt
+Owner sent "." after an interrupt; asked what to do. Stop hook demanded an improve footer for a no-work nudge.
+improved: learn.mjs skips improve gate on contentless no-work prompts; test covers "." nudge; CLAUDE.md section 5 states the exemption
