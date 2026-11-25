@@ -1,5 +1,5 @@
 ---
-summary: Reference-video pipeline (0.1 s important frames, captions, Sonnet grabbers, brain analysis) + rules distilled from 16 analysed TikToks
+summary: Reference-video pipeline (0.1 s important frames, captions, Sonnet grabbers, brain analysis) + rules distilled from 17 analysed TikToks
 updated: 2026-11-25
 status: current
 ---
@@ -8,8 +8,8 @@ status: current
 Goal: learn how a reference looks and moves well enough to rebuild the technique with our tools (VFX Generator, Ember VFX Studio, Umbrio, Roblox emitters, three.js). Same technique, original assets: never copy someone's characters, logos or art. Analyses: [refs index](domains/vfx/refs/index.md). Tool: [tools/refs/README.md](tools/refs/README.md).
 
 ## Phases
-1. **Intake** (brain): links → `state/<batch>.md` table, numbered in link order (`NN-author` folders). Pasted links can be glued together: split on `https://`.
-2. **Grab** (invoke the `crew` skill first so the hooks see it, then 3 `crew-worker`, Sonnet 5.5 low, links split evenly; the vfx/roblox build skills are not needed for grab + analysis): `node tools/refs/grab.mjs <url> <NN>` per link, report the JSON line, one retry. No image reading. Batch 1: 17 links in ~3.6 min.
+1. **Intake** (brain): links → `state/<batch>.md` table, numbered in link order (`NN-author` folders). Pasted links can be glued together: split on `https://`; drop duplicates (owner sent the same link twice for ref 18).
+2. **Grab** (invoke the `crew` skill first so the hooks see it, then 3 `crew-worker`, Sonnet 5.5 low, one worker per <= 6 links (1 link = 1 worker, ~35 s); the vfx/roblox build skills are not needed for grab + analysis): `node tools/refs/grab.mjs <url> <NN>` per link, report the JSON line, one retry. No image reading. Batch 1: 17 links in ~3.6 min.
 3. **Verify** (brain): every JSON line has kept > 0; `error` lines (region block) listed as failed, never hidden.
 4. **Analyze** (brain, ONE video at a time): meta.json (desc, hashtags, on-screen stickers) + transcript.md first, then sheets in order. Talk/tutorial videos: `keep.py <dir> --cues` → `sheets_cues/` (one frame per caption) instead of 30+ sheets. Write `analysis.md` before opening the next video.
 5. **Distill** (brain): patterns seen in 2+ videos → the rules below (and the domain playbook when it is a build rule).
@@ -17,7 +17,7 @@ Goal: learn how a reference looks and moves well enough to rebuild the technique
 ## analysis.md template
 What it is + why it reads well · timeline `t → event` with frame names · layers (shape, colour hex, blend, life) · motion/camera · replication recipe (tool + params) · not verified (unviewed sheets, guesses).
 
-## Rules distilled from batch 1 (2026-11-25, refs 02-17)
+## Rules distilled from batch 1 (2026-11-25, refs 02-18)
 1. **Contrast before the hit**: darken, desaturate or white-out the world for 0.3-1.6 s right before the payoff, then return colour on the hit (02 impact frame, 07 dark star flash, 16 B/W manga frames, 15 white + radial lines).
 2. **One hue per effect, complementary accent only**: blue build-up → orange payoff (06), black + gold only (11), one hue per spell + pad (04), one accent per cutscene on a desaturated grade (15).
 3. **Cel/toon VFX = meshes with 3 flat bands + dark outline + white highlight**, not particles (04, 02, 06 crescent with dark outer band). Reads at phone size and is cheap.
@@ -29,6 +29,8 @@ What it is + why it reads well · timeline `t → event` with frame names · lay
 9. **Build in rounds, one layer per prompt**, naming the failure plainly ("flat, 1 colour, no shading") (11); a multi-angle turnaround sheet before modelling (17).
 10. **Skins/variants = one base + palette + 1-3 silhouette add-ons** (13, 08).
 11. **Sound workflow**: build a timed event list from the frames, ask feeling / style / loudness target (portfolio ~-10, in-game ~-16, cinematic ~-23 LUFS) / voice-music, then layer (09).
+12. **Crack web + dome = universal impact template**: hue-coloured Voronoi cracks scale in on the floor while a translucent dome expands from the hit; re-colour per skill (18 x3, 02 bubble shockwave).
+13. **1-frame silhouette wipes** (flat matte of the character/debris shape) cut on action between showcase shots and hide camera jumps (18 x6, 16 smears).
 - Web builds: colour-cycling flicker (16) must stay ≤ 3 Hz full-screen (vfx rules file).
 
 ## Known tool limits

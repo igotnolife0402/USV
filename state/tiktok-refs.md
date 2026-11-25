@@ -26,3 +26,4 @@ Workers: A = 01,03-06 · B = 07-12 · C = 13-17 (crew-worker, Sonnet 5.5 low). 0
 | 15 | vm.tiktok.com/ZN8uV4gdM | 150/168 | done |
 | 16 | vm.tiktok.com/ZN8uVQsHy | 263/274 | done |
 | 17 | vm.tiktok.com/ZN8uVqPoE | 146/488, 16 cues | done |
+| 18 | vm.tiktok.com/ZN8uVmGW1 (sent twice, same link) | 425/427 | done |

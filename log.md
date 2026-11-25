@@ -345,3 +345,7 @@ improved: grabber mp4 path fixes proxy ENOTFOUND; fallback seek waits for decode
 ## [2026-11-25] vfx / TikTok refs batch 1: 16 of 17 grabbed and analysed (Failed: 01 region-blocked)
 improve 120: 81 s brief, 18 s Sonnet, 103 s total (FAIL -16.7 s early), rungs 1-3. Grabber now 0.1 s step + important-frame filter + timed captions; 3 crew-workers (Sonnet low) grabbed 17 links in ~3.6 min; brain wrote 16 analysis.md + 11 distilled rules in domains/vfx/reference-videos.md. 01 = cross_border_violation (page + embed).
 improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --cues sheets for talk videos; refs moved under domains/vfx (lint); caption host added to env; 3 lessons applied (L-143..145); refs route (skill crew) split from vfx (L-146)
+
+## [2026-11-25] vfx / TikTok ref 18 (@myre.vfx) grabbed + analysed
+Same link sent twice → grabbed once. 1 crew-worker (Sonnet low) grabbed 425/427 frames in 34 s; all 18 sheets viewed; analysis.md with 7 skills and a Roblox recipe; 2 new distilled rules (crack web + dome template, 1-frame silhouette wipes).
+improved: rules 12-13 in reference-videos.md; intake drops duplicate links; worker count scales with link count (1 per <= 6 links)
