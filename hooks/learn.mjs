@@ -113,7 +113,9 @@ export function signals(turn, state = {}, extra = {}) {
   const ownerSkill = ['crew', 'swarm', 'helpers'].some(s => (turn.skills || []).includes(s));
   // Only the primary route's skill is required (CLAUDE.md s1: a secondary route, e.g. "animate" in a vfx preview, reads its
   // playbook only for the part it covers); 2026-11-24 a vfx turn was flagged for not loading 3d-editor.
-  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).slice(0, 1).filter(s => !(turn.skills || []).includes(s)) : [];
+  // vault-upkeep is never required for a build outside vault plumbing: generic words (rules, lessons, log, checklist) in a
+  // pasted brief or a post-compaction summary routed builds to it (L-154, again 2026-11-25 on the vfx slots build).
+  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).slice(0, 1).filter(s => s !== 'vault-upkeep' && !(turn.skills || []).includes(s)) : [];
   if (missedSkills.length)
     out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);

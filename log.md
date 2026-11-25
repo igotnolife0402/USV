@@ -525,4 +525,4 @@ improved: ugen.js port of the library method (33 elements); stage status overlay
 Generator: 1-6 slots, Generate all fires every sample call in one tick (Promise.allSettled), Opus 5.5 medium via sample model/effort, per-slot settings + apply to all, fitDuration (integer ms warp rescale), 60 s cap, 1 fix round after 30 s, worker-pool sheet drawing. Headless mocked hub check: start spread 0.6 ms, clipLen 1.234/3.000/7.5 exact, 0 fx visible at len, wall 38.9 s (1 slot 15.0 s); 0 errors. Hub v60 on runtime 0.2.99. Real model time not measured.
 improved: sheet drawing moved to a worker pool (lib/ugen-worker.js, main-thread fallback); hub runtime upgraded 0.2.96 -> 0.2.99 so the model pin can apply; L-197 draw-time budget + L-198 contract rule in profiles/tools.md; router vfx words slots/exact duration/generate all; hub tile text says slots
 improve 60: brief + Sonnet earlier turn; build ~12 min after prompt
-
+learn: vault-upkeep skill-miss on the vfx build (generic vault words in brief/summary); L-154 x2 promoted: learn.mjs never requires vault-upkeep for non-vault builds
