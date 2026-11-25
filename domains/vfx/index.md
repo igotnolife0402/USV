@@ -9,7 +9,8 @@ triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosio
 - [rules](domains/vfx/rules.md): every applied lesson rule for this domain; read with the playbook.
 - [reference-videos](domains/vfx/reference-videos.md): TikTok/reference video → 0.5 s frames (Sonnet workers) → measured analysis → replication recipes.
 - [refs index](domains/vfx/refs/index.md): every analysed reference video (timeline, layers, palette, replication recipe).
-- [tools/vfx/elemental-onslaught/](tools/vfx/elemental-onslaught/index.html): 31 s multi-element VFX cinematic built on the reference baseline (work in progress 2026-11-25).
+- [tools/vfx/frost-comet/](tools/vfx/frost-comet/SPEC.md): 8 s causal ice-comet showcase, spec-first generator sheets (current 2026-11-25).
+- [tools/vfx/elemental-onslaught/](tools/vfx/elemental-onslaught/index.html): superseded 2026-11-25 by tools/vfx/frost-comet (Umbrio tabs deleted on owner request).
 
 Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox ParticleEmitter/Beam.
 

@@ -1,0 +1,7 @@
+{
+ "name": "frost-comet",
+ "what": "8 s causal ice-comet VFX showcase for Umbrio: air freezes, comet falls, impact, ice crystal grows, frost cracks, crystal shatters, mist lifts; 6 spec-first generator sheets",
+ "run": "node tools/vfx/frost-comet/bake-sheets.cjs <hub>/tools/vfx/showcase/lib tools/vfx/frost-comet/sheets.json <raw> && PLUGINS=<dir with cine.js> node tools/vfx/frost-comet/build.mjs <raw> <pack>/tools/vfx/paint.py <out>",
+ "prompt": "Every sheet has a written spec in SPEC.md; change the spec first, rebake, contact-strip and compare before building.",
+ "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF"
+}

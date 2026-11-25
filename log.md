@@ -384,3 +384,7 @@ improve 60: ~38 s brief, 13 s Sonnet, 63.1 s total, rungs 1-3
 ## [2026-11-25] vfx / Elemental Onslaught v6 vibrant layered paint
 Owner: no 2-layer cap, paint every white layer with gradients + textures. 14 multi-stop hue ramps + per-ramp texture, 5-layer stacks per element; eo-onslaught-6 live: 152 objects, 65 flipbooks, 40 sheets, zfight PASS, not visually verified.
 improved: umbrio.mjs per-layer tex/texAmt (cache key includes texture); playbook layer-cap rule replaced (L-156); 40-sheet upload+write batched by script (no hand-typed ids)
+
+## [2026-11-25] build / Frost Comet showcase (replaces Elemental Onslaught)
+New tools/vfx/frost-comet (SPEC.md + 6 spec'd generator sheets, all jump < 3, contact-strip matched), live tab frost-comet-1: 19 objects, 8 flipbooks each with a cause, zfight PASS; eo-onslaught-1..6 tab docs deleted (tex/geo subdocs left orphaned). Not visually verified. improve 60: 72.2 s total FAIL.
+improved: spec-before-code + strip check rule (L-157, playbook); improver spawn at send_brief_at (L-158, improve skill); elemental-onslaught superseded in vfx index; router words for vfx spam
