@@ -43,6 +43,17 @@ status: current
 `python3 tools/vfx/paint.py vfx/sheets/<slug>.png OUT.png --ramp fire --tex noise --grid 8`
 Presets: fire, ice, electric, poison, holy, void, blood, wind; or hex stops `--ramp "#3a0a5e,#9b3dff,#fff"`. `--tex noise|cells|streaks`, `--tex-amt 0.35`. OUT goes to scratch or the game, never into vfx/sheets (rule 7).
 
+## Built by (2026-11-25)
+| Step | Tool | Output |
+|---|---|---|
+| Generate (physics flipbooks, Grid8x8) | `tools/vfx/flipbook/` | scratch |
+| Generate (stylized action packs) | `tools/vfx/stylized/` | scratch |
+| Generate (liquid) | `tools/vfx/liquid/` | scratch |
+| Collect approved set into the library | `tools/vfx/library.py` | `vfx/sheets` + `vfx/index.tsv` |
+| Colour a copy | `tools/vfx/paint.py` | scratch or the game |
+| Showcase clip (Umbrio Studio) | `tools/vfx/showcase/` | Claude-Hub tab |
+- Gap: the script that produced the current `mix3` set (act-/sym-) is not in the repo; only its output is. Commit it to `tools/vfx/` when found.
+
 ## Adding effects
 Generator output lands in scratch first. A newer, better set replaces the old one (owner 2026-11-24): set `SRC` to the new set only, `git rm -r vfx/sheets vfx/index.tsv`, rebuild. To add alongside instead: add its folder to `SRC` in `tools/vfx/library.py` (prefix, kind, grid, frames, life) and run `python3 tools/vfx/library.py SCRATCH vfx`: it dedupes by pixels, writes white sheets and rebuilds the index. Commit `vfx/`.
 
