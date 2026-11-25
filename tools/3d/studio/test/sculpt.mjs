@@ -55,13 +55,17 @@ export default async function (t) {
       snakeHook: (a, b) => dX(a, b) > 0.05,
       thumb: (a, b) => dX(a, b) > 0.01,
       nudge: (a, b) => dX(a, b) > 0.01,
-      rotate: (a, b) => diff(a, b).max > 1e-3
+      rotate: (a, b) => diff(a, b).max > 1e-3,
+      clayStrips: (a, b) => radii(b)[1] > radii(a)[1] + 0.01,
+      planes: (a, b) => diff(a, b).max > 1e-3,
+      relax: (a, b) => diff(a, b).max > 1e-4 && Math.abs(radii(b)[1] - radii(a)[1]) < 0.02,
+      elastic: (a, b) => maxY(b) > maxY(a) + 0.3
     }
     const out = []
     for (const brush of Object.keys(want)) {
       const id = await addSphere(s, { name: brush, pos: [0, 3, 0], R: 24, S: 32 })
       const a = await vertsOf(s, id)
-      const pts = brush === 'grab' ? [[0, 5, 0], [0, 6, 0]] : top
+      const pts = brush === 'grab' || brush === 'elastic' ? [[0, 5, 0], [0, 6, 0]] : top
       const r = await stroke(s, { id, brush, points: pts, radius: 0.9, strength: 0.7, symmetry: false })
       const b = await vertsOf(s, id)
       t.eq(b.length, a.length, brush + ' keeps the vertex count')
@@ -233,7 +237,7 @@ export default async function (t) {
     t.eq(await s.eval(() => window.studio.app.sculpt.cfg.brush), 'draw', 'X picks Draw')
     // panel: brush grid and sliders
     const pan = await s.eval(() => { const e = document.querySelector('[data-panel=sculpt]'); return e ? [e.querySelectorAll('.sculpt-b').length, e.querySelectorAll('input[type=range]').length, e.querySelector('.sculpt-b.on')?.dataset.brush] : null })
-    t.eq(pan, [17, 2, 'draw'], 'panel shows 17 brushes, 2 sliders, Draw on')
+    t.eq(pan, [21, 2, 'draw'], 'panel shows 21 brushes, 2 sliders, Draw on')
     await p.click('[data-panel=sculpt] .sculpt-b[data-brush=inflate]')
     t.eq(await s.eval(() => window.studio.app.tool), 'sculpt-inflate', 'panel button picks the brush')
     await p.click('[data-panel=sculpt] .sculpt-b[data-brush=draw]')

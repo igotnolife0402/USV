@@ -3,7 +3,7 @@
 // edges: ['a_b'] | null, target: {v, f} | null}; null = nothing selected = whole mesh. Returns {kind, ids} for the
 // new selection, or nothing. plugins/mesh.js registers every entry of MODOPS as the command mesh.<id>.
 import { MODOPS } from './modlist.js'
-import { V3, add, sub, mul, dot, cross, len, norm, lerp, ek, setV, fnormal, edgesOf, mergeDist, signedVolume, clean } from './meshops.js'
+import { V3, add, sub, mul, dot, cross, len, norm, lerp, ek, setV, fnormal, edgesOf, mergeDist, signedVolume, clean, quadSurf, outward, PRIM, extrude as extrudeRegion, subdivide } from './meshops.js'
 
 const META = Object.fromEntries(MODOPS.map(o => [o.id, o]))
 const nv = m => m.v.length / 3
@@ -401,7 +401,6 @@ op('convexHull', (m, sel) => {
   if (sel.verts && sel.verts.size) { const map = new Map(); const base = m.f.length; for (const t of H) m.f.push(t.map(j => map.get(ids[j]) ?? map.set(ids[j], addV(m, V3(m, ids[j]), ids[j])).get(ids[j]))); return fsel(H.map((_, k) => base + k)) }
   m.f = H.map(t => t.map(j => ids[j])); clean(m)
 })
-op('decimate', (m, sel, p) => decimate(m, p.ratio))
 op('fillHoles', m => {
   const dir = new Set(); for (const f of m.f) f.forEach((a, k) => dir.add(a + ',' + f[(k + 1) % f.length]))
   const next = new Map(); for (const e of dir) { const [a, b] = e.split(',').map(Number); if (!dir.has(b + ',' + a) && !next.has(b)) next.set(b, a) }
@@ -483,5 +482,167 @@ sop('selectLoop', (m, sel) => {
   for (const [a0, b0] of [[x, y], [y, x]]) { let a = a0, b = b0; for (let g = 0; g < 100000; g++) { const c = step(a, b); if (c < 0 || out.has(c)) break; out.add(c); a = b; b = c } }
   return vsel(out)
 })
+
+// ---------- quality decimate: quadric edge collapse (Garland-Heckbert) with flip and link checks ----------
+function decimateQEM(m, ratio) {
+  m.f = m.f.flatMap(f => f.length === 3 ? [f] : f.slice(1, -1).map((_, i) => [f[0], f[i + 1], f[i + 2]]))
+  const n = nv(m), Q = new Float64Array(n * 10), vf = Array.from({ length: n }, () => new Set()), dead = new Uint8Array(m.f.length), gone = new Uint8Array(n), ver = new Uint32Array(n)
+  const addQ = (i, a, b, c, d, w) => { const o = i * 10; Q[o] += a * a * w; Q[o + 1] += a * b * w; Q[o + 2] += a * c * w; Q[o + 3] += a * d * w; Q[o + 4] += b * b * w; Q[o + 5] += b * c * w; Q[o + 6] += b * d * w; Q[o + 7] += c * c * w; Q[o + 8] += c * d * w; Q[o + 9] += d * d * w }
+  const big = Math.max(...bbox(m, allV(m)).s) || 1
+  m.f.forEach((f, fi) => {
+    const a = V3(m, f[0]), cr = cross(sub(V3(m, f[1]), a), sub(V3(m, f[2]), a)), ar = len(cr); if (ar < 1e-20) return
+    const nn = mul(cr, 1 / ar), d = -dot(nn, a); for (const i of f) { addQ(i, nn[0], nn[1], nn[2], d, ar); vf[i].add(fi) }
+  })
+  m.f.forEach((f, fi) => { if (!vf[f[0]].has(fi)) for (const i of f) vf[i].add(fi) })
+  // open borders keep their outline: a stiff plane through each border edge, perpendicular to its face
+  for (const [k, fs] of edgeFaces(m)) if (fs.length === 1) { const [a, b] = k.split('_').map(Number), e = sub(V3(m, b), V3(m, a)), nn = norm(cross(e, fnormal(m, m.f[fs[0]]))), d = -dot(nn, V3(m, a)), w = dot(e, e) * 100; addQ(a, nn[0], nn[1], nn[2], d, w); addQ(b, nn[0], nn[1], nn[2], d, w) }
+  const err = (o1, o2, p) => { let e = 0; const q = j => Q[o1 + j] + Q[o2 + j], [x, y, z] = p; e = q(0) * x * x + 2 * q(1) * x * y + 2 * q(2) * x * z + 2 * q(3) * x + q(4) * y * y + 2 * q(5) * y * z + 2 * q(6) * y + q(7) * z * z + 2 * q(8) * z + q(9); return e }
+  const best = (i, j) => { const a = V3(m, i), b = V3(m, j), c = lerp(a, b, 0.5); let bp = c, be = err(i * 10, j * 10, c); for (const p of [a, b]) { const e = err(i * 10, j * 10, p); if (e < be - 1e-15 * big) { be = e; bp = p } } return [be, bp] }
+  const H = [], push = x => { H.push(x); let i = H.length - 1; while (i) { const p = (i - 1) >> 1; if (H[p][0] <= H[i][0]) break; [H[p], H[i]] = [H[i], H[p]]; i = p } }
+  const pop = () => { const top = H[0], last = H.pop(); if (H.length) { H[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let s = i; if (l < H.length && H[l][0] < H[s][0]) s = l; if (r < H.length && H[r][0] < H[s][0]) s = r; if (s === i) break; [H[s], H[i]] = [H[i], H[s]]; i = s } } return top }
+  const nb = i => { const s = new Set(); for (const fi of vf[i]) for (const x of m.f[fi]) if (x !== i) s.add(x); return s }
+  const queue = (i, j) => { const [e, p] = best(i, j); push([e, i, j, ver[i], ver[j], p]) }
+  for (const k of edgeFaces(m).keys()) { const [a, b] = k.split('_').map(Number); queue(a, b) }
+  let alive = m.f.length - [...dead].filter(Boolean).length; const target = Math.max(4, Math.floor(alive * ratio))
+  while (alive > target && H.length) {
+    const [, i, j, vi, vj, p] = pop()
+    if (gone[i] || gone[j] || ver[i] !== vi || ver[j] !== vj) continue
+    const ni = nb(i), nj = nb(j); if (!ni.has(j)) continue
+    let common = 0; for (const x of ni) if (nj.has(x)) common++
+    if (common > 2) continue
+    let flips = false
+    for (const fi of [...vf[i], ...vf[j]]) { const f = m.f[fi]; if (f.includes(i) && f.includes(j)) continue; const g = f.map(x => x === i || x === j ? -1 : x), P3 = g.map((x, k) => x < 0 ? p : V3(m, f[k])), n0 = fnormal(m, f), n1 = norm(cross(sub(P3[1], P3[0]), sub(P3[2], P3[0]))); if (dot(n0, n1) < 0.2) { flips = true; break } }
+    if (flips) continue
+    for (const fi of vf[j]) { const f = m.f[fi]; if (f.includes(i)) { dead[fi] = 1; alive--; for (const x of f) if (x !== j) vf[x].delete(fi) } else { m.f[fi] = f.map(x => x === j ? i : x); vf[i].add(fi) } }
+    for (const fi of [...vf[i]]) if (dead[fi]) vf[i].delete(fi)
+    gone[j] = 1; vf[j].clear(); setV(m, i, p); for (let k = 0; k < 10; k++) Q[i * 10 + k] += Q[j * 10 + k]; ver[i]++
+    for (const x of nb(i)) queue(i, x)
+  }
+  m.f = m.f.filter((_, fi) => !dead[fi]); clean(m)
+}
+op('decimate', (m, sel, p) => p.method === 'fast' ? decimate(m, p.ratio) : decimateQEM(m, p.ratio))
+// ---------- more edit tools ----------
+op('autoSmooth', (m, sel, p) => { RUN.edgeSplit(m, sel, { angle: p.angle }); return { smooth: true } })
+op('connect', (m, sel) => {
+  const vs = sel.verts; if (!vs || vs.size < 2) throw new Error('Select 2 vertices on one face')
+  const out = [], made = []
+  for (const f of m.f) { const k = f.map((x, i) => vs.has(x) ? i : -1).filter(i => i >= 0); if (k.length !== 2 || (k[1] - k[0] === 1) || (k[0] === 0 && k[1] === f.length - 1)) { out.push(f); continue } out.push(f.slice(k[0], k[1] + 1), [...f.slice(k[1]), ...f.slice(0, k[0] + 1)]); made.push(ek(f[k[0]], f[k[1]])) }
+  if (!made.length) throw new Error('Select 2 vertices that share a face but no edge')
+  m.f = out; return { kind: 'edge', ids: made }
+})
+op('makeCircle', (m, sel, p) => {
+  const vs = sel.verts; if (!vs || vs.size < 3) throw new Error('Select a loop of 3+ vertices')
+  const adj = neighbours(m), done = new Set(); let n = 0
+  for (const s0 of vs) {
+    if (done.has(s0)) continue
+    const loop = [s0]; done.add(s0); let c = s0
+    for (;;) { const nx = [...adj[c]].find(x => vs.has(x) && !done.has(x)); if (nx === undefined) break; loop.push(nx); done.add(nx); c = nx }
+    if (loop.length < 3) continue
+    const P = loop.map(i => V3(m, i)), ctr = mul(P.reduce(add, [0, 0, 0]), 1 / P.length)
+    let nn = [0, 0, 0]; for (let i = 0; i < P.length; i++) nn = add(nn, cross(sub(P[i], ctr), sub(P[(i + 1) % P.length], ctr))); nn = norm(nn)
+    const r = P.reduce((s, q) => s + len(sub(q, ctr)), 0) / P.length, u = norm(sub(P[0], add(ctr, mul(nn, dot(sub(P[0], ctr), nn))))), w = cross(nn, u)
+    loop.forEach((i, k) => { const th = 2 * Math.PI * k / loop.length; setV(m, i, lerp(P[k], add(ctr, add(mul(u, r * Math.cos(th)), mul(w, r * Math.sin(th)))), p.factor)) }); n++
+  }
+  if (!n) throw new Error('Selected vertices do not form a loop')
+})
+op('greeble', (m, sel, p) => {
+  const faces = facesOf(m, sel), r = rng(p.seed), drop = new Set(), added = []
+  for (const fi of faces) {
+    if (r() > p.amount) continue
+    const f = m.f[fi], c = faceC(m, f), nn = fnormal(m, f), t = 0.12 + r() * 0.3, d = p.depth * (0.3 + 0.7 * r()) * (r() < p.inward ? -1 : 1)
+    const ins = f.map(i => addV(m, lerp(V3(m, i), c, t), i)), top = ins.map(i => addV(m, add(V3(m, i), mul(nn, d)), i))
+    f.forEach((a, k) => { const k1 = (k + 1) % f.length; added.push([a, f[k1], ins[k1], ins[k]], [ins[k], ins[k1], top[k1], top[k]]) })
+    added.push(top); drop.add(fi)
+  }
+  return fsel(rebuild(m, drop, added))
+})
+op('extrudeRepeat', (m, sel, p) => {
+  const faces = sel.faces && sel.faces.length ? sel.faces : null; if (!faces) throw new Error('Select faces to extrude')
+  for (let k = 0; k < Math.round(p.count); k++) {
+    extrudeRegion(m, faces, p.dist)
+    const vs = [...new Set(faces.flatMap(fi => m.f[fi]))], c = mul(vs.reduce((s, i) => add(s, V3(m, i)), [0, 0, 0]), 1 / vs.length), ax = norm(faces.reduce((s, fi) => add(s, fnormal(m, m.f[fi])), [0, 0, 0])), th = p.twist * RAD, cs = Math.cos(th), sn = Math.sin(th)
+    deform(m, vs, q => { let v = mul(sub(q, c), p.scale); const dd = dot(v, ax); v = add(add(mul(v, cs), mul(cross(ax, v), sn)), mul(ax, dd * (1 - cs))); return add(c, v) })
+  }
+  return fsel(faces)
+})
+op('snapSymmetry', (m, sel, p) => {
+  const a = axi(p.axis), b = bbox(m, allV(m)), tol = (Math.max(...b.s) || 1) * p.tol, cell = tol, grid = new Map(), key = q => q.map(x => Math.floor(x / cell)).join(',')
+  for (const i of allV(m)) { const k = key(V3(m, i)); (grid.get(k) || grid.set(k, []).get(k)).push(i) }
+  let n = 0
+  for (const i of allV(m)) {
+    const q = V3(m, i); if (Math.abs(q[a]) <= tol) { q[a] = 0; setV(m, i, q); n++; continue }
+    if (q[a] < 0) continue
+    const t = q.slice(); t[a] = -t[a]; const c = t.map(x => Math.floor(x / cell)); let bj = -1, bd = tol * tol
+    for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) for (const j of grid.get((c[0] + x) + ',' + (c[1] + y) + ',' + (c[2] + z)) || []) { const d = sub(V3(m, j), t), dd = dot(d, d); if (dd <= bd) { bd = dd; bj = j } }
+    if (bj < 0) continue
+    const avg = lerp(q, (() => { const w = V3(m, bj); w[a] = -w[a]; return w })(), 0.5), mir = avg.slice(); mir[a] = -mir[a]; setV(m, i, avg); setV(m, bj, mir); n++
+  }
+  return n ? undefined : undefined
+})
+op('fractal', (m, sel, p) => {
+  const faces = facesOf(m, sel), before = nv(m); subdivide(m, faces)
+  const r = rng(p.seed), vn = vnormals(m), b = bbox(m, allV(m)), amp = p.amount * (Math.max(...b.s) || 1)
+  deform(m, [...Array(nv(m) - before).keys()].map(k => before + k), (q, i) => add(q, mul(vn(i), (r() * 2 - 1) * amp)))
+})
+op('bulge', (m, sel, p) => {
+  const ids = vertsOf(m, sel), c = p.center === 'origin' ? [0, 0, 0] : bbox(m, ids).c, R = p.radius
+  deform(m, ids, q => { const d = sub(q, c), l = len(d); if (l >= R || l < 1e-12) return q; const t = 1 - l / R; return add(q, mul(d, p.strength * t * t * (3 - 2 * t) / l * R * 0.5)) })
+})
+
+// ---------- add: new mesh objects (Shift+A shapes beyond the basics) ----------
+function lathe(prof, seg, closed) {
+  const V = [], F = [], ids = prof.map(([r, y]) => { if (r <= 1e-9) { V.push(0, y, 0); return [V.length / 3 - 1] } const b = V.length / 3; for (let j = 0; j < seg; j++) { const th = 2 * Math.PI * j / seg; V.push(r * Math.cos(th), y, -r * Math.sin(th)) } return [...Array(seg).keys()].map(j => b + j) })
+  const pairs = prof.map((_, k) => [k, k + 1]).slice(0, closed ? prof.length : prof.length - 1).map(([a, b]) => [a, b % prof.length])
+  for (const [a, b] of pairs) { const A = ids[a], B = ids[b]; for (let j = 0; j < seg; j++) { const j1 = (j + 1) % seg; if (A.length > 1 && B.length > 1) F.push([A[j], A[j1], B[j1], B[j]]); else if (A.length === 1 && B.length > 1) F.push([A[0], B[j1], B[j]]); else if (B.length === 1 && A.length > 1) F.push([A[j], A[j1], B[0]]) } }
+  return outward({ v: V, f: F, uv: null })
+}
+function sweep(P, r, sides, closed) {
+  const N = P.length, T = P.map((_, i) => norm(sub(P[closed ? (i + 1) % N : Math.min(N - 1, i + 1)], P[closed ? (i - 1 + N) % N : Math.max(0, i - 1)])))
+  const rot = (v, k, a) => { const c = Math.cos(a), s = Math.sin(a); return add(add(mul(v, c), mul(cross(k, v), s)), mul(k, dot(k, v) * (1 - c))) }
+  const a0 = Math.abs(T[0][1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], Nn = [norm(sub(a0, mul(T[0], dot(a0, T[0]))))]
+  for (let i = 1; i < N; i++) Nn.push(norm(sub(Nn[i - 1], mul(T[i], dot(Nn[i - 1], T[i])))))
+  if (closed) { const e = norm(sub(Nn[N - 1], mul(T[0], dot(Nn[N - 1], T[0])))), ang = Math.atan2(dot(cross(e, Nn[0]), T[0]), dot(e, Nn[0])); for (let i = 0; i < N; i++) Nn[i] = rot(Nn[i], T[i], ang * i / N) }
+  const V = [], F = []
+  for (let i = 0; i < N; i++) { const B = cross(T[i], Nn[i]); for (let s = 0; s < sides; s++) { const th = 2 * Math.PI * s / sides, q = add(P[i], add(mul(Nn[i], r * Math.cos(th)), mul(B, r * Math.sin(th)))); V.push(q[0], q[1], q[2]) } }
+  for (let i = 0; i < (closed ? N : N - 1); i++) { const i1 = (i + 1) % N; for (let s = 0; s < sides; s++) { const s1 = (s + 1) % sides; F.push([i * sides + s, i * sides + s1, i1 * sides + s1, i1 * sides + s]) } }
+  if (!closed) { F.push([...Array(sides).keys()].reverse(), [...Array(sides).keys()].map(s => (N - 1) * sides + s)) }
+  return outward({ v: V, f: F, uv: null })
+}
+function slab(outline, t, hole) {
+  let A = 0; outline.forEach(([x, z], i) => { const [x1, z1] = outline[(i + 1) % outline.length]; A += x * z1 - x1 * z })
+  if (A > 0) outline = outline.slice().reverse() // walls and caps below assume this winding
+  const N = outline.length, V = [], F = [], at = (x, y, z) => (V.push(x, y, z), V.length / 3 - 1)
+  const Ot = outline.map(([x, z]) => at(x, t / 2, z)), Ob = outline.map(([x, z]) => at(x, -t / 2, z))
+  for (let i = 0; i < N; i++) { const j = (i + 1) % N; F.push([Ob[i], Ob[j], Ot[j], Ot[i]]) }
+  if (hole) {
+    const It = outline.map(([x, z]) => { const a = Math.atan2(z, x); return at(hole * Math.cos(a), t / 2, hole * Math.sin(a)) }), Ib = outline.map(([x, z]) => { const a = Math.atan2(z, x); return at(hole * Math.cos(a), -t / 2, hole * Math.sin(a)) })
+    for (let i = 0; i < N; i++) { const j = (i + 1) % N; F.push([Ot[i], Ot[j], It[j], It[i]], [Ob[j], Ob[i], Ib[i], Ib[j]], [It[i], It[j], Ib[j], Ib[i]]) }
+  } else { F.push(Ot.slice(), Ob.slice().reverse()) }
+  return outward({ v: V, f: F, uv: null })
+}
+const ADD = {
+  quadSphere: p => { const m = PRIM.cube({ seg: p.seg }); for (let i = 0; i < nv(m); i++) setV(m, i, mul(norm(V3(m, i)), p.radius)); return m },
+  roundedCube: p => {
+    const h = [p.sx / 2, p.sy / 2, p.sz / 2], r = Math.min(p.radius, ...h.map(x => x * 0.999)), cs = Math.round(p.seg), V = [], F = []
+    const axis = k => { const e = h[k] - r, band = [...Array(cs + 1).keys()].map(j => e + r * Math.tan(Math.PI / 4 * j / cs)), mid = [...Array(3).keys()].map(j => -e + 2 * e * j / 2); return [...band.slice(1).reverse().map(x => -x), ...mid, ...band.slice(1)] }
+    const L = [0, 1, 2].map(axis), sides = [[0, 1, 2, 1], [0, 1, 2, -1], [1, 2, 0, 1], [1, 2, 0, -1], [2, 0, 1, 1], [2, 0, 1, -1]]
+    for (const [nk, uk, wk, sg] of sides) quadSurf(V, F, (x, y) => { const q = [0, 0, 0], Lu = L[uk], Lw = L[wk]; q[nk] = sg * h[nk]; q[uk] = Lu[Math.round(x * (Lu.length - 1))]; q[wk] = Lw[Math.round(y * (Lw.length - 1))]; const inn = q.map((v, k) => Math.max(-(h[k] - r), Math.min(h[k] - r, v))), d = norm(sub(q, inn)); return add(inn, mul(d, r)) }, L[uk].length - 1, L[wk].length - 1)
+    const m = { v: V, f: F, uv: null }; mergeDist(m, 1e-6 * Math.max(...h))
+    m.f = m.f.map(f => dot(fnormal(m, f), faceC(m, f)) < 0 ? rev(f) : f) // convex: every face points away from the centre
+    return m
+  },
+  capsule: p => { const r = p.radius, hh = Math.max(0, p.height / 2 - r), q = Math.round(p.rings), pr = [[0, -hh - r]]; for (let k = 1; k <= q; k++) { const a = -Math.PI / 2 + Math.PI / 2 * k / q; pr.push([r * Math.cos(a), -hh + r * Math.sin(a)]) } for (let k = 0; k < q; k++) { const a = Math.PI / 2 * k / q; pr.push([r * Math.cos(a), hh + r * Math.sin(a)]) } pr.push([0, hh + r]); return lathe(pr, Math.round(p.seg)) },
+  tube: p => { const ri = Math.min(p.inner, p.radius * 0.99), y = p.height / 2; return lathe([[ri, -y], [p.radius, -y], [p.radius, y], [ri, y]], Math.round(p.seg), true) },
+  dome: p => { const q = Math.round(p.rings), pr = [[0, 0]]; for (let k = 0; k <= q; k++) { const a = Math.PI / 2 * k / q; pr.push([p.radius * Math.cos(a), p.radius * Math.sin(a)]) } pr[pr.length - 1][0] = 0; return lathe(pr, Math.round(p.seg)) },
+  wedge: p => { const x = p.sx / 2, y = p.sy, z = p.sz / 2; return outward({ v: [-x, 0, -z, x, 0, -z, x, 0, z, -x, 0, z, -x, y, -z, x, y, -z], f: [[0, 1, 2, 3], [0, 4, 5, 1], [3, 2, 5, 4], [0, 3, 4], [1, 5, 2]], uv: null }) },
+  gear: p => { const T = Math.round(p.teeth), r = p.radius, R = r + p.depth, pts = []; for (let t = 0; t < T; t++) for (const [f, rr] of [[0, r], [0.2, R], [0.45, R], [0.65, r]]) { const a = 2 * Math.PI * (t + f) / T; pts.push([rr * Math.cos(a), -rr * Math.sin(a)]) } return slab(pts, p.thickness, p.hole > 0 ? Math.min(p.hole, r * 0.9) : 0) },
+  star: p => { const K = Math.round(p.points), pts = []; for (let i = 0; i < 2 * K; i++) { const a = Math.PI * i / K, rr = i % 2 ? p.inner : p.radius; pts.push([rr * Math.sin(a), -rr * Math.cos(a)]) } return slab(pts, p.thickness, 0) },
+  spring: p => { const n = Math.round(p.turns * p.seg), P = []; for (let i = 0; i <= n; i++) { const a = 2 * Math.PI * i / p.seg; P.push([p.radius * Math.cos(a), -p.height / 2 + p.height * i / n, -p.radius * Math.sin(a)]) } return sweep(P, p.wire, Math.round(p.sides), false) },
+  torusKnot: p => { const n = Math.round(p.seg), P = []; for (let i = 0; i < n; i++) { const t = 2 * Math.PI * i / n, rr = p.radius * (2 + Math.cos(p.q * t)) / 3; P.push([rr * Math.cos(p.p * t), p.radius * Math.sin(p.q * t) / 3, rr * Math.sin(p.p * t)]) } return sweep(P, p.tube, Math.round(p.sides), true) },
+  chainLink: p => { const r = p.radius, L = p.length / 2, P = [], q = 12; for (let k = 0; k < q; k++) { const a = Math.PI * k / q; P.push([L + r * Math.sin(a), 0, r * Math.cos(a)]) } for (let k = 0; k < q; k++) { const a = Math.PI * k / q; P.push([-L - r * Math.sin(a), 0, -r * Math.cos(a)]) } return sweep(P, p.wire, Math.round(p.sides), true) },
+  pipe: p => { const P = (p.points && p.points.length >= 2 ? p.points : [[0, 0, 0], [0, 1, 0], [1, 2, 0], [2, 2, 0]]).map(q => q.map(Number)), out = [P[0]]; for (let i = 1; i < P.length; i++) { const steps = Math.max(1, Math.round(p.smooth)); for (let k = 1; k <= steps; k++) out.push(lerp(P[i - 1], P[i], k / steps)) } return sweep(out, p.radius, Math.round(p.sides), false) },
+  rock: p => { const m = PRIM.icosphere({ radius: 1, sub: Math.round(p.detail) }); for (let i = 0; i < nv(m); i++) { const q = V3(m, i), n = fbm(mul(q, 1.6), p.seed | 0, 5), ridge = 1 - Math.abs(fbm(mul(q, 3.1), (p.seed | 0) + 9, 3)); setV(m, i, mul([q[0], q[1] * p.flat, q[2]], p.radius * (1 + p.rough * (0.7 * n + 0.3 * ridge - 0.15)))) } return m }
+}
+for (const [id, fn] of Object.entries(ADD)) op(id, (m, sel, p) => fn(p))
 
 for (const o of MODOPS) if (!RUN[o.id]) throw new Error('modops.js lacks ' + o.id)

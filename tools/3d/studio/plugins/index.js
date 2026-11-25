@@ -10,7 +10,7 @@ export default [
   './draw.js',
   './io.js',
   './export.js',
-  './roblox.js',
+  './rbx.js',
   './vfx.js',
   './text.js',
   './look.js',
