@@ -341,3 +341,8 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 ## [2026-11-25] vault / bare "." prompt
 Owner sent "." after an interrupt; asked what to do. Stop hook demanded an improve footer for a no-work nudge.
 improved: learn.mjs skips improve gate on contentless no-work prompts; test covers "." nudge; CLAUDE.md section 5 states the exemption
+
+## [2026-11-25] 3d / /improve 60 Umbrio +57 Modify tools, +9 sculpt brushes (prompt Failed: delivered 121.7 s vs 60 s)
+modlist.js (boot names/params) + modops.js (lazy code): deform, generate, clean, UV, select ops as mesh.<id> + Mesh edit "Modify" panel + Mesh menu; brushes drawSharp, layer, blob, scrape, fill, snakeHook, thumb, nudge, rotate. Suites modops 3/3, mesh 8/8, sculpt 8/8; core boot cap fails 834 KB > 800 KB (was already 819 KB before). Hub v53 published; not visually verified (queued).
+improve 60: ~38 s brief, 22.6 s Sonnet, 121.7 s shown, rungs 1-3.
+improved: router fast path umbrio tools → 3d-editor (was vfx); improve skill bans big writes before prompt (L-143, L-136 promoted); 3d-editor skill: always run core + lazy-load pattern (L-144); studio.md + for-ais.md list the tools

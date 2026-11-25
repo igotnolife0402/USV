@@ -291,6 +291,25 @@
             "tools/3d/beast/README.md"
           ],
           "do": "rigged creature = tools/3d/beast. Read only its README (Steps + API; never rig.py source, tools/3d/README.md or domains/3d/index.md). Copy orc.py (humanoid) or dragon.py (winged/long) to scratch, edit SEG/PAL/shape()/ANIM/FX/CAMS, build, look once, then checklists/3d.md."
+        },
+        {
+          "words": [
+            "umbrio tools",
+            "tools to umbrio",
+            "add tools",
+            "blender tools",
+            "blender list",
+            "modifier",
+            "modifiers",
+            "new brushes",
+            "mesh ops"
+          ],
+          "skill": "3d-editor",
+          "read": [
+            "tools/3d/studio/docs/for-ais.md",
+            "tools/3d/studio/docs/plugins.md"
+          ],
+          "do": "Studio feature = extend tools/3d/studio (pure ops file + commands in the plugin + test/<suite>.mjs). Names/params at boot, heavy code lazy via import() (boot cap 800 KB). Run the touched suite + core before done."
         }
       ]
     },
@@ -618,7 +637,10 @@
       "exports",
       "fix how",
       "import to studio",
-      "all of the exports"
+      "all of the exports",
+      "blender tools",
+      "every tool",
+      "add tools to umbrio"
     ]
   }
 }

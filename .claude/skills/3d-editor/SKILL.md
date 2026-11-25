@@ -9,7 +9,8 @@ description: 'Use for a browser 3D editor, mini-Blender, scene/level editor or m
 
 ## Step 0: the owner already has an editor
 - [Studio](../../../domains/3d/studio.md) (`tools/3d/studio`): parts, mesh edit, sculpt, anim, textures, paint, draw, VFX, GUI, import/export, MP4, with a test suite. A feature for "the editor" = a Studio plugin: one file in `plugins/`, one line in `plugins/index.js`, a `<link rel="modulepreload">` in `index.html` if it loads at boot (else `import()` on first use), a suite in `test/`. Read only [plugins](../../../tools/3d/studio/docs/plugins.md) and [plugin API](../../../tools/3d/studio/docs/plugin-api.md).
-- Verify: `node test/run.mjs <suite>` plus `core` (boot caps), env vars per [tests](../../../tools/3d/studio/docs/tests.md). No new plugins unasked.
+- Verify: `node test/run.mjs <suite>` plus `core` (boot caps, always: the 800 KB cap was found broken at 819 KB on 2026-11-25, L-144), env vars per [tests](../../../tools/3d/studio/docs/tests.md). No new plugins unasked.
+- Big features: names/params at boot (small list file), heavy code via `import()` on first use (modlist.js + modops.js pattern).
 - Only a separate, new editor goes through the module recipe below.
 
 ## Base choice (decide in one line)
