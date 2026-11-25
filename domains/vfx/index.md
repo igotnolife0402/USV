@@ -9,6 +9,7 @@ triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosio
 - [rules](domains/vfx/rules.md): every applied lesson rule for this domain; read with the playbook.
 - [reference-videos](domains/vfx/reference-videos.md): TikTok/reference video → 0.5 s frames (Sonnet workers) → measured analysis → replication recipes.
 - [refs index](domains/vfx/refs/index.md): every analysed reference video (timeline, layers, palette, replication recipe).
+- [tools/vfx/elemental-onslaught/](tools/vfx/elemental-onslaught/index.html): 31 s multi-element VFX cinematic built on the reference baseline (work in progress 2026-11-25).
 
 Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox ParticleEmitter/Beam.
 

@@ -1,0 +1,7 @@
+{
+ "name": "elemental-onslaught",
+ "what": "31 s three.js VFX cinematic: an original hooded sorcerer unleashes poison, fire, darkness, light, rock and spellbook attacks, then a converging finale beam; deterministic renderAt(T)",
+ "run": "node tools/vfx/elemental-onslaught/capture.mjs <folder with node_modules/three@0.160.0> <scratch out> && python3 -I tools/refs/keep.py <out> 0.1",
+ "prompt": "Attacks are modules in attacks/ following the contract in lib.js; timeline, camera and finale live in index.html. Re-capture and view the sheets after any change.",
+ "url": ""
+}

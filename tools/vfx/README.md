@@ -11,3 +11,4 @@ Domain notes: [vfx index](../../domains/vfx/index.md), rules for the flipbook: [
 
 Checked 2026-11-21: `vfx.py OUT slash --check` builds in 1.4 s, max_step_jump 1.41, thin_stroke_pct 1.2.
 - [frost-fault](frost-fault/index.html): ice ground-slam built on the reference-video baseline; `node tools/vfx/frost-fault/capture.mjs <three-root> <out>` renders exact 0.1 s frames for `tools/refs/keep.py` + `baseline.py` (7/7 on 2026-11-25).
+- [elemental-onslaught](elemental-onslaught/index.html): 31 s cinematic, 6 element attacks (attacks/*.js, contract in lib.js) + finale; capture.mjs renders exact frames.
