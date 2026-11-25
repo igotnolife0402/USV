@@ -122,3 +122,4 @@
 {"t":"2026-11-24T08:43:35.610Z","tier":"medium","secs":84,"ok":true,"errors":1,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":["errors"],"mode":"mobile"}
 {"t":"2026-11-24T08:49:23.706Z","tier":"medium","secs":366,"ok":false,"errors":3,"retry":1,"routes":["vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
 {"t":"2026-11-25T22:29:47.380Z","tier":"medium","secs":34,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":["skill"],"mode":"mobile"}
+{"t":"2026-11-25T22:43:01.881Z","tier":"medium","secs":286,"ok":true,"errors":2,"retry":1,"routes":["tools","animation"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
