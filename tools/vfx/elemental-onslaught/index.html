@@ -158,7 +158,7 @@ const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 
   fragmentShader: `uniform float uA; uniform float uB; varying vec3 vN; varying vec3 vV; varying vec3 vP;
     float h(vec3 p){ return fract(sin(dot(floor(p * 7.0), vec3(12.9898,78.233,37.719))) * 43758.5453); }
     void main(){ if (h(vP) < uB) discard; float f = pow(1.0 - abs(dot(vN, vV)), 2.5);
-      gl_FragColor = vec4(mix(vec3(1.0,0.8,0.45), vec3(1.0), f) * (f * 1.5 + 0.04) * uA, 1.0); }` }));
+      gl_FragColor = vec4(mix(vec3(1.0,0.8,0.45), vec3(1.0), f) * (f * 1.5) * uA, 1.0); }` }));
 dome.position.copy(TARGET); scene.add(dome);
 const finSparks = streaks(scene, 260, 0.03);
 const finSeed = Array.from({ length: 260 }, (_, i) => { const a = RF(0, 6.283), up = RF(0.1, 1.2); return { v: new THREE.Vector3(Math.cos(a), up, Math.sin(a)).normalize().multiplyScalar(RF(8, 20)), life: RF(0.4, 1.0), c: SEG[i % 6].color }; });
@@ -172,9 +172,9 @@ function finale(T) {
     if (lt < 0 || since > 0 || k <= 0) { finOrbs.hide(i); continue; }
     const a = s * 1.047 + k * 5 + j * 0.05, r = 3.2 * (1 - easeOut(k));
     tmp.set(coreP.x + Math.cos(a) * r, coreP.y + Math.sin(k * 3 + s) * 0.6 * (1 - k), coreP.z + Math.sin(a) * r);
-    finOrbs.set(i, tmp, (j ? 0.18 : 0.5) * (0.6 + 0.4 * k), SEG[s].color.clone().multiplyScalar(1.6), j ? 0.6 * (1 - j / 14) : 1); }
+    finOrbs.set(i, tmp, (j ? 0.35 : 0.9) * (0.6 + 0.4 * k), SEG[s].color.clone().multiplyScalar(1.6), j ? 0.6 * (1 - j / 14) : 1); }
   finOrbs.commit();
-  if (lt >= 0 && since < 0) { out.exposure = 1 - 0.6 * seg(lt, 0.4, 2.0); out.light = 10 * seg(lt, 0, 2); }
+  if (lt >= 0 && since < 0) { out.exposure = 1 - 0.4 * seg(lt, 0.4, 2.0); out.light = 10 * seg(lt, 0, 2); }
   // beam 29.0-30.0 from the core to the target
   const bk = since >= 0 && since < 1.0 ? (1 - seg(since, 0.55, 1.0)) * easeOut(seg(since, 0, 0.08)) : 0;
   for (const [m, w] of [[beamCore, 0.35], [beamGlow, 1.1]]) {
@@ -185,7 +185,7 @@ function finale(T) {
   }
   crack.material.uniforms.uR.value = since < 0 ? 0 : 1.08 * easeOut(seg(since, 0.05, 0.4));
   crack.material.uniforms.uA.value = since < 0 ? 0 : 1 - seg(since, 1.2, 2.4);
-  const dk = since < 0 ? 0 : easeOut(seg(since, 0.05, 0.4)); dome.scale.set(9 * dk + 0.01, 7 * dk + 0.01, 9 * dk + 0.01);
+  const dk = since < 0 ? 0 : easeOut(seg(since, 0.05, 0.4)); dome.scale.set(6 * dk + 0.01, 4.5 * dk + 0.01, 6 * dk + 0.01);
   dome.material.uniforms.uA.value = since < 0 ? 0 : 1 - seg(since, 0.35, 1.1); dome.material.uniforms.uB.value = seg(since, 0.3, 1.1);
   finSeed.forEach((s, i) => { const dt = since - 0.05, k = dt / s.life, on = dt >= 0 && k < 1;
     const dragT = (1 - Math.exp(-dt * 2.5)) / 2.5; dummy.position.set(TARGET.x + s.v.x * dragT, 0.4 + s.v.y * dragT - 4 * dt * dt, TARGET.z + s.v.z * dragT);
@@ -203,18 +203,18 @@ function finale(T) {
 // ---------- camera: shots chosen from the timeline, all pure functions of T
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 function shot(T) {
-  if (T < 2.5) { const k = easeOut(seg(T, 0, 2.5)); return [V(0.2, 0.9 + 0.5 * k, 6 - 2.2 * k), V(0, 1.45, 0)]; }
+  if (T < 2.5) { const k = easeOut(seg(T, 0, 2.5)); return [V(0.2, 1.0 + 0.5 * k, 7.5 - 2.5 * k), V(0, 1.45, 0)]; }
   for (let i = SEG.length - 1; i >= 0; i--) { const s = SEG[i]; if (T >= s.at && T < (SEG[i + 1]?.at ?? FIN)) {
     const lt = T - s.at, side = i % 2 ? -1 : 1;
-    if (lt < 1.1) { const a = 0.6 * side + lt * 0.25 * side; return [V(Math.sin(a) * 2.6, 1.15, -Math.cos(a) * 2.6 + 0.4), V(0, 1.45, 0)]; } // front 3/4 on the caster, charge
-    const k = seg(lt, 1.1, 4.2); return [V(1.7 * side, 2.4 + 0.6 * k, 4.2 - 1.2 * k), V(0, 1.4, -9)];                                   // over the shoulder to the hit zone
+    if (lt < 1.1) { const a = 0.6 * side + lt * 0.25 * side; return [V(Math.sin(a) * 4.3, 1.35, -Math.cos(a) * 4.3), V(0, 1.3, 0)]; } // front 3/4 on the caster, charge
+    const k = seg(lt, 1.1, 4.2); return [V(2.3 * side, 2.7 + 0.5 * k, 6.2 - 1.2 * k), V(0, 1.2, -10)];                                   // over the shoulder to the hit zone
   } }
-  const lt = T - FIN; if (T < HIT) { const k = seg(lt, 0, 2); return [V(3.4 - 1.2 * k, 1.4 + 0.8 * k, 1.5), V(0.2, 2.2, -1)]; }
-  const k = easeOut(seg(T, HIT, END)); return [V(9 - 2 * k, 2 + 3 * k, -4 + 2 * k), V(0, 1.5, -10)];
+  const lt = T - FIN; if (T < HIT) { const k = seg(lt, 0, 2); return [V(4.5 - 1.2 * k, 1.6 + 0.8 * k, 2.5), V(0.2, 2.0, -1)]; }
+  const k = easeOut(seg(T, HIT, END)); return [V(13 - 2 * k, 6 + 2 * k, 7 - 2 * k), V(0, 1.2, -7)];
 }
 
 const composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.45, 0.82); composer.addPass(bloom);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.4, 0.88); composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const wipe = document.getElementById('wipe'), nameEl = document.getElementById('name');
 

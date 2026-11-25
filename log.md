@@ -353,3 +353,7 @@ improved: rules 12-13 in reference-videos.md; intake drops duplicate links; work
 ## [2026-11-25] vfx / Frost Fault: first own effect scored against the reference baseline
 tools/vfx/frost-fault (three.js, deterministic renderAt(t)); capture.mjs → keep.py sheets → new tools/refs/baseline.py: 7/7 measured rules pass; first pass failed by eye (4-frame whiteout), fixed. Scorer sanity: ref 07 = 5/7. By eye: crystal cel bands weak, hit still 2 bright frames.
 improved: baseline.py makes the rules measurable; capture.mjs routes the CDN to a local three so cloud checks work offline; whiteout tuned (flash light 40→10, glow 3.2→1.4)
+
+## [2026-11-25] vfx / Elemental Onslaught: 31.5 s six-element cinematic (first playable pass)
+Original hooded sorcerer; poison, fire, darkness, light, rock, spellbook attacks (3 crew-workers on a lib.js contract) + converging finale beam, crack web, dome. Rendered via capture.mjs (local http + routed three); viewed 1 s overviews twice and finale frames. Pass 2 fixed: fire/light whiteouts, camera too close, tendrils too thick, finale camera inside the dome.
+improved: lib.js attack contract lets workers build in parallel; capture.mjs serves ES modules over local http; whiteout + camera fixes from the first look

@@ -70,7 +70,7 @@ export function create(ctx) {
       const r = (0.5 + 2.0 * h) * (1 - 0.7 * collapse), a = j * 0.35 + 4 * (lt - 1.6);
       P.set(target.x + Math.cos(a) * r, y, target.z + Math.sin(a) * r);
       if (h < 0.5) C.copy(CORE).lerp(HUE, h * 2); else C.copy(HUE).lerp(DEEP, (h - 0.5) * 2);
-      bb.set(oJ + j, P, 0.9 - 0.5 * h, C, 0.9 * (1 - collapse));
+      bb.set(oJ + j, P, 0.7 - 0.4 * h, C, 0.32 * (1 - collapse));
     }
     // ground ring
     for (let j = 0; j < NR; j++) {

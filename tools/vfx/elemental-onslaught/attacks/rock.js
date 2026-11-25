@@ -179,7 +179,7 @@ export function create(ctx) {
     dust.commit();
 
     light.intensity = 6 + 14 * impactBell;
-    out.exposure = 1 - 0.3 * seg(lt, 0, 0.3);
+    out.exposure = 1 - 0.3 * seg(lt, 0, 0.3) + 0.3 * seg(lt, 0.3, 0.6); // dim before the first spike, recover as they erupt
     out.shake = clamp(Math.max(0.5 * bell(seg(lt, 0.3, 1.2)), impactShake));
     return out;
   }

@@ -24,8 +24,8 @@ export function create(ctx) {
   const pillars = [];
   for (let i = 0; i < 7; i++) {
     const c = i < 6 ? new THREE.Vector3(target.x + Math.cos(i * Math.PI / 3) * 3, 0, target.z + Math.sin(i * Math.PI / 3) * 3) : new THREE.Vector3(target.x, 0, target.z);
-    const core = new THREE.Mesh(coreGeo, addMat({ color: CORE, opacity: 0.9, side: THREE.DoubleSide }));
-    const glow = new THREE.Mesh(coreGeo, addMat({ color: HUE, opacity: 0.25, side: THREE.DoubleSide }));
+    const core = new THREE.Mesh(coreGeo, addMat({ color: CORE, opacity: 0.45, side: THREE.DoubleSide }));
+    const glow = new THREE.Mesh(coreGeo, addMat({ color: HUE, opacity: 0.1, side: THREE.DoubleSide }));
     const ring = new THREE.Mesh(ringGeo, addMat({ color: HUE, side: THREE.DoubleSide }));
     core.position.copy(c); glow.position.copy(c); ring.position.set(c.x, 0.05, c.z);
     core.visible = glow.visible = ring.visible = false;
@@ -91,7 +91,7 @@ export function create(ctx) {
       if (on) {
         const r = Math.max(easeOut(seg(lt, p.s, p.s + 0.12)) * (0.35 - 0.3 * seg(lt, p.s + 0.12, p.s + 0.72)), 0.0001);
         p.core.scale.set(r, 1, r); p.glow.scale.set(r * 3, 1, r * 3);
-        p.core.material.opacity = 0.9 * pf; p.glow.material.opacity = 0.25 * pf;
+        p.core.material.opacity = 0.45 * pf; p.glow.material.opacity = 0.1 * pf;
       }
       const ron = lt >= p.s && lt <= p.s + 0.5;
       p.ring.visible = ron;

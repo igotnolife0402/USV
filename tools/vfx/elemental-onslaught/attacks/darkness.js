@@ -18,10 +18,10 @@ export function create(ctx) {
     const m1 = start.clone().lerp(end, 0.38).add(new THREE.Vector3(R(-1.5, 1.5), 0, R(-1.5, 1.5))); m1.y = R(1, 3);
     const m2 = start.clone().lerp(end, 0.68).add(new THREE.Vector3(R(-1.5, 1.5), 0, R(-1.5, 1.5))); m2.y = R(1, 3);
     const curve = new THREE.CatmullRomCurve3([start, m1, m2, end]);
-    const gb = new THREE.TubeGeometry(curve, 80, 0.12, 6);
-    const gg = new THREE.TubeGeometry(curve, 80, 0.16, 6);
+    const gb = new THREE.TubeGeometry(curve, 80, 0.06, 6);
+    const gg = new THREE.TubeGeometry(curve, 80, 0.09, 6);
     const mb = new THREE.Mesh(gb, new THREE.MeshBasicMaterial({ color: BLACK }));
-    const mg = new THREE.Mesh(gg, addMat({ color: HUE, opacity: 0.5 }));
+    const mg = new THREE.Mesh(gg, addMat({ color: HUE, opacity: 0.35 }));
     mb.frustumCulled = mg.frustumCulled = false; mb.visible = mg.visible = false;
     root.add(mb, mg);
     tend.push({ gb, gg, mb, mg, nb: gb.index.count, ng: gg.index.count });
