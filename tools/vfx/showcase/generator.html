@@ -50,6 +50,15 @@ pre.err{margin:0;color:var(--bad);font-size:12px;white-space:pre-wrap}
 .tag{position:absolute;right:10px;top:8px;font:600 11px system-ui;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:#ffffff1a;color:#cfd6e4;pointer-events:none}
 .sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .sheets figure{margin:0;display:grid;gap:4px}.sheets img{width:100%;aspect-ratio:1;background:#000;border-radius:6px;border:1px solid var(--line)}
+dialog#lib{width:min(1100px,calc(100vw - 32px));max-height:calc(100dvh - 32px);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:0}
+dialog#lib::backdrop{background:#000b}
+.libhead{position:sticky;top:0;z-index:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.libhead h2{margin:0 auto 0 0}.libhead input{flex:1 1 180px;font:13px system-ui;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+#libbody{padding:12px;display:grid;gap:14px}#libbody h3{margin:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.libgrid figure{margin:0;display:grid;gap:4px;align-content:start}
+.libgrid img{width:100%;aspect-ratio:1;background:#000;border-radius:6px;border:1px solid var(--line);cursor:zoom-in}
+.libgrid figure.big{grid-column:1/-1}.libgrid figure.big img{max-width:min(640px,100%);cursor:zoom-out}
+.libgrid figcaption{font-size:11.5px;color:var(--mute);overflow-wrap:anywhere}.libgrid .row{display:flex;gap:6px;flex-wrap:wrap}.libgrid .row button{padding:3px 8px;font-size:12px}
 .sheets figcaption{font-size:11px;color:var(--mute);overflow-wrap:anywhere}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{padding:5px 10px;font-size:12.5px}.tabs button.on{border-color:var(--accent);color:var(--accent)}
 .slot{border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:7px;background:var(--panel2)}
@@ -80,7 +89,7 @@ pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-w
     <div class="side">
       <div class="card">
         <h2>Your animations</h2>
-        <div class="bar"><button class="primary" id="gen" type="button">Generate all</button><button id="stop" type="button" hidden>Stop all</button><button id="add" type="button">+ Add slot</button></div>
+        <div class="bar"><button class="primary" id="gen" type="button">Generate all</button><button id="stop" type="button" hidden>Stop all</button><button id="add" type="button">+ Add slot</button><button id="sheetBtn" type="button" title="Every VFX sheet as a PNG: library + every sheet generated here">Sheet</button></div>
         <div class="status" id="status"></div>
         <div id="slots" style="display:grid;gap:10px"></div>
       </div>
@@ -98,6 +107,7 @@ pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-w
     </div>
   </div>
 </div>
+<dialog id="lib" aria-labelledby="libt"><div class="libhead"><h2 id="libt">Every VFX sheet</h2><input id="libq" type="search" placeholder="Search name, element, prompt…" aria-label="Search sheets"><span id="libn" class="meta"></span><button id="libx" type="button">Close</button></div><div id="libbody"></div></dialog>
 <script type="module">
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
@@ -153,6 +163,9 @@ function texField(kind, cs) {                      // one cell's texture (0..1),
 }
 // generated sheets: key 'gen|<hash of code+seed>' -> Promise<{url, jump, empty}> from ugen.makeSheet
 const GEN = new Map()
+// sheets saved by earlier runs (hub db + assets): same code+seed -> reuse the stored PNG instead of drawing again
+const SAVED = new Map(), SESSION = new Map()
+const fromSaved = r => fetch(r.url).then(x => { if (!x.ok) throw new Error('HTTP ' + x.status); return x.blob() }).then(blob => ({ blob, url: URL.createObjectURL(blob), empty: 0, jump: r.jump ?? 0 }))
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36) }
 const genKey = d => 'gen|' + hashStr(d.code + '|' + (d.seed ?? 1125))
 const imgCache = new Map()
@@ -163,7 +176,7 @@ const POOL = { n: Math.max(1, Math.min(6, (navigator.hardwareConcurrency || 4) -
 function poolKill(why) { POOL.off = true; for (const w of POOL.ws) w.terminate(); POOL.ws = []; const j = [...POOL.jobs.values()]; POOL.jobs.clear(); for (const x of j) makeSheet(x.code, x.seed).then(x.res, x.rej); if (why) console.warn('sheet workers off:', why) }
 function drawSheet(code, seed) {
   if (!POOL.off && !POOL.ws.length) {
-    try { for (let i = 0; i < POOL.n; i++) { const w = new Worker(new URL('lib/ugen-worker.js', document.baseURI), { type: 'module' }); w.onerror = e => { e.preventDefault?.(); poolKill(e.message || 'worker error') }; w.onmessage = ({ data: m }) => { const j = POOL.jobs.get(m.id); if (!j) return; POOL.jobs.delete(m.id); m.error ? j.rej(new Error(m.error)) : j.res({ url: URL.createObjectURL(m.blob), empty: m.empty, jump: m.jump }) }; POOL.ws.push(w) } }
+    try { for (let i = 0; i < POOL.n; i++) { const w = new Worker(new URL('lib/ugen-worker.js', document.baseURI), { type: 'module' }); w.onerror = e => { e.preventDefault?.(); poolKill(e.message || 'worker error') }; w.onmessage = ({ data: m }) => { const j = POOL.jobs.get(m.id); if (!j) return; POOL.jobs.delete(m.id); m.error ? j.rej(new Error(m.error)) : j.res({ url: URL.createObjectURL(m.blob), blob: m.blob, empty: m.empty, jump: m.jump }) }; POOL.ws.push(w) } }
     catch (e) { poolKill(e.message) }
   }
   if (POOL.off) return makeSheet(code, seed)
@@ -175,7 +188,7 @@ async function renderSheets(S, say = () => {}) {
   say(`Drawing ${ids.length} new sheets in parallel…`)
   await Promise.all(ids.map(async id => {
     const d = S.sheets[id], k = genKey(d)
-    if (!GEN.has(k)) GEN.set(k, drawSheet(d.code, d.seed ?? 1125))
+    if (!GEN.has(k)) GEN.set(k, SAVED.has(k) ? fromSaved(SAVED.get(k)).catch(() => drawSheet(d.code, d.seed ?? 1125)) : drawSheet(d.code, d.seed ?? 1125))
     try { out[id] = await GEN.get(k) } catch (e) { GEN.delete(k); throw new Error(`sheet "${id}": ${e.message}`) }
     if (out[id].empty > 4) { GEN.delete(k); throw new Error(`sheet "${id}": ${out[id].empty} of 16 frames are empty (draw from t≈0.05, the wrapper erodes it after 0.55)`) }
   }))
@@ -617,6 +630,7 @@ async function runSlot(sl) {
     }
     t.end = performance.now(); const tot = t.end - t.start
     sl.cls = 'ok'; slotStatus(sl, `Generated "${sl.spec.name}" · clip ${sl.P.B.clip.len.toFixed(3)} s (target ${fmtS(sl.ms)}) · ${applied}\nmodel ${(t.model / 1000).toFixed(1)} s · draw ${(t.draw / 1000).toFixed(1)} s · total ${(tot / 1000).toFixed(1)} s (target 15 s)`, 'ok')
+    saveSheets(sl.spec, sl.P.res, want).then(r => { const add = r.failed ? `\nFailed: sheet save (${r.failed}); kept for this session in Sheet` : r.saved ? `\n${r.saved} new sheets saved to Sheet` : r.store ? '' : '\nSheets kept for this session in Sheet (no hub storage here)'; if (add) slotStatus(sl, sl.status + add, r.failed ? 'bad' : 'ok') })
     if (sel < 0 || sel === slots.indexOf(sl) || !slots[sel]?.P) { sel = slots.indexOf(sl); show(sl.P); playing = true }
   } catch (e) {
     t.end = performance.now(); sl.cls = 'bad'
@@ -636,7 +650,7 @@ $('gen').onclick = generateAll
 $('stop').onclick = () => slots.forEach(s => s.ctrl?.abort())
 $('add').onclick = () => { addSlot(); renderTabs() }
 const showP = () => sel >= 0 ? slots[sel]?.P : EX
-$('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
+$('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; if (Object.keys(P.S.sheets || {}).length) saveSheets(P.S, P.res, ''); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
 async function saveSpec(spec, nm) {
   if (!spec) return
   const d = await dlP, data = JSON.stringify(spec, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
@@ -653,6 +667,64 @@ window.vfxgen = {
 }
 const cap = n => (window.claude?.use ? window.claude.use(n).catch(() => null) : Promise.resolve(null))
 const samplerP = cap('sample'), dlP = cap('downloads')
+// ---------- Sheet: every VFX sheet as a PNG (library + every sheet generated here); new sheets are saved to the hub (assets + db)
+const dbP = cap('db'), assetsP = cap('assets'), col = db => db.collection('vfxsheets')
+async function loadSaved() {
+  const db = await dbP; if (!db) return
+  try { const q = await col(db).orderBy('at', 'desc').limit(1000).get(); for (const d of q.docs) { const r = d.data(); if (r?.key && r.asset) SAVED.set(r.key, { ...r, url: '/_blob/' + r.asset }) } }
+  catch (e) { console.warn('saved sheets not loaded:', e?.code || e?.message || e) }
+  if ($('lib').open) renderLib()
+}
+async function saveSheets(S, res, prompt) {
+  const [db, assets] = await Promise.all([dbP, assetsP]); let saved = 0, failed = ''
+  for (const [id, d] of Object.entries(S.sheets || {})) {
+    const k = genKey(d), r = res?.[id]; if (!r || SAVED.has(k) || SESSION.has(k)) continue
+    const rec = { key: k, name: `${S.name || 'vfx'} · ${id}`, sheet: id, clip: S.name || '', prompt: String(prompt || '').slice(0, 2000), code: d.code, seed: d.seed ?? 1125, life: d.life ?? 0.9, jump: r.jump, at: Date.now() }
+    SESSION.set(k, { ...rec, url: r.url, blob: r.blob })               // shown at once; stays "this session only" if the save fails
+    if (!db || !assets || !r.blob) continue
+    try { const a = await assets.upload(r.blob); rec.asset = a.id; await col(db).doc(k.slice(4)).set(rec); SAVED.set(k, { ...rec, url: a.url }); SESSION.delete(k); saved++ }
+    catch (e) { failed = e?.code || e?.message || String(e) }
+  }
+  if ($('lib').open) renderLib()
+  return { saved, failed, store: !!(db && assets) }
+}
+async function pngOf(t) { if (t.blob) return t.blob; const r = await fetch(t.url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob() }
+async function savePng(t, b) {
+  const d = await dlP; if (!d) { status('Downloads are not available here: long-press the sheet to save the image.', 'bad'); return }
+  b.disabled = true
+  try { await d.save({ filename: t.file, data: await pngOf(t) }); status('Saved ' + t.file, 'ok') } catch (e) { status('PNG not saved: ' + (e?.message || e?.code || e), 'bad') } finally { b.disabled = false }
+}
+function tile(t) {
+  const f = document.createElement('figure'), i = new Image(), c = document.createElement('figcaption'), row = document.createElement('div')
+  i.loading = 'lazy'; i.decoding = 'async'; i.src = t.url; i.alt = t.name; i.onclick = () => f.classList.toggle('big')
+  c.textContent = t.cap; row.className = 'row'
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = 'PNG'; b.onclick = () => savePng(t, b); row.append(b)
+  if (t.code) { const s = document.createElement('button'); s.type = 'button'; s.textContent = 'Copy script'
+    s.onclick = async () => { const j = JSON.stringify({ code: t.code, seed: t.seed, life: t.life }); try { await navigator.clipboard.writeText(j); status('Sheet script copied: paste it into "sheets" of a spec to reuse this sheet.', 'ok') } catch { $('spec').value = j; $('specBox').open = true; status('Clipboard blocked: the script is in the spec box.', 'ok') } }
+    row.append(s) }
+  f.append(i, c, row); return f
+}
+const slugFile = s => s.replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'vfx'
+function renderLib() {
+  const q = $('libq').value.trim().toLowerCase(), hit = (...a) => !q || a.join(' ').toLowerCase().includes(q)
+  const gen = [...SESSION.values(), ...SAVED.values()].sort((a, b) => b.at - a.at)
+    .filter(r => hit(r.name, r.prompt, r.code))
+    .map(r => ({ ...r, file: slugFile(r.name) + '.png', cap: `${r.name}${r.asset ? '' : ' · this session only'} · jump ${r.jump}` }))
+  const lib = Object.entries(INDEX).filter(([slug, r]) => hit(slug, r.name, r.kind))
+    .map(([slug, r]) => ({ name: r.name, url: LIB + 'sheets/' + slug + '.png', file: slug + '.png', cap: `${r.name} · ${r.kind} · ${r.frames} fr` }))
+  const body = $('libbody'); body.replaceChildren()
+  for (const [title, list, empty] of [[`Generated here (${gen.length})`, gen, q ? 'No generated sheet matches.' : 'Nothing generated yet: every sheet a slot draws is saved here.'], [`Library vfx/sheets (${lib.length})`, lib, 'No library sheet matches.']]) {
+    const h = document.createElement('h3'), g = document.createElement('div'); h.textContent = title; g.className = 'libgrid'
+    if (list.length) g.append(...list.map(tile)); else { const p = document.createElement('p'); p.className = 'meta'; p.textContent = empty; g.append(p) }
+    body.append(h, g)
+  }
+  $('libn').textContent = `${gen.length + lib.length} sheets`
+}
+$('sheetBtn').onclick = () => { renderLib(); $('lib').showModal() }
+$('libx').onclick = () => $('lib').close()
+$('libq').oninput = renderLib
+$('lib').onclick = e => { if (e.target === $('lib')) $('lib').close() }
+loadSaved()
 samplerP.then(s => { if (!s) { $('gen').disabled = true; status('Generation needs the Claude sample capability (open this inside Claude-Hub). Playback and the spec editor work.') } })
 
 // ---------- boot: the showcase spec plays first

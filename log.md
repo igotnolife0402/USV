@@ -526,3 +526,7 @@ Generator: 1-6 slots, Generate all fires every sample call in one tick (Promise.
 improved: sheet drawing moved to a worker pool (lib/ugen-worker.js, main-thread fallback); hub runtime upgraded 0.2.96 -> 0.2.99 so the model pin can apply; L-197 draw-time budget + L-198 contract rule in profiles/tools.md; router vfx words slots/exact duration/generate all; hub tile text says slots
 improve 60: brief + Sonnet earlier turn; build ~12 min after prompt
 learn: vault-upkeep skill-miss on the vfx build (generic vault words in brief/summary); L-154 x2 promoted: learn.mjs never requires vault-upkeep for non-vault builds
+
+## [2026-11-25] build / vfx generator Sheet gallery + auto-save
+Sheet button: every sheet as PNG (97 library + generated), search, PNG download, Copy script; new sheets auto-save to hub assets + db vfxsheets and are reused (rerun draw 14.2 s -> 3.0 s). Headless check with mocked db/assets/downloads: 103 sheets, 6 saved, 0 dupes, 0 errors.
+improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/pc.md duplicated date fixed; Playwright route-order lesson (domains/vfx/errors.md); tools.md generator row updated
