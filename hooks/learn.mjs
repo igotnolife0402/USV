@@ -84,8 +84,8 @@ export const domainsOf = (paths) => [...new Set(paths.map(p => rel(p).match(/^do
 // Turn facts + router state -> list of signals worth a lesson.
 export function improvedCount(logText = '', label = 'improved') {
   const last = String(logText).split(/\n(?=## \[)/).pop() || '';
-  // `Fixed: a, b, c` (or `;`) on one line, or the label followed by a numbered/bulleted list. label = regex alternation.
-  const m = last.match(new RegExp(`^(?:${label}):[ \\t]*(.*)((?:\\n[ \\t]*(?:\\d+[.)]|[-*])[ \\t]+.+)*)`, 'im'));
+  // `Fixed: a, b, c` (or `;`) on one line (a leading `- ` bullet is fine: log entries are bullets), or the label followed by a numbered/bulleted list. label = regex alternation.
+  const m = last.match(new RegExp(`^[ \\t]*(?:[-*][ \\t]+)?(?:${label}):[ \\t]*(.*)((?:\\n[ \\t]*(?:\\d+[.)]|[-*])[ \\t]+.+)*)`, 'im'));
   if (!m) return 0;
   const inline = m[1].split(/[;,]/).map(s => s.trim()).filter(Boolean).length;
   const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;

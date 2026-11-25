@@ -533,4 +533,4 @@ improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/
 
 ## [2026-11-25] improve / vfx generator: always new, short clips, stand-ins
 - Generator never reads saved sheets (fresh seed per Generate unless locked); slugs rejected. Target < 4 s: story len = target, cineOpts scales build/slow/hold, lifeErrs forces fix rounds; len floor 3 → 0.3 s. Stand-ins toggle + `stand_ins` export. Opus 5.5 pin kept (falls back via modelTier). Headless check6: 0.8 s exact, lives >= 0.52 s, slug fix round, 6 s spec at 0.8 s = 9 errs, stand-ins off 0 parts/10 fx, rerun redraws 14.9 s. improve 60: 61.6 s total PASS.
-- improved: generator reuse removed; short-target quality validated; len floor bug (3 s) fixed; router words stand-in/filler → vfx; vfx skill notes generator exception; L-200
+- improved: generator reuse removed; short-target quality validated; len floor bug (3 s) fixed; router words stand-in/filler → vfx; vfx skill notes generator exception; L-200; learn.mjs improvedCount now counts bulleted `- improved:` log lines (Stop hook missed them)
