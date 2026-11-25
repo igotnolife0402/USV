@@ -360,4 +360,4 @@ improved: lib.js attack contract lets workers build in parallel; capture.mjs ser
 
 ## [2026-11-25] vfx / Elemental Onslaught imported into Umbrio (owner correction)
 Fresh tab eo-onslaught-1: sorcerer model (23 meshes, tools/3d/props/sorcerer.py; detail + zfight PASS) + 7 flipbook sheets (2048 px 8x8, hub assets) on a 31.5 s clip. Read back: 31 objects, zfight PASS. Look not verified (queued PC). VFX tier back to medium.
-improved: VFX deliverable rule in vfx playbook (L-149); sheets.mjs renders any three.js effect into Umbrio flipbooks; complex tier words reverted
+improved: VFX deliverable rule in vfx playbook (L-149); sheets.mjs renders any three.js effect into Umbrio flipbooks; complex tier words reverted; sheets-as-assets rule (L-150)

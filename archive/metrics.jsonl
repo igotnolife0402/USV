@@ -87,3 +87,4 @@
 {"t":"2026-11-25T21:18:53.891Z","tier":"medium","secs":14,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
 {"t":"2026-11-25T21:57:32.918Z","tier":"medium","secs":244,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-25T22:03:29.241Z","tier":"medium","secs":270,"ok":true,"errors":0,"retry":0,"routes":["vfx","3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-25T22:12:22.015Z","tier":"medium","secs":454,"ok":false,"errors":1,"retry":1,"routes":["3d","vfx"],"touched":[],"signals":["errors","slow"],"mode":"mobile"}

@@ -8,6 +8,7 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 
 ## Deliverable (owner 2026-11-25, L-149)
 - Every VFX ends in a fresh Umbrio tab: models as Umbrio meshes, effects as flipbook sheets (8x8, hub assets, `projects/<id>/tex/<id>` = `{asset}`) placed on the clip timeline. three.js pages only render the sheets ([sheets.mjs](tools/vfx/elemental-onslaught/sheets.mjs)). VFX is medium tier, however long.
+- Sheets go up as hub assets first (Artifact `asset: true`, `file_paths`), then `tex` docs `{asset: id}`; base64 in a doc breaks the 256 KiB cap (L-150). Speed: render sheets + build the model in parallel, one write batch per stage.
 
 ## Pick the tool
 | Need | Use |
