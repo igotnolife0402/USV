@@ -6,6 +6,9 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
 # VFX playbook
 
+## Deliverable (owner 2026-11-25, L-149)
+- Every VFX ends in a fresh Umbrio tab: models as Umbrio meshes, effects as flipbook sheets (8x8, hub assets, `projects/<id>/tex/<id>` = `{asset}`) placed on the clip timeline. three.js pages only render the sheets ([sheets.mjs](tools/vfx/elemental-onslaught/sheets.mjs)). VFX is medium tier, however long.
+
 ## Pick the tool
 | Need | Use |
 |---|---|

@@ -16,3 +16,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-22 look at Minigame Mayhem in Studio play: new palette UI (vote cards, top bar, spectate bar), cutscene orbit, 6 new arenas + theme decor, 15 new Umbrio kit models (tabs mm-kit5-games, mm-kit5-decor); none visually verified — swarm minigame-mayhem fun pass 2026-11-22
 - [ ] 2026-11-22 2026-11-22 watch Minigame Mayhem bots in play (ObstacleRush, SpinSweep): do the waits/hops/dashes look human? not visually verified — bot-watch numbers only
 - [ ] 2026-11-23 Run `node scripts/install-global.mjs` in the vault after pulling main: installs /improve (+ improver agent) as a personal skill so it works in every folder on the PC
+- [ ] 2026-11-25 Open Umbrio hub project eo-onslaught-1 (Elemental Onslaught), play the 31.5 s clip, check the 7 flipbook cards line up with the sorcerer and read well — mobile build 2026-11-25; built-in browser is signed out so the look is not verified

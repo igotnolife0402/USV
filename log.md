@@ -357,3 +357,7 @@ improved: baseline.py makes the rules measurable; capture.mjs routes the CDN to 
 ## [2026-11-25] vfx / Elemental Onslaught: 31.5 s six-element cinematic (first playable pass)
 Original hooded sorcerer; poison, fire, darkness, light, rock, spellbook attacks (3 crew-workers on a lib.js contract) + converging finale beam, crack web, dome. Rendered via capture.mjs (local http + routed three); viewed 1 s overviews twice and finale frames. Pass 2 fixed: fire/light whiteouts, camera too close, tendrils too thick, finale camera inside the dome.
 improved: lib.js attack contract lets workers build in parallel; capture.mjs serves ES modules over local http; whiteout + camera fixes from the first look; complex-tier words for long cinematics (L-148)
+
+## [2026-11-25] vfx / Elemental Onslaught imported into Umbrio (owner correction)
+Fresh tab eo-onslaught-1: sorcerer model (23 meshes, tools/3d/props/sorcerer.py; detail + zfight PASS) + 7 flipbook sheets (2048 px 8x8, hub assets) on a 31.5 s clip. Read back: 31 objects, zfight PASS. Look not verified (queued PC). VFX tier back to medium.
+improved: VFX deliverable rule in vfx playbook (L-149); sheets.mjs renders any three.js effect into Umbrio flipbooks; complex tier words reverted

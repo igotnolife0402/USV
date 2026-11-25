@@ -2,7 +2,7 @@
 """Five original vape props for the studio (toon style, numpy only).
 
 python3 vapes.py OUT [--check] [--preview]
-Builders live in vape_a.py, vape_b.py, vape_c.py (registered into props.PROPS).
+Builders live in vape_parts/vape_a.py, vape_b.py, vape_c.py (registered into props.PROPS).
 Writes OUT/geo/*.json, OUT/<name>.json per vape and OUT/vapes.json (all five in a row, one project).
 """
 # @style: toon
@@ -14,6 +14,7 @@ import shutil
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "vape_parts"))  # builders live in vape_parts/ (folder cap 20)
 import props as P  # noqa: E402
 import vape_a, vape_b, vape_c  # noqa: E402,F401  (register builders)
 

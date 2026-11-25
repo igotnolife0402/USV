@@ -151,7 +151,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - ...4 more
 
 ## pod-vape, box-mod | Toon vape props, original designs, no logos
-- file: `tools/3d/props/vape_a.py` (165 lines)
+- file: `tools/3d/props/vape_parts/vape_a.py` (165 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L9 def cyl(r, h, y0=0.0, f=0.012, seg=32, rmod=None, t=(0, 0, 0)
@@ -161,7 +161,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - L96 def box_mod(rng)
 
 ## disposable-vape, vape-pen | Toon vape props (builders registered into props.PROPS)
-- file: `tools/3d/props/vape_b.py` (150 lines)
+- file: `tools/3d/props/vape_parts/vape_b.py` (150 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L12 def tex(pat, base, dark, light, scale=2)
@@ -172,7 +172,7 @@ Read this file instead of opening templates. Then read only the line range you c
   - L89 def vape_pen(rng)
 
 ## mech-mod | Toon mech-mod tube vape with rebuildable dripping atomiser
-- file: `tools/3d/props/vape_c.py` (112 lines)
+- file: `tools/3d/props/vape_parts/vape_c.py` (112 lines)
 - run: `python3 vapes.py OUT --check`
 - api:
   - L18 def knurl(n, y0, y1, amp=0.011)

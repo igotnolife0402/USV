@@ -246,6 +246,10 @@ function renderAt(T) {
   // 1-frame hue wipe as each attack starts (cuts on action; 6 wipes in 24 s, far under 3 Hz)
   const w = SEG.find(s => T >= s.at - 0.05 && T < s.at);
   wipe.style.opacity = w && !reduced ? 1 : 0; if (w) wipe.style.background = w.hue;
+  if (window.SHEET) { // sprite-sheet mode for the Umbrio import: effects only, on black, from one fixed camera
+    caster.visible = floor.visible = aura.mesh.visible = eyeGlow.mesh.visible = false; wipe.style.opacity = 0;
+    camera.position.set(7.5, 4.5, -1); camera.lookAt(0, 2.2, -8.5); camera.fov = 55; camera.aspect = 1; camera.updateProjectionMatrix(); renderer.toneMappingExposure = Math.min(exposure, 1.2);
+  }
   nameEl.textContent = cur ? cur.name : T >= FIN ? 'Convergence' : ''; nameEl.style.opacity = (cur && T - cur.at < 2.2) || (T >= FIN && T < HIT + 1) ? 1 : 0; nameEl.style.color = '#' + hue.getHexString();
   composer.render();
 }
