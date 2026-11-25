@@ -93,3 +93,4 @@
 {"t":"2026-11-25T23:37:24.215Z","tier":"medium","secs":3,"ok":true,"errors":0,"retry":0,"routes":["tools","vfx"],"touched":[],"signals":["improve"],"mode":"mobile"}
 {"t":"2026-11-25T23:37:34.448Z","tier":"medium","secs":266,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-25T23:46:32.620Z","tier":"medium","secs":118,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-25T23:56:04.988Z","tier":"medium","secs":99,"ok":true,"errors":2,"retry":1,"routes":["tools","vfx"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
