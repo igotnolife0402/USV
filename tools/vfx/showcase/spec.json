@@ -402,7 +402,9 @@
      6.528,
      1.1
     ]
-   ]
+   ],
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "sym-119-ue51b",
@@ -429,7 +431,9 @@
      6.689,
      1.25
     ]
-   ]
+   ],
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-043-petals-vortex",
@@ -443,7 +447,9 @@
     0
    ],
    "size": 4.5,
-   "opacity": 0.8
+   "opacity": 0.8,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-044-spiral-rise",
@@ -454,7 +460,9 @@
     1.6,
     0
    ],
-   "size": 5
+   "size": 5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-021-helix-rise",
@@ -465,7 +473,9 @@
     2.6,
     0
    ],
-   "size": 6
+   "size": 6,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-010-xcut-sparkfall",
@@ -476,7 +486,9 @@
     3.3,
     0.5
    ],
-   "size": 4.5
+   "size": 4.5,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-017-crescent",
@@ -487,7 +499,9 @@
     3.2,
     0.5
    ],
-   "size": 4
+   "size": 4,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-027-crescent-claw",
@@ -498,7 +512,9 @@
     3.2,
     0.5
    ],
-   "size": 4
+   "size": 4,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-019-thrust-streaks",
@@ -509,7 +525,9 @@
     3.2,
     1.2
    ],
-   "size": 4.5
+   "size": 4.5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-022-streaks-beam",
@@ -528,7 +546,9 @@
    "size": 1.4,
    "shape": "beam",
    "length": 9,
-   "speed": 28
+   "speed": 28,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-013-streaks-bolt",
@@ -539,7 +559,9 @@
     1.2,
     1.5
    ],
-   "size": 3.5
+   "size": 3.5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-053-bolt-shards",
@@ -550,7 +572,9 @@
     1.2,
     1
    ],
-   "size": 3.5
+   "size": 3.5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-047-bolt-orbit",
@@ -561,7 +585,9 @@
     3.2,
     0
    ],
-   "size": 5
+   "size": 5,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-041-dashes-streaks",
@@ -572,7 +598,9 @@
     1.2,
     3.5
    ],
-   "size": 3.5
+   "size": 3.5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-000-spikes-dashes",
@@ -583,7 +611,9 @@
     3.2,
     0
    ],
-   "size": 8
+   "size": 8,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-005-ground-dashring",
@@ -595,7 +625,9 @@
     0
    ],
    "size": 12,
-   "flat": true
+   "flat": true,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-029-thrust-column",
@@ -606,7 +638,9 @@
     5.5,
     0
    ],
-   "size": 7
+   "size": 7,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-065-fountain-rise",
@@ -617,7 +651,9 @@
     2,
     0
    ],
-   "size": 5
+   "size": 5,
+   "ramp": "void",
+   "tex": "noise"
   },
   {
    "slug": "act-064-petals-bubbles",
@@ -629,7 +665,9 @@
     0
    ],
    "size": 5,
-   "opacity": 0.8
+   "opacity": 0.8,
+   "ramp": "holy",
+   "tex": "noise"
   },
   {
    "slug": "act-066-rise-shards",
@@ -641,7 +679,9 @@
     0
    ],
    "size": 4.5,
-   "opacity": 0.8
+   "opacity": 0.8,
+   "ramp": "void",
+   "tex": "noise"
   }
  ],
  "impacts": [
@@ -703,5 +743,5 @@
    "base": 1.2
   }
  ],
- "_note": "story time; anim.cine slow-mo stretches it to ~12 s with the payoff at ~8.5 s clip time"
+ "_note": "story time; anim.cine slow-mo stretches it to ~12 s with the payoff at ~8.5 s clip time; ramp/tex = paint.py presets the generator paints live (build.mjs ignores them)"
 }

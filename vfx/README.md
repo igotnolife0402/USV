@@ -52,6 +52,7 @@ Presets: fire, ice, electric, poison, holy, void, blood, wind; or hex stops `--r
 | Collect approved set into the library | `tools/vfx/library.py` | `vfx/sheets` + `vfx/index.tsv` |
 | Colour a copy | `tools/vfx/paint.py` | scratch or the game |
 | Showcase clip (Umbrio Studio) | `tools/vfx/showcase/` | Claude-Hub tab |
+| Prompt → clip (owner types the animation) | `tools/vfx/showcase/generator.html` | Claude-Hub tile "vfx generator" |
 - Gap: the script that produced the current `mix3` set (act-/sym-) is not in the repo; only its output is. Commit it to `tools/vfx/` when found.
 
 ## Adding effects

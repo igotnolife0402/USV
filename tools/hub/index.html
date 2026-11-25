@@ -1,0 +1,68 @@
+<title>Claude-Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link data-hub rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link data-hub rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&display=swap">
+<style data-hub>
+/* A plain launcher: one tile per tool, grouped by category. A tile opens its tool inside this page. */
+:root{--bg:#f3f5f8;--card:#fff;--fg:#151a22;--mute:#5d6878;--line:#d9dfe8;--accent:#2b59d9;--chip:#e6ecfb;
+--head:"Space Grotesk",system-ui,sans-serif;--body:Inter,system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f131a;--card:#171d27;--fg:#e8edf5;--mute:#93a0b4;--line:#2a3342;--accent:#7d9cff;--chip:#1f2a40;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f131a;--card:#171d27;--fg:#e8edf5;--mute:#93a0b4;--line:#2a3342;--accent:#7d9cff;--chip:#1f2a40;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px}
+main{max-width:880px;margin:0 auto;display:grid;gap:22px}
+h1{font:700 24px/1.1 var(--head);margin:0}
+h2{font:500 12px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tool{display:flex;flex-direction:column;gap:10px;min-width:0;box-sizing:border-box;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);text-decoration:none}
+a.tool:hover{border-color:var(--accent)}a.tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tool i{width:40px;height:40px;border-radius:10px;background:var(--chip);color:var(--accent);display:grid;place-items:center;font:700 18px var(--head);font-style:normal}
+.tool b{font:600 15px var(--head);overflow-wrap:anywhere}.tool span{color:var(--mute);font-size:13px;line-height:1.35}
+.tool.off{opacity:.55}
+.empty{color:var(--mute)}
+button.tool{font:inherit;text-align:left;cursor:pointer}button.tool:hover{border-color:var(--accent)}button.tool:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+<style>#hub-back{position:fixed;z-index:2147483000;left:0;top:50%;transform:translateY(-50%);padding:10px 9px 10px max(7px,env(safe-area-inset-left,0px));border:1px solid #ffffff2e;border-left:0;border-radius:0 10px 10px 0;background:#10141bd9;color:#e8edf5;font:600 11px system-ui,sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}</style>
+<main data-hub>
+<h1>Claude-Hub</h1>
+<div id="list"></div>
+</main>
+<script>
+// One block scope: a tool page opened in here runs its own classic scripts in this same window, so hub names must not leak.
+{
+const T=[{"key": "3d/studio", "name": "umbrio sandbox", "category": "3d", "what": "3D builder: parts, meshes, animation, textures, drawing, import/export, MP4 video; AI-editable projects", "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF", "entry": "tools/3d/studio/index.html"}, {"key": "art/styles", "name": "styles", "category": "art", "what": "20 image-style prompts: pick a style, type the subject, add Roblox/sheet/thumbnail add-ons, copy", "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF", "entry": "tools/art/styles/index.html"}, {"key": "vfx/generator", "name": "vfx generator", "category": "vfx", "what": "Type your exact animation; Claude writes the clip: painted vfx sheets, cine camera, slow-mo, flash, lights", "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF", "entry": "tools/vfx/showcase/generator.html"}],$=id=>document.getElementById(id);
+const cats={};T.forEach(t=>(cats[t.category]=cats[t.category]||[]).push(t));
+if(!T.length)$("list").innerHTML='<p class="empty">No tools yet.</p>';
+Object.keys(cats).sort().forEach(c=>{const s=document.createElement("section"),g=document.createElement("div");
+s.innerHTML="<h2></h2>";s.querySelector("h2").textContent=c;g.className="grid";
+cats[c].forEach(t=>{const b=document.createElement(t.entry?"button":t.url?"a":"div");b.className="tool"+(t.entry||t.url?"":" off");
+if(t.entry){b.onclick=()=>openTool(t);b.onpointerdown=b.onpointerenter=b.onfocus=()=>get(t).catch(()=>{})}else if(t.url){b.href=t.url;b.target="_blank";b.rel="noopener"}else b.title="Not published yet";
+b.innerHTML="<i></i><b></b><span></span>";b.querySelector("i").textContent=t.name[0].toUpperCase();
+b.querySelector("b").textContent=t.name;b.querySelector("span").textContent=t.what;g.appendChild(b)});
+s.appendChild(g);$("list").appendChild(s)});
+// Open a tool inside the hub: swap the launcher for the tool's own page, with its folder as the base URL.
+const KEY="hub.tool",keep=k=>{try{k?sessionStorage.setItem(KEY,k):sessionStorage.removeItem(KEY)}catch(e){}};
+// The tool page starts downloading on touch/hover, a tap's worth of time before the click lands.
+const got={},get=t=>got[t.key]||=fetch(t.entry).then(r=>{if(!r.ok)throw Error("HTTP "+r.status);return r.text()}).catch(e=>{delete got[t.key];throw e});
+async function openTool(t){let html;keep(t.key);
+try{html=await get(t)}
+catch(e){keep(null);const p=document.createElement("p");p.className="empty";p.textContent=`${t.name} failed to open: ${e.message}`;$("list").prepend(p);return}
+const doc=new DOMParser().parseFromString(html,"text/html");
+document.querySelectorAll("[data-hub]").forEach(n=>n.remove());
+const base=document.createElement("base");base.href=t.entry.replace(/[^/]*$/,"");document.head.prepend(base);
+for(const n of[...doc.head.childNodes,...doc.body.childNodes]){
+if(n.nodeName==="TITLE"){document.title=n.textContent;continue}
+if(n.nodeName==="SCRIPT"){const s=document.createElement("script");for(const a of n.attributes)s.setAttribute(a.name,a.value);s.textContent=n.textContent;document.body.appendChild(s)}
+else document.body.appendChild(document.importNode(n,true))}
+const back=document.createElement("button");back.id="hub-back";back.textContent="‹ Hub";
+back.onclick=()=>{keep(null);history.replaceState(null,"",location.pathname+location.search);location.reload()};document.body.appendChild(back)}
+let open=null;try{open=sessionStorage.getItem(KEY)}catch(e){}
+const reopen=T.find(t=>t.key===open&&t.entry);if(reopen)openTool(reopen);
+// Device check: saves which device opened the hub so Claude can read it (one doc, overwritten).
+function device(){const u=navigator.userAgent,t=navigator.maxTouchPoints>1;
+return /iPhone/.test(u)?"iPhone":/iPad/.test(u)||(/Macintosh/.test(u)&&t)?"iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows PC":/Macintosh/.test(u)?"Mac":"Other"}
+let dbRef=null,last=0;async function report(){if(!dbRef||document.hidden||Date.now()-last<3e5)return;last=Date.now();
+try{await dbRef.set({device:device(),screen:`${screen.width}x${screen.height}`,ua:navigator.userAgent.slice(0,200),at:new Date().toISOString()})}catch(e){last=0}}
+(async()=>{const db=window.claude&&await claude.use("db");if(!db)return;dbRef=db.doc("device/last");report();
+document.addEventListener("visibilitychange",report);setInterval(report,3e5)})();
+}
+</script>

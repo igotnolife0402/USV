@@ -511,3 +511,8 @@ improved: tools/vfx/showcase builder (spec-driven, reusable); cine slow-mo stret
 ## [2026-11-25] answer / where vfx are saved and built
 Saved vfx/sheets + vfx/index.tsv; built by tools/vfx/{flipbook,stylized,liquid} -> library.py; paint.py colours copies.
 improved: vfx/README "Built by" table; mix3 generator gap recorded; spec.json + build.mjs re-read so the showcase docs match; learn.mjs: README + domains notes no longer count as builds (L-192)
+
+## [2026-11-25] build / VFX prompt generator in Claude-Hub
+tools/vfx/showcase/generator.html: prompt -> Claude writes spec (validate + 1 repair round) -> live paint of vfx/sheets -> cinePass/cineLights -> Studio vfx.js playback; hub tile "vfx generator" (v55, + sample capability, 97 sheets, cine.js). Check: headless default spec, payoff at 8.50 s, 0 console errors, payoff+0.6 s frame seen (holy burst + void ring). Real prompt generation not run (sample needs the hub).
+improve 60: total 109.5 s (FAIL +49.5, clock already at 66.5 s from interrupted turns), rungs 1-3.
+improved: spec.json carries ramp/tex so painting is data, not a manual paint.py step; generator plays with verbatim copies of Studio vfx.js/cine.js/sample.js in tools/vfx/showcase/lib (same look, tools stay separate); repo-check lets tools read the shared vfx/ library; hub index.html now in repo (tools/hub/index.html) so republishing no longer needs a read; headless check serves the repo via Playwright routing (no local server needed)

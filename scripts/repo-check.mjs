@@ -169,7 +169,8 @@ function toolChecks(root, files, read, has, add) {
       add(t.dir, 'no note links it (tools/<cat>/<tool>/ in a domain note or index), so no task can reach it');
     for (const [f, x] of t.body) for (const m of x.matchAll(/(?:\.\.[/\\])+[\w./\\-]*/g)) {
       const p = posix.normalize(posix.join(posix.dirname(f), m[0].replace(/\\/g, '/')));
-      if (!p.startsWith(t.dir + '/') && p !== t.dir) { add(f, `'../' path leaves its tool folder (${m[0]})`); break; }
+      // vfx/ is the shared white-sheet library every tool may read (vfx/README.md), not another tool
+      if (!p.startsWith(t.dir + '/') && p !== t.dir && !/^vfx(\/|$)/.test(p)) { add(f, `'../' path leaves its tool folder (${m[0]})`); break; }
     }
     for (const o of info) {
       if (o === t || !t.all.includes(o.name)) continue;
