@@ -7,7 +7,7 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 # VFX playbook
 
 ## Deliverable (owner 2026-11-25, L-149)
-- Effects come from the owner's VFX pack (`vfx/`, profiles/tools.md "VFX Pack"), painted per element; never hand-drawn three.js effects. Builder: tools/vfx/elemental-onslaught/umbrio.mjs (spec: anchors hand/T in metres, 3 s per beat: charge 0.5, travel 0.35, impact, linger).
+- Effects come from the owner's VFX pack (`vfx/`, profiles/tools.md "VFX Pack"), painted per element; never hand-drawn three.js effects. Every element needs its own 3D hero (parts with pos/scale/color/visible tracks: bubbles that pop, fireball, black hole, sky pillar, rock spikes, books) + pack sheets as layers; no beam shapes unless asked (tools/vfx/elemental-onslaught/elements.py). Builder: tools/vfx/elemental-onslaught/umbrio.mjs (spec: anchors hand/T in metres, 3 s per beat: charge 0.5, travel 0.35, impact, linger).
 - Every VFX ends in a fresh Umbrio tab: models as Umbrio meshes, effects as flipbook sheets (8x8, hub assets, `projects/<id>/tex/<id>` = `{asset}`) placed on the clip timeline. three.js pages only render the sheets ([sheets.mjs](tools/vfx/elemental-onslaught/sheets.mjs)). VFX is medium tier, however long.
 - Sheets go up as hub assets first (Artifact `asset: true`, `file_paths`), then `tex` docs `{asset: id}`; base64 in a doc breaks the 256 KiB cap (L-150). Speed: render sheets + build the model in parallel, one write batch per stage.
 

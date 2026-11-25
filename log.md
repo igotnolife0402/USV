@@ -366,3 +366,7 @@ improved: VFX deliverable rule in vfx playbook (L-149); sheets.mjs renders any t
 Rebuilt in Umbrio tab eo-onslaught-2: 51 pack flipbooks (37 painted sheets), metre anchors hand/T, 3 s per element, payoff 21.25 s; read-back + zfight pass; not visually verified (PC queued).
 improved: VFX Pack registered in profiles/tools.md; playbook rule pack-first + umbrio.mjs builder; L-151 + router words "vfx pack"/"my vfx"
 - 2026-11-25 learn: sed on .mjs blocked (L-045 x bumped); vfx errors.md row for cross-tool path lint; vault/vfx skills ran via scripts/vault.mjs + earlier vfx load (continuation turn).
+
+## [2026-11-25] build / Elemental Onslaught v3: unique 3D hero per element, no beams
+Fresh Umbrio tab eo-onslaught-3: 153 objects (55 animated parts: glass bubbles + corrosion puddle, fireball, black hole + ring + pulled rocks, sky pillars, rock spikes, grimoires; 66 pack flipbooks, 0 beams), 71 tracks; read-back + zfight PASS; not visually verified.
+improved: umbrio.mjs parts take tracks; spec_v3.py generator; playbook rule unique hero per element + lesson

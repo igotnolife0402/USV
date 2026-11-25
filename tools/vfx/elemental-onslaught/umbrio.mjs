@@ -20,7 +20,11 @@ const anchor = { hand: S.hand, T: S.T, caster: [0, 0, 0] }
 
 const sorc = JSON.parse(readFileSync(join(SORC, 'live/p1.json')))
 const objs = { ...sorc.objects }, tracks = {}, uploads = {}, bad = []
-for (const [k, o] of Object.entries(S.parts || {})) objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
+// parts may carry `tracks` ({pos, rot, scale, color, visible}: 3D bubbles, fireballs, rock spikes, books) that join the clip
+for (const [k, { tracks: tr, ...o }] of Object.entries(S.parts || {})) {
+  objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
+  if (tr) tracks[k] = tr
+}
 S.fx.forEach((e, i) => {
   const m = idx[e.slug]; if (!m) return bad.push('no sheet ' + e.slug)
   const tid = `fx-${e.slug}-${e.ramp}`, file = join(FX, tid + '.webp')
