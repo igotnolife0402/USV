@@ -401,7 +401,10 @@
         "poison",
         "vfx generator",
         "drip",
-        "goo"
+        "goo",
+        "vfx pack",
+        "my vfx",
+        "vfx library"
       ],
       "notes": [
         "domains/vfx/playbook.md",
