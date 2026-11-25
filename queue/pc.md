@@ -29,3 +29,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-24 2026-11-24 upload vfx-atlas.zip atlases to Roblox, paste ids into VFXAtlas.ATLAS, playtest VFXAtlas.play — mobile build
 - [ ] 2026-11-24 open Claude-Hub Umbrio tab "VFX Showcase 20", play it, check fps holds and the light-helper diamonds are hidden in play — mobile build (tools/vfx/showcase, headless frames looked at, phone GPU fps not measured)
 - [ ] 2026-11-25 Open Claude-Hub > vfx generator: confirm default clip plays, then run one real prompt (e.g. fire sword triple slash + ground slam) and check the payoff at 12 fps — mobile build, not visually verified in the hub
+- [ ] 2026-11-25 open Claude-Hub vfx generator, prompt 'poison bubble bursting', confirm new sheets draw (thumbnails), clip plays, sample works; check eval allowed in viewer

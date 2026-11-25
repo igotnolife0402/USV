@@ -45,14 +45,21 @@ textarea.code{font:12px/1.4 ui-monospace,Menlo,monospace;min-height:260px;white-
 details summary{cursor:pointer;color:var(--mute);font-size:12.5px}
 .meta{font-size:12px;color:var(--mute)}
 pre.err{margin:0;color:var(--bad);font-size:12px;white-space:pre-wrap}
+.msg{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:calc(100% - 24px);padding:7px 12px;border-radius:8px;background:#0b0d13e6;border:1px solid var(--line);font-size:13px;white-space:pre-wrap;pointer-events:none}
+.msg.bad{color:var(--bad);border-color:#ff7a7a66}.msg.ok{color:var(--ok)}
+.tag{position:absolute;right:10px;top:8px;font:600 11px system-ui;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:#ffffff1a;color:#cfd6e4;pointer-events:none}
+.sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.sheets figure{margin:0;display:grid;gap:4px}.sheets img{width:100%;aspect-ratio:1;background:#000;border-radius:6px;border:1px solid var(--line)}
+.sheets figcaption{font-size:11px;color:var(--mute);overflow-wrap:anywhere}
+pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-wrap;color:#cfd6e4;background:var(--panel2);border-radius:8px;padding:8px;max-height:260px;overflow:auto}
 </style>
 </head>
 <body>
 <div class="app">
-  <h1>VFX Generator<small>prompt → painted sheets → anim.cine clip</small></h1>
+  <h1>VFX Generator<small>prompt → Claude writes the sheet scripts → new white sheets → painted anim.cine clip</small></h1>
   <div class="grid">
     <div style="display:grid;gap:10px">
-      <div class="stage" id="stage"><div class="hud" id="hud"></div><div class="load" id="load">Loading…</div></div>
+      <div class="stage" id="stage"><div class="hud" id="hud"></div><div class="load" id="load">Loading…</div><div class="tag" id="tag"></div><div class="msg" id="msg" hidden></div></div>
       <div class="bar">
         <button id="play" type="button">Pause</button>
         <button id="restart" type="button">Restart</button>
@@ -67,6 +74,11 @@ pre.err{margin:0;color:var(--bad);font-size:12px;white-space:pre-wrap}
         <textarea id="prompt" placeholder="Describe the exact animation: the caster or object, what charges, each hit in order, the payoff, colours, camera feel, how it settles…"></textarea>
         <div class="bar"><button class="primary" id="gen" type="button">Generate</button><button id="stop" type="button" hidden>Stop</button></div>
         <div class="status" id="status"></div>
+      </div>
+      <div class="card" id="sheetsCard" hidden>
+        <h2>New sheets (written this run)</h2>
+        <div class="sheets" id="sheets"></div>
+        <details><summary>Sheet scripts</summary><pre class="code" id="scripts"></pre></details>
       </div>
       <div class="card">
         <details id="specBox"><summary>Spec JSON (edit, then Apply)</summary>
@@ -84,9 +96,12 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { sample, storyAt } from './lib/sample.js'
 import { cinePass, cineLights, CINE } from './lib/cine.js'
 import VFX from './lib/vfx.js'
+// the library's own sheet method (the stylized unique.py), ported: Claude's scripts are drawn by it into NEW white sheets
+import { makeSheet, EL } from './lib/ugen.js'
 
 const LIB = '../../../vfx/', $ = id => document.getElementById(id)
-const status = (msg, cls = '') => { const s = $('status'); s.textContent = msg; s.className = 'status ' + cls }
+// status shows in the side panel AND on the stage (on a phone the panel sits below the fold)
+const status = (msg, cls = '') => { const s = $('status'); s.textContent = msg; s.className = 'status ' + cls; const m = $('msg'); m.hidden = !msg; m.textContent = msg; m.className = 'msg ' + cls; if (cls === 'ok') setTimeout(() => { if (m.textContent === msg) m.hidden = true }, 4000) }
 const store = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch {} } }
 
 // ---------- paint (port of tools/vfx/paint.py): light = sheet alpha -> ramp edge->core, texture multiplied inside the alpha
@@ -127,8 +142,28 @@ function texField(kind, cs) {                      // one cell's texture (0..1),
   }
   texCache.set(key, t); return t
 }
+// generated sheets: key 'gen|<hash of code+seed>' -> Promise<{url, jump, empty}> from ugen.makeSheet
+const GEN = new Map()
+const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36) }
+const genKey = d => 'gen|' + hashStr(d.code + '|' + (d.seed ?? 1125))
 const imgCache = new Map()
-const loadImg = slug => imgCache.get(slug) || imgCache.set(slug, new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('sheet missing: ' + slug)); i.src = LIB + 'sheets/' + slug + '.png' })).get(slug)
+const loadImg = slug => imgCache.get(slug) || imgCache.set(slug, (slug.startsWith('gen|') ? GEN.get(slug).then(r => r.url) : Promise.resolve(LIB + 'sheets/' + slug + '.png')).then(src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('sheet missing: ' + slug)); i.src = src }))).get(slug)
+// draw every script in S.sheets (sequential, cached); throws naming the sheet whose script broke
+async function renderSheets(S, say = () => {}) {
+  const ids = Object.keys(S.sheets || {}), out = {}
+  for (const [n, id] of ids.entries()) {
+    const d = S.sheets[id], k = genKey(d)
+    if (!GEN.has(k)) { say(`Drawing new sheet ${n + 1}/${ids.length}: ${id}…`); GEN.set(k, makeSheet(d.code, d.seed ?? 1125)) }
+    try { out[id] = await GEN.get(k) } catch (e) { GEN.delete(k); throw new Error(`sheet "${id}": ${e.message}`) }
+    if (out[id].empty > 4) { GEN.delete(k); throw new Error(`sheet "${id}": ${out[id].empty} of 16 frames are empty (draw from t≈0.05, the wrapper erodes it after 0.55)`) }
+  }
+  return out
+}
+function showSheets(S, res) {
+  const ids = Object.keys(S.sheets || {}); $('sheetsCard').hidden = !ids.length; $('sheets').replaceChildren()
+  for (const id of ids) { const f = document.createElement('figure'), i = new Image(), c = document.createElement('figcaption'); i.src = res[id].url; i.alt = 'generated sheet ' + id; c.textContent = `${id} · jump ${res[id].jump}`; f.append(i, c); $('sheets').append(f) }
+  $('scripts').textContent = ids.map(id => `// ${id} (seed ${S.sheets[id].seed ?? 1125})\n${S.sheets[id].code}`).join('\n\n')
+}
 const painted = new Map()                          // tex id -> Promise<blob url>
 function paint(slug, grid, ramp, tex, amt) {
   const id = ['fx', slug, ramp, tex, amt].join('|')
@@ -182,11 +217,12 @@ function validate(S) {
     }
   }
   const fx = S.fx || []
+  for (const [id, d] of Object.entries(S.sheets || {})) if (typeof d?.code !== 'string' || !d.code.trim()) bad.push(`sheet ${id}: code (the draw script) missing`)
   if (fx.length < 3 || fx.length > 40) bad.push('fx count must be 3..40')
   fx.forEach((e, i) => {
-    const m = INDEX[e.slug], tag = `fx[${i}] ${e.slug}`
-    if (!m) return bad.push(`${tag}: no such sheet`)
-    const dur = 'dur' in e ? e.dur : (e.life ?? 0.6)
+    const m = e.sheet ? S.sheets?.[e.sheet] : INDEX[e.slug], tag = `fx[${i}] ${e.sheet || e.slug}`
+    if (!m) return bad.push(e.sheet ? `${tag}: no sheets.${e.sheet} script` : `${tag}: no such sheet`)
+    const dur = 'dur' in e ? e.dur : (e.life ?? (e.sheet ? m.life ?? 0.9 : 0.6))
     if (!(e.t >= 0) || e.t + dur > L + 1e-6) bad.push(`${tag}: ${e.t}+${dur} leaves 0-${L}`)
     if (!vec(e.pos)) bad.push(`${tag}: pos [x,y,z]`)
     if (!(e.size > 0)) bad.push(`${tag}: size`)
@@ -206,9 +242,9 @@ function build(S) {
   for (const [k, o] of Object.entries(S.parts || {})) objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
   for (const [k, tr] of Object.entries(S.tracks || {})) tracks[k] = tr
   S.fx.forEach((e, i) => {
-    const m = INDEX[e.slug], loop = 'dur' in e, life = e.life ?? 0.6, dur = loop ? e.dur : life
-    const tex = paint(e.slug, m.grid, e.ramp, e.tex || 'noise', e.tex_amt ?? 0.35)
-    const o = { type: 'flipbook', name: `FX ${e.slug} ${e.t}`, tex, grid: m.grid, frames: m.frames, parent: e.parent || null, pos: e.pos,
+    const m = e.sheet ? { grid: 4, frames: 16 } : INDEX[e.slug], src = e.sheet ? genKey(S.sheets[e.sheet]) : e.slug, loop = 'dur' in e, life = e.life ?? (e.sheet ? S.sheets[e.sheet].life ?? 0.9 : 0.6), dur = loop ? e.dur : life
+    const tex = paint(src, m.grid, e.ramp, e.tex || 'noise', e.tex_amt ?? 0.35)
+    const o = { type: 'flipbook', name: `FX ${e.sheet || e.slug} ${e.t}`, tex, grid: m.grid, frames: m.frames, parent: e.parent || null, pos: e.pos,
       rot: e.rot || [0, 0, 0], size: e.size, start: e.t, life, loop, dur, fps: loop ? (e.fps || 12) : +(m.frames / life).toFixed(2), blend: 'add', flat: !!e.flat }
     if (e.shape === 'beam') Object.assign(o, { shape: 'beam', length: e.length, speed: e.speed ?? 18 })
     if (e.opacity != null) o.opacity = e.opacity
@@ -295,8 +331,9 @@ function clear() {
   for (const n of [...root.children]) root.remove(n)
   root.traverse?.(() => {})
 }
-function load(S) {
+async function load(S, say) {
   const bad = validate(S); if (bad.length) throw new Error(bad.join('\n'))
+  const res = await renderSheets(S, say)
   const B = build(S); clear()
   const nodes = {}
   for (const [id, o] of Object.entries(B.objects)) {
@@ -318,6 +355,10 @@ function load(S) {
   $('pay').style.left = `calc(${(pt / len * 100).toFixed(2)}% - 1px)`
   const nfx = Object.values(B.objects).filter(o => o.type === 'flipbook').length, nl = Object.values(B.objects).filter(o => o.type === 'light').length
   $('meta').textContent = `${S.name} · ${nfx} painted sheets · ${nl} cine lights · story ${S.len}s → clip ${len.toFixed(2)}s (slow-mo) · payoff ${pt.toFixed(2)}s · ${S.cine_kind || 'burst'}`
+  const ns = Object.keys(S.sheets || {}).length
+  $('tag').textContent = ns ? `generated · ${ns} new sheets` : 'example (library sheets)'
+  if (ns) $('meta').textContent += ` · ${ns} new sheets drawn by the library method, jump max ${Math.max(...Object.values(res).map(r => r.jump))}`
+  showSheets(S, res)
   $('spec').value = JSON.stringify(S, null, 1); T = 0
   return Promise.all([...new Set(Object.values(B.objects).filter(o => o.tex).map(o => o.tex))].map(id => painted.get(id)))
 }
@@ -370,48 +411,53 @@ $('scrub').oninput = e => { if (!CUR) return; playing = false; $('play').textCon
 window.vfxgen = { seek: t => { playing = false; T = t; frameAt(t) }, payoff: () => CUR && clipTimeOf(CUR.B.clip, CUR.S.payoff), get spec() { return CUR?.S } }
 
 // ---------- generate: Claude writes the spec (artifact `sample` capability)
-const RULES = `You write VFX showcase specs (JSON) for a three.js player that uses a fixed library of white flipbook sheets, paints them by gradient map, then adds a cinematic pass (camera push-in, slow-mo, hit-stop, dark dip, white flash, decaying shake, colour grade) and impact/rim lights automatically.
-Return ONLY one JSON object, no prose, no code fences. All times are STORY seconds (the cine pass adds ~2 s of slow-mo around the payoff by itself; never stretch times for it).
+const RULES = `You make a VFX clip in two parts, returned as ONE JSON object (no prose, no code fences):
+(1) "sheets": NEW flipbook sheets you WRITE as draw scripts. They are drawn by the exact method of the owner's sheet library (the stylized unique.py): 16 frames, 160 px frames drawn at 2x with tapered disc strokes, 6 lingering motes added for you, noise erosion after 55 % of life added for you, glow lighting + edge fade + white Grid4x4 1024 px sheet (light = alpha). Colour is NOT in the script: the player paints each sheet by ramp.
+(2) the clip spec that places those sheets in a three.js scene with an automatic cinematic pass (camera push-in, slow-mo, hit-stop, dark dip, white flash, decaying shake, colour grade) and impact/rim lights.
 
-Schema (same as the example):
-- name, len (6..14 s typical), payoff (the ONE biggest moment, ~0.6..0.75 of len), cine_kind "impact" (sharp hit) or "burst" (long build, rumble steps), tint "#rrggbb" (light tint of the dominant hue, used for grade + lights), push (0.1..0.35).
-- camera {pos,target,fov}: the framing at t=0. camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: a slow orbit/drift around the subject covering 0..len, with a key exactly at payoff. Keep the subject in frame; y-up, units ~ metres.
-- env {bg "#hex" (dark for glow), fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
-- parts {id:{shape box|cylinder|sphere|cone|torus|plane, name, size [x,y,z], pos, rot [deg x,y,z], color, roughness, material "Neon" for glowing parts, emissive "#hex", emissiveIntensity}}. Cylinder axis is Y (size [x,height,z]); a floor slab = cylinder size [0.2,24,24] rot [0,0,90] like the example. Build what the prompt describes from these primitives (several parts for a character/object); scene dressing only if asked.
-- tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...]}}: ease "auto" through motion; anticipation before every hit (small pull-back/squash with "in" ~0.1-0.15 s before), "out" pop on the hit, then settle with "auto". Rotations in degrees, cumulative for spins.
-- fx [{slug, t, life (one-shot seconds) OR dur (+fps, loops/auras), pos, size, parent (part id, optional: rides it), flat (true = ground decal), opacity (0.4-0.8 for big background layers), rot, grow [[t,scale],...] (optional), shape "beam" + length + speed (beam along local +X, rot to aim; a 3D volume), ramp, tex, tex_amt}].
-- ramp: one of fire, ice, electric, poison, holy, void, blood, wind, or custom "#edge,#mid,...,#core" (3-5 stops, dark edge -> white-ish core). tex: "noise" (default) | "cells" | "streaks" | "none"; tex_amt 0.25-0.4.
-- impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one (at the payoff time)}]: one per hit; rims [{pos, color, base 1.0-1.5}] 1-2 back/side rim lights.
+SHEET SCRIPTS: "sheets": {"<id>": {"code": "<JS function body>", "seed": <int>, "life": <s>}}. The body runs once per frame as (pen, rng, t, U); t = 0.05 -> 1 over the 16 frames. Frame coordinates: px, frame 160x160, centre 0,0, x right, y DOWN (negative y = up).
+- pen.dot(x,y,r,v=1); pen.stroke(points,w0,w1,v=1) = tapered stroke, radius w0 -> w1 along the points; pen.poly(points,v=1). v = light 0..1 (overlaps replace, not add).
+- U.EL.<name>(pen, rngX, t, S) draws one library element at the pen origin, timing built in. Elements: ${Object.keys(EL).join(', ')}. Ring-like (use once, never paired with another ring): shock, ground, vortex, zigring, polyshock, dashring.
+  Meanings: crescent slash arc; claw 3-4 parallel arcs; xcut cross slash; thrust stab line; shock ring; ground flat ring; spikes star burst; cracks jagged radial cracks; dashes inward speed dashes; spiral arms; helix twin rising strands; streaks horizontal wind lines; waves wavy lines; puffs soft blob cluster; flames rising licks; bolt lightning; fountain droplets arcing up then falling; beam horizontal beam; orbit circling dots; rise rising dots/crosses; shards spinning shards flying out; column rising blob column; fan upward fan of rays; pillar light pillar; faultline ground crack + debris; comet diagonal comet; petals spinning petals; zigring zigzag ring; bubbles bubble rings rising (hollow circles); vortex inward rings; sparkfall sparks thrown up then falling; polyshock polygon ring; dashring dashed ring.
+- U.params(scale, overrides) -> S {R radius px, w width mult 0.7-1.4, n 1-6, k count 5-12, sweep 1.8-3.6, sq squash 0.45-1}. Primary scale 0.8-0.95, partner 0.65-0.85. Override k for counts (e.g. {k: 12}).
+- U.at(x,y) sets the pen origin; U.rng(0) = a separate stable random stream (for the partner); U.ease(x) = 1-(1-x)^3 clamped; U.arc(r,a0,a1,{cx,cy,sq,rot,k}); U.jag(rngX,x0,y0,x1,y1,k,amp); U.linspace(a,b,n); U.C = 160.
+- rng is re-seeded every frame: call it in the same order every frame so particles keep their paths. Never Math.random, never Date. Return {motes:false} only for a clean single shape.
+- HOUSE STYLE (how every library sheet is made, keep it): one primary element at the origin + at most one partner element. Draw the partner FIRST at U.at(0,0) | U.at(U.C*.18,0) | U.at(0,U.C*.2) with U.rng(0), then U.at(0,0) and the primary with rng. Write custom pen strokes only when no element shows the action (e.g. a bubble swelling then popping); then copy the element style: fast-in timing with U.ease(t/0.3..0.5), tapered widths 0.4..8, hollow rings as stroke(U.arc(...)) width 1.2-5, everything inside radius ~70 px, never fade by hand (the wrapper erodes).
+- Template: const S2 = U.params(0.75), S1 = U.params(0.9, {k: 10})\nU.at(0, U.C*.2); U.EL.shock(pen, U.rng(0), t, S2); U.at(0, 0)\nU.EL.bubbles(pen, rng, t, S1)
+- Write 4-8 sheets, one per layer role of THIS animation (e.g. poison bubble burst: swelling bubble + pop ring, bubble cluster rising, droplet fountain, splash shards, ground splash ring, lingering rising bubbles). "life" = 0.5-1.6 s.
 
-Quality floor (the owner's standard, never lower):
-- Palette: ONE dominant hue (ramp) for most layers + a white-hot core + at most ONE accent ramp. Smoke/dust would need normal blend; this player is additive only, so do not use smoke.
-- Layer every hit: glow (big, faint, opacity 0.5-0.8) + core (the shape) + sparks/shards. Payoff = 3-4 sheets at once (core burst + ground ring flat + column/rise) and the largest sizes; earlier hits smaller.
-- Timing: build-up sparse and escalating, hits fast-in slow-out, follow-through 0.5-1.5 s of lingering rise/petals after the payoff; nothing vanishes clean, nothing overlaps the window end (t + life/dur <= len).
-- Dense, violent and fitted to the action for fights/cutscenes; otherwise one big payoff with small subtle effects elsewhere.
-- Use slugs ONLY from the catalog; pick by name meaning. Actions (act-) are 16-frame one-shots (life 0.5-1.6) or loops via dur+fps 12-16; symbols (sym-) are static emblems/sigils: use as flat ground circles or floating glyphs with dur, fps 1, grow, opacity 0.4-0.6.
-- 12-30 fx total. Size in metres (effects 3-12, beams size 1-2 and length 6-12).`
+CLIP SPEC (same schema as the example, but every fx uses "sheet": "<id>" from your sheets; NO library slugs). All times are STORY seconds (the cine pass adds ~2 s of slow-mo around the payoff itself).
+- name, len (4..14 s), payoff (the ONE biggest moment), cine_kind "impact" (sharp hit) or "burst" (build then release), tint "#rrggbb" (light tint of the dominant hue), push (0.1..0.35).
+- camera {pos,target,fov} at t=0; camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: slow orbit/drift over 0..len with a key exactly at payoff; y-up metres.
+- env {bg "#hex" dark, fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
+- parts {id:{shape box|cylinder|sphere|cone|torus|plane, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Build the described object from primitives (e.g. the poison bubble as a sphere with transparency 0.5 + emissive); dressing only if asked.
+- tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...]}}: "auto" through motion; anticipation (squash/pull-back "in" 0.1-0.15 s before) then "out" pop on the hit, settle "auto". A part that bursts scales to [0.01,0.01,0.01] at the payoff.
+- fx [{sheet, t, life (one-shot) OR dur (+fps 12-16, loops), pos, size (metres 2-10), parent (optional part id), flat (true = ground decal), opacity (0.4-0.8 for big back layers), rot, grow [[t,scale],...], ramp, tex, tex_amt}].
+- ramp: fire, ice, electric, poison, holy, void, blood, wind, or "#edge,#mid,...,#core" (3-5 stops dark edge -> white-ish core). tex "noise"|"cells"|"streaks"|"none", tex_amt 0.25-0.4.
+- impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one}], rims [{pos, color, base 1.0-1.5}] 1-2.
+
+QUALITY FLOOR (the owner's standard): ONE dominant hue + white-hot core + at most one accent ramp. Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-24 fx. Exactly what the owner describes, nothing extra.`
 let ctl = null
 function extractJSON(t) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('no JSON in the reply'); return JSON.parse(t.slice(a, b + 1)) }
 async function generate() {
   const want = $('prompt').value.trim(); if (!want) return status('Type the animation you want first.', 'bad')
   store.set('vfxgen.prompt', want)
   const S = await samplerP; if (!S) return status('Generation needs the Claude sample permission; playback and spec editing still work.', 'bad')
-  const catalog = Object.entries(INDEX).map(([s, m]) => `${s}\t${m.kind}\t${m.kind === 'symbol' ? 'static emblem' : m.name}\tlife ${m.life}`).join('\n')
   const example = JSON.stringify(DEFAULT)
-  const msgs = [{ role: 'user', content: `${RULES}\n\nCATALOG (slug, kind, name, suggested life):\n${catalog}\n\nEXAMPLE SPEC (a crystal caster charging, barrage, payoff, settle):\n${example}\n\nOWNER'S ANIMATION:\n${want}\n\nWrite the spec JSON for the owner's animation now.` }]
+  const msgs = [{ role: 'user', content: `${RULES}\n\nEXAMPLE CLIP SPEC (schema only: it uses library slugs, yours must use your own sheets):\n${example}\n\nOWNER'S ANIMATION:\n${want}\n\nWrite the JSON (sheets + clip spec) for the owner's animation now.` }]
   $('gen').disabled = true; $('stop').hidden = false
   try {
-    for (let round = 0; round < 2; round++) {
+    for (let round = 0; round < 3; round++) {
       ctl = new AbortController()
-      status(round ? 'Fixing the spec…' : 'Claude is writing the spec…')
-      const res = await S(msgs, { modelTier: 'complex', signal: ctl.signal, onText: ({ text }) => status((round ? 'Fixing… ' : 'Writing… ') + text.length + ' chars') })
+      status(round ? `Fixing (try ${round + 1}/3)…` : 'Claude is writing the sheet scripts…')
+      const res = await S(msgs, { modelTier: 'complex', signal: ctl.signal, cache: false, onText: ({ text }) => status((round ? 'Fixing… ' : 'Writing the sheet scripts… ') + text.length + ' chars') })
       let spec, errs
-      try { spec = extractJSON(res.text); errs = validate(spec) } catch (e) { errs = ['invalid JSON: ' + e.message] }
+      try { spec = extractJSON(res.text); errs = validate(spec); if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
       if (!errs.length) {
-        try { status('Painting sheets…'); await load(spec); playing = true; T = 0; $('play').textContent = 'Pause'; return status(`Generated "${spec.name}".`, 'ok') }
+        try { await load(spec, m => status(m)); status('Painting and lighting the clip…'); playing = true; T = 0; $('play').textContent = 'Pause'; return status(`Generated "${spec.name}".`, 'ok') }
         catch (e) { errs = ['build failed: ' + e.message] }
       }
-      if (round) return status('Failed: ' + errs.join('; '), 'bad')
+      if (round === 2) return status('Failed: ' + errs.join('; '), 'bad')
       msgs.push({ role: 'assistant', content: res.text }, { role: 'user', content: `That spec failed these checks:\n- ${errs.join('\n- ')}\nReturn the corrected full JSON only.` })
     }
   } catch (e) { status(e?.name === 'AbortError' || e?.code === 'aborted' ? 'Stopped.' : 'Failed: ' + (e?.message || e?.code || e), 'bad') }
@@ -419,7 +465,7 @@ async function generate() {
 }
 $('gen').onclick = generate
 $('stop').onclick = () => ctl?.abort()
-$('apply').onclick = async () => { try { await load(JSON.parse($('spec').value)); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
+$('apply').onclick = async () => { try { await load(JSON.parse($('spec').value), m => status(m)); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
 $('dl').onclick = async () => {
   const d = await dlP, data = $('spec').value, name = ((CUR?.S?.name || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
   if (!d) return status('Downloads are not available here; copy the JSON from the box.', 'bad')

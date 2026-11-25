@@ -53,7 +53,7 @@ Presets: fire, ice, electric, poison, holy, void, blood, wind; or hex stops `--r
 | Colour a copy | `tools/vfx/paint.py` | scratch or the game |
 | Showcase clip (Umbrio Studio) | `tools/vfx/showcase/` | Claude-Hub tab |
 | Prompt → clip (owner types the animation) | `tools/vfx/showcase/generator.html` | Claude-Hub tile "vfx generator" |
-- Gap: the script that produced the current `mix3` set (act-/sym-) is not in the repo; only its output is. Commit it to `tools/vfx/` when found.
+- The `mix3` act- set is drawn by `tools/vfx/stylized/unique.py` (33 elements, 1-2 per sheet). Its browser port `tools/vfx/showcase/lib/ugen.js` draws NEW sheets the same way from Claude-written scripts in the Claude-Hub vfx generator (2026-11-25).
 
 ## Adding effects
 Generator output lands in scratch first. A newer, better set replaces the old one (owner 2026-11-24): set `SRC` to the new set only, `git rm -r vfx/sheets vfx/index.tsv`, rebuild. To add alongside instead: add its folder to `SRC` in `tools/vfx/library.py` (prefix, kind, grid, frames, life) and run `python3 tools/vfx/library.py SCRATCH vfx`: it dedupes by pixels, writes white sheets and rebuilds the index. Commit `vfx/`.
