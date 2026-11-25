@@ -120,3 +120,5 @@
 {"t":"2026-11-24T08:29:47.466Z","tier":"complex","secs":518,"ok":true,"errors":2,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-24T08:40:20.838Z","tier":"medium","secs":140,"ok":true,"errors":1,"retry":1,"routes":["tools","vfx"],"touched":[],"signals":["errors","skill"],"mode":"mobile"}
 {"t":"2026-11-24T08:43:35.610Z","tier":"medium","secs":84,"ok":true,"errors":1,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":["errors"],"mode":"mobile"}
+{"t":"2026-11-24T08:49:23.706Z","tier":"medium","secs":366,"ok":false,"errors":3,"retry":1,"routes":["vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
+{"t":"2026-11-25T22:29:47.380Z","tier":"medium","secs":34,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":["skill"],"mode":"mobile"}

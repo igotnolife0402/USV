@@ -510,4 +510,4 @@ improved: tools/vfx/showcase builder (spec-driven, reusable); cine slow-mo stret
 
 ## [2026-11-25] answer / where vfx are saved and built
 Saved vfx/sheets + vfx/index.tsv; built by tools/vfx/{flipbook,stylized,liquid} -> library.py; paint.py colours copies.
-improved: vfx/README "Built by" table; mix3 generator gap recorded; spec.json + build.mjs re-read so the showcase docs match
+improved: vfx/README "Built by" table; mix3 generator gap recorded; spec.json + build.mjs re-read so the showcase docs match; learn.mjs: README + domains notes no longer count as builds (L-192)

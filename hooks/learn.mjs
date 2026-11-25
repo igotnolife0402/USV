@@ -106,7 +106,8 @@ export function signals(turn, state = {}, extra = {}) {
     out.push({ kind: 'correction', text: `owner said: "${turn.prompt.replace(/\s+/g, ' ').slice(0, 120)}"` });
   // Skill miss: the router named a skill for real work (files were written) but it was never invoked or read.
   // Writes only to vault plumbing (hooks, scripts, notes, router...) are vault work, not a domain build.
-  const VAULT_META = /^(hooks|scripts|tests|profiles|checklists|queue|state|archive|\.claude|\.orchestration|\.github)\/|^(CLAUDE\.md|index\.md|lessons\.md|log\.md|router\.json)$/;
+  // Notes and READMEs are docs, not builds (2026-11-25: answering "where are vfx" + a README edit was flagged as a vfx skill miss).
+  const VAULT_META = /^(hooks|scripts|tests|profiles|checklists|queue|state|archive|domains|\.claude|\.orchestration|\.github)\/|^(CLAUDE\.md|index\.md|lessons\.md|log\.md|router\.json)$|(^|\/)README\.md$/;
   const builds = turn.writes.filter(p => !VAULT_META.test(rel(p)));
   // An owner-invoked orchestration skill (/crew, /swarm, /helpers) replaces the routed skill (L-082): no skill miss then.
   const ownerSkill = ['crew', 'swarm', 'helpers'].some(s => (turn.skills || []).includes(s));
