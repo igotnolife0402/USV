@@ -1,5 +1,5 @@
 {
- "name": "Elemental Onslaught v5",
+ "name": "Elemental Onslaught v6",
  "len": 24.0,
  "payoff": 21.25,
  "cine_kind": "impact",
@@ -15,13 +15,20 @@
   -7.2
  ],
  "ramps": {
-  "poison": "#2f5a14,#7be04a,#e8ffb0,#ffffff",
-  "fire": "#7a1a05,#ff6a1a,#fff1b0,#ffffff",
-  "void": "#0a0612,#4a1f8a,#c9a8ff,#ffffff",
-  "holy": "#c89a3a,#ffe9a0,#ffffff,#ffffff",
-  "earth": "#3a2c20,#8a6a48,#f0d9b0,#ffffff",
-  "arcane": "#1e3f8a,#5fb8ff,#dff4ff,#ffffff",
-  "dust": "#2a2620,#6a6050,#b0a48c"
+  "poison": "#0a2a2a,#0f6a4a,#3fbf2a,#a8f03a,#eaff9a,#ffffff",
+  "fire": "#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#fff4c0,#ffffff",
+  "void": "#000000,#1a0630,#4a0e8a,#9a2ad8,#e05ad8,#ffd0f4",
+  "holy": "#6a3a00,#d08a10,#ffc23a,#ffe9a0,#fffbe8,#ffffff",
+  "earth": "#1a0e06,#5a3216,#a8601e,#e09a3a,#ffe0a0",
+  "arcane": "#020a3a,#0a2a9a,#1a7aff,#3ae0ff,#b8fff4,#ffffff",
+  "acid": "#123a10,#2f8a1a,#9ae02a,#f0ff6a,#ffffff",
+  "fumes": "#0c1a10,#1f3a1c,#3d6a2a,#7a9a4a",
+  "ember": "#5a0a00,#d23a00,#ff9a1a,#ffe680,#ffffff",
+  "smoke": "#0c0a0a,#2a2422,#4a403a,#6a5e54",
+  "voidrim": "#0a0018,#3a0a7a,#8a3aff,#c8a0ff,#ffffff",
+  "sun": "#a85a00,#ffa21a,#ffe066,#ffffff",
+  "dust": "#1a1612,#4a3e30,#8a7860,#c0ae8c",
+  "rune": "#0a1a6a,#2a5aff,#7ab8ff,#e0f4ff,#ffffff"
  },
  "camera": {
   "pos": [
@@ -5148,7 +5155,9 @@
     -7.128
    ],
    "size": 1.22,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5160,7 +5169,9 @@
     -8.019
    ],
    "size": 1.41,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5172,7 +5183,9 @@
     -7.046
    ],
    "size": 1.01,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5184,7 +5197,9 @@
     -7.964
    ],
    "size": 0.93,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5196,7 +5211,9 @@
     -7.105
    ],
    "size": 1.07,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5208,7 +5225,9 @@
     -7.029
    ],
    "size": 1.09,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5220,7 +5239,9 @@
     -7.15
    ],
    "size": 1.71,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5232,7 +5253,9 @@
     -6.686
    ],
    "size": 1.18,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5244,7 +5267,9 @@
     -6.449
    ],
    "size": 0.92,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5256,7 +5281,9 @@
     -7.699
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5268,7 +5295,9 @@
     -8.328
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5280,7 +5309,9 @@
     -7.434
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5292,7 +5323,9 @@
     -8.309
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5304,7 +5337,9 @@
     -6.553
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5316,7 +5351,9 @@
     -7.094
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-bubble",
@@ -5328,7 +5365,9 @@
     -7.018
    ],
    "size": 1.0,
-   "life": 0.5
+   "life": 0.5,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-poison-erode",
@@ -5342,11 +5381,13 @@
    "size": 4.2,
    "life": 1.6,
    "flat": true,
-   "opacity": 0.85
+   "opacity": 0.85,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "act-065-fountain-rise",
-   "ramp": "poison",
+   "ramp": "fumes",
    "t": 3.0,
    "pos": [
     0.27,
@@ -5356,7 +5397,9 @@
    "size": 3.0,
    "life": 1.6,
    "blend": "normal",
-   "opacity": 0.5
+   "opacity": 0.5,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-fire-burst",
@@ -5368,7 +5411,9 @@
     -7.2
    ],
    "size": 4.5,
-   "life": 0.9
+   "life": 0.9,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-dark-vortex",
@@ -5380,7 +5425,9 @@
     -7.2
    ],
    "size": 4.5,
-   "life": 1.6
+   "life": 1.6,
+   "tex": "streaks",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-light-pillar",
@@ -5392,7 +5439,9 @@
     -7.2
    ],
    "size": 6.0,
-   "life": 1.0
+   "life": 1.0,
+   "tex": "streaks",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-rock-fault",
@@ -5404,7 +5453,9 @@
     -2.4
    ],
    "size": 2.2857142857142856,
-   "life": 0.9
+   "life": 0.9,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-rock-fault",
@@ -5416,7 +5467,9 @@
     -4.0
    ],
    "size": 2.857142857142857,
-   "life": 0.9
+   "life": 0.9,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-rock-fault",
@@ -5428,7 +5481,9 @@
     -5.6
    ],
    "size": 3.428571428571429,
-   "life": 0.9
+   "life": 0.9,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-rock-fault",
@@ -5440,7 +5495,9 @@
     -7.2
    ],
    "size": 4.0,
-   "life": 0.9
+   "life": 0.9,
+   "tex": "cells",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-arcane-glyph",
@@ -5452,7 +5509,9 @@
     -7.2
    ],
    "size": 2.2,
-   "life": 0.7
+   "life": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "act-046-spiral-bolt",
@@ -5486,7 +5545,9 @@
     -7.2
    ],
    "size": 2.2,
-   "life": 0.7
+   "life": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "act-046-spiral-bolt",
@@ -5520,7 +5581,9 @@
     -7.2
    ],
    "size": 2.2,
-   "life": 0.7
+   "life": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "act-046-spiral-bolt",
@@ -5554,7 +5617,9 @@
     -7.2
    ],
    "size": 9.0,
-   "life": 1.4
+   "life": 1.4,
+   "tex": "streaks",
+   "texAmt": 0.45
   },
   {
    "slug": "gen-arcane-glyph",
@@ -5653,30 +5718,194 @@
    "opacity": 0.7
   },
   {
-   "slug": "act-037-streaks-fountain",
+   "slug": "act-062-fountain-bubbles",
+   "ramp": "acid",
+   "t": 2.4,
+   "pos": [
+    0.27,
+    0.7,
+    -7.2
+   ],
+   "size": 2.4,
+   "life": 1.0,
+   "tex": "cells",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-032-dashes-bubbles",
+   "ramp": "poison",
+   "t": 2.45,
+   "pos": [
+    0.27,
+    1.1,
+    -7.2
+   ],
+   "size": 3.0,
+   "life": 0.8,
+   "tex": "cells",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-064-petals-bubbles",
+   "ramp": "acid",
+   "t": 2.5,
+   "pos": [
+    0.27,
+    0.05,
+    -7.2
+   ],
+   "size": 3.6,
+   "life": 1.2,
+   "flat": true,
+   "opacity": 0.8,
+   "tex": "cells",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-065-fountain-rise",
+   "ramp": "smoke",
+   "t": 5.6,
+   "pos": [
+    0.27,
+    1.6,
+    -7.2
+   ],
+   "size": 4.2,
+   "life": 1.8,
+   "blend": "normal",
+   "opacity": 0.55,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-009-shock-flames",
    "ramp": "fire",
+   "t": 5.45,
+   "pos": [
+    0.27,
+    1.3,
+    -7.2
+   ],
+   "size": 5.0,
+   "life": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-037-streaks-fountain",
+   "ramp": "ember",
    "t": 5.55,
    "pos": [
     0.27,
     1.4,
     -7.2
    ],
-   "size": 3.0,
-   "life": 1.0,
-   "opacity": 0.7
+   "size": 3.4,
+   "life": 1.1,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-014-crescent-flames",
+   "ramp": "fire",
+   "t": 5.5,
+   "pos": [
+    0.27,
+    1.2,
+    -7.2
+   ],
+   "size": 3.6,
+   "life": 0.6,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-005-ground-dashring",
+   "ramp": "ember",
+   "t": 5.45,
+   "pos": [
+    0.27,
+    0.05,
+    -7.2
+   ],
+   "size": 5.5,
+   "life": 0.9,
+   "flat": true,
+   "tex": "streaks",
+   "texAmt": 0.45
   },
   {
    "slug": "act-012-spiral-streaks",
-   "ramp": "void",
+   "ramp": "voidrim",
    "t": 8.0,
    "pos": [
     0.27,
     1.7,
     -7.2
    ],
-   "size": 3.4,
+   "size": 3.6,
    "life": 1.0,
-   "opacity": 0.65
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-043-petals-vortex",
+   "ramp": "void",
+   "t": 8.3,
+   "pos": [
+    0.27,
+    1.7,
+    -7.2
+   ],
+   "size": 4.8,
+   "life": 1.4,
+   "opacity": 0.8,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-021-helix-rise",
+   "ramp": "voidrim",
+   "t": 9.6,
+   "pos": [
+    0.27,
+    1.7,
+    -7.2
+   ],
+   "size": 3.4,
+   "life": 0.8,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-065-fountain-rise",
+   "ramp": "smoke",
+   "t": 9.9,
+   "pos": [
+    0.27,
+    1.7,
+    -7.2
+   ],
+   "size": 4.0,
+   "life": 1.4,
+   "blend": "normal",
+   "opacity": 0.5,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-029-thrust-column",
+   "ramp": "sun",
+   "t": 11.35,
+   "pos": [
+    0.27,
+    2.4,
+    -7.2
+   ],
+   "size": 4.6,
+   "life": 0.8,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "act-039-streaks-sparkfall",
@@ -5687,9 +5916,39 @@
     1.6,
     -7.2
    ],
-   "size": 3.0,
+   "size": 3.4,
+   "life": 1.1,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-005-ground-dashring",
+   "ramp": "holy",
+   "t": 11.4,
+   "pos": [
+    0.27,
+    0.05,
+    -7.2
+   ],
+   "size": 6.0,
    "life": 1.0,
-   "opacity": 0.65
+   "flat": true,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-047-bolt-orbit",
+   "ramp": "sun",
+   "t": 11.5,
+   "pos": [
+    0.27,
+    1.4,
+    -7.2
+   ],
+   "size": 3.0,
+   "life": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
   },
   {
    "slug": "act-066-rise-shards",
@@ -5700,9 +5959,156 @@
     0.8,
     -7.2
    ],
+   "size": 3.2,
+   "life": 0.9,
+   "tex": "cells",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-036-fountain-faultline",
+   "ramp": "earth",
+   "t": 14.2,
+   "pos": [
+    0.27,
+    0.6,
+    -7.2
+   ],
+   "size": 3.6,
+   "life": 1.0,
+   "tex": "cells",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-003-streaks-shards",
+   "ramp": "dust",
+   "t": 14.4,
+   "pos": [
+    0.27,
+    1.0,
+    -7.2
+   ],
+   "size": 3.0,
+   "life": 0.8,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-065-fountain-rise",
+   "ramp": "dust",
+   "t": 14.5,
+   "pos": [
+    0.27,
+    1.0,
+    -7.2
+   ],
+   "size": 4.4,
+   "life": 1.8,
+   "blend": "normal",
+   "opacity": 0.6,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-008-crescent-orbit",
+   "ramp": "rune",
+   "t": 16.7,
+   "pos": [
+    0,
+    1.5,
+    -0.2
+   ],
    "size": 3.0,
    "life": 0.9,
-   "opacity": 0.75
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-010-xcut-sparkfall",
+   "ramp": "arcane",
+   "t": 17.5,
+   "pos": [
+    0.27,
+    1.3,
+    -7.2
+   ],
+   "size": 3.4,
+   "life": 0.9,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-018-helix-zigring",
+   "ramp": "rune",
+   "t": 17.6,
+   "pos": [
+    0.27,
+    1.2,
+    -7.2
+   ],
+   "size": 3.6,
+   "life": 0.9,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-005-ground-dashring",
+   "ramp": "sun",
+   "t": 21.25,
+   "pos": [
+    0.27,
+    0.05,
+    -7.2
+   ],
+   "size": 10.0,
+   "life": 1.1,
+   "flat": true,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-037-streaks-fountain",
+   "ramp": "ember",
+   "t": 21.4,
+   "pos": [
+    0.27,
+    1.6,
+    -7.2
+   ],
+   "size": 4.5,
+   "life": 1.6,
+   "tex": "streaks",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-043-petals-vortex",
+   "ramp": "arcane",
+   "t": 21.3,
+   "pos": [
+    0.27,
+    2.0,
+    -7.2
+   ],
+   "size": 6.0,
+   "life": 1.4,
+   "opacity": 0.7,
+   "tex": "noise",
+   "texAmt": 0.45
+  },
+  {
+   "slug": "act-065-fountain-rise",
+   "ramp": "dust",
+   "t": 21.6,
+   "pos": [
+    0.27,
+    1.4,
+    -7.2
+   ],
+   "size": 6.0,
+   "life": 2.2,
+   "blend": "normal",
+   "opacity": 0.55,
+   "tex": "noise",
+   "texAmt": 0.45
   }
  ],
  "impacts": [

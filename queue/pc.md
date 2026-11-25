@@ -21,3 +21,4 @@ Queue sync: mobile commits queue/pc.md and its work to its cloud session branch 
 - [ ] 2026-11-25 open Umbrio tab "Elemental Onslaught v3" (eo-onslaught-3), play clip onslaught: check bubbles/fireball/black hole/pillar/spikes/books read clearly and sizes — mobile build, not visually verified
 - [ ] 2026-11-25 look check Umbrio tab "Elemental Onslaught v4" (eo-onslaught-4) in Claude-Hub: 29 hub VFX Generator sheet layers (gen-*) over the 3D heroes; tune sizes/timing if any read wrong — mobile build, not visually verified
 - [ ] 2026-11-25 look-check Umbrio tab eo-onslaught-5 (Claude-Hub): circle colour per element, partners fit, light window gold only — mobile build, not visually verified
+- [ ] 2026-11-25 2026-11-25 look check eo-onslaught-6 in Claude-Hub Umbrio: ramps vibrant, layers read per element, no muddy stacking — mobile build

@@ -27,12 +27,14 @@ for (const [k, { tracks: tr, ...o }] of Object.entries(S.parts || {})) {
 }
 S.fx.forEach((e, i) => {
   const m = idx[e.slug]; if (!m) return bad.push('no sheet ' + e.slug)
-  const tid = `fx-${e.slug}-${e.ramp}`, file = join(FX, tid + '.webp')
+  // per-layer paint: own ramp + texture (owner 2026-11-25: every white layer painted with gradients + textures, vibrant)
+  const tex = e.tex || 'noise', amt = e.texAmt ?? 0.3
+  const tid = `fx-${e.slug}-${e.ramp}${e.tex ? '-' + tex : ''}`, file = join(FX, tid + '.webp')
   if (!uploads[tid]) {
     if (!existsSync(file)) {
       const png = join(FX, tid + '.png')
       execFileSync('python3', [join(PACK, 'tools/vfx/paint.py'), join(PACK, 'vfx/sheets', e.slug + '.png'), png, '--ramp', S.ramps[e.ramp] || e.ramp,
-        '--tex', 'noise', '--tex-amt', '0.3', '--grid', String(m.grid)])
+        '--tex', tex, '--tex-amt', String(amt), '--grid', String(m.grid), '--seed', String(i + 1)])
       execFileSync('python3', ['-I', '-c', 'import sys;from PIL import Image;Image.open(sys.argv[1]).save(sys.argv[2],"WEBP",quality=86)', png, file])
     }
     uploads[tid] = resolve(file)
