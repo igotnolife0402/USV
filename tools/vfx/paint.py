@@ -7,12 +7,11 @@ import sys, argparse
 import numpy as np
 from PIL import Image
 
-RAMPS = {   # edge (faint) -> core (bright); last stop near white = white-hot core
-    'fire': '#7a1010,#ff4a12,#ffa21f,#ffe7a0,#ffffff', 'ice': '#123a8a,#2f8cff,#7fd8ff,#dff8ff,#ffffff',
-    'electric': '#3a1a9e,#6a5cff,#6ac8ff,#e0f6ff,#ffffff', 'poison': '#1f4a12,#3fa22a,#9be04a,#e6ffc0,#ffffff',
-    'holy': '#8a5a00,#ffb21f,#ffe066,#fff8d6,#ffffff', 'void': '#12001f,#3a0a5e,#7a2fd0,#c79bff,#f2e6ff',
-    'blood': '#2a0006,#7a0010,#c41a22,#ff6a5a,#ffd6d0', 'wind': '#5f8a96,#9fd2d8,#d6f2f0,#f4fffd,#ffffff',
-}
+RAMPS = {   # edge (faint) -> core (white-hot); multi-hue, the hue shifts along the light (owner 2026-11-25, L-156; generator.html mirrors these)
+    'fire': '#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#fff4c0,#ffffff', 'ice': '#04103a,#123a8a,#2f8cff,#3ae0ff,#b8fff4,#ffffff',
+    'electric': '#12043a,#3a1a9e,#6a5cff,#6ac8ff,#e0f6ff,#ffffff', 'poison': '#0a2a2a,#0f6a4a,#3fbf2a,#a8f03a,#eaff9a,#ffffff',
+    'holy': '#5a2000,#c8600a,#ffb02a,#ffe680,#fffbe8,#ffffff', 'void': '#000000,#1a0630,#4a0e8a,#9a2ad8,#e05ad8,#ffd0f4',
+    'blood': '#1a0008,#5a0018,#a8101e,#e8401a,#ff9a6a,#ffe0d0', 'wind': '#123a4a,#2a7a8a,#5fc0c0,#a8f0e0,#eafff8,#ffffff'}
 
 
 def ramp(spec, n=256):

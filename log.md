@@ -544,3 +544,7 @@ improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/
 ## [2026-11-25] build / Storm Nova custom VFX -> Umbrio MP4
 Claude-written ugen script (tools/vfx/showcase/gen/storm-nova.js, jump 2.28, 0 empty) -> vfx/sheets/gen-storm-nova.png + index row; painted copy rendered in Umbrio headless (build.mjs spec + shots SHOTS_VIDEO), 4.2 s 1100x580 MP4 sent. Live hub tab not written.
 improved: library.py keeps gen/ rows on rebuild; tools/vfx/showcase/gen/draw.mjs reusable headless drawer; tools/vfx README row with the 18 s Umbrio MP4 path
+
+## [2026-11-25] vfx / generator paint rule: every layer painted, vibrant (L-203)
+Read the changed Umbrio colouring rule (L-156 on claude/magical-galileo-ukn1v0); wrote it into generator RULES + `paintCheck` (rejects flat/one-hue ramps, tex none, reused sheet+ramp+tex, all-white ends); Storm Nova re-rendered with 5 own-painted layers.
+improved: generator enforces per-layer hue-shifting ramps + textures; build.mjs paints each layer itself (no shared painted png); paint.py + generator presets now multi-hue; vfx/README rule 8 rewritten; white-end cap found by render (stacked white cores went grey)

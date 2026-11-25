@@ -3,9 +3,12 @@
 // pre-painted with tools/vfx/paint.py (Studio flipbooks have no tint). Camera: a slow orbit; anim.cine adds the payoff
 // push-in, warp, flash and shake; cineLights adds a light per impact.
 //   PLUGINS=<editor plugins dir> node tools/vfx/showcase/build.mjs SPEC.json FXDIR OUT
-// FXDIR holds the painted <slug>.png; OUT gets studio/{project,meta,uploads}.json + geo/ (shots.mjs and ArtifactData read them).
+// FXDIR = paint cache: every fx layer is painted on its own from vfx/sheets/<slug>.png with its own ramp + tex (+ tex_amt)
+// via tools/vfx/paint.py (owner 2026-11-25: every layer painted with gradients + textures; run from the repo root). OUT gets studio/{project,meta,uploads}.json + geo/ (shots.mjs and ArtifactData read them).
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 // The editor's plugins dir comes from the env (tools never import each other)
 if (!process.env.PLUGINS) { console.error('set PLUGINS to the editor plugins dir (cine.js)'); process.exit(1) }
 const { cinePass, cineLights } = await import(join(resolve(process.env.PLUGINS), 'cine.js'))
@@ -16,13 +19,20 @@ const S = JSON.parse(readFileSync(SPEC)), LEN = S.len, ST = join(OUT, 'studio')
 mkdirSync(join(ST, 'geo'), { recursive: true })
 const idx = Object.fromEntries(readFileSync('vfx/index.tsv', 'utf8').trim().split('\n').slice(1).map(l => l.split('\t')).map(r => [r[0], { grid: +r[3], frames: +r[4] }]))
 
-const objs = {}, tracks = {}, uploads = {}, bad = []
+const objs = {}, tracks = {}, uploads = {}, bad = [], seen = new Map()
 for (const [k, o] of Object.entries(S.parts)) objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
 for (const [k, tr] of Object.entries(S.tracks)) tracks[k] = tr
 S.fx.forEach((e, i) => {
   const m = idx[e.slug]; if (!m) return bad.push('no sheet ' + e.slug)
-  const png = join(FX, e.slug + '.png'); if (!existsSync(png)) return bad.push('not painted ' + e.slug)
-  const tid = 'fx-' + e.slug, loop = 'dur' in e, life = e.life ?? 0.6, dur = loop ? e.dur : life
+  // per-layer paint: a layer without its own ramp + texture is refused (one painted png reused across layers looked flat)
+  const tex = e.tex, amt = e.tex_amt ?? 0.45
+  if (!e.ramp || !['noise', 'cells', 'streaks'].includes(tex)) return bad.push(`fx[${i}] ${e.slug}: needs its own ramp + tex (noise|cells|streaks)`)
+  const key = createHash('sha1').update([e.slug, e.ramp, tex, amt].join('|')).digest('hex').slice(0, 8), tid = `fx-${e.slug}-${key}`
+  if (seen.has(tid)) return bad.push(`fx[${i}] ${e.slug}: same sheet + ramp + tex as fx[${seen.get(tid)}]; paint each layer on its own`)
+  seen.set(tid, i)
+  const png = join(FX, tid + '.png')
+  if (!existsSync(png)) { mkdirSync(FX, { recursive: true }); execFileSync('python3', ['tools/vfx/paint.py', join('vfx/sheets', e.slug + '.png'), png, '--ramp', e.ramp, '--tex', tex, '--tex-amt', String(amt), '--grid', String(m.grid), '--seed', String(i + 1)]) }
+  const loop = 'dur' in e, life = e.life ?? 0.6, dur = loop ? e.dur : life
   uploads[tid] = resolve(png)
   const o = { type: 'flipbook', name: `FX ${e.slug} ${e.t}`, tex: tid, grid: m.grid, frames: m.frames, parent: e.parent || null, pos: e.pos,
     rot: e.rot || [0, 0, 0], size: e.size, start: e.t, life, loop, dur, fps: loop ? (e.fps || 12) : +(m.frames / life).toFixed(2), blend: 'add', flat: !!e.flat }

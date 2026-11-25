@@ -27,7 +27,7 @@ status: current
 5. **Blend**: glow, fire, magic, sparks = additive (`LightEmission = 1`). Smoke, dust, debris = normal blend (`LightEmission = 0`), dark grey ramp `#1a1a1f -> #5a5a62 -> #9a9aa2`, never additive (it turns into fog).
 6. **Value contrast** against the scene: on bright skies add a darker hue at the edges or a normal-blend dark layer behind; on dark scenes keep the core small so it does not bloom into a blob.
 7. **Never bake colour into vfx/sheets** and never add colour copies: a painted file goes to scratch or the game, the library stays white.
-8. Layer one effect from several sheets (smoke -> glow -> core -> sparks, see `.claude/skills/vfx/SKILL.md`); each layer gets its own ramp from the same palette.
+8. **Every layer painted on its own** (owner 2026-11-25, L-156): no layer cap; smoke/glow/core/sparks/decal each get their own 4-7 stop ramp that shifts hue >= 20 deg (dark edge -> bright end) + a texture (noise/cells/streaks, 0.35-0.5); never reuse one painted png for two layers. Only core layers end `#ffffff`; glow/sparks/decal end in a bright saturated colour (stacked white ends blow out grey-white). Enforced by `paintCheck` in tools/vfx/showcase/generator.html and build.mjs (paints each layer itself).
 
 ### Roblox (ParticleEmitter)
 - `Texture` = the sheet. `Color = ColorSequence` is the over-life gradient (rule 3). Roblox multiplies one colour per particle, so the light-based gradient map (rule 2) comes from stacking a large faint hue layer with a small white core layer, or from a pre-painted texture (paint.py below).
