@@ -539,3 +539,4 @@ improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/
 - generator.html: JUMP_MAX 3 gate fails the slot (fix round) and never saves; sheet `name` = what it is (1-3 words, validated); saved list hides records imported to repo.
 - tools/vfx/hub_import.mjs redrew 26 hub sheets into vfx/sheets (gen-*, LA) + index rows src hub/<key>; scrapped 3 (jump 3.25, 3.06, redraw 3.01); library.py keeps hub/ rows.
 - improved: quality gate on saves; element-only sheet names; hub inbox importer; one-path-on-main tool output rule in CLAUDE.md; library.py no longer wipes imported rows
+- main fast-forwarded to the session branch (owner yes); stop-gate now fast-forwards main every stop when clean. Gate check: jump 4/3.02 slots failed, 0 saved.
