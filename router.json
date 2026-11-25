@@ -487,7 +487,9 @@
         "vfx showcase",
         "slots",
         "exact duration",
-        "generate all"
+        "generate all",
+        "stand-in",
+        "filler"
       ],
       "notes": [
         "domains/vfx/playbook.md",

@@ -7,7 +7,7 @@ status: current
 
 ## Where
 - `vfx/sheets/<slug>.png`: one file per effect, **white only** (light = alpha, grey+alpha PNG). Colour is added at use time, never stored.
-- Sheets made in the hub vfx generator (2026-11-25): Claude-Hub db collection `vfxsheets` (record: name, prompt, code, seed, life, asset id; PNG at `/_blob/<asset>`); all show under its Sheet button. Read them with ArtifactData list `vfxsheets` before drawing a new one.
+- Sheets made in the hub vfx generator (2026-11-25): Claude-Hub db collection `vfxsheets` (record: name, prompt, code, seed, life, asset id; PNG at `/_blob/<asset>`); archive only: the generator never reads them back (always draws new); only Umbrio build agents fetch old sheets; all show under its Sheet button. Read them with ArtifactData list `vfxsheets` before drawing a new one.
 - `vfx/index.tsv`: one row per sheet: `slug  name  kind  grid  frames  life  src`. Never open the sheets to search; grep the index:
   `grep -i slash vfx/index.tsv | cut -f1-5`, `grep -c . vfx/index.tsv`, `awk -F'\t' '$3=="action"' vfx/index.tsv | head`
 - Only the newest, owner-approved set lives here (owner 2026-11-24 deleted the older gen/nf/vb/ref/icon/sym sets): 67 `act-` actions (slash, smash, wind, ...) + 30 `sym-` symbols (~70/30).

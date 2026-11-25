@@ -530,3 +530,7 @@ learn: vault-upkeep skill-miss on the vfx build (generic vault words in brief/su
 ## [2026-11-25] build / vfx generator Sheet gallery + auto-save
 Sheet button: every sheet as PNG (97 library + generated), search, PNG download, Copy script; new sheets auto-save to hub assets + db vfxsheets and are reused (rerun draw 14.2 s -> 3.0 s). Headless check with mocked db/assets/downloads: 103 sheets, 6 saved, 0 dupes, 0 errors.
 improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/pc.md duplicated date fixed; Playwright route-order lesson (domains/vfx/errors.md); tools.md generator row updated
+
+## [2026-11-25] improve / vfx generator: always new, short clips, stand-ins
+- Generator never reads saved sheets (fresh seed per Generate unless locked); slugs rejected. Target < 4 s: story len = target, cineOpts scales build/slow/hold, lifeErrs forces fix rounds; len floor 3 → 0.3 s. Stand-ins toggle + `stand_ins` export. Opus 5.5 pin kept (falls back via modelTier). Headless check6: 0.8 s exact, lives >= 0.52 s, slug fix round, 6 s spec at 0.8 s = 9 errs, stand-ins off 0 parts/10 fx, rerun redraws 14.9 s. improve 60: 61.6 s total PASS.
+- improved: generator reuse removed; short-target quality validated; len floor bug (3 s) fixed; router words stand-in/filler → vfx; vfx skill notes generator exception; L-200

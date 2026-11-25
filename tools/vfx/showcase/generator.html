@@ -89,7 +89,7 @@ pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-w
     <div class="side">
       <div class="card">
         <h2>Your animations</h2>
-        <div class="bar"><button class="primary" id="gen" type="button">Generate all</button><button id="stop" type="button" hidden>Stop all</button><button id="add" type="button">+ Add slot</button><button id="sheetBtn" type="button" title="Every VFX sheet as a PNG: library + every sheet generated here">Sheet</button></div>
+        <div class="bar"><button class="primary" id="gen" type="button">Generate all</button><button id="stop" type="button" hidden>Stop all</button><button id="add" type="button">+ Add slot</button><label class="meta" title="Preview stand-in models (orbs, icicles, characters): placeholders for Umbrio models, not part of the effect"><input id="standins" type="checkbox" checked> Stand-ins</label><button id="sheetBtn" type="button" title="Every VFX sheet as a PNG: library + every sheet generated here">Sheet</button></div>
         <div class="status" id="status"></div>
         <div id="slots" style="display:grid;gap:10px"></div>
       </div>
@@ -163,9 +163,8 @@ function texField(kind, cs) {                      // one cell's texture (0..1),
 }
 // generated sheets: key 'gen|<hash of code+seed>' -> Promise<{url, jump, empty}> from ugen.makeSheet
 const GEN = new Map()
-// sheets saved by earlier runs (hub db + assets): same code+seed -> reuse the stored PNG instead of drawing again
+// sheets saved by earlier runs (hub db + assets): shown and downloadable in Sheet only; the generator never reads them back
 const SAVED = new Map(), SESSION = new Map()
-const fromSaved = r => fetch(r.url).then(x => { if (!x.ok) throw new Error('HTTP ' + x.status); return x.blob() }).then(blob => ({ blob, url: URL.createObjectURL(blob), empty: 0, jump: r.jump ?? 0 }))
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36) }
 const genKey = d => 'gen|' + hashStr(d.code + '|' + (d.seed ?? 1125))
 const imgCache = new Map()
@@ -188,7 +187,7 @@ async function renderSheets(S, say = () => {}) {
   say(`Drawing ${ids.length} new sheets in parallel…`)
   await Promise.all(ids.map(async id => {
     const d = S.sheets[id], k = genKey(d)
-    if (!GEN.has(k)) GEN.set(k, SAVED.has(k) ? fromSaved(SAVED.get(k)).catch(() => drawSheet(d.code, d.seed ?? 1125)) : drawSheet(d.code, d.seed ?? 1125))
+    if (!GEN.has(k)) GEN.set(k, drawSheet(d.code, d.seed ?? 1125))
     try { out[id] = await GEN.get(k) } catch (e) { GEN.delete(k); throw new Error(`sheet "${id}": ${e.message}`) }
     if (out[id].empty > 4) { GEN.delete(k); throw new Error(`sheet "${id}": ${out[id].empty} of 16 frames are empty (draw from t≈0.05, the wrapper erodes it after 0.55)`) }
   }))
@@ -232,7 +231,7 @@ function validate(S) {
   const bad = []
   if (!S || typeof S !== 'object') return ['spec is not an object']
   const L = S.len
-  if (!(L >= 3 && L <= 30)) bad.push('len must be 3..30 s')
+  if (!(L >= 0.3 && L <= 30)) bad.push('len must be 0.3..30 s (short targets: len = target)')
   if (!(S.payoff > 0 && S.payoff < L)) bad.push('payoff must be inside 0..len')
   if (S.cine_kind && !(S.cine_kind in CINE) || S.cine_kind === 'loop') bad.push('cine_kind must be impact or burst')
   if (!HEX.test(S.tint || '')) bad.push('tint must be #rrggbb')
@@ -272,6 +271,9 @@ function validate(S) {
 }
 
 // ---------- build (build.mjs logic, then Studio's cinePass + cineLights)
+// short targets (< 4 s) scale the cine build-up, slow-mo and hit-stop down so fitDuration barely compresses the story
+const cineOpts = (S, opt) => ({ payoff: S.payoff, kind: opt.loop ? 'loop' : S.cine_kind || 'burst', tint: S.tint, push: S.push ?? 0.2,
+  ...(opt.ms && opt.ms < 4000 ? { build: Math.min(1.6, 0.35 * S.len), slow: 0.7, hold: 1 } : {}) })
 function build(S, opt = {}) {
   const objs = {}, tracks = {}
   for (const [k, o] of Object.entries(S.parts || {})) objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
@@ -287,7 +289,7 @@ function build(S, opt = {}) {
     if (e.grow) tracks[id] = { scale: e.grow.map(([t, s, ez]) => [t, [s, s, s], ez || 'auto']) }
   })
   let clip = { name: S.name, len: S.len, fps: 60, loop: !!opt.loop, tracks, camera: S.camera_keys }
-  clip = cinePass(clip, { payoff: S.payoff, kind: opt.loop ? 'loop' : S.cine_kind || 'burst', tint: S.tint, push: S.push ?? 0.2 }, { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov })
+  clip = cinePass(clip, cineOpts(S, opt), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov })
   const cam = clip.camera ||= {}
   // camera setting: static drops every motion key (flash and grade stay); orbit swaps the drift for a 90° orbit of the target
   if (opt.camera === 'static') for (const k of ['pos', 'target', 'fov', 'shake']) delete cam[k]
@@ -397,12 +399,15 @@ async function prepare(S, opt = {}, say) {
   return { S, B, res, opt }
 }
 // show: put a prepared clip on the one stage
+// stand-in parts: shown for the preview, hidden by the Stand-ins toggle; only the part's own material hides, so fx parented to it keep playing
+let STANDINS = true
+const standIns = S => Object.entries(S?.parts || {}).map(([id, p]) => ({ id, name: p.name || id, shape: p.shape, size: p.size, pos: p.pos }))
 function show(P) {
   const { S, B, res, opt } = P; clear()
   const nodes = {}
   for (const [id, o] of Object.entries(B.objects)) {
     let n
-    if (o.type === 'part') n = partMesh(o)
+    if (o.type === 'part') { n = partMesh(o); n.material.visible = STANDINS }
     else if (o.type === 'flipbook') { n = VFX.types.flipbook.build(o, APP); n.userData.op = o.opacity }
     else if (o.type === 'light') { n = new THREE.PointLight(o.color, o.intensity * 6, o.range, 1.2) }
     else continue
@@ -422,6 +427,7 @@ function show(P) {
   $('meta').textContent = `${S.name} · ${nfx} painted sheets · ${nl} cine lights · story ${S.len}s → ${lenTxt} · payoff ${pt.toFixed(2)}s · ${opt.loop ? 'loop' : S.cine_kind || 'burst'}`
   const ns = Object.keys(S.sheets || {}).length
   $('tag').textContent = ns ? `generated · ${ns} new sheets` : 'example (library sheets)'
+  const si = standIns(S); if (si.length) $('meta').textContent += ` · stand-ins (Umbrio replaces): ${si.map(x => x.name).join(', ')}`
   if (ns) $('meta').textContent += ` · ${ns} new sheets drawn by the library method, jump max ${Math.max(...Object.values(res).map(r => r.jump))}`
   showSheets(S, res)
   $('spec').value = JSON.stringify(S, null, 1); T = 0; hold = 0
@@ -494,7 +500,7 @@ CLIP SPEC (same schema as the example, but every fx uses "sheet": "<id>" from yo
 - name, len (4..14 s), payoff (the ONE biggest moment), cine_kind "impact" (sharp hit) or "burst" (build then release), tint "#rrggbb" (light tint of the dominant hue), push (0.1..0.35).
 - camera {pos,target,fov} at t=0; camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: slow orbit/drift over 0..len with a key exactly at payoff; y-up metres.
 - env {bg "#hex" dark, fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
-- parts {id:{shape box|cylinder|sphere|cone|torus|plane, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Build the described object from primitives (e.g. the poison bubble as a sphere with transparency 0.5 + emissive); dressing only if asked.
+- parts {id:{shape box|cylinder|sphere|cone|torus|plane, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Parts are PREVIEW STAND-INS only (orb, icicle, character, sword...): simple primitives that Umbrio's real models replace later, so keep 1-4, name each for what it stands in for, no dressing. They are not the effect: no sheet draws the object itself, and the effect must read on its own with every part hidden; parts may still move (tracks) and parent fx.
 - tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...]}}: "auto" through motion; anticipation (squash/pull-back "in" 0.1-0.15 s before) then "out" pop on the hit, settle "auto". A part that bursts scales to [0.01,0.01,0.01] at the payoff.
 - fx [{sheet, t, life (one-shot) OR dur (+fps 12-16, loops), pos, size (metres 2-10), parent (optional part id), flat (true = ground decal), opacity (0.4-0.8 for big back layers), rot, grow [[t,scale],...], ramp, tex, tex_amt}].
 - ramp: fire, ice, electric, poison, holy, void, blood, wind, or "#edge,#mid,...,#core" (3-5 stops dark edge -> white-ish core). tex "noise"|"cells"|"streaks"|"none", tex_amt 0.25-0.4.
@@ -516,9 +522,11 @@ const BGS = { dark: { bg: '#07060e', light: 'night' }, sky: { bg: '#bcd8ff', lig
 const DEF_SET = () => ({ style: 'library', hue: '#9be04a', hueOn: false, intensity: 'normal', camera: 'cine', loop: false, seed: 1125, lock: false, bg: 'dark' })
 const slots = []; let sel = -1, nid = 0
 const fmtS = ms => (ms / 1000).toFixed(3)
+// Shortest a one-shot flipbook may play in clip time: 16 frames at 60 fps x1.5 (0.4 s), less only when the clip itself is shorter.
+const minLife = ms => Math.min(0.4, 0.6 * ms / 1000)
 const clampMs = v => Math.round(Math.min(14, Math.max(0.5, +v || 3)) * 1000)
 function settingsText(sl) {
-  const s = sl.set, out = [`TARGET LENGTH: the played clip will be exactly ${fmtS(sl.ms)} s INCLUDING the cine slow-mo and hit-stop; the player time-scales your clip to fit, so plan the beats for it: ${sl.ms >= 6000 ? `story len ≈ ${Math.max(3, (sl.ms / 1000 - 2)).toFixed(1)} s` : 'story len 3-4 s with a quick build (it plays sped up)'}.`]
+  const s = sl.set, out = [`TARGET LENGTH: the played clip will be exactly ${fmtS(sl.ms)} s INCLUDING the cine slow-mo and hit-stop; the player time-scales your clip to fit, so plan the beats for it: ${sl.ms >= 6000 ? `story len ≈ ${Math.max(3, (sl.ms / 1000 - 2)).toFixed(1)} s` : sl.ms >= 4000 ? `story len ≈ ${(sl.ms / 1000 - 1).toFixed(1)} s, quick build` : `SHORT CLIP: story len = ${fmtS(sl.ms)} s exactly (overrides the 4..14 rule), payoff at 40-55% of len, build-up <= 35% of len, every one-shot fx life >= ${(minLife(sl.ms) * 1.3).toFixed(2)} s and t + life <= len so every fade finishes on screen`}.`]
   out.push(`STYLE: ${STYLES[s.style][1]}.`)
   if (s.hueOn) out.push(`DOMINANT HUE ${s.hue}: tint = "${s.hue}"; every ramp is "#dark edge,...,#ffffff" built from this hue (one accent ramp allowed).`)
   out.push({ subtle: 'INTENSITY subtle: 6-10 fx, sizes 2-5 m, small payoff (2 sheets), push 0.1.', normal: 'INTENSITY normal: as the quality floor.', big: 'INTENSITY big: ONE big payoff (4 sheets at once, sizes 6-10 m, push 0.3); everything before and after stays small and sparse (no effect per step).' }[s.intensity])
@@ -534,10 +542,27 @@ function enforce(spec, sl) {
   if (s.hueOn) spec.tint = s.hue
   if (s.intensity !== 'normal') spec.push = s.intensity === 'big' ? 0.3 : 0.1
   spec.env = { ...(spec.env || {}), ...BGS[s.bg] }
-  if (s.lock) Object.values(spec.sheets || {}).forEach((d, i) => { d.seed = s.seed + i })
+  Object.values(spec.sheets || {}).forEach((d, i) => { d.seed = s.seed + i })
   return spec
 }
 const optOf = sl => ({ ms: sl.ms, loop: sl.set.loop, camera: sl.set.camera })
+// clip time at story time s through the fitted warp ([clip s, story s] keys; a hit-stop key pair maps to its first clip time)
+function clipAt(clip, s) {
+  const w = clip.warp; if (!w?.length) return s
+  for (let i = 1; i < w.length; i++) if (s <= w[i][1] + 1e-9) { const a = w[i - 1], b = w[i], d = b[1] - a[1]; return d <= 1e-9 ? a[0] : a[0] + (s - a[1]) / d * (b[0] - a[0]) }
+  return w[w.length - 1][0]
+}
+// short targets compress the story: every one-shot fx must still play long enough and finish its fade before len
+function lifeErrs(S, clip, ms) {
+  const lo = minLife(ms), bad = []
+  ;(S.fx || []).forEach((e, i) => {
+    if ('dur' in e) return
+    const life = e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9, c = clipAt(clip, Math.min(S.len, e.t + life)) - clipAt(clip, e.t)
+    if (c < lo - 1e-3) bad.push(`fx[${i}] ${e.sheet}: plays ${c.toFixed(2)} s in the ${fmtS(ms)} s clip, needs >= ${lo.toFixed(2)} s: raise its life or start it earlier`)
+    if (e.t + life > S.len + 1e-6) bad.push(`fx[${i}] ${e.sheet}: t + life ${(e.t + life).toFixed(2)} > len ${S.len}: its fade is cut off`)
+  })
+  return bad
+}
 
 function slotStatus(sl, msg, cls = '') { sl.status = msg; const e = sl.el?.querySelector('.status'); if (e) { e.textContent = msg; e.className = 'status ' + cls } }
 function addSlot(prompt = '') {
@@ -603,6 +628,7 @@ async function runSlot(sl) {
   const S = await samplerP; if (!S) { slotStatus(sl, 'Failed: no Claude sample permission here (open inside Claude-Hub).', 'bad'); return }
   if (sl.running) return
   const t = sl.timing = { start: performance.now(), model: 0, draw: 0, calls: [], end: 0 }, ctrl = sl.ctrl = new AbortController()
+  if (!sl.set.lock) sl.set.seed = 1 + Math.floor(Math.random() * 999983)
   sl.running = true; sl.over = false; paintSlot(sl); renderTabs()
   const cap = setTimeout(() => { sl.over = true; ctrl.abort() }, CAP_MS)
   const aborted = new Promise((_, rej) => ctrl.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))))
@@ -620,7 +646,7 @@ async function runSlot(sl) {
       try { spec = enforce(extractJSON(res.text), sl); errs = validate(spec); if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
       if (!errs.length) {
         const d0 = performance.now()
-        try { sl.P = await Promise.race([prepare(spec, optOf(sl), m => slotStatus(sl, m)), aborted]); sl.spec = spec; t.draw += performance.now() - d0 }
+        try { const P = await Promise.race([prepare(spec, optOf(sl), m => slotStatus(sl, m)), aborted]); t.draw += performance.now() - d0; errs = lifeErrs(spec, P.B.clip, sl.ms); if (!errs.length) { sl.P = P; sl.spec = spec } }
         catch (e) { t.draw += performance.now() - d0; if (e.name === 'AbortError') throw e; errs = ['build failed: ' + e.message] }
       }
       if (!errs.length) break
@@ -649,11 +675,12 @@ async function generateAll() {
 $('gen').onclick = generateAll
 $('stop').onclick = () => slots.forEach(s => s.ctrl?.abort())
 $('add').onclick = () => { addSlot(); renderTabs() }
+$('standins').onchange = e => { STANDINS = e.target.checked; if (CUR) for (const n of Object.values(CUR.nodes)) if (n.userData.o.type === 'part') n.material.visible = STANDINS }
 const showP = () => sel >= 0 ? slots[sel]?.P : EX
 $('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; if (Object.keys(P.S.sheets || {}).length) saveSheets(P.S, P.res, ''); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
 async function saveSpec(spec, nm) {
   if (!spec) return
-  const d = await dlP, data = JSON.stringify(spec, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
+  const d = await dlP, data = JSON.stringify({ ...spec, stand_ins: standIns(spec) }, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
   if (!d) return status('Downloads are not available here; copy the JSON from the spec box.', 'bad')
   try { await d.save({ filename: name, data }); status('Saved ' + name, 'ok') } catch (e) { status('Download not saved: ' + (e?.message || e?.code || e), 'bad') }
 }
@@ -663,6 +690,9 @@ window.vfxgen = {
   seek: t => { playing = false; T = t; frameAt(t) }, payoff: () => CUR && clipTimeOf(CUR.B.clip, CUR.S.payoff), get spec() { return CUR?.S },
   slots, slot: i => slots[i], addSlot, select: i => { if (slots[i]?.P) { sel = i; show(slots[i].P); renderTabs(); renderSlots() } },
   clipLen: i => (i == null ? CUR?.B.clip : slots[i]?.P?.B.clip)?.len, generateAll, runSlot, fitDuration,
+  clipLives: i => { const sl = slots[i], S = sl.spec, c = sl.P.B.clip; return (S.fx || []).filter(e => !('dur' in e)).map(e => +(clipAt(c, Math.min(S.len, e.t + (e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9))) - clipAt(c, e.t)).toFixed(3)) },
+  lifeErrsOf: (S, ms) => { const c = cinePass({ name: S.name, len: S.len, fps: 60, loop: false, tracks: {}, camera: S.camera_keys }, cineOpts(S, { ms }), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov }); fitDuration(c, ms, S.len); return lifeErrs(S, c, ms) },
+  partsVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'part' && n.material.visible).length : 0,
   fxVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'flipbook' && n.userData.card?.visible).length : 0
 }
 const cap = n => (window.claude?.use ? window.claude.use(n).catch(() => null) : Promise.resolve(null))
