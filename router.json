@@ -484,7 +484,10 @@
         "vfx library, all vfx, animator effects, effects list, effects picker, save the same place",
         "where are the vfx, vfx folder, painting vfx, gradient vfx, paint vfx, vfx textures, color the vfx",
         "new vfx",
-        "vfx showcase"
+        "vfx showcase",
+        "slots",
+        "exact duration",
+        "generate all"
       ],
       "notes": [
         "domains/vfx/playbook.md",
