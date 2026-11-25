@@ -337,3 +337,7 @@ improved: live budget warnings mid-turn; 3d playbook Studio fast path (L-140); p
 ## [2026-11-23] 3d / /improve 60 vs 200 car compare (Failed: over budget, builds stopped at 779 s)
 Prompts: 60 s delivered 63 s (OK, >=160 parts, no interior); 200 s delivered 166 s (FAIL -34 s, brain stopped at 113 s; 208 parts + interior + roofline fix). Builds stopped unfinished on owner complaint; partial car_p60.py parked in .worktrees/cmp.
 improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve skill forbids early brief; playbook rule for cheap comparisons (L-142)
+
+## [2026-11-25] improve / VFX generator upgrade prompt
+/improve 60: prompt for upgrading hub tool vfx generator (slots, exact duration, 60 s cap / 15 s target, Opus 5.5 medium). improve 60: ~35 s research, ~32 s brief, 19 s Sonnet, 97 s total (FAIL +37), rungs 1-3.
+improved: tools.md VFX Generator row pointed at liquid CLI, now hub entry; hub-tool code read rule (Artifact read path); router words vfx generator/hub tool; improve skill brief-start rule for <= 60 s (L-143)

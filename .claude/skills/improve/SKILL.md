@@ -30,6 +30,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
 - First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the Sonnet time it predicts for that budget (interpolated from measured runs, 17 s at 30 s to 27 s at 240 s); budgets <= 15 s have no Sonnet.
+- Budget <= 60 s: start writing the brief at `send_brief_at` - 10 s, fragments only (2026-11-25 vfx generator: a 35 s hand-written brief delivered at 97 s, L-143).
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - Never write the brief while `advice` says keep researching (2026-11-23: the 200 s car brief stopped at 113 s, wasting 87 s): spend it on rungs 4-7 (gate math, contradiction pass, depth) and re-check `left`.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.

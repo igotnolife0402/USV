@@ -6,7 +6,7 @@ triggers: [artifact, sandbox, generator, my tool, tool, app, launcher, monitor, 
 ---
 # Owner's tools and artifacts
 
-Find a named tool: 1) this table; hub tools are tiles INSIDE Claude-Hub (its index.html `T` list: name, entry), not separate gallery items (fuzzy: words in any order, typos) → 2) `Artifact` list with scope `all`, match title words → 3) only then ask the owner for the link ONCE, and add it here the same turn with `node scripts/vault.mjs tool add`.
+Find a named tool: 1) this table; hub tools are tiles INSIDE Claude-Hub (its index.html `T` list: name, entry), not separate gallery items; their code is often NOT in the repo: `Artifact` read with `path: <entry>` (L-143) (fuzzy: words in any order, typos) → 2) `Artifact` list with scope `all`, match title words → 3) only then ask the owner for the link ONCE, and add it here the same turn with `node scripts/vault.mjs tool add`.
 Taught a new tool (owner explains or shows it): add it the same turn. Never ask twice for something in this table.
 
 | Name | Kind | Where | How to use | Added |
@@ -22,4 +22,5 @@ Taught a new tool (owner explains or shows it): add it the same turn. Never ask 
 | Vault Upgrade Atlas | artifact | https://claude.ai/artifact/KPFvUvTN12cLGupjDgVBPH | Vault research and blueprint | 2026-11-21 |
 | Umbrio Sandbox | hub tool | https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF (Claude-Hub tile; entry tools/3d/studio/index.html) | The Studio 3D builder (parts, meshes, animation, textures, VFX plugin, export). Code = tools/3d/studio; edit there and republish the hub | 2026-11-21 |
 | Styles | hub tool | https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF (Claude-Hub tile; entry tools/art/styles/index.html) | 20 image-style prompts + add-ons | 2026-11-21 |
-| VFX Generator | cli | tools/vfx/liquid (local, python liquid.py) | Liquid-sim VFX, 4 stacked layers, ~2 s; import sheets into Umbrio Sandbox. Built 2026-11-21 because the owner's VFX generator link was not found | 2026-11-21 |
+| VFX Generator | hub tool | https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF (Claude-Hub tile `vfx/generator`; entry tools/vfx/showcase/generator.html, NOT in repo: read via Artifact read path) | Prompt → Claude (sample cap, modelTier complex) writes sheet scripts + clip spec; sheets drawn by lib/ugen.js, cine pass adds ~2 s slow-mo | 2026-11-25 |
+| Liquid VFX CLI | cli | tools/vfx/liquid (local, python liquid.py) | Liquid-sim VFX, 4 stacked layers, ~2 s; import sheets into Umbrio Sandbox | 2026-11-21 |
