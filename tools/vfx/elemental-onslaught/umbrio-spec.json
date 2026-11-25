@@ -1,5 +1,5 @@
 {
- "name": "Elemental Onslaught v3",
+ "name": "Elemental Onslaught v4",
  "len": 24.0,
  "payoff": 21.25,
  "cine_kind": "impact",
@@ -5743,196 +5743,210 @@
    "opacity": 0.55
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 2.58,
+   "t": 2.28,
    "pos": [
     0.632,
     0.38,
     -7.128
    ],
-   "size": 0.91,
-   "life": 0.45
+   "size": 1.22,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 2.627,
+   "t": 2.327,
    "pos": [
     0.111,
     0.377,
     -8.019
    ],
-   "size": 1.06,
-   "life": 0.45
+   "size": 1.41,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 2.735,
+   "t": 2.435,
    "pos": [
     0.576,
     1.342,
     -7.046
    ],
-   "size": 0.76,
-   "life": 0.45
+   "size": 1.01,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 2.932,
+   "t": 2.632,
    "pos": [
     -0.235,
     0.459,
     -7.964
    ],
-   "size": 0.7,
-   "life": 0.45
+   "size": 0.93,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 2.946,
+   "t": 2.646,
    "pos": [
     0.603,
     0.71,
     -7.105
    ],
-   "size": 0.8,
-   "life": 0.45
+   "size": 1.07,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.036,
+   "t": 2.736,
    "pos": [
     0.096,
     0.646,
     -7.029
    ],
-   "size": 0.82,
-   "life": 0.45
+   "size": 1.09,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.11,
+   "t": 2.81,
    "pos": [
     -0.344,
     0.932,
     -7.15
    ],
-   "size": 1.28,
-   "life": 0.45
+   "size": 1.71,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.236,
+   "t": 2.936,
    "pos": [
     -0.647,
     0.76,
     -6.686
    ],
-   "size": 0.88,
-   "life": 0.45
+   "size": 1.18,
+   "life": 0.5
   },
   {
-   "slug": "act-051-spiral-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.244,
+   "t": 2.944,
    "pos": [
     0.905,
     0.93,
     -6.449
    ],
-   "size": 0.69,
-   "life": 0.45
+   "size": 0.92,
+   "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.2,
+   "t": 2.8,
    "pos": [
     -0.474,
     0.3,
     -7.699
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.4,
+   "t": 3.0,
    "pos": [
     0.981,
     0.3,
     -8.328
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.6,
+   "t": 3.2,
    "pos": [
     0.129,
     0.3,
     -7.434
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 3.8,
+   "t": 3.4,
    "pos": [
     -0.57,
     0.3,
     -8.309
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 4.0,
+   "t": 3.6,
    "pos": [
     0.128,
     0.3,
     -6.553
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 4.2,
+   "t": 3.8,
    "pos": [
     1.016,
     0.3,
     -7.094
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
   },
   {
-   "slug": "act-062-fountain-bubbles",
+   "slug": "gen-poison-bubble",
    "ramp": "poison",
-   "t": 4.4,
+   "t": 4.0,
    "pos": [
     0.471,
     0.3,
     -7.018
    ],
-   "size": 0.9,
+   "size": 1.0,
    "life": 0.5
+  },
+  {
+   "slug": "gen-poison-erode",
+   "ramp": "poison",
+   "t": 2.8,
+   "pos": [
+    0.27,
+    0.04,
+    -7.2
+   ],
+   "size": 4.2,
+   "life": 1.6,
+   "flat": true,
+   "opacity": 0.85
   },
   {
    "slug": "act-065-fountain-rise",
@@ -5949,6 +5963,30 @@
    "opacity": 0.6
   },
   {
+   "slug": "gen-fire-burst",
+   "ramp": "fire",
+   "t": 5.4,
+   "pos": [
+    0.27,
+    1.3,
+    -7.2
+   ],
+   "size": 4.5,
+   "life": 0.9
+  },
+  {
+   "slug": "gen-dark-vortex",
+   "ramp": "void",
+   "t": 8.3,
+   "pos": [
+    0.27,
+    1.7,
+    -7.2
+   ],
+   "size": 4.5,
+   "life": 1.6
+  },
+  {
    "slug": "act-031-claw-helix",
    "ramp": "void",
    "t": 9.9,
@@ -5959,6 +5997,78 @@
    ],
    "size": 4.0,
    "life": 0.8
+  },
+  {
+   "slug": "gen-light-pillar",
+   "ramp": "holy",
+   "t": 11.3,
+   "pos": [
+    0.27,
+    3.0,
+    -7.2
+   ],
+   "size": 6.0,
+   "life": 1.0
+  },
+  {
+   "slug": "gen-rock-fault",
+   "ramp": "earth",
+   "t": 14.0,
+   "pos": [
+    -0.036,
+    0.5,
+    -2.4
+   ],
+   "size": 2.2857142857142856,
+   "life": 0.9
+  },
+  {
+   "slug": "gen-rock-fault",
+   "ramp": "earth",
+   "t": 14.14,
+   "pos": [
+    -0.009,
+    0.5,
+    -4.0
+   ],
+   "size": 2.857142857142857,
+   "life": 0.9
+  },
+  {
+   "slug": "gen-rock-fault",
+   "ramp": "earth",
+   "t": 14.28,
+   "pos": [
+    0.175,
+    0.5,
+    -5.6
+   ],
+   "size": 3.428571428571429,
+   "life": 0.9
+  },
+  {
+   "slug": "gen-rock-fault",
+   "ramp": "earth",
+   "t": 14.42,
+   "pos": [
+    0.16,
+    0.5,
+    -7.2
+   ],
+   "size": 4.0,
+   "life": 0.9
+  },
+  {
+   "slug": "gen-arcane-glyph",
+   "ramp": "arcane",
+   "t": 17.48,
+   "pos": [
+    -0.33,
+    1.2,
+    -7.2
+   ],
+   "size": 2.2,
+   "life": 0.7
   },
   {
    "slug": "act-046-spiral-bolt",
@@ -5983,6 +6093,18 @@
    ]
   },
   {
+   "slug": "gen-arcane-glyph",
+   "ramp": "arcane",
+   "t": 17.66,
+   "pos": [
+    0.27,
+    1.2,
+    -7.2
+   ],
+   "size": 2.2,
+   "life": 0.7
+  },
+  {
    "slug": "act-046-spiral-bolt",
    "ramp": "arcane",
    "t": 17.28,
@@ -6005,6 +6127,18 @@
    ]
   },
   {
+   "slug": "gen-arcane-glyph",
+   "ramp": "arcane",
+   "t": 17.84,
+   "pos": [
+    0.87,
+    1.2,
+    -7.2
+   ],
+   "size": 2.2,
+   "life": 0.7
+  },
+  {
    "slug": "act-046-spiral-bolt",
    "ramp": "arcane",
    "t": 17.46,
@@ -6025,6 +6159,32 @@
      ]
     ]
    ]
+  },
+  {
+   "slug": "gen-finale-burst",
+   "ramp": "holy",
+   "t": 21.0,
+   "pos": [
+    0.27,
+    2.4,
+    -7.2
+   ],
+   "size": 9.0,
+   "life": 1.4
+  },
+  {
+   "slug": "gen-arcane-glyph",
+   "ramp": "arcane",
+   "t": 16.5,
+   "pos": [
+    0,
+    0.04,
+    0
+   ],
+   "size": 3.2,
+   "life": 1.4,
+   "flat": true,
+   "opacity": 0.8
   }
  ],
  "impacts": [

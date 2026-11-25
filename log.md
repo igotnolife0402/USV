@@ -371,3 +371,7 @@ improved: VFX Pack registered in profiles/tools.md; playbook rule pack-first + u
 Fresh Umbrio tab eo-onslaught-3: 153 objects (55 animated parts: glass bubbles + corrosion puddle, fireball, black hole + ring + pulled rocks, sky pillars, rock spikes, grimoires; 66 pack flipbooks, 0 beams), 71 tracks; read-back + zfight PASS; not visually verified.
 improved: umbrio.mjs parts take tracks; spec_v3.py generator; playbook rule unique hero per element + lesson
 - 2026-11-25 learn: L-153 refs route words narrowed (crew miss on vfx rework); errors row added.
+
+## [2026-11-25] build / Elemental Onslaught v4 with the hub VFX Generator
+Wrote 8 sheet scripts in the hub generator's house style (gen-sheets.json), baked with the hub's own ugen.js headless (all jump < 3), painted + placed as 29 main layers in elements.py; fresh Umbrio tab eo-onslaught-4: 166 objects, 79 flipbooks (29 generator), 0 beams, 71 tracks; read-back + zfight PASS; not visually verified (PC queued).
+improved: tools.md VFX Generator row now points at the hub tile (liquid CLI split off); bake-sheets.cjs bakes generator scripts headless; L-154 + vfx playbook rule + router already had "vfx generator" (routing was right, the registry row was wrong)

@@ -1,0 +1,10 @@
+{
+ "gen-poison-bubble": "const S2=U.params(0.7,{k:8}); U.at(0,U.C*.2); U.EL.bubbles(pen,U.rng(0),t,S2); U.at(0,0)\nconst r=8+38*Math.min(t/0.62,1)**0.8\nif(t<0.62){pen.stroke(U.arc(r,0,U.TAU,{k:64}),2.6,2.6,1); pen.stroke(U.arc(r*0.68,-2.5,-1.5,{k:12}),0.5,2.2,1)}\nconst p=Math.max(0,(t-0.5)/0.5)\nif(p>0){pen.stroke(U.arc(r+22*p,0,U.TAU,{k:64}),Math.max(0.4,2.6*(1-p)),Math.max(0.4,2.6*(1-p)),1); for(let i=0;i<10;i++){const a=i*U.TAU/10+rng.uniform(-0.2,0.2), d=r+36*p*rng.uniform(0.6,1); pen.dot(d*Math.cos(a),d*Math.sin(a)+16*p*p,2.4*(1-0.5*p),1)}}",
+ "gen-poison-erode": "const S2=U.params(0.75,{k:8}); U.at(0,0); U.EL.rise(pen,U.rng(0),t,S2)\nconst S1=U.params(0.9,{k:9}); U.EL.cracks(pen,rng,t,S1)",
+ "gen-fire-burst": "const S2=U.params(0.75,{k:10}); U.at(0,0); U.EL.sparkfall(pen,U.rng(0),t,S2)\nconst S1=U.params(0.9,{k:7}); U.EL.flames(pen,rng,t,S1)",
+ "gen-dark-vortex": "const S2=U.params(0.8,{k:6}); U.at(0,0); U.EL.spiral(pen,U.rng(0),t,S2)\nconst S1=U.params(0.92); U.EL.vortex(pen,rng,t,S1)",
+ "gen-light-pillar": "const S2=U.params(0.8,{k:10}); U.at(0,0); U.EL.rise(pen,U.rng(0),t,S2)\nconst S1=U.params(0.85); U.EL.pillar(pen,rng,t,S1)",
+ "gen-rock-fault": "const S2=U.params(0.75,{k:10}); U.at(0,0); U.EL.shards(pen,U.rng(0),t,S2)\nconst S1=U.params(0.92); U.EL.faultline(pen,rng,t,S1)",
+ "gen-arcane-glyph": "const S2=U.params(0.8,{k:10}); U.at(0,0); U.EL.orbit(pen,U.rng(0),t,S2)\nconst S1=U.params(0.9,{k:6}); U.EL.polyshock(pen,rng,t,S1)",
+ "gen-finale-burst": "const S2=U.params(0.8,{k:12}); U.at(0,0); U.EL.sparkfall(pen,U.rng(0),t,S2)\nconst S1=U.params(0.95,{k:14}); U.EL.dashring(pen,rng,t,S1)"
+}
