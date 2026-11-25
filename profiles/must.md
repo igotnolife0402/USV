@@ -10,7 +10,7 @@ OWNER MUST (detail: profiles/owner.md; latest owner word wins, then fix the rule
 4. Style: realistic unless the owner names one (toon, low-poly, voxel only when asked).
 5. Custom meshes + textures + real thickness, as many parts as possible (no detail limits: build max detail, then at the very end cut useless triangles or split/compress so gates pass), detail floor gate; never placeholders or plain primitives.
 6. Scope = exactly what was asked: the model only, no ground or scenery, no extras.
-7. No z-fighting: zfight check on the tab read-back.
+7. No z-fighting: zfight check on the tab read-back, for 3D models only (owner 2026-11-25: never on VFX tabs; flipbooks are not solid parts).
 8. Never move, script or capture the camera in Roblox Studio yourself (MCP); in-game camera code in game scripts (spectate, cutscenes) is allowed.
 9. No overkill: one big effect at completion or small subtle ones; less when unsure.
 10. Replies short; never claim a look you did not see.

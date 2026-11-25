@@ -1,7 +1,7 @@
 // Global (user-level) hooks: sessions in any folder learn into the vault; the vault itself is left to project hooks.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = mkdtempSync(join(tmpdir(), 'vault global '));
+test.after(() => rmSync(BASE, { recursive: true, force: true }));
 const { apply } = await import('../scripts/install-global.mjs');
 const node = (args, input, env = {}) => spawnSync(process.execPath, args, { input: JSON.stringify(input), encoding: 'utf8', env: { ...process.env, ...env } });
 const HOOK = join(REPO, 'hooks', 'global.mjs');

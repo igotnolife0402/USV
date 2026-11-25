@@ -388,3 +388,9 @@ improved: umbrio.mjs per-layer tex/texAmt (cache key includes texture); playbook
 ## [2026-11-25] build / Frost Comet showcase (replaces Elemental Onslaught)
 New tools/vfx/frost-comet (SPEC.md + 6 spec'd generator sheets, all jump < 3, contact-strip matched), live tab frost-comet-1: 19 objects, 8 flipbooks each with a cause, zfight PASS; eo-onslaught-1..6 tab docs deleted (tex/geo subdocs left orphaned). Not visually verified. improve 60: 72.2 s total FAIL.
 improved: spec-before-code + strip check rule (L-157, playbook); improver spawn at send_brief_at (L-158, improve skill); elemental-onslaught superseded in vfx index; router words for vfx spam
+
+## [2026-11-25] fix / zfight is models-only
+Owner: zfight is not for VFX. must.md rule 7 scoped to models; vfx checklist says no zfight; lesson L-160.
+improved: must.md rule 7 scoped; vfx checklist no-zfight line; lesson L-160 applied
+Disk full (ENOSPC): 72 leaked 2.6 GB test dirs; tests now filter big files + clean up (L-161).
+improved: cli test skips big binaries; cli/global/learn tests clean tmp; ENOSPC errors row

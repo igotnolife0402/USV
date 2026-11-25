@@ -1,7 +1,7 @@
 // scripts/vault.mjs (the CLI behind /vault, /learn, /queue) and the skill-miss check.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, statSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,7 +10,9 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = mkdtempSync(join(tmpdir(), 'vault cli '));
 const V = join(BASE, 'vault copy');
 for (const p of ['router.json', 'lessons.md', 'index.md', 'queue', 'domains', 'checklists', 'profiles', '.claude/skills'])
-  cpSync(join(REPO, p), join(V, p), { recursive: true });
+  // skip big untracked binaries (domains/vfx/refs videos: 2.6 GB per run filled the disk, 2026-11-25)
+  cpSync(join(REPO, p), join(V, p), { recursive: true, filter: s => statSync(s).isDirectory() || statSync(s).size < 1e6 });
+test.after(() => rmSync(BASE, { recursive: true, force: true }));
 process.env.VAULT_ROOT = V;
 const C = await import('../scripts/vault.mjs');
 const L = await import('../hooks/learn.mjs');

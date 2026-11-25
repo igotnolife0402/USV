@@ -20,3 +20,4 @@ triggers: [vfx, particle, beam, trail, shader, aura, slash]
 - mobile: Artifact preview (web) or code review + append "trigger in Studio, screenshot" to queue/pc.md.
 ## Log
 - log.md entry (effect, path, key params). Errors → [vfx errors](domains/vfx/errors.md) + lesson.
+- [ ] No zfight run: it is for solid models only (owner 2026-11-25); VFX check = read-back + contact strip vs spec.

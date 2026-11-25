@@ -1,7 +1,7 @@
 // Auto-learning loop: transcript analysis, signals, Stop-hook learn block, 3-try cap, metrics, rollup.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = mkdtempSync(join(tmpdir(), 'vault learn '));
+test.after(() => rmSync(BASE, { recursive: true, force: true }));
 process.env.VAULT_ROOT = join(BASE, 'unit');
 const L = await import('../hooks/learn.mjs');
 const { today } = await import('../hooks/lib.mjs');
