@@ -365,3 +365,4 @@ improved: VFX deliverable rule in vfx playbook (L-149); sheets.mjs renders any t
 ## [2026-11-25] build / Elemental Onslaught v2 from owner's VFX pack
 Rebuilt in Umbrio tab eo-onslaught-2: 51 pack flipbooks (37 painted sheets), metre anchors hand/T, 3 s per element, payoff 21.25 s; read-back + zfight pass; not visually verified (PC queued).
 improved: VFX Pack registered in profiles/tools.md; playbook rule pack-first + umbrio.mjs builder; L-151 + router words "vfx pack"/"my vfx"
+- 2026-11-25 learn: sed on .mjs blocked (L-045 x bumped); vfx errors.md row for cross-tool path lint; vault/vfx skills ran via scripts/vault.mjs + earlier vfx load (continuation turn).
