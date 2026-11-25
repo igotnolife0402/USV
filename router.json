@@ -401,14 +401,7 @@
         "poison",
         "vfx generator",
         "drip",
-        "goo",
-        "tiktok",
-        "tiktoks",
-        "frame by frame",
-        "reference video",
-        "reference videos",
-        "refrences",
-        "every frame"
+        "goo"
       ],
       "notes": [
         "domains/vfx/playbook.md",
@@ -571,6 +564,30 @@
         ".claude/skills/crew/SKILL.md",
         ".claude/skills/crew/spec.md",
         "profiles/vault-rules.md"
+      ],
+      "checklist": "checklists/simple.md",
+      "skill": "crew"
+    },
+    {
+      "id": "refs",
+      "words": [
+        "tiktok",
+        "tiktoks",
+        "frame by frame",
+        "reference video",
+        "reference videos",
+        "refrences",
+        "every frame",
+        "references",
+        "refs",
+        "frames",
+        "analyze videos",
+        "learn from videos"
+      ],
+      "notes": [
+        "domains/vfx/reference-videos.md",
+        "tools/refs/README.md",
+        "domains/vfx/refs/index.md"
       ],
       "checklist": "checklists/simple.md",
       "skill": "crew"

@@ -9,7 +9,7 @@ Goal: learn how a reference looks and moves well enough to rebuild the technique
 
 ## Phases
 1. **Intake** (brain): links → `state/<batch>.md` table, numbered in link order (`NN-author` folders). Pasted links can be glued together: split on `https://`.
-2. **Grab** (3 `crew-worker`, Sonnet 5.5 low, links split evenly): `node tools/refs/grab.mjs <url> <NN>` per link, report the JSON line, one retry. No image reading. Batch 1: 17 links in ~3.6 min.
+2. **Grab** (invoke the `crew` skill first so the hooks see it, then 3 `crew-worker`, Sonnet 5.5 low, links split evenly; the vfx/roblox build skills are not needed for grab + analysis): `node tools/refs/grab.mjs <url> <NN>` per link, report the JSON line, one retry. No image reading. Batch 1: 17 links in ~3.6 min.
 3. **Verify** (brain): every JSON line has kept > 0; `error` lines (region block) listed as failed, never hidden.
 4. **Analyze** (brain, ONE video at a time): meta.json (desc, hashtags, on-screen stickers) + transcript.md first, then sheets in order. Talk/tutorial videos: `keep.py <dir> --cues` → `sheets_cues/` (one frame per caption) instead of 30+ sheets. Write `analysis.md` before opening the next video.
 5. **Distill** (brain): patterns seen in 2+ videos → the rules below (and the domain playbook when it is a build rule).

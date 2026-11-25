@@ -344,4 +344,4 @@ improved: grabber mp4 path fixes proxy ENOTFOUND; fallback seek waits for decode
 
 ## [2026-11-25] vfx / TikTok refs batch 1: 16 of 17 grabbed and analysed (Failed: 01 region-blocked)
 improve 120: 81 s brief, 18 s Sonnet, 103 s total (FAIL -16.7 s early), rungs 1-3. Grabber now 0.1 s step + important-frame filter + timed captions; 3 crew-workers (Sonnet low) grabbed 17 links in ~3.6 min; brain wrote 16 analysis.md + 11 distilled rules in domains/vfx/reference-videos.md. 01 = cross_border_violation (page + embed).
-improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --cues sheets for talk videos; refs moved under domains/vfx (lint); caption host added to env; 3 lessons applied (L-143..145)
+improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --cues sheets for talk videos; refs moved under domains/vfx (lint); caption host added to env; 3 lessons applied (L-143..145); refs route (skill crew) split from vfx (L-146)
