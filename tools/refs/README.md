@@ -14,3 +14,4 @@ Output per video: `frames/fNNNN_tSSS.Ss.png` (kept frames only, time in the name
 - Region block (`cross_border_violation`): one retry through `/player/v1/<id>`; still blocked → reported, nothing saved.
 - Path B (no mp4): seek + screenshot with a WARNING (frames may carry player UI).
 - Cloud sessions need TikTok + CDN + caption hosts in the environment allowlist (added 2026-11-25).
+- `python3 -I tools/refs/baseline.py <dir> --hit <s> --hue <deg>`: scores frames against the measurable rules in reference-videos.md (contrast dip, one hue, ground anchor, residue, cleanup, flash rate, wash). Checked on ref 07: 5/7, so it does not pass everything.

@@ -10,3 +10,4 @@ Domain notes: [vfx index](../../domains/vfx/index.md), rules for the flipbook: [
 | [VFX.lua](flipbook/VFX.lua) | Luau: `VFX.make(id, part)` turns a `VFXLibrary.lua` entry into a ParticleEmitter (loops overlap 4 cycles with fade so they never pop) | require beside the generated `VFXLibrary.lua` | Roblox |
 
 Checked 2026-11-21: `vfx.py OUT slash --check` builds in 1.4 s, max_step_jump 1.41, thin_stroke_pct 1.2.
+- [frost-fault](frost-fault/index.html): ice ground-slam built on the reference-video baseline; `node tools/vfx/frost-fault/capture.mjs <three-root> <out>` renders exact 0.1 s frames for `tools/refs/keep.py` + `baseline.py` (7/7 on 2026-11-25).

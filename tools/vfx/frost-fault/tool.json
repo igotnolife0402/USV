@@ -1,0 +1,7 @@
+{
+ "name": "frost-fault",
+ "what": "Ice ground-slam VFX (three.js, one file): charge dim, single-frame hit, crack web + dome, toon crystals that dissolve into shards and embers; built on the reference-video baseline",
+ "run": "node tools/vfx/frost-fault/capture.mjs <folder with node_modules/three@0.160.0> <scratch out> && python3 -I tools/refs/keep.py <out> 0.1 && python3 -I tools/refs/baseline.py <out> --hit 0.5 --hue 195 --end 3.0",
+ "prompt": "Tune values only in the P table at the top of index.html; every visual is a pure function of t (renderAt). Re-run the capture + baseline after any change and view sheet01 once.",
+ "url": ""
+}

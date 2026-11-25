@@ -349,3 +349,7 @@ improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --c
 ## [2026-11-25] vfx / TikTok ref 18 (@myre.vfx) grabbed + analysed
 Same link sent twice → grabbed once. 1 crew-worker (Sonnet low) grabbed 425/427 frames in 34 s; all 18 sheets viewed; analysis.md with 7 skills and a Roblox recipe; 2 new distilled rules (crack web + dome template, 1-frame silhouette wipes).
 improved: rules 12-13 in reference-videos.md; intake drops duplicate links; worker count scales with link count (1 per <= 6 links); hook: skill body no longer starts a turn, route note folders count as routed (L-147)
+
+## [2026-11-25] vfx / Frost Fault: first own effect scored against the reference baseline
+tools/vfx/frost-fault (three.js, deterministic renderAt(t)); capture.mjs → keep.py sheets → new tools/refs/baseline.py: 7/7 measured rules pass; first pass failed by eye (4-frame whiteout), fixed. Scorer sanity: ref 07 = 5/7. By eye: crystal cel bands weak, hit still 2 bright frames.
+improved: baseline.py makes the rules measurable; capture.mjs routes the CDN to a local three so cloud checks work offline; whiteout tuned (flash light 40→10, glow 3.2→1.4)

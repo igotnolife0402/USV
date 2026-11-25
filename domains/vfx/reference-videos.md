@@ -31,6 +31,7 @@ What it is + why it reads well · timeline `t → event` with frame names · lay
 11. **Sound workflow**: build a timed event list from the frames, ask feeling / style / loudness target (portfolio ~-10, in-game ~-16, cinematic ~-23 LUFS) / voice-music, then layer (09).
 12. **Crack web + dome = universal impact template**: hue-coloured Voronoi cracks scale in on the floor while a translucent dome expands from the hit; re-colour per skill (18 x3, 02 bubble shockwave).
 13. **1-frame silhouette wipes** (flat matte of the character/debris shape) cut on action between showcase shots and hide camera jumps (18 x6, 16 smears).
+- Measurable rules are scored by `tools/refs/baseline.py`; first own effect: tools/vfx/frost-fault (7/7, cel bands still weak by eye).
 - Web builds: colour-cycling flicker (16) must stay ≤ 3 Hz full-screen (vfx rules file).
 
 ## Known tool limits

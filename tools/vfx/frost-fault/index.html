@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frost Fault VFX</title>
+<style>
+  :root { --bg: #05070a; --fg: #d8f4ff; --accent: #5fd8ff; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  #ui { position: fixed; left: 16px; bottom: 16px; display: flex; gap: 8px; align-items: center; }
+  button { background: #0d1a22; color: var(--fg); border: 1px solid #2a4a5a; border-radius: 8px; padding: 8px 14px; font: inherit; }
+  #fps { opacity: .6; }
+  #err { position: fixed; top: 0; left: 0; right: 0; color: #ff8a8a; white-space: pre-wrap; margin: 8px; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="ui"><button id="play">Cast</button><button id="loop">Loop: on</button><span id="fps"></span></div>
+<pre id="err"></pre>
+<script type="module">
+// Frost Fault: ground-slam built on the reference-video baseline (domains/vfx/reference-videos.md):
+// dim before the hit, one hue + white core (+ rare amber accent), crack web + dome on the ground,
+// toon crystals with dark outline, re-rolled streak sparks, dissolve into shards/embers (nothing vanishes clean).
+// Every visual is a pure function of time t, so renderAt(t) gives the exact frame for capture checks.
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+window.addEventListener('error', e => { document.getElementById('err').textContent = String(e.message); });
+
+const P = { // tunables in one table
+  hue: new THREE.Color('#5fd8ff'), deep: new THREE.Color('#1a5f9a'), core: new THREE.Color('#ffffff'), accent: new THREE.Color('#ffb347'),
+  loop: 3.0, hit: 0.5, charge: 0.5, sparks: 140, crystals: 9, shards: 90, embers: 50, motes: 60, domeR: 3.2, crackR: 3.4,
+};
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// deterministic randomness
+const rng = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
+const R = (a, b) => a + (b - a) * rng();
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const backOut = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#05070a');
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 3.2, 7.5); camera.lookAt(0, 0.6, 0);
+
+const amb = new THREE.HemisphereLight('#8fb4c8', '#05070a', 0.9); scene.add(amb);
+const key = new THREE.DirectionalLight('#cfe6ff', 1.2); key.position.set(3, 6, 4); scene.add(key);
+const flashLight = new THREE.PointLight(P.hue, 0, 12, 1.5); flashLight.position.set(0, 0.6, 0); scene.add(flashLight);
+
+// stage floor: dark, glossy so the hue reflects (ref 18); the effect's ground anchor needs it
+const floor = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshStandardMaterial({ color: '#0b1016', roughness: 0.35, metalness: 0.2 }));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+
+// ---- textures made in code (no external files)
+function canvasTex(size, draw) { const c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
+const softTex = canvasTex(64, (g, s) => { const r = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2); r.addColorStop(0, '#fff'); r.addColorStop(0.4, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, s, s); });
+const starTex = canvasTex(256, (g, s) => {
+  g.translate(s / 2, s / 2); g.fillStyle = '#fff';
+  for (let i = 0; i < 12; i++) { const L = i % 3 ? s * 0.28 : s * 0.48, w = i % 3 ? 5 : 9; g.save(); g.rotate(i * Math.PI / 6); g.beginPath(); g.moveTo(-w, 0); g.lineTo(0, -L); g.lineTo(w, 0); g.fill(); g.restore(); }
+  const r = g.createRadialGradient(0, 0, 0, 0, 0, s * 0.2); r.addColorStop(0, '#fff'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(-s / 2, -s / 2, s, s);
+});
+// Voronoi crack web: white edges between random cells, thicker near the centre
+const crackTex = canvasTex(1024, (g, s) => {
+  const pts = []; for (let i = 0; i < 70; i++) { const a = R(0, Math.PI * 2), d = Math.sqrt(rng()) * s * 0.5; pts.push([s / 2 + Math.cos(a) * d, s / 2 + Math.sin(a) * d]); }
+  const img = g.createImageData(s, s);
+  for (let y = 0; y < s; y += 1) for (let x = 0; x < s; x += 1) {
+    let d1 = 1e9, d2 = 1e9; for (const [px, py] of pts) { const d = (x - px) ** 2 + (y - py) ** 2; if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d; }
+    const edge = Math.sqrt(d2) - Math.sqrt(d1), rr = Math.hypot(x - s / 2, y - s / 2) / (s / 2);
+    const w = 3.5 * (1.2 - rr); const a = clamp(1 - edge / Math.max(w, 0.8)) * clamp((1 - rr) * 3);
+    const k = (y * s + x) * 4; img.data[k] = img.data[k + 1] = img.data[k + 2] = 255; img.data[k + 3] = a * 255;
+  }
+  g.putImageData(img, 0, 0);
+});
+crackTex.colorSpace = THREE.NoColorSpace;
+
+// ---- crack web on the floor, revealed by radius (polygonOffset: no z-fight with the floor)
+const crackMat = new THREE.ShaderMaterial({
+  uniforms: { map: { value: crackTex }, uR: { value: 0 }, uA: { value: 0 }, uCol: { value: P.hue } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: `precision highp float; uniform sampler2D map; uniform float uR; uniform float uA; uniform vec3 uCol; varying vec2 vUv;
+    void main(){ float r = length(vUv - 0.5) * 2.0; float m = texture2D(map, vUv).a * smoothstep(uR, uR - 0.08, r);
+      float hot = smoothstep(uR - 0.25, uR, r) * step(r, uR); vec3 c = mix(uCol * 1.6, vec3(1.6), hot * 0.7);
+      gl_FragColor = vec4(c * m * uA, 1.0); }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2,
+});
+const crack = new THREE.Mesh(new THREE.PlaneGeometry(P.crackR * 2, P.crackR * 2), crackMat);
+crack.rotation.x = -Math.PI / 2; crack.position.y = 0.005; scene.add(crack);
+
+// ---- fresnel dome that breaks into wisps (noise discard grows as it fades)
+const domeMat = new THREE.ShaderMaterial({
+  uniforms: { uA: { value: 0 }, uBreak: { value: 0 }, uCol: { value: P.hue } },
+  vertexShader: 'varying vec3 vN; varying vec3 vV; varying vec3 vP; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vP = position; vN = normalize(normalMatrix * normal); vV = normalize(-(viewMatrix * w).xyz); gl_Position = projectionMatrix * viewMatrix * w; }',
+  fragmentShader: `precision highp float; uniform float uA; uniform float uBreak; uniform vec3 uCol; varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    float h(vec3 p){ return fract(sin(dot(floor(p * 6.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+    void main(){ if (h(vP) < uBreak) discard; float f = pow(1.0 - abs(dot(vN, vV)), 2.5);
+      gl_FragColor = vec4(mix(uCol, vec3(1.0), f * 0.6) * (f * 1.4 + 0.05) * uA, 1.0); }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+});
+const dome = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), domeMat); scene.add(dome);
+
+// ---- core starburst + glow
+const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: P.core, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: P.hue, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+core.position.y = glow.position.y = 0.5; scene.add(glow, core);
+
+// ---- toon crystals: 3-band cel + dark inverted-hull outline, noise dissolve
+const grad = new THREE.DataTexture(new Uint8Array([60, 150, 255]), 3, 1, THREE.RedFormat); grad.minFilter = grad.magFilter = THREE.NearestFilter; grad.needsUpdate = true;
+const dis = { value: 0 };
+function dissolve(m) { m.onBeforeCompile = s => { s.uniforms.uDis = dis; s.vertexShader = 'varying vec3 vWP;\n' + s.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;'); s.fragmentShader = 'uniform float uDis; varying vec3 vWP;\n' + s.fragmentShader.replace('void main() {', 'void main() { if (fract(sin(dot(floor(vWP * 9.0), vec3(12.9898,78.233,37.719))) * 43758.5453) < uDis) discard;'); }; return m; }
+const crystalMat = dissolve(new THREE.MeshToonMaterial({ color: '#8fe4ff', gradientMap: grad, emissive: '#0a3550' }));
+const outlineMat = dissolve(new THREE.MeshBasicMaterial({ color: '#06121c', side: THREE.BackSide }));
+const crystals = [];
+for (let i = 0; i < P.crystals; i++) {
+  const h = i === 0 ? 1.9 : R(0.7, 1.4), g = new THREE.ConeGeometry(i === 0 ? 0.32 : R(0.14, 0.24), h, 5, 1); g.translate(0, h / 2, 0);
+  const grp = new THREE.Group(), m = new THREE.Mesh(g, crystalMat), o = new THREE.Mesh(g, outlineMat); o.scale.setScalar(1.07); grp.add(o, m);
+  const a = i * 2.39996, d = i === 0 ? 0 : R(0.45, 1.25);
+  grp.position.set(Math.cos(a) * d, -0.02, Math.sin(a) * d);
+  grp.userData = { tilt: new THREE.Euler(i ? R(-0.45, 0.45) : 0, R(0, 6.28), i ? R(-0.45, 0.45) : 0), delay: i === 0 ? 0 : d * 0.08, h };
+  grp.rotation.copy(grp.userData.tilt); scene.add(grp); crystals.push(grp);
+}
+
+// ---- instanced streak sparks, shards, motes, embers (fixed pools, per-particle seeds)
+const dummy = new THREE.Object3D(), col = new THREE.Color();
+function pool(n, geo, mat) { const m = new THREE.InstancedMesh(geo, mat, n); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; scene.add(m); return m; }
+const add = c => new THREE.MeshBasicMaterial({ color: '#fff', blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, ...(c || {}) });
+const sparkG = new THREE.BoxGeometry(0.02, 0.02, 1); sparkG.translate(0, 0, -0.5);
+const sparks = pool(P.sparks, sparkG, add());
+const sparkSeed = Array.from({ length: P.sparks }, (_, i) => { const a = R(0, 6.28), up = R(0.15, 1.1); return { v: new THREE.Vector3(Math.cos(a), up, Math.sin(a)).normalize().multiplyScalar(R(5, 11)), life: R(0.25, 0.6), wave: i % 3 === 0 ? 0.12 : 0, amber: i % 8 === 0 }; });
+const shards = pool(P.shards, new THREE.TetrahedronGeometry(0.07), new THREE.MeshToonMaterial({ color: '#bff0ff', gradientMap: grad, emissive: '#0a3550' }));
+const shardSeed = Array.from({ length: P.shards }, (_, i) => ({ c: i % P.crystals, y: R(0.1, 1), v: new THREE.Vector3(R(-1.5, 1.5), R(1.5, 3.5), R(-1.5, 1.5)), spin: R(4, 12), t0: 1.3 + R(0, 0.35) }));
+const motes = pool(P.motes, new THREE.SphereGeometry(0.025, 6, 4), add());
+const moteSeed = Array.from({ length: P.motes }, () => ({ a: R(0, 6.28), r: R(1.5, 3), y: R(0.2, 2), s: R(0, 0.25) }));
+const embers = pool(P.embers, new THREE.SphereGeometry(0.02, 6, 4), add());
+const emberSeed = Array.from({ length: P.embers }, () => ({ x: R(-1.6, 1.6), z: R(-1.6, 1.6), t0: R(0.6, 1.4), vy: R(0.3, 0.8), sway: R(0, 6.28) }));
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.8, 0.4, 0.85); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function update(t) {
+  const H = P.hit, since = t - H;
+  // 1. contrast before the hit: world dims through the charge, one white frame on impact, settles back
+  const dim = 1 - 0.55 * easeOut(seg(t, 0.05, H)) * (since < 0 ? 1 : 0);
+  const flash = since >= 0 && since < 0.06 && !reduced ? 1.8 : 0; // single frame: well under 3 Hz
+  // after the hit the world comes back brighter than before, then settles to normal (colour returns on the hit)
+  renderer.toneMappingExposure = since < 0 ? dim : flash || 1 + 0.25 * Math.exp(-since * 8);
+  amb.intensity = 0.9 * (since < 0 ? dim : 1);
+  flashLight.intensity = since >= 0 ? 10 * Math.exp(-since * 7) : 6 * seg(t, 0.1, H);
+
+  // 2. charge: motes spiral into the core
+  moteSeed.forEach((m, i) => { const k = seg(t, m.s, H); const r = m.r * (1 - easeOut(k)); const a = m.a + k * 4;
+    dummy.position.set(Math.cos(a) * r, 0.5 + (m.y - 0.5) * (1 - k), Math.sin(a) * r); dummy.scale.setScalar(k > 0 && k < 1 ? 1 : 0); dummy.rotation.set(0, 0, 0); dummy.updateMatrix(); motes.setMatrixAt(i, dummy.matrix); motes.setColorAt(i, col.copy(P.hue).multiplyScalar(1.5)); });
+  motes.instanceMatrix.needsUpdate = true; motes.instanceColor.needsUpdate = true;
+  const charge = seg(t, 0.15, H);
+  glow.scale.setScalar(since < 0 ? 0.3 + charge * 0.9 : 1.4 * Math.exp(-since * 7) + 0.2 * Math.exp(-since * 1.5)); glow.material.opacity = since < 0 ? charge : Math.exp(-since * 2.5);
+  core.scale.setScalar(since < 0 ? charge * 0.5 : since < 0.08 ? 1 + since * 30 : 2.2 * Math.exp(-(since - 0.08) * 12)); core.material.rotation = t * 0.8;
+  core.material.opacity = since < 0 ? charge * 0.7 : 1;
+
+  // 3. ground anchor: crack web races out, glows, fades over 1.6 s
+  crackMat.uniforms.uR.value = since < 0 ? 0 : 1.08 * easeOut(seg(since, 0, 0.3));
+  crackMat.uniforms.uA.value = since < 0 ? 0 : 1 - seg(since, 0.6, 2.1);
+  // 4. dome: expands 0.28 s, then breaks into wisps while fading
+  const dk = since < 0 ? 0 : easeOut(seg(since, 0, 0.28)); dome.scale.set(P.domeR * dk + 0.01, P.domeR * dk * 0.8 + 0.01, P.domeR * dk + 0.01);
+  domeMat.uniforms.uA.value = since < 0 ? 0 : 1 - seg(since, 0.25, 0.75); domeMat.uniforms.uBreak.value = seg(since, 0.2, 0.75);
+
+  // 5. crystals erupt (Back Out), hold, noise-dissolve into shards
+  crystals.forEach(c => { const k = backOut(seg(since, c.userData.delay, c.userData.delay + 0.22)); c.scale.set(1, Math.max(0.001, since < 0 ? 0 : k), 1); c.visible = since >= c.userData.delay && t < 1.75; });
+  dis.value = seg(t, 1.25, 1.7);
+  shardSeed.forEach((s, i) => { const c = crystals[s.c], dt = t - s.t0, on = dt >= 0 && dt < 0.9;
+    const p = new THREE.Vector3(0, s.y * c.userData.h, 0).applyEuler(c.userData.tilt).add(c.position);
+    dummy.position.set(p.x + s.v.x * dt, p.y + s.v.y * dt - 4.5 * dt * dt, p.z + s.v.z * dt); dummy.position.y = Math.max(0.03, dummy.position.y);
+    dummy.rotation.set(dt * s.spin, dt * s.spin * 0.7, 0); dummy.scale.setScalar(on ? 1 - seg(dt, 0.4, 0.9) : 0); dummy.updateMatrix(); shards.setMatrixAt(i, dummy.matrix); });
+  shards.instanceMatrix.needsUpdate = true;
+
+  // 6. streak sparks: velocity-aligned, drag, a second smaller wave re-rolled 0.12 s later; 1 in 8 amber accent
+  sparkSeed.forEach((s, i) => { const dt = since - s.wave, k = dt / s.life, on = dt >= 0 && k < 1;
+    const dragT = (1 - Math.exp(-dt * 3)) / 3; const v = s.v.clone().multiplyScalar(s.wave ? 0.6 : 1);
+    dummy.position.set(v.x * dragT, 0.3 + v.y * dragT - 3 * dt * dt, v.z * dragT); dummy.position.y = Math.max(0.02, dummy.position.y);
+    const vel = v.clone().multiplyScalar(Math.exp(-dt * 3)); vel.y -= 6 * dt; dummy.lookAt(dummy.position.clone().add(vel));
+    dummy.scale.set(1, 1, on ? 0.15 + vel.length() * 0.05 * (1 - k) : 0); dummy.updateMatrix(); sparks.setMatrixAt(i, dummy.matrix);
+    sparks.setColorAt(i, col.copy(s.amber ? P.accent : k < 0.2 ? P.core : P.hue).multiplyScalar(2 * (1 - k))); });
+  sparks.instanceMatrix.needsUpdate = true; sparks.instanceColor.needsUpdate = true;
+
+  // 7. residue: embers drift up and fade by 2.7 s (loop ends clean)
+  emberSeed.forEach((e, i) => { const dt = t - e.t0, k = dt / 1.3, on = dt >= 0 && k < 1;
+    dummy.position.set(e.x + Math.sin(e.sway + dt * 2) * 0.1, 0.05 + e.vy * dt, e.z); dummy.scale.setScalar(on ? 1 : 0); dummy.updateMatrix(); embers.setMatrixAt(i, dummy.matrix);
+    embers.setColorAt(i, col.copy(P.hue).multiplyScalar(1.6 * Math.sin(Math.PI * clamp(k)))); });
+  embers.instanceMatrix.needsUpdate = true; embers.instanceColor.needsUpdate = true;
+}
+function renderAt(t) { update(t); composer.render(); }
+window.renderAt = renderAt; window.P = P;
+
+let start = performance.now(), loop = true, last = performance.now(), frames = 0;
+const q = new URLSearchParams(location.search);
+document.getElementById('play').onclick = () => { start = performance.now(); };
+document.getElementById('loop').onclick = e => { loop = !loop; e.target.textContent = 'Loop: ' + (loop ? 'on' : 'off'); };
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
+function frame(now) {
+  let t = (now - start) / 1000; if (loop) t %= P.loop; else t = Math.min(t, P.loop);
+  renderAt(t); frames++;
+  if (now - last > 500) { document.getElementById('fps').textContent = Math.round(frames * 1000 / (now - last)) + ' fps'; frames = 0; last = now; }
+  requestAnimationFrame(frame);
+}
+if (q.has('t')) renderAt(+q.get('t')); else requestAnimationFrame(frame);
+</script>
+</body>
+</html>
