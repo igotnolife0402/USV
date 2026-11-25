@@ -370,3 +370,4 @@ improved: VFX Pack registered in profiles/tools.md; playbook rule pack-first + u
 ## [2026-11-25] build / Elemental Onslaught v3: unique 3D hero per element, no beams
 Fresh Umbrio tab eo-onslaught-3: 153 objects (55 animated parts: glass bubbles + corrosion puddle, fireball, black hole + ring + pulled rocks, sky pillars, rock spikes, grimoires; 66 pack flipbooks, 0 beams), 71 tracks; read-back + zfight PASS; not visually verified.
 improved: umbrio.mjs parts take tracks; spec_v3.py generator; playbook rule unique hero per element + lesson
+- 2026-11-25 learn: L-153 refs route words narrowed (crew miss on vfx rework); errors row added.
