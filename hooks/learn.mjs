@@ -38,7 +38,8 @@ export function parseTurn(lines) {
   let start = -1;
   for (let i = E.length - 1; i >= 0; i--) {
     const e = E[i];
-    if (e.type === 'user' && !e.isMeta && textOf(e.message?.content) !== null) { start = i; break; }
+    // A loaded skill's body arrives as a user text message; it is not the owner's prompt (L-147).
+    if (e.type === 'user' && !e.isMeta && textOf(e.message?.content) !== null && !/^\s*Base directory for this skill:/.test(textOf(e.message.content))) { start = i; break; }
   }
   const prompt = start >= 0 ? textOf(E[start].message.content) : '';
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
@@ -114,6 +115,11 @@ export function signals(turn, state = {}, extra = {}) {
   if (missedSkills.length)
     out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);
+  // A route may live inside another domain's folder (refs → domains/vfx/...): its note domains count as routed (L-147).
+  try {
+    const R = JSON.parse(readIf(join(ROOT, 'router.json')) || '{}');
+    for (const r of R.routes || []) if (routed.has(r.id)) for (const d of domainsOf(r.notes || [])) routed.add(d);
+  } catch { /* router unreadable: keep plain ids */ }
   const missed = domainsOf(turn.reads).filter(d => !routed.has(d));
   // Vault upkeep legitimately reads many domains; a miss is 1-2 unrouted domains on a non-vault task.
   if (missed.length && missed.length <= 2 && !routed.has('vault'))

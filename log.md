@@ -348,4 +348,4 @@ improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --c
 
 ## [2026-11-25] vfx / TikTok ref 18 (@myre.vfx) grabbed + analysed
 Same link sent twice → grabbed once. 1 crew-worker (Sonnet low) grabbed 425/427 frames in 34 s; all 18 sheets viewed; analysis.md with 7 skills and a Roblox recipe; 2 new distilled rules (crack web + dome template, 1-frame silhouette wipes).
-improved: rules 12-13 in reference-videos.md; intake drops duplicate links; worker count scales with link count (1 per <= 6 links)
+improved: rules 12-13 in reference-videos.md; intake drops duplicate links; worker count scales with link count (1 per <= 6 links); hook: skill body no longer starts a turn, route note folders count as routed (L-147)
