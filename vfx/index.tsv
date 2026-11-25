@@ -122,3 +122,4 @@ gen-orb-aura	Orb Aura	action	4	16	1	hub/gen|prbva1
 gen-hit-burst	Hit Burst	action	4	16	0.7	hub/gen|q6qfij
 gen-cut-flurry	Cut Flurry	action	4	16	0.9	hub/gen|r3r189
 gen-muzzle-thrust	Muzzle Thrust	action	4	16	0.5	hub/gen|y0ao5u
+gen-storm-nova	Storm Nova	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/storm-nova.js

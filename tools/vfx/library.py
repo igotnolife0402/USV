@@ -52,10 +52,10 @@ def main(scr, out):
             nm = nm if names[nm] == 1 else f'{nm} {names[nm]}'                          # picker list needs unique labels
             e = dict(slug=slug, name=nm, file=f'{slug}.png', grid=grid, frames=frames, life=life, kind=kind, src=f'{pat.split("/")[0]}/{b}.png')
             e.update(meta(f)); man.append(e)
-    # sheets imported from the Claude-Hub generator inbox (tools/vfx/hub_import.mjs, src hub/<key>) have no scratch source: keep their rows
+    # sheets with no scratch source keep their rows: hub/<key> (tools/vfx/hub_import.mjs) and gen/claude|<script> (ugen scripts in tools/vfx/showcase/gen)
     hub = []
     if os.path.exists(f'{out}/index.tsv'):
-        hub = [l for l in open(f'{out}/index.tsv').read().splitlines()[1:] if l.split('\t')[-1].startswith('hub/')]
+        hub = [l for l in open(f'{out}/index.tsv').read().splitlines()[1:] if l.split('\t')[-1].startswith(('hub/', 'gen/'))]
     with open(f'{out}/index.tsv', 'w') as f:
         f.write('slug\tname\tkind\tgrid\tframes\tlife\tsrc\n')
         for e in man: f.write(f"{e['slug']}\t{e['name']}\t{e['kind']}\t{e['grid']}\t{e['frames']}\t{e['life']}\t{e['src']}\n")

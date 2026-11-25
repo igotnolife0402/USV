@@ -540,3 +540,7 @@ improved: vfx/README says where generated sheets live (hub db vfxsheets); queue/
 - tools/vfx/hub_import.mjs redrew 26 hub sheets into vfx/sheets (gen-*, LA) + index rows src hub/<key>; scrapped 3 (jump 3.25, 3.06, redraw 3.01); library.py keeps hub/ rows.
 - improved: quality gate on saves; element-only sheet names; hub inbox importer; one-path-on-main tool output rule in CLAUDE.md; library.py no longer wipes imported rows
 - main fast-forwarded to the session branch (owner yes); stop-gate now fast-forwards main every stop when clean. Gate check: jump 4/3.02 slots failed, 0 saved.
+
+## [2026-11-25] build / Storm Nova custom VFX -> Umbrio MP4
+Claude-written ugen script (tools/vfx/showcase/gen/storm-nova.js, jump 2.28, 0 empty) -> vfx/sheets/gen-storm-nova.png + index row; painted copy rendered in Umbrio headless (build.mjs spec + shots SHOTS_VIDEO), 4.2 s 1100x580 MP4 sent. Live hub tab not written.
+improved: library.py keeps gen/ rows on rebuild; tools/vfx/showcase/gen/draw.mjs reusable headless drawer; tools/vfx README row with the 18 s Umbrio MP4 path
