@@ -47,3 +47,4 @@ state/.improve-timer*.json
 domains/vfx/refs/tiktok/*/frames/
 domains/vfx/refs/tiktok/*/sheets/
 domains/vfx/refs/tiktok/*/stats.csv
+domains/vfx/refs/tiktok/*/sheets_cues/

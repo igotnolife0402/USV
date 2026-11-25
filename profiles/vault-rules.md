@@ -37,3 +37,4 @@ status: current
 - crew routes only on /crew or an explicit ask to use sub agents/workers (L-103)
 - New `.claude/agents/*.md` loads only at session start: test it the same session via general-purpose + `model`/`effort` override that Reads the agent file first (L-132)
 - SKILL.md description <= 300 chars (lint cap): count it before writing; skill/agent edits are medium tier (L-133)
+- New data folders (reference frames, generated outputs) go under their domain, e.g. `domains/vfx/refs/`; repo-check allows no new vault-root folders (L-144).

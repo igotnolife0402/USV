@@ -341,3 +341,7 @@ improved: no-detail-limit rule (fit_parts split, total tri cap removed); improve
 ## [2026-11-25] vfx / TikTok reference-video pipeline setup (ready, no owner videos yet)
 tools/refs/grab.mjs (0.5 s frames, mp4 fetched in-page, ffmpeg, labelled 4x3 sheets) + stats.py (cuts, motion, palette); tested on one public clip, then deleted. Env allowlist: tiktok.com + CDN hosts.
 improved: grabber mp4 path fixes proxy ENOTFOUND; fallback seek waits for decoded frame; vfx route words tiktok/reference video; pipeline note domains/vfx/reference-videos.md
+
+## [2026-11-25] vfx / TikTok refs batch 1: 16 of 17 grabbed and analysed (Failed: 01 region-blocked)
+improve 120: 81 s brief, 18 s Sonnet, 103 s total (FAIL -16.7 s early), rungs 1-3. Grabber now 0.1 s step + important-frame filter + timed captions; 3 crew-workers (Sonnet low) grabbed 17 links in ~3.6 min; brain wrote 16 analysis.md + 11 distilled rules in domains/vfx/reference-videos.md. 01 = cross_border_violation (page + embed).
+improved: in-page mp4/caption fetch (proxy-safe); letterbox crop for sheets; --cues sheets for talk videos; refs moved under domains/vfx (lint); caption host added to env; 3 lessons applied (L-143..145)

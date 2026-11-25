@@ -27,9 +27,9 @@ def content_box(ims):
     return box if (box[2] - box[0]) * (box[3] - box[1]) < 0.9 * ims[0].width * ims[0].height else None
 
 
-def build_sheets(kept):
+def build_sheets(kept, sub='sheets'):
     """24 tiles per sheet with a time label; red label = first frame after a gap (filler frames dropped before it)."""
-    sd = d / 'sheets'; shutil.rmtree(sd, ignore_errors=True); sd.mkdir()
+    sd = d / sub; shutil.rmtree(sd, ignore_errors=True); sd.mkdir()
     font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf', 18)
     ims = [Image.open(out / n).convert('RGB') for _, _, n in kept]
     box = content_box(ims)
@@ -49,6 +49,14 @@ def build_sheets(kept):
 if len(sys.argv) > 2 and sys.argv[2] == '--sheets':
     kept = [(int(m[1]) - 1, float(m[2]), p.name) for p in sorted(out.glob('f*.png')) if (m := re.match(r'f(\d+)_t([\d.]+)s', p.name))]
     box, n = build_sheets(kept); print(json.dumps({'sheets': n, 'crop': box})); sys.exit()
+
+if len(sys.argv) > 2 and sys.argv[2] == '--cues':
+    # Talking-head / tutorial videos: the words carry the content, so one frame per caption cue is the step-by-step
+    # view (frame names come from transcript.md); writes sheets_cues/ next to the full sheets.
+    names = sorted(set(re.findall(r'`(f\d+_t[\d.]+s\.png)`', (d / 'transcript.md').read_text())))
+    kept = [(int(m[1]) - 1, float(m[2]), n) for n in names if (m := re.match(r'f(\d+)_t([\d.]+)s', n))]
+    if not kept: sys.exit('no caption cues in transcript.md')
+    box, n = build_sheets(kept, 'sheets_cues'); print(json.dumps({'cue_frames': len(kept), 'sheets': n})); sys.exit()
 
 step = float(sys.argv[2]) if len(sys.argv) > 2 else 0.1
 src = sorted((d / 'all').glob('f*.png'))
