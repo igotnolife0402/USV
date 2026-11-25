@@ -165,6 +165,10 @@ function texField(kind, cs) {                      // one cell's texture (0..1),
 const GEN = new Map()
 // sheets saved by earlier runs (hub db + assets): shown and downloadable in Sheet only; the generator never reads them back
 const SAVED = new Map(), SESSION = new Map()
+// quality floor (flipbook rule max_step_jump < ~3): a sheet at or above it fails its slot's checks and is never saved
+const JUMP_MAX = 3
+// sheet label = what the sheet is (owner 2026-11-25: 'smoke cloud', never 'gun shot smoke cloud')
+const sheetName = (d, id) => String(d?.name || id).replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 40)
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36) }
 const genKey = d => 'gen|' + hashStr(d.code + '|' + (d.seed ?? 1125))
 const imgCache = new Map()
@@ -190,6 +194,7 @@ async function renderSheets(S, say = () => {}) {
     if (!GEN.has(k)) GEN.set(k, drawSheet(d.code, d.seed ?? 1125))
     try { out[id] = await GEN.get(k) } catch (e) { GEN.delete(k); throw new Error(`sheet "${id}": ${e.message}`) }
     if (out[id].empty > 4) { GEN.delete(k); throw new Error(`sheet "${id}": ${out[id].empty} of 16 frames are empty (draw from t≈0.05, the wrapper erodes it after 0.55)`) }
+    if (!(out[id].jump < JUMP_MAX)) { GEN.delete(k); throw new Error(`sheet "${id}": jump ${out[id].jump} >= ${JUMP_MAX} (a frame pops; ease the motion in t, no element appearing or vanishing in one frame)`) }
   }))
   return out
 }
@@ -237,6 +242,7 @@ function validate(S) {
   if (!HEX.test(S.tint || '')) bad.push('tint must be #rrggbb')
   if (!S.camera || !vec(S.camera.pos) || !vec(S.camera.target)) bad.push('camera needs pos and target [x,y,z]')
   const parts = S.parts || {}
+  for (const [id, d] of Object.entries(S.sheets || {})) { const w = String(d?.name || '').trim().split(/\s+/).filter(Boolean).length; if (w < 1 || w > 3) bad.push(`sheets.${id}.name: 1-3 words saying what the sheet is (e.g. smoke cloud), no prompt context`) }
   for (const [k, p] of Object.entries(parts)) {
     if (!SHAPES.includes(p.shape || 'box')) bad.push(`part ${k}: shape ${p.shape}`)
     if (!vec(p.size)) bad.push(`part ${k}: size [x,y,z]`)
@@ -485,7 +491,7 @@ const RULES = `You make a VFX clip in two parts, returned as ONE JSON object (no
 (1) "sheets": NEW flipbook sheets you WRITE as draw scripts. They are drawn by the exact method of the owner's sheet library (the stylized unique.py): 16 frames, 160 px frames drawn at 2x with tapered disc strokes, 6 lingering motes added for you, noise erosion after 55 % of life added for you, glow lighting + edge fade + white Grid4x4 1024 px sheet (light = alpha). Colour is NOT in the script: the player paints each sheet by ramp.
 (2) the clip spec that places those sheets in a three.js scene with an automatic cinematic pass (camera push-in, slow-mo, hit-stop, dark dip, white flash, decaying shake, colour grade) and impact/rim lights.
 
-SHEET SCRIPTS: "sheets": {"<id>": {"code": "<JS function body>", "seed": <int>, "life": <s>}}. The body runs once per frame as (pen, rng, t, U); t = 0.05 -> 1 over the 16 frames. Frame coordinates: px, frame 160x160, centre 0,0, x right, y DOWN (negative y = up).
+SHEET SCRIPTS: "sheets": {"<id>": {"name": "<what this sheet IS, 1-3 generic words, e.g. smoke cloud, blood spray, ground cracks; never the clip or prompt context (not gunshot smoke cloud)>", "code": "<JS function body>", "seed": <int>, "life": <s>}}. The body runs once per frame as (pen, rng, t, U); t = 0.05 -> 1 over the 16 frames. Frame coordinates: px, frame 160x160, centre 0,0, x right, y DOWN (negative y = up).
 - pen.dot(x,y,r,v=1); pen.stroke(points,w0,w1,v=1) = tapered stroke, radius w0 -> w1 along the points; pen.poly(points,v=1). v = light 0..1 (overlaps replace, not add).
 - U.EL.<name>(pen, rngX, t, S) draws one library element at the pen origin, timing built in. Elements: ${Object.keys(EL).join(', ')}. Ring-like (use once, never paired with another ring): shock, ground, vortex, zigring, polyshock, dashring.
   Meanings: crescent slash arc; claw 3-4 parallel arcs; xcut cross slash; thrust stab line; shock ring; ground flat ring; spikes star burst; cracks jagged radial cracks; dashes inward speed dashes; spiral arms; helix twin rising strands; streaks horizontal wind lines; waves wavy lines; puffs soft blob cluster; flames rising licks; bolt lightning; fountain droplets arcing up then falling; beam horizontal beam; orbit circling dots; rise rising dots/crosses; shards spinning shards flying out; column rising blob column; fan upward fan of rays; pillar light pillar; faultline ground crack + debris; comet diagonal comet; petals spinning petals; zigring zigzag ring; bubbles bubble rings rising (hollow circles); vortex inward rings; sparkfall sparks thrown up then falling; polyshock polygon ring; dashring dashed ring.
@@ -708,8 +714,8 @@ async function loadSaved() {
 async function saveSheets(S, res, prompt) {
   const [db, assets] = await Promise.all([dbP, assetsP]); let saved = 0, failed = ''
   for (const [id, d] of Object.entries(S.sheets || {})) {
-    const k = genKey(d), r = res?.[id]; if (!r || SAVED.has(k) || SESSION.has(k)) continue
-    const rec = { key: k, name: `${S.name || 'vfx'} · ${id}`, sheet: id, clip: S.name || '', prompt: String(prompt || '').slice(0, 2000), code: d.code, seed: d.seed ?? 1125, life: d.life ?? 0.9, jump: r.jump, at: Date.now() }
+    const k = genKey(d), r = res?.[id]; if (!r || !(r.jump < JUMP_MAX) || r.empty > 4 || SAVED.has(k) || SESSION.has(k)) continue
+    const rec = { key: k, name: sheetName(d, id), sheet: id, clip: S.name || '', prompt: String(prompt || '').slice(0, 2000), code: d.code, seed: d.seed ?? 1125, life: d.life ?? 0.9, jump: r.jump, at: Date.now() }
     SESSION.set(k, { ...rec, url: r.url, blob: r.blob })               // shown at once; stays "this session only" if the save fails
     if (!db || !assets || !r.blob) continue
     try { const a = await assets.upload(r.blob); rec.asset = a.id; await col(db).doc(k.slice(4)).set(rec); SAVED.set(k, { ...rec, url: a.url }); SESSION.delete(k); saved++ }
@@ -738,7 +744,7 @@ const slugFile = s => s.replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').toLower
 function renderLib() {
   const q = $('libq').value.trim().toLowerCase(), hit = (...a) => !q || a.join(' ').toLowerCase().includes(q)
   const gen = [...SESSION.values(), ...SAVED.values()].sort((a, b) => b.at - a.at)
-    .filter(r => hit(r.name, r.prompt, r.code))
+    .filter(r => !r.repo && hit(r.name, r.prompt, r.code))
     .map(r => ({ ...r, file: slugFile(r.name) + '.png', cap: `${r.name}${r.asset ? '' : ' · this session only'} · jump ${r.jump}` }))
   const lib = Object.entries(INDEX).filter(([slug, r]) => hit(slug, r.name, r.kind))
     .map(([slug, r]) => ({ name: r.name, url: LIB + 'sheets/' + slug + '.png', file: slug + '.png', cap: `${r.name} · ${r.kind} · ${r.frames} fr` }))

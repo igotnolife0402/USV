@@ -96,3 +96,29 @@ sym-156-u2656	U2656	symbol	1	1	0.6	mix3/156_U2656_magenta.png
 sym-171-u2667	U2667	symbol	1	1	0.6	mix3/171_U2667_teal.png
 sym-173-u2668	U2668	symbol	1	1	0.6	mix3/173_U2668_blue.png
 sym-199-u26b8	U26B8	symbol	1	1	0.6	mix3/199_U26B8_yellow.png
+gen-ground-crack-ring	Ground Crack Ring	action	4	16	1	hub/gen|13bauwu
+gen-blood-burst	Blood Burst	action	4	16	0.8	hub/gen|141goo6
+gen-bullet-tracer	Bullet Tracer	action	4	16	0.5	hub/gen|14zcfu8
+gen-shock-dashes	Shock Dashes	action	4	16	1	hub/gen|1an4d7v
+gen-blood-fountain	Blood Fountain	action	4	16	1.2	hub/gen|1c16yq5
+gen-claw-slash	Claw Slash	action	4	16	0.6	hub/gen|1d8pl2h
+gen-liquid-pool	Liquid Pool	action	4	16	1.6	hub/gen|1dofx6u
+gen-shard-debris	Shard Debris	action	4	16	1	hub/gen|1j7s8hn
+gen-crescent-nick	Crescent Nick	action	4	16	0.6	hub/gen|1m38ts6
+gen-ground-splat	Ground Splat	action	4	16	1	hub/gen|1oeo900
+gen-collision-burst	Collision Burst	action	4	16	0.8	hub/gen|1rqg0cn
+gen-black-hole-vortex	Black Hole Vortex	action	4	16	1.2	hub/gen|1t49tf1
+gen-rising-puffs	Rising Puffs	action	4	16	1.4	hub/gen|1tnvax3
+gen-liquid-spray	Liquid Spray	action	4	16	1.2	hub/gen|4lztr5
+gen-suction-vortex	Suction Vortex	action	4	16	0.9	hub/gen|6lnd6n
+gen-falling-droplets	Falling Droplets	action	4	16	1	hub/gen|bl7zga
+gen-ground-splash	Ground Splash	action	4	16	1.2	hub/gen|ec5j1n
+gen-tiny-cuts	Tiny Cuts	action	4	16	1.4	hub/gen|f5wx49
+gen-blood-spray	Blood Spray	action	4	16	1	hub/gen|gr9s2s
+gen-orbit-waves	Orbit Waves	action	4	16	0.8	hub/gen|h9k992
+gen-rising-sparks	Rising Sparks	action	4	16	1.5	hub/gen|jnc0a0
+gen-muzzle-flash	Muzzle Flash	action	4	16	0.5	hub/gen|n1kgsa
+gen-orb-aura	Orb Aura	action	4	16	1	hub/gen|prbva1
+gen-hit-burst	Hit Burst	action	4	16	0.7	hub/gen|q6qfij
+gen-cut-flurry	Cut Flurry	action	4	16	0.9	hub/gen|r3r189
+gen-muzzle-thrust	Muzzle Thrust	action	4	16	0.5	hub/gen|y0ao5u

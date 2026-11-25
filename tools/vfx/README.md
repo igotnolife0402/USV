@@ -9,5 +9,6 @@ Domain notes: [vfx index](../../domains/vfx/index.md), rules for the flipbook: [
 | [stylized](stylized/README.md) | Stylized mobile-game VFX sheet (owner reference look): toon glints, portals, tornados, swirls, orbs, magic circles, icons, clouds; flipbook ramp + same-hue halos; ~1 s | `python3 tools/vfx/stylized/sheet.py OUT.png [REF.jpg]` | python3, numpy, Pillow |
 | [liquid](liquid/README.md) | **VFX Generator**: liquid simulation as 4 stacked layers (mist, body, drops, glow) for poison/water/blood/slime/lava; ~2 s; import into Umbrio Sandbox | `python tools/vfx/liquid/liquid.py OUT <preset> --check` | python, numpy, Pillow |
 | [VFX.lua](flipbook/VFX.lua) | Luau: `VFX.make(id, part)` turns a `VFXLibrary.lua` entry into a ParticleEmitter (loops overlap 4 cycles with fade so they never pop) | require beside the generated `VFXLibrary.lua` | Roblox |
+| [hub_import.mjs](hub_import.mjs) | Moves hub generator sheets (db `vfxsheets` inbox) into `vfx/sheets` + `vfx/index.tsv`: redraws from code+seed, scraps jump >= 3, LA PNG, `gen-<name>` slugs | `node tools/vfx/hub_import.mjs <dir of record json> vfx` | node, Playwright (preinstalled), python3 PIL |
 
 Checked 2026-11-21: `vfx.py OUT slash --check` builds in 1.4 s, max_step_jump 1.41, thin_stroke_pct 1.2.

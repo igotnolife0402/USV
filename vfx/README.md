@@ -1,16 +1,16 @@
 ---
 summary: Every VFX sheet ever made, white only, in vfx/sheets; find by grepping vfx/index.tsv; rules for painting with gradients and textures.
-updated: 2026-11-24
+updated: 2026-11-25
 status: current
 ---
 # VFX library (owner 2026-11-24: "all vfx in the same file, anybody needing vfx knows exactly where they are")
 
 ## Where
 - `vfx/sheets/<slug>.png`: one file per effect, **white only** (light = alpha, grey+alpha PNG). Colour is added at use time, never stored.
-- Sheets made in the hub vfx generator (2026-11-25): Claude-Hub db collection `vfxsheets` (record: name, prompt, code, seed, life, asset id; PNG at `/_blob/<asset>`); archive only: the generator never reads them back (always draws new); only Umbrio build agents fetch old sheets; all show under its Sheet button. Read them with ArtifactData list `vfxsheets` before drawing a new one.
+- Sheets made in the hub vfx generator (owner 2026-11-25: one path for every tool, on `main`): the hub cannot write git, so its db collection `vfxsheets` is only an **inbox**. Any Claude session moves it here: ArtifactData list `vfxsheets` (out_dir scratch) → `node tools/vfx/hub_import.mjs <scratch>/vfxsheets vfx` (redraws each from code+seed with showcase/lib/ugen.js, LA PNG, slug `gen-<name>`, src `hub/<key>`) → ArtifactData update each doc `{repo: slug}` → republish the hub with the new `vfx/sheets` files + `vfx/index.tsv`. Sheets at or over the quality floor (jump >= 3, > 4 empty frames) are never saved and are scrapped on import. Names say what the sheet is (`smoke cloud`), never the prompt (`gunshot smoke cloud`). `tools/vfx/library.py` keeps `hub/` rows on rebuild.
 - `vfx/index.tsv`: one row per sheet: `slug  name  kind  grid  frames  life  src`. Never open the sheets to search; grep the index:
   `grep -i slash vfx/index.tsv | cut -f1-5`, `grep -c . vfx/index.tsv`, `awk -F'\t' '$3=="action"' vfx/index.tsv | head`
-- Only the newest, owner-approved set lives here (owner 2026-11-24 deleted the older gen/nf/vb/ref/icon/sym sets): 67 `act-` actions (slash, smash, wind, ...) + 30 `sym-` symbols (~70/30).
+- Only the newest, owner-approved set lives here (owner 2026-11-24 deleted the older gen/nf/vb/ref/icon/sym sets): 67 `act-` actions (slash, smash, wind, ...) + 30 `sym-` symbols, plus `gen-` sheets imported from the hub generator (26 on 2026-11-25).
 
 | kind | grid | frames | size | Roblox |
 |---|---|---|---|---|

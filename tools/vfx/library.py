@@ -52,9 +52,14 @@ def main(scr, out):
             nm = nm if names[nm] == 1 else f'{nm} {names[nm]}'                          # picker list needs unique labels
             e = dict(slug=slug, name=nm, file=f'{slug}.png', grid=grid, frames=frames, life=life, kind=kind, src=f'{pat.split("/")[0]}/{b}.png')
             e.update(meta(f)); man.append(e)
+    # sheets imported from the Claude-Hub generator inbox (tools/vfx/hub_import.mjs, src hub/<key>) have no scratch source: keep their rows
+    hub = []
+    if os.path.exists(f'{out}/index.tsv'):
+        hub = [l for l in open(f'{out}/index.tsv').read().splitlines()[1:] if l.split('\t')[-1].startswith('hub/')]
     with open(f'{out}/index.tsv', 'w') as f:
         f.write('slug\tname\tkind\tgrid\tframes\tlife\tsrc\n')
         for e in man: f.write(f"{e['slug']}\t{e['name']}\t{e['kind']}\t{e['grid']}\t{e['frames']}\t{e['life']}\t{e['src']}\n")
+        for l in hub: f.write(l + '\n')
     st['effects'] = len(man); st['mb'] = round(sum(os.path.getsize(f'{out}/sheets/{e["file"]}') for e in man) / 1e6, 1)
     st['by_kind'] = {k: sum(e['kind'] == k for e in man) for k in ('flipbook', 'action', 'symbol')}; print(st)
 
