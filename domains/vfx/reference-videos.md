@@ -9,9 +9,9 @@ Goal: learn how a reference looks and moves well enough to rebuild the technique
 
 ## Phases
 1. **Intake** (brain): list links in `state/refs-<batch>.md` with a slug each (`01-fire-slash`, ...). Short links (vm./vt.) are fine.
-2. **Grab** (3 `crew-worker` Sonnet agents, links split evenly): each runs `node tools/refs/grab.mjs <url> <slug>` per link, then `python3 -I tools/refs/stats.py refs/tiktok/<slug>`, and reports the JSON line + stats summary. One retry per link; no image reading, no analysis.
+2. **Grab** (3 `crew-worker` Sonnet agents, links split evenly): each runs `node tools/refs/grab.mjs <url> <slug>` per link, then `python3 -I tools/refs/stats.py domains/vfx/refs/tiktok/<slug>`, and reports the JSON line + stats summary. One retry per link; no image reading, no analysis.
 3. **Verify** (brain): `frames == expected` for every slug, method A (B = look at sheet01 first). A count is not a content check: open one sheet per video.
-4. **Analyze** (brain, ONE video at a time): read stats.csv summary, view every sheet (all frames, 12 per image), zoom full-size frames only at key moments (cuts, peak motion, peak brightness). Write `refs/tiktok/<slug>/analysis.md` right away, before the next video, so compaction never loses work.
+4. **Analyze** (brain, ONE video at a time): read stats.csv summary, view every sheet (all frames, 12 per image), zoom full-size frames only at key moments (cuts, peak motion, peak brightness). Write `domains/vfx/refs/tiktok/<slug>/analysis.md` right away, before the next video, so compaction never loses work.
 5. **Distill** (brain): repeated patterns across videos → rules in the matching domain playbook (vfx, animation, 3d, images); one line per rule, linked to the analyses.
 
 ## analysis.md template

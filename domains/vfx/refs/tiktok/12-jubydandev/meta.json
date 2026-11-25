@@ -1,0 +1,57 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uVqJ12/",
+  "finalUrl": "https://www.tiktok.com/@jubydandev/video/7704815415779773709?_r=1&_t=ZN-9Bi4GnqdtLy",
+  "id": "7704815415779773709",
+  "slug": "12-jubydandev",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:40:35.352Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "ai is becoming better than you think #roblox #game #gamedeveloper #fyp #viral ",
+  "author": "jubydandev",
+  "music": "original sound",
+  "hashtags": [
+    "roblox",
+    "game",
+    "gamedeveloper",
+    "fyp",
+    "viral"
+  ],
+  "stickers": [
+    "“claude isn’t good at \nmaking models”"
+  ],
+  "created": "1793917143",
+  "captions": "none",
+  "width": 720,
+  "height": 1280,
+  "srcFps": "30/1",
+  "duration": 10.833333,
+  "kept": 108,
+  "total": 108,
+  "dropped": 0,
+  "runs": [
+    [
+      0,
+      10.7
+    ]
+  ],
+  "cuts": [
+    2.9,
+    5.9,
+    8
+  ],
+  "crop": null,
+  "palette": [
+    "#d8dedd",
+    "#b3b5b6",
+    "#dfdddd",
+    "#afcdcb",
+    "#cbcece",
+    "#dee1db",
+    "#11111e",
+    "#11111d"
+  ],
+  "sheets": 5,
+  "cues": 0,
+  "method": "A-mp4"
+}

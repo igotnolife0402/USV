@@ -1,0 +1,131 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uVVdqu/",
+  "finalUrl": "https://www.tiktok.com/@jodietess/video/7696535482699730190?_r=1&_t=ZN-9Bi4HujVpPa",
+  "id": "7696535482699730190",
+  "slug": "13-jodietess",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:37:16.662Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "i’m getting better and better #foryou #foryoupage #trending #blender",
+  "author": "jodietess",
+  "music": "suara asli - Dictt",
+  "hashtags": [
+    "foryou",
+    "foryoupage",
+    "trending",
+    "blender"
+  ],
+  "stickers": [
+    "- 2 days"
+  ],
+  "created": "1791989327",
+  "captions": "none",
+  "width": 720,
+  "height": 1280,
+  "srcFps": "30/1",
+  "duration": 30.2,
+  "kept": 275,
+  "total": 302,
+  "dropped": 27,
+  "runs": [
+    [
+      0,
+      1.2
+    ],
+    [
+      1.4,
+      5.1
+    ],
+    [
+      5.4,
+      5.5
+    ],
+    [
+      5.7,
+      9
+    ],
+    [
+      9.2,
+      9.3
+    ],
+    [
+      9.5,
+      9.5
+    ],
+    [
+      9.9,
+      10
+    ],
+    [
+      10.2,
+      10.4
+    ],
+    [
+      10.6,
+      12.1
+    ],
+    [
+      12.3,
+      13.7
+    ],
+    [
+      13.9,
+      15.2
+    ],
+    [
+      15.4,
+      15.8
+    ],
+    [
+      16,
+      16.2
+    ],
+    [
+      16.4,
+      16.4
+    ],
+    [
+      16.7,
+      18.4
+    ],
+    [
+      18.7,
+      22.1
+    ],
+    [
+      22.4,
+      24.5
+    ],
+    [
+      24.7,
+      26.9
+    ],
+    [
+      27.2,
+      27.7
+    ],
+    [
+      27.9,
+      29.9
+    ],
+    [
+      30.1,
+      30.1
+    ]
+  ],
+  "cuts": [],
+  "palette": [
+    "#161012",
+    "#130d0e",
+    "#797572",
+    "#160f12",
+    "#160f11",
+    "#7e7974",
+    "#837c78",
+    "#170f10"
+  ],
+  "sheets": 12,
+  "cues": 0,
+  "method": "A-mp4"
+}

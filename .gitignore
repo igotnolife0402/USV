@@ -44,6 +44,6 @@ __pycache__/
 state/.improve-timer*.json
 
 # reference-video frames (regenerate with tools/refs/grab.mjs); analysis.md + meta.json are committed
-refs/tiktok/*/frames/
-refs/tiktok/*/sheets/
-refs/tiktok/*/stats.csv
+domains/vfx/refs/tiktok/*/frames/
+domains/vfx/refs/tiktok/*/sheets/
+domains/vfx/refs/tiktok/*/stats.csv

@@ -1,0 +1,97 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uV4gdM/",
+  "finalUrl": "https://www.tiktok.com/@mojangopa/video/7705869022247570710?_r=1&_t=ZN-9Bi4LXoGCoA",
+  "id": "7705869022247570710",
+  "slug": "15-mojangopa",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:38:12.599Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "Claude Ai + Blender made these insane cutscenes for my new game! #blender #newrobloxgame #robloxdev #claude #rng ",
+  "author": "mojangopa",
+  "music": "FALL FROM THE SKY PT.2 (VIRAL SLOWED)",
+  "hashtags": [
+    "blender",
+    "newrobloxgame",
+    "robloxdev",
+    "claude",
+    "rng"
+  ],
+  "stickers": [
+    "POV: Claude + blender make insane cutscenes",
+    "roblox aura cutscene roblox rng roblox studio claude ai blender roblox game dev"
+  ],
+  "created": "1794162449",
+  "captions": "none",
+  "width": 576,
+  "height": 1024,
+  "srcFps": "30/1",
+  "duration": 16.788005,
+  "kept": 150,
+  "total": 168,
+  "dropped": 18,
+  "runs": [
+    [
+      0,
+      0.2
+    ],
+    [
+      0.7,
+      1.6
+    ],
+    [
+      2.1,
+      2.1
+    ],
+    [
+      2.5,
+      2.6
+    ],
+    [
+      2.9,
+      2.9
+    ],
+    [
+      3.1,
+      6
+    ],
+    [
+      6.2,
+      10.5
+    ],
+    [
+      10.7,
+      10.7
+    ],
+    [
+      10.9,
+      10.9
+    ],
+    [
+      11.1,
+      16.7
+    ]
+  ],
+  "cuts": [
+    15.9
+  ],
+  "crop": [
+    0,
+    192,
+    576,
+    882
+  ],
+  "palette": [
+    "#000000",
+    "#100200",
+    "#030000",
+    "#000001",
+    "#080000",
+    "#0a0000",
+    "#1e2733",
+    "#11151f"
+  ],
+  "sheets": 7,
+  "cues": 0,
+  "method": "A-mp4"
+}

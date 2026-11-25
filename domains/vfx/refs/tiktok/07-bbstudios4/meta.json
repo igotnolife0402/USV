@@ -1,0 +1,158 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uVf9mX/",
+  "finalUrl": "https://www.tiktok.com/@bbstudios4/video/7712203106079034637?_r=1&_t=ZN-9Bi4A0DF010",
+  "id": "7712203106079034637",
+  "slug": "07-bbstudios4",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:37:17.789Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "#robloxdev #claude #ai #robloxdeveloper #dev ",
+  "author": "bbstudios4",
+  "music": "sonido original",
+  "hashtags": [
+    "robloxdev",
+    "claude",
+    "ai",
+    "robloxdeveloper",
+    "dev"
+  ],
+  "stickers": [
+    "Claude is goated at vfx"
+  ],
+  "created": "1795637226",
+  "subLang": "spa-ES",
+  "subSource": "ASR",
+  "captions": "9 cues (spa-ES, ASR)",
+  "width": 720,
+  "height": 1280,
+  "srcFps": "30/1",
+  "duration": 26.6,
+  "kept": 175,
+  "total": 266,
+  "dropped": 91,
+  "runs": [
+    [
+      0,
+      0
+    ],
+    [
+      0.3,
+      0.3
+    ],
+    [
+      0.7,
+      0.7
+    ],
+    [
+      1.2,
+      1.2
+    ],
+    [
+      2.2,
+      5.1
+    ],
+    [
+      5.3,
+      5.4
+    ],
+    [
+      5.9,
+      5.9
+    ],
+    [
+      6.1,
+      6.2
+    ],
+    [
+      6.4,
+      6.4
+    ],
+    [
+      6.6,
+      6.9
+    ],
+    [
+      7.1,
+      7.1
+    ],
+    [
+      7.3,
+      7.3
+    ],
+    [
+      9,
+      12.1
+    ],
+    [
+      12.3,
+      12.3
+    ],
+    [
+      12.5,
+      12.5
+    ],
+    [
+      12.7,
+      12.7
+    ],
+    [
+      13,
+      13
+    ],
+    [
+      13.3,
+      13.9
+    ],
+    [
+      14.8,
+      14.8
+    ],
+    [
+      15.1,
+      15.1
+    ],
+    [
+      15.6,
+      18.7
+    ],
+    [
+      19.1,
+      19.6
+    ],
+    [
+      19.8,
+      20.7
+    ],
+    [
+      21,
+      21
+    ],
+    [
+      21.2,
+      21.2
+    ],
+    [
+      22.5,
+      25.7
+    ],
+    [
+      26.5,
+      26.5
+    ]
+  ],
+  "cuts": [],
+  "palette": [
+    "#000000",
+    "#3c4046",
+    "#3d4145",
+    "#3d4149",
+    "#3c4148",
+    "#3a3b3f",
+    "#3d3e41",
+    "#3c3d40"
+  ],
+  "sheets": 8,
+  "cues": 9,
+  "method": "A-mp4"
+}

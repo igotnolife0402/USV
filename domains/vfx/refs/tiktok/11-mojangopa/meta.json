@@ -1,0 +1,141 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uVs89F/",
+  "finalUrl": "https://www.tiktok.com/@mojangopa/video/7707870840334896406?_r=1&_t=ZN-9Bi4Et6h7Q7",
+  "id": "7707870840334896406",
+  "slug": "11-mojangopa",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:39:40.930Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "Every prompt I used to make this aura with claude! #gamedeveloper #robloxdev #newrobloxgame #claudeai #robloxrng ",
+  "author": "mojangopa",
+  "music": "New Computers - Slowed + Extended",
+  "hashtags": [
+    "gamedeveloper",
+    "robloxdev",
+    "newrobloxgame",
+    "claudeai",
+    "robloxrng"
+  ],
+  "stickers": [
+    "roblox aura, roblox rng, rng battlegrounds, claude ai, claude roblox, ai game dev, hoe to make roblox aura, roblox vfx tutorial"
+  ],
+  "created": "1794628552",
+  "subLang": "eng-US",
+  "subSource": "ASR",
+  "captions": "36 cues (eng-US, ASR)",
+  "width": 576,
+  "height": 1024,
+  "srcFps": "30/1",
+  "duration": 84.473991,
+  "kept": 810,
+  "total": 845,
+  "dropped": 35,
+  "runs": [
+    [
+      0,
+      7.5
+    ],
+    [
+      7.7,
+      7.7
+    ],
+    [
+      8.1,
+      8.5
+    ],
+    [
+      8.8,
+      8.9
+    ],
+    [
+      9.2,
+      9.2
+    ],
+    [
+      9.5,
+      9.5
+    ],
+    [
+      9.7,
+      9.7
+    ],
+    [
+      10,
+      10
+    ],
+    [
+      10.4,
+      10.5
+    ],
+    [
+      10.7,
+      10.7
+    ],
+    [
+      10.9,
+      11
+    ],
+    [
+      11.2,
+      11.4
+    ],
+    [
+      11.6,
+      11.6
+    ],
+    [
+      11.9,
+      11.9
+    ],
+    [
+      12.2,
+      12.2
+    ],
+    [
+      12.4,
+      12.8
+    ],
+    [
+      13,
+      13
+    ],
+    [
+      13.7,
+      13.7
+    ],
+    [
+      13.9,
+      20.9
+    ],
+    [
+      21.1,
+      43.1
+    ],
+    [
+      43.3,
+      84.4
+    ]
+  ],
+  "cuts": [
+    7,
+    7.1,
+    7.2,
+    7.3,
+    46.8
+  ],
+  "crop": null,
+  "palette": [
+    "#010205",
+    "#070b11",
+    "#000104",
+    "#070b10",
+    "#010104",
+    "#080b11",
+    "#020305",
+    "#05090d"
+  ],
+  "sheets": 34,
+  "cues": 36,
+  "method": "A-mp4"
+}

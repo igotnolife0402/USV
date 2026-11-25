@@ -1,0 +1,51 @@
+---
+summary: TikTok captions for 05-trevsagents with the nearest kept frame per cue
+updated: 2026-11-25
+status: current
+---
+# Transcript (TikTok captions)
+
+- 0.3-3.5s → `f0004_t000.3s.png`: why isn't my AI as good it's probably because you don't have a vault
+- 3.5-7.4s → `f0036_t003.5s.png`: like this right this is a vault with over 450,000 words in it
+- 7.4-9.8s → `f0075_t007.4s.png`: literally thousands of annotated images
+- 9.8-12.1s → `f0099_t009.8s.png`: with all the good like you know why things work
+- 12.1-14.6s → `f0122_t012.1s.png`: what's good what doesn't work all that stuff and very direct
+- 14.6-16.6s → `f0147_t014.6s.png`: well trained instructions on how to do everything
+- 16.6-18.7s → `f0167_t016.6s.png`: right so like the first five minutes the agents that
+- 18.7-20.9s → `f0188_t018.7s.png`: create my games will come here it will read
+- 20.9-24.1s → `f0210_t020.9s.png`: at each and every rule in here when they need to read it about whatever it's about
+- 24.1-26.5s → `f0242_t024.1s.png`: right so when they're working on the first five minutes they'll come here they'll
+- 26.5-28.4s → `f0266_t026.5s.png`: read you know the sections of this that they need to read
+- 28.4-30.9s → `f0285_t028.4s.png`: it's got the core loop it's got rarity in RNG
+- 30.9-33.4s → `f0310_t030.9s.png`: it's got progression and economy UI
+- 33.5-36.0s → `f0336_t033.5s.png`: all this stuff there's like 13 different chapters
+- 36.0-38.1s → `f0361_t036.0s.png`: and you can see all these comments that are flying off
+- 38.1-40.9s → `f0382_t038.1s.png`: are when an agent actually does a task right so right now
+- 40.9-43.5s → `f0410_t040.9s.png`: the lead is reacting to one of my notes he's reading it
+- 43.5-44.5s → `f0436_t043.5s.png`: so he just sent a
+- 44.5-47.3s → `f0446_t044.5s.png`: text to that note and if I want to go see it I click on exactly here
+- 47.3-48.9s → `f0474_t047.3s.png`: and see what he just read or whatever
+- 48.9-50.0s → `f0490_t048.9s.png`: and this is the vault that's
+- 50.0-53.5s → `f0501_t050.0s.png`: inside the Aro automation app right so it has a bunch of agents that
+- 53.5-55.6s → `f0536_t053.5s.png`: like create Roblox games for you
+- 55.7-58.1s → `f0558_t055.7s.png`: and you can see what exactly what they're doing here they open up
+- 58.1-60.9s → `f0582_t058.1s.png`: studio they do all of it they upload assets you can create thumbnails
+- 60.9-63.3s → `f0610_t060.9s.png`: the effects models everything you need to make a Roblox
+- 63.3-64.4s → `f0634_t063.3s.png`: game is in this app
+- 64.4-67.8s → `f0645_t064.4s.png`: it is it comes with this crazy vault like that is a part of the app
+- 67.9-68.5s → `f0680_t067.9s.png`: these agents
+- 68.5-71.9s → `f0686_t068.5s.png`: literally just work for you overnight 24 7 they slave away you can
+- 71.9-73.9s → `f0720_t071.9s.png`: control it from your phone like I can go out
+- 73.9-75.8s → `f0740_t073.9s.png`: you know go to school go to work go to
+- 75.8-78.4s → `f0759_t075.8s.png`: my job whatever I need to do and keep coding Roblox
+- 78.4-80.8s → `f0785_t078.4s.png`: games from my phone all this stuff is available
+- 80.8-82.0s → `f0809_t080.8s.png`: you really don't have to do anything
+- 82.0-83.9s → `f0821_t082.0s.png`: if you have any questions about it you can join our public
+- 83.9-86.0s → `f0840_t083.9s.png`: discord server it's on the link in our bio
+- 86.0-88.7s → `f0861_t086.0s.png`: um we have you know people in here all the time asking questions
+- 88.7-90.9s → `f0888_t088.7s.png`: you know making new games helping each other
+- 91.0-92.9s → `f0911_t091.0s.png`: we've got free assets in here as well
+- 92.9-94.1s → `f0930_t092.9s.png`: I mean even the app has over
+- 94.1-97.8s → `f0942_t094.1s.png`: 7,000 free assets for everyone to use yeah you get games play tested
+- 97.8-100.0s → `f0979_t097.8s.png`: and all that stuff like whatever you wanna do
+- 100.1-101.6s → `f1002_t100.1s.png`: or have any questions answer just let me know

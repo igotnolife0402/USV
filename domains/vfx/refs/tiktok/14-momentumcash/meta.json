@@ -1,0 +1,51 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uV58oQ/",
+  "finalUrl": "https://www.tiktok.com/@momentumcash/video/7705148037508762910?_r=1&_t=ZN-9Bi4KAHv87y",
+  "id": "7705148037508762910",
+  "slug": "14-momentumcash",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:37:58.512Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "#roblox #claude #ai ",
+  "author": "momentumcash",
+  "music": "original sound",
+  "hashtags": [
+    "roblox",
+    "claude",
+    "ai"
+  ],
+  "stickers": [],
+  "created": "1793994601",
+  "subLang": "eng-US",
+  "subSource": "MT",
+  "captions": "3 cues (eng-US, MT)",
+  "width": 720,
+  "height": 1280,
+  "srcFps": "30/1",
+  "duration": 8.983991,
+  "kept": 90,
+  "total": 90,
+  "dropped": 0,
+  "runs": [
+    [
+      0,
+      8.9
+    ]
+  ],
+  "cuts": [],
+  "crop": null,
+  "palette": [
+    "#e6c8b1",
+    "#e3c3ad",
+    "#e8c9b1",
+    "#e8cbb3",
+    "#e9cbb3",
+    "#e5c8b1",
+    "#e4c6b0",
+    "#e4c7b1"
+  ],
+  "sheets": 4,
+  "cues": 3,
+  "method": "A-mp4"
+}

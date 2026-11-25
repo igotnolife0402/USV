@@ -1,0 +1,77 @@
+{
+  "url": "https://vm.tiktok.com/ZN8uV4sAA/",
+  "finalUrl": "https://www.tiktok.com/@robloxwithai/video/7711857432758209814?_r=1&_t=ZN-9Bi42oP4cNy",
+  "id": "7711857432758209814",
+  "slug": "02-robloxwithai",
+  "step": 0.1,
+  "grabbedAt": "2026-11-25T21:36:31.168Z",
+  "status": 0,
+  "statusMsg": "",
+  "desc": "Opus 5.5 is so goodd #roblox #robloxfyp #robloxdev #robloxai #claude",
+  "author": "robloxwithai",
+  "music": "origineel geluid - Ryxn.",
+  "hashtags": [
+    "roblox",
+    "robloxfyp",
+    "robloxdev",
+    "robloxai",
+    "claude"
+  ],
+  "stickers": [
+    "Claude made this in one prompt",
+    "Prompts, vfx and skills in\ndiscord in bio"
+  ],
+  "created": "1795556740",
+  "subLang": "eng-US",
+  "subSource": "ASR",
+  "captions": "3 cues (eng-US, ASR)",
+  "width": 576,
+  "height": 1024,
+  "srcFps": "30/1",
+  "duration": 18.9,
+  "kept": 161,
+  "total": 189,
+  "dropped": 28,
+  "runs": [
+    [
+      0,
+      0
+    ],
+    [
+      0.7,
+      0.7
+    ],
+    [
+      1.7,
+      9.5
+    ],
+    [
+      10.6,
+      10.6
+    ],
+    [
+      10.9,
+      18.6
+    ],
+    [
+      18.8,
+      18.8
+    ]
+  ],
+  "cuts": [
+    7.3
+  ],
+  "palette": [
+    "#000000",
+    "#d4d4d7",
+    "#d3d4d7",
+    "#eff0f2",
+    "#a4c2d1",
+    "#585452",
+    "#ebecee",
+    "#e9eaed"
+  ],
+  "sheets": 7,
+  "cues": 3,
+  "method": "A-mp4"
+}
