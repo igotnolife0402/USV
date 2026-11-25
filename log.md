@@ -375,3 +375,8 @@ improved: umbrio.mjs parts take tracks; spec_v3.py generator; playbook rule uniq
 ## [2026-11-25] build / Elemental Onslaught v4 with the hub VFX Generator
 Wrote 8 sheet scripts in the hub generator's house style (gen-sheets.json), baked with the hub's own ugen.js headless (all jump < 3), painted + placed as 29 main layers in elements.py; fresh Umbrio tab eo-onslaught-4: 166 objects, 79 flipbooks (29 generator), 0 beams, 71 tracks; read-back + zfight PASS; not visually verified (PC queued).
 improved: tools.md VFX Generator row now points at the hub tile (liquid CLI split off); bake-sheets.cjs bakes generator scripts headless; L-154 + vfx playbook rule + router already had "vfx generator" (routing was right, the registry row was wrong)
+
+## [2026-11-25] vfx / Elemental Onslaught v5 palette + filler purge
+Owner: purple circle under white beam, old vfx don't match. Dropped 45 carry-over pack cards, PAL table, per-element caster circle, warm rim, blue grimoires; eo-onslaught-5 live, 42 flipbooks (6 partners), zfight PASS, not visually verified.
+improved: PAL single colour table in elements.py; carry-over filler removed + playbook rule L-155; stale cached webp trap avoided (repaint on ramp change)
+improve 60: ~38 s brief, 13 s Sonnet, 63.1 s total, rungs 1-3

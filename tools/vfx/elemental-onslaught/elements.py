@@ -11,12 +11,22 @@ import json, math, random, sys
 src, out = sys.argv[1], sys.argv[2]
 S = json.load(open(src)); R = random.Random(7)
 H, T = S['hand'], S['T']
-S['name'] = 'Elemental Onslaught v4'
 r3 = lambda v: [round(x, 3) for x in v]
 lerp = lambda a, b, k: [a[i] + (b[i] - a[i]) * k for i in range(3)]
 
-# keep pack flipbooks that are not beams and not the old hand->T bolts (books replace them)
-fx = [e for e in S['fx'] if not e.get('beam') and not (e['slug'] == 'act-046-spiral-bolt')]
+# v5 (owner: "purple circle under a white beam, old vfx don't match"): no carry-over pack cards; every layer is placed on
+# purpose, max gen sheet + one shape-fit partner per element, all colours from PAL (one table: ramps, parts, lights, circle)
+PAL = {'poison': ('#e8ffb0', '#7be04a', '#2f5a14'), 'fire': ('#fff1b0', '#ff6a1a', '#7a1a05'),
+       'void': ('#c9a8ff', '#4a1f8a', '#0a0612'), 'holy': ('#ffffff', '#ffe9a0', '#c89a3a'),
+       'earth': ('#f0d9b0', '#8a6a48', '#3a2c20'), 'arcane': ('#dff4ff', '#5fb8ff', '#1e3f8a')}
+S['ramps'] = {k: f'{sh},{m},{c},#ffffff' for k, (c, m, sh) in PAL.items()}
+S['ramps']['dust'] = '#2a2620,#6a6050,#b0a48c'
+S['name'] = 'Elemental Onslaught v5'
+S['rims'] = [dict(S['rims'][0], color='#ffe9c0', base=0.6)]
+for im in S['impacts']:
+    el = {'#7be04a': 'poison', '#ff7a1f': 'fire', '#9b5bff': 'void', '#ffd34a': 'holy', '#d09a5a': 'earth', '#5fb8ff': 'arcane'}.get(im['color'])
+    if el: im['color'] = PAL[el][1] if el != 'void' else PAL[el][0]
+fx = []
 parts = {'ground': S['parts']['ground']}
 n = [0]
 def part(name, shape, size, color, pos, tr, mat='SmoothPlastic', **kw):
@@ -55,7 +65,7 @@ for i in range(7):  # boiling bubbles on the puddle, each rises, swells, pops
         'visible': vis(t0, t0 + 0.5)}, mat='Glass', transparency=0.3)
     fb('gen-poison-bubble', 'poison', t0 + 0.1, [q[0], 0.3, q[2]], 1.0, life=0.5)
 fb('gen-poison-erode', 'poison', B + 1.2, [T[0], 0.04, T[2]], 4.2, life=1.6, flat=True, opacity=0.85)
-fb('act-065-fountain-rise', 'dust', B + 1.4, [T[0], 0.9, T[2]], 3.0, life=1.6, blend='normal', opacity=0.6)
+fb('act-065-fountain-rise', 'poison', B + 1.4, [T[0], 0.9, T[2]], 3.0, life=1.6, blend='normal', opacity=0.5)  # green fumes
 
 # ---- FIRE (B 4.6): fireball on an arc + scorch
 B = 4.6; t0, t1 = B + 0.45, B + 0.85
@@ -89,7 +99,6 @@ for i in range(8):  # rocks ripped off the ground into the hole
         'scale': keys([(tt + 0.45, [1] * 3), (tt + 0.55, [0.05] * 3)]),
         'visible': vis(tt, tt + 0.55)}, mat='Slate')
 fb('gen-dark-vortex', 'void', o + 0.1, C, 4.5, life=1.6)
-fb('act-031-claw-helix', 'void', c, C, 4.0, life=0.8)
 
 # ---- LIGHT (B 10.6): sky pillar slams down + halo ring
 def pillar(t, w, name):
@@ -120,7 +129,7 @@ for i in range(3):
         t = 16.6 + j * 0.09; a = ph + j * 0.9; ks.append((t, [math.cos(a) * 1.1, 1.6 + 0.1 * math.sin(a * 2), -0.3 + math.sin(a) * 1.1]))
     tl = 17.1 + i * 0.18; start = ks[-1][1]; hit = [T[0] + (i - 1) * 0.6, 1.2, T[2]]
     ks += [(tl, start), (tl + 0.4, hit)]
-    part(f'Grimoire {i}', 'box', [0.34, 0.09, 0.46], ['#4a1a78', '#1a3a8a', '#6a1450'][i], start, {
+    part(f'Grimoire {i}', 'box', [0.34, 0.09, 0.46], ['#1e3f8a', '#2a5cc0', '#163070'][i], start, {
         'pos': keys(ks, 'smooth'),
         'rot': keys([(16.6, [0, 0, 0]), (tl, [20, 540, 10]), (tl + 0.4, [40, 900, 20])]),
         'scale': keys([(16.6, [0.1] * 3), (16.75, [1] * 3), (tl + 0.36, [1] * 3), (tl + 0.4, [0.05] * 3)]),
@@ -131,7 +140,16 @@ for i in range(3):
 # ---- FINALE: pillar + spike ring under the payoff (pack payoff flipbooks kept)
 pillar(20.95, 2.6, 'Finale pillar')
 fb('gen-finale-burst', 'holy', 21.0, [T[0], 2.4, T[2]], 9.0, life=1.4)
-fb('gen-arcane-glyph', 'arcane', 16.5, [0, 0.04, 0], 3.2, life=1.4, flat=True, opacity=0.8)
+# caster circle: one flat glyph per element window in that element's colour (light = gold), 0.3 s overlap = crossfade
+W = [('poison', 0.2, 2.9), ('fire', 2.6, 5.95), ('void', 5.65, 8.95), ('holy', 8.65, 11.9), ('earth', 11.6, 14.9), ('arcane', 14.6, 18.0)]
+for el, a, b in W:
+    fx.append(dict(slug='gen-arcane-glyph', ramp=el, t=a, pos=[0, 0.04, 0], size=3.2, life=0.6, dur=round(b - a, 2), fps=8,
+                   flat=True, opacity=0.7))
+# one shape-fit partner per element, its own ramp, under the hero
+fb('act-037-streaks-fountain', 'fire', 5.55, [T[0], 1.4, T[2]], 3.0, life=1.0, opacity=0.7)
+fb('act-012-spiral-streaks', 'void', 8.0, C, 3.4, life=1.0, opacity=0.65)
+fb('act-039-streaks-sparkfall', 'holy', 11.45, [T[0], 1.6, T[2]], 3.0, life=1.0, opacity=0.65)
+fb('act-066-rise-shards', 'earth', 14.3, [T[0], 0.8, T[2]], 3.0, life=0.9, opacity=0.75)
 for i in range(10):
     a = i * 0.628; q = [T[0] + math.cos(a) * 2.6, 0, T[2] + math.sin(a) * 2.6]
     spike(21.25 + (i % 3) * 0.03, q, 2.4, 0.8, [math.degrees(math.sin(a)) * 0.35, 0, -math.degrees(math.cos(a)) * 0.35], f'Finale spike {i}', stay=1.8)
