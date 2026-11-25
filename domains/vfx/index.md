@@ -7,6 +7,7 @@ triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosio
 # VFX
 
 - [rules](domains/vfx/rules.md): every applied lesson rule for this domain; read with the playbook.
+- [reference-videos](domains/vfx/reference-videos.md): TikTok/reference video → 0.5 s frames (Sonnet workers) → measured analysis → replication recipes.
 
 Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox ParticleEmitter/Beam.
 

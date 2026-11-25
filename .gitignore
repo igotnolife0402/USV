@@ -42,3 +42,8 @@ __pycache__/
 # Obsidian app settings (per machine)
 .obsidian/
 state/.improve-timer*.json
+
+# reference-video frames (regenerate with tools/refs/grab.mjs); analysis.md + meta.json are committed
+refs/tiktok/*/frames/
+refs/tiktok/*/sheets/
+refs/tiktok/*/stats.csv
