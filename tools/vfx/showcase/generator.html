@@ -68,6 +68,9 @@ dialog#lib::backdrop{background:#000b}
 .slot input,.slot select{font:12.5px system-ui;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
 .slot input[type=number]{width:86px}.slot input[type=color]{width:34px;height:26px;padding:1px}
 .set{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+#owBox{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;color:var(--mute)}#owBox label{display:flex;gap:6px;align-items:center}
+#sOw{width:140px;accent-color:var(--accent)}#vOw{font:12px ui-monospace,Menlo,monospace;color:var(--fg);min-width:30px}
+.owline{flex:1;min-width:120px;display:flex;align-items:center;gap:8px}.owline i{flex:1;display:block;min-height:.5px;border-radius:2px;background:var(--fg)}.owline b{font:11px ui-monospace,Menlo,monospace;color:var(--mute);font-weight:400;white-space:nowrap}
 pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-wrap;color:#cfd6e4;background:var(--panel2);border-radius:8px;padding:8px;max-height:260px;overflow:auto}
 </style>
 </head>
@@ -84,6 +87,7 @@ pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-w
         <div class="scrub"><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline"><div class="pay" id="pay"></div></div>
         <span class="time" id="time">0.00 / 0.00</span>
       </div>
+      <div id="owBox"><label for="sOw">Rim outline <input id="sOw" type="range" min="5" max="50" step="5" aria-describedby="pxOw"> <span id="vOw"></span></label><div class="owline" title="Actual rim thickness on screen at the hero effect's current size"><i id="lOw"></i><b id="pxOw"></b></div></div>
       <div class="meta" id="meta"></div>
     </div>
     <div class="side">
@@ -234,17 +238,34 @@ function showSheets(S, res) {
   $('scripts').textContent = ids.map(id => `// ${id} (seed ${S.sheets[id].seed ?? 1125})\n${S.sheets[id].code}`).join('\n\n')
 }
 const painted = new Map()                          // tex id -> Promise<blob url>
-function paint(slug, grid, ramp, tex, amt) {
-  const id = ['fx', slug, ramp, tex, amt].join('|')
+// rim outline (owner 2026-11-26): the shot colour but brighter, default 30 %, 5-50 % of 0.016 cell; the line below the slider shows its real px
+let OW = Math.min(50, Math.max(5, Math.round(+store.get('vfxgen.ow') / 5) * 5 || 30))
+const RIM_DIR = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, 0.7071], [0.7071, -0.7071], [-0.7071, -0.7071]]
+function paint(slug, grid, ramp, tex, amt, ow = 0) {
+  const id = ['fx', slug, ramp, tex, amt, ow].join('|')
   if (!painted.has(id)) painted.set(id, loadImg(slug).then(img => {
     const W = img.naturalWidth, H = img.naturalHeight, cv = document.createElement('canvas'); cv.width = W; cv.height = H
     const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0)
     const d = cx.getImageData(0, 0, W, H), p = d.data, L = lut(ramp), cs = Math.max(1, Math.round(W / grid)), T = tex !== 'none' ? texField(tex, cs) : null
+    const A = new Float32Array(W * H)
     for (let y = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, i += 4) {
       let l = p[i + 3] / 255
       if (T && l > 0) l = Math.min(1, l * Math.min(1.4, Math.max(0, 1 - amt + amt * 2 * T[(y % cs) * cs + (x % cs)])))
-      const k = Math.round(l * 255) * 3
-      p[i] = L[k]; p[i + 1] = L[k + 1]; p[i + 2] = L[k + 2]; p[i + 3] = Math.min(255, l * 1.15 * 255)
+      A[y * W + x] = l
+    }
+    // rim: 8-tap bilinear dilate at r px inside the frame's own cell (no bleed into neighbour frames); outer ring only
+    const r = ow * 0.00016 * cs, k7 = Math.round(0.7 * 255) * 3, rc = [0, 1, 2].map(c => Math.min(255, L[k7 + c] * 1.3 + 30))
+    const at = (x, y, x0, y0) => {
+      x = Math.min(x0 + cs - 1, Math.max(x0, x)); y = Math.min(y0 + cs - 1, Math.max(y0, y))
+      const xi = Math.min(x | 0, W - 1), yi = Math.min(y | 0, H - 1), fx = x - xi, fy = y - yi, x1 = Math.min(xi + 1, x0 + cs - 1, W - 1), y1 = Math.min(yi + 1, y0 + cs - 1, H - 1)
+      return (A[yi * W + xi] * (1 - fx) + A[yi * W + x1] * fx) * (1 - fy) + (A[y1 * W + xi] * (1 - fx) + A[y1 * W + x1] * fx) * fy
+    }
+    for (let y = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, i += 4) {
+      const l = A[y * W + x], k = Math.round(l * 255) * 3, a1 = Math.min(1, l * 1.15)
+      let a2 = 0
+      if (r > 0 && l < 0.999) { const x0 = x - x % cs, y0 = y - y % cs; let m = 0; for (const d of RIM_DIR) m = Math.max(m, at(x + d[0] * r, y + d[1] * r, x0, y0)); a2 = Math.max(0, m - l) }
+      const a = Math.min(1, a1 + a2), w = a1 + a2 || 1
+      p[i] = (L[k] * a1 + rc[0] * a2) / w; p[i + 1] = (L[k + 1] * a1 + rc[1] * a2) / w; p[i + 2] = (L[k + 2] * a1 + rc[2] * a2) / w; p[i + 3] = a * 255
     }
     cx.putImageData(d, 0, 0)
     return new Promise(r => cv.toBlob(b => r(URL.createObjectURL(b)), 'image/png'))
@@ -321,9 +342,9 @@ function build(S, opt = {}) {
   for (const [k, tr] of Object.entries(S.tracks || {})) tracks[k] = tr
   S.fx.forEach((e, i) => {
     const m = e.sheet ? { grid: 4, frames: 16 } : INDEX[e.slug], src = e.sheet ? genKey(S.sheets[e.sheet]) : e.slug, loop = 'dur' in e, life = e.life ?? (e.sheet ? S.sheets[e.sheet].life ?? 0.9 : 0.6), dur = loop ? e.dur : life
-    const tex = paint(src, m.grid, e.ramp, e.tex || 'noise', e.tex_amt ?? 0.45)
+    const pa = [src, m.grid, e.ramp, e.tex || 'noise', e.tex_amt ?? 0.45], tex = paint(...pa, OW)
     const o = { type: 'flipbook', name: `FX ${e.sheet || e.slug} ${e.t}`, tex, grid: m.grid, frames: m.frames, parent: e.parent || null, pos: e.pos,
-      rot: e.rot || [0, 0, 0], size: e.size, start: e.t, life, loop, dur, fps: loop ? (e.fps || 12) : +(m.frames / life).toFixed(2), blend: 'add', flat: !!e.flat }
+      pa, rot: e.rot || [0, 0, 0], size: e.size, start: e.t, life, loop, dur, fps: loop ? (e.fps || 12) : +(m.frames / life).toFixed(2), blend: 'add', flat: !!e.flat }
     if (e.shape === 'beam') Object.assign(o, { shape: 'beam', length: e.length, speed: e.speed ?? 18 })
     if (e.opacity != null) o.opacity = e.opacity
     const id = 'fx' + String(i).padStart(2, '0'); objs[id] = o
@@ -575,10 +596,12 @@ async function prepare(S, opt = {}, say) {
 }
 // show: put a prepared clip on the one stage
 // stand-in parts: shown for the preview, hidden by the Stand-ins toggle; only the part's own material hides, so fx parented to it keep playing
-let STANDINS = true
+let STANDINS = true, SHOWN = null
 const standIns = S => Object.entries(S?.parts || {}).map(([id, p]) => ({ id, name: p.name || id, shape: p.shape, size: p.size, pos: p.pos }))
 function show(P) {
-  const { S, B, res, opt } = P; clear()
+  const { S, B, res, opt } = P; clear(); SHOWN = P
+  for (const o of Object.values(B.objects)) if (o.pa) o.tex = paint(...o.pa, OW)      // the rim width can change after prepare
+  
   const nodes = {}
   for (const [id, o] of Object.entries(B.objects)) {
     let n
@@ -651,8 +674,25 @@ let last = performance.now(), hold = 0
 function loop(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now
   if (CUR && playing) { const len = CUR.B.clip.len; if (CUR.loop) T = (T + dt) % len; else if (T >= len) { hold += dt; if (hold > 1) { T = 0; hold = 0 } } else T = Math.min(len, T + dt) }   // clamped: the last frame drawn is exactly len
-  frameAt(T); requestAnimationFrame(loop)
+  frameAt(T); if (++owTick % 6 === 0) owLine(); requestAnimationFrame(loop)
 }
+// thickness line: rim px on screen = OW % of 0.016 of the biggest visible camera-facing card's projected height
+let owTick = 0, owLast = 0
+const V3a = new THREE.Vector3(), V3b = new THREE.Vector3()
+function owLine() {
+  let cell = 0
+  for (const n of Object.values(CUR?.nodes || {})) { const m = n.userData.card, fb = n.userData.fb
+    if (!m?.visible || !fb || fb.beam || fb.flat) continue
+    const d = camera.position.distanceTo(m.getWorldPosition(V3a)); if (d > 1e-3) cell = Math.max(cell, m.getWorldScale(V3b).x / (2 * d * Math.tan(camera.fov * Math.PI / 360)) * stage.clientHeight) }
+  if (cell) owLast = cell
+  const px = OW * 0.00016 * owLast
+  $('vOw').textContent = OW + ' %'
+  $('lOw').style.height = Math.max(0.5, px) + 'px'; $('lOw').style.background = CUR?.S?.tint || 'var(--fg)'
+  $('pxOw').textContent = owLast ? `${px.toFixed(1)} px on screen` : 'shows px once an effect is on screen'
+}
+$('sOw').value = OW
+$('sOw').oninput = e => { OW = Math.min(50, Math.max(5, +e.target.value)); owLine() }
+$('sOw').onchange = () => { store.set('vfxgen.ow', OW); if (SHOWN) { const t = T, pl = playing; show(SHOWN); T = t; playing = pl } }
 $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play' }
 $('restart').onclick = () => { T = 0; hold = 0; playing = true; $('play').textContent = 'Pause' }
 $('scrub').oninput = e => { if (!CUR) return; playing = false; $('play').textContent = 'Play'; T = e.target.value / 1000 * CUR.B.clip.len }
@@ -1099,7 +1139,7 @@ const showP = () => sel >= 0 ? slots[sel]?.P : EX
 $('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; if (Object.keys(P.S.sheets || {}).length) saveSheets(P.S, P.res, ''); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
 async function saveSpec(spec, nm) {
   if (!spec) return
-  const d = await dlP, data = JSON.stringify({ ...spec, stand_ins: standIns(spec) }, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
+  const d = await dlP, data = JSON.stringify({ ...spec, stand_ins: standIns(spec), outline: { style: 'rim', color: 'shot colour, brighter', width_pct: OW, width_uv: +(OW * 0.00016).toFixed(5) } }, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
   if (!d) return status('Downloads are not available here; copy the JSON from the spec box.', 'bad')
   try { await d.save({ filename: name, data }); status('Saved ' + name, 'ok') } catch (e) { status('Download not saved: ' + (e?.message || e?.code || e), 'bad') }
 }

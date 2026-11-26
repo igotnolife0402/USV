@@ -516,7 +516,11 @@
         "rim outline",
         "slider",
         "outline width",
-        "preview slider"
+        "preview slider",
+        "generator outline",
+        "rim outline slider",
+        "outline thickness",
+        "thickness line"
       ],
       "notes": [
         "domains/vfx/playbook.md",
