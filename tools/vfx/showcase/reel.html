@@ -12,10 +12,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hid
 #ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:6px}
 #ui button{font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:7px 10px;cursor:pointer}
 #ui button:focus-visible{outline:2px solid #7d9cff}
+#ui label{display:flex;align-items:center;gap:6px;font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:0 10px;min-height:30px}
+#ui input{width:min(28vw,120px);accent-color:#7d9cff;margin:0}
+#ui label[aria-disabled=true]{opacity:.45}
 #err{position:fixed;left:8px;bottom:8px;margin:0;color:#ff8a8a;font:12px monospace;white-space:pre-wrap}
 </style>
 <div id="stage"><div id="wrap"><canvas id="gl"></canvas><canvas id="hud"></canvas></div></div>
-<div id="ui"><button id="bOl"></button><button id="bHud"></button></div>
+<div id="ui"><button id="bOl"></button><label for="sOw">Width <input id="sOw" type="range" min="5" max="150" step="5"><span id="vOw"></span></label><button id="bHud"></button></div>
 <pre id="err"></pre>
 <script>
 {
@@ -121,7 +124,7 @@ void main(){ vUv=c+0.5; float s=sin(uRot),k=cos(uRot); vec2 p=c*uSize; p=vec2(k*
   p=p*uZoom+uShake; gl_Position=vec4(p.x*2.0/uAsp,p.y*2.0,0.0,1.0); }`,
 `#version 300 es
 precision highp float; in vec2 vUv; out vec4 o;
-uniform sampler2D uMap,uRamp; uniform float uFrame,uU,uK,uAmt,uTex,uSeed,uNorm,uTime,uOl,uCore; uniform vec3 uOlCol;
+uniform sampler2D uMap,uRamp; uniform float uFrame,uU,uK,uAmt,uTex,uSeed,uNorm,uTime,uOl,uCore,uOw; uniform vec3 uOlCol;
 ${NOISE}
 float cellA(float f,vec2 uv){ float col=mod(f,4.0),row=floor(f/4.0); return texture(uMap,(vec2(col,row)+uv)/4.0).a; }
 float shp(vec2 uv,float f0,float f1,float w){ uv=clamp(uv,0.004,0.996); return smoothstep(0.12,0.3,mix(cellA(f0,uv),cellA(f1,uv),w)); }
@@ -131,8 +134,8 @@ void main(){
   float a=mix(cellA(f0,uv),cellA(f1,uv),w);
   // Outline styles (core layer only): 1 ink, 2 colour rim, 3 hot inner edge, 4 toon (cel bands + ink). Edge = 8-tap dilate/erode of the shape.
   float ol=(uCore>0.5)?uOl:0.0, outer=0.0, inner=0.0;
-  // Rim (default) width 0.0048 = 70% thinner than the others (owner 2026-11-26: "way too thick").
-  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0,ow=(ol>1.5&&ol<2.5)?0.0048:0.016;
+  // uOw = edge width in uv, from the Width slider (rim default 0.0048 = 70% thinner, owner 2026-11-26).
+  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0,ow=uOw;
     for(int i=0;i<8;i++){ float an=float(i)*0.7853982; float q=shp(uv+vec2(cos(an),sin(an))*ow,f0,f1,w); mx=max(mx,q); mn=min(mn,q); }
     outer=mx*(1.0-s0); inner=s0*(1.0-mn); }
   vec2 q=vUv*3.0+uSeed; float n;
@@ -198,6 +201,8 @@ let W = 0, H = 0
 // Styles (owner 2026-11-26 "try different outlines"): outline per core layer, HUD layout. URL ?ol=ink&hud=frame or the buttons. Default outline = rim.
 const OL = ['none', 'ink', 'rim', 'hot', 'toon'], HUD = ['bar', 'frame', 'minimal'], qs = new URLSearchParams(location.search)
 const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol') || 'rim')), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) } // owner 2026-11-26: rim (shot colour, brighter) is the default outline
+// Outline width per style in % of the old 0.016-uv edge (rim 30 = 70% thinner); Width slider edits the current style, ?ow= sets it at load.
+const OW = [0, 100, 30, 100, 100]; if (+qs.get('ow') > 0) OW[ST.ol] = Math.min(150, +qs.get('ow'))
 window.reelStyle = (ol, hud) => { if (ol != null) ST.ol = Math.max(0, OL.indexOf(ol)); if (hud != null) ST.hud = Math.max(0, HUD.indexOf(hud)); syncUi() }
 function size(w, h) { if (w === W && h === H) return; W = cv.width = hud.width = w; H = cv.height = hud.height = h }
 const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x)
@@ -227,7 +232,7 @@ function render(T) {
     gl.uniform1f(FX.u.uRot, (l.rot + l.spin * (ts - l.t)) * Math.PI / 180)
     gl.uniform1f(FX.u.uFrame, Math.min(u * FRAMES, FRAMES - 1.001)); gl.uniform1f(FX.u.uU, u)
     gl.uniform1f(FX.u.uK, l.k); gl.uniform1f(FX.u.uAmt, l.amt); gl.uniform1f(FX.u.uTex, l.tex); gl.uniform1f(FX.u.uSeed, si * 3.1 + i * 1.7)
-    gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0); gl.uniform1f(FX.u.uCore, l.core ? 1 : 0); gl.uniform1f(FX.u.uOl, ST.ol); gl.uniform3fv(FX.u.uOlCol, col)
+    gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0); gl.uniform1f(FX.u.uCore, l.core ? 1 : 0); gl.uniform1f(FX.u.uOl, ST.ol); gl.uniform1f(FX.u.uOw, OW[ST.ol] * 0.00016);gl.uniform3fv(FX.u.uOlCol, col)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   })
   drawHud(T, si, sh, ts)
@@ -271,7 +276,10 @@ function drawHud(T, si, sh, ts) {
 const comp = document.createElement('canvas'), cx = comp.getContext('2d')
 window.reelFrame = (t, w = 1280, h = 720) => { size(w, h); render(t); comp.width = w; comp.height = h; cx.drawImage(cv, 0, 0); cx.drawImage(hud, 0, 0); return comp.toDataURL('image/jpeg', .92) }
 window.reelInfo = { LEN, shots: SHOTS.map(s => s.name), OL, HUD }
-function syncUi() { $('bOl').textContent = 'Outline: ' + OL[ST.ol]; $('bHud').textContent = 'HUD: ' + HUD[ST.hud] }
+function syncUi() { $('bOl').textContent = 'Outline: ' + OL[ST.ol]; $('bHud').textContent = 'HUD: ' + HUD[ST.hud]
+  const off = ST.ol === 0, s = $('sOw'); s.disabled = off; s.parentNode.setAttribute('aria-disabled', off); s.value = OW[ST.ol] || 30; $('vOw').textContent = off ? '–' : OW[ST.ol] + '%' }
+$('sOw').oninput = e => { if (ST.ol) { OW[ST.ol] = +e.target.value; syncUi() } }
+$('sOw').parentNode.onclick = e => e.stopPropagation()
 $('bOl').onclick = e => { e.stopPropagation(); ST.ol = (ST.ol + 1) % OL.length; syncUi() }
 $('bHud').onclick = e => { e.stopPropagation(); ST.hud = (ST.hud + 1) % HUD.length; syncUi() }
 syncUi()

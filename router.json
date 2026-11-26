@@ -513,7 +513,10 @@
         "reel",
         "cycles through",
         "outlines",
-        "rim outline"
+        "rim outline",
+        "slider",
+        "outline width",
+        "preview slider"
       ],
       "notes": [
         "domains/vfx/playbook.md",

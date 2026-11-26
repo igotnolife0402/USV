@@ -588,3 +588,7 @@ improved: rim default in reel.html; router vfx words outline/outlines/rim outlin
 ## [2026-11-26] edit / rim outline 70% thinner
 Rim dilate offset 0.016 -> 0.0048 (other modes unchanged). Frame viewed, 0 errors, artifact v5.
 improved: rim width; reel-check.cjs one-frame check committed (was scratch-only); playbook reel line records width
+
+## [2026-11-26] edit / reel outline Width slider
+"Add slider to preview" read as outline thickness: Width slider 5-150 % per style (rim 30 %), uOw uniform, ?ow=. Checked headless at 390 px: labels 30/150 %, frames thin vs thick, no overflow, 0 errors. Artifact v6.
+improved: Width slider; reel-slider-check.cjs committed; vfx router words slider/outline width; playbook reel line updated
