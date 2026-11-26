@@ -522,7 +522,10 @@
         "outline thickness",
         "thickness line",
         "hub republish",
-        "headless generator"
+        "headless generator",
+        "laggy",
+        "lag",
+        "super laggy"
       ],
       "notes": [
         "domains/vfx/playbook.md",

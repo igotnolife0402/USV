@@ -597,3 +597,7 @@ improved: Width slider; reel-slider-check.cjs committed; vfx router words slider
 Rim outline (shot colour, brighter) now default in the VFX generator paint step, 30 % width, slider 5-50 % under the stage with a live on-screen px line; spec.json exports `outline`. Hub artifact republished (v73). Headless check: labels 5→0.2 px, 30→1.4 px, 50→2.4 px, 150 clamps to 50, 0 errors, no 390 px overflow. Rim look not visually verified (the no-sample overlay hides the stage headless).
 improved: L-219 + playbook rule (outline asks target the generator); router words for generator outline/thickness; new gen-outline-check.cjs with THREE_DIR route so headless runs without the CDN tunnel
 improved: hub one-file republish recipe in playbook (L-220); errors rows for headless CDN tunnel + rev-parse --short; check script THREE_DIR route documented
+
+## [2026-11-26] fix / generator lag after rim outline
+Root cause: rim paint did 8 bilinear taps on every pixel and all 20 sheets were painted in one microtask burst (paint 562 -> 3627 ms on the main thread). Now: separable-max early-out to the outer edge band, serial paint queue (one sheet per task), 1753 ms total. Outline check re-passed; hub republished. Not measured on a phone.
+improved: paint perf instrumentation vfxgen.paintMs + gen-perf-check.cjs; paint queue survives a failed sheet (catch); rim no longer tints textured interiors

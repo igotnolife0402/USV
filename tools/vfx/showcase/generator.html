@@ -237,14 +237,17 @@ function showSheets(S, res) {
   for (const id of ids) { const f = document.createElement('figure'), i = new Image(), c = document.createElement('figcaption'); i.src = res[id].url; i.alt = 'generated sheet ' + id; c.textContent = `${id} · jump ${res[id].jump}`; f.append(i, c); $('sheets').append(f) }
   $('scripts').textContent = ids.map(id => `// ${id} (seed ${S.sheets[id].seed ?? 1125})\n${S.sheets[id].code}`).join('\n\n')
 }
+const PAINT_MS = []                                 // main-thread ms per painted sheet (perf check)
+let paintQ = Promise.resolve()
 const painted = new Map()                          // tex id -> Promise<blob url>
 // rim outline (owner 2026-11-26): the shot colour but brighter, default 30 %, 5-50 % of 0.016 cell; the line below the slider shows its real px
 let OW = Math.min(50, Math.max(5, Math.round(+store.get('vfxgen.ow') / 5) * 5 || 30))
 const RIM_DIR = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, 0.7071], [0.7071, -0.7071], [-0.7071, -0.7071]]
 function paint(slug, grid, ramp, tex, amt, ow = 0) {
   const id = ['fx', slug, ramp, tex, amt, ow].join('|')
-  if (!painted.has(id)) painted.set(id, loadImg(slug).then(img => {
-    const W = img.naturalWidth, H = img.naturalHeight, cv = document.createElement('canvas'); cv.width = W; cv.height = H
+  // one sheet per task through a serial queue: 20 cached sheets painted in one microtask burst froze playback for seconds
+  if (!painted.has(id)) painted.set(id, (paintQ = paintQ.catch(() => {}).then(() => new Promise(r => setTimeout(r))).then(() => loadImg(slug))).then(img => {
+    const t0 = performance.now(), W = img.naturalWidth, H = img.naturalHeight, cv = document.createElement('canvas'); cv.width = W; cv.height = H
     const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0)
     const d = cx.getImageData(0, 0, W, H), p = d.data, L = lut(ramp), cs = Math.max(1, Math.round(W / grid)), T = tex !== 'none' ? texField(tex, cs) : null
     const A = new Float32Array(W * H)
@@ -260,14 +263,22 @@ function paint(slug, grid, ramp, tex, amt, ow = 0) {
       const xi = Math.min(x | 0, W - 1), yi = Math.min(y | 0, H - 1), fx = x - xi, fy = y - yi, x1 = Math.min(xi + 1, x0 + cs - 1, W - 1), y1 = Math.min(yi + 1, y0 + cs - 1, H - 1)
       return (A[yi * W + xi] * (1 - fx) + A[yi * W + x1] * fx) * (1 - fy) + (A[y1 * W + xi] * (1 - fx) + A[y1 * W + x1] * fx) * fy
     }
+    // separable max within ceil(r) (per cell): only pixels with a brighter neighbour (the edge band, ~5 %) pay the 8 bilinear taps
+    let N = null
+    if (r > 0) {
+      const R = Math.ceil(r), Hm = new Float32Array(W * H); N = new Float32Array(W * H)
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const x0 = x - x % cs, hi = Math.min(x0 + cs - 1, x + R); let m = 0; for (let q = Math.max(x0, x - R); q <= hi; q++) { const v = A[y * W + q]; if (v > m) m = v } Hm[y * W + x] = m }
+      for (let y = 0; y < H; y++) { const y0 = y - y % cs, lo = Math.max(y0, y - R), hi = Math.min(y0 + cs - 1, y + R); for (let x = 0; x < W; x++) { let m = 0; for (let q = lo; q <= hi; q++) { const v = Hm[q * W + x]; if (v > m) m = v } N[y * W + x] = m } }
+    }
     for (let y = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, i += 4) {
       const l = A[y * W + x], k = Math.round(l * 255) * 3, a1 = Math.min(1, l * 1.15)
       let a2 = 0
-      if (r > 0 && l < 0.999) { const x0 = x - x % cs, y0 = y - y % cs; let m = 0; for (const d of RIM_DIR) m = Math.max(m, at(x + d[0] * r, y + d[1] * r, x0, y0)); a2 = Math.max(0, m - l) }
+      // outer ring only (l < 0.25): textured interiors never get a rim
+      if (N && l < 0.25 && N[y * W + x] > l + 0.02) { const x0 = x - x % cs, y0 = y - y % cs; let m = 0; for (const d of RIM_DIR) m = Math.max(m, at(x + d[0] * r, y + d[1] * r, x0, y0)); a2 = Math.max(0, m - l) }
       const a = Math.min(1, a1 + a2), w = a1 + a2 || 1
       p[i] = (L[k] * a1 + rc[0] * a2) / w; p[i + 1] = (L[k + 1] * a1 + rc[1] * a2) / w; p[i + 2] = (L[k + 2] * a1 + rc[2] * a2) / w; p[i + 3] = a * 255
     }
-    cx.putImageData(d, 0, 0)
+    cx.putImageData(d, 0, 0); PAINT_MS.push(Math.round(performance.now() - t0))
     return new Promise(r => cv.toBlob(b => r(URL.createObjectURL(b)), 'image/png'))
   }))
   return id
@@ -1156,6 +1167,7 @@ window.vfxgen = {
   colorAt: id => CUR?.nodes[id]?.userData.mat?.color.getHexString() ?? null,
   dissolveAt: id => CUR?.nodes[id]?.userData.mat?.userData.dis?.uDis.value ?? null,
   partKids: id => { let c = 0; CUR?.nodes[id]?.traverse(x => { if (x.isMesh) c++ }); return c },
+  paintMs: () => PAINT_MS.slice(),
   fxVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'flipbook' && n.userData.card?.visible).length : 0
 }
 const cap = n => (window.claude?.use ? window.claude.use(n).catch(() => null) : Promise.resolve(null))
