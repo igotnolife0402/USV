@@ -61,5 +61,5 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - Test helpers (a projectile, a probe) are marked temporary and never exported or shipped.
 
 ## Storage
-- Keep one best version; a better version overwrites the same piece, never a different one. No `v2/old/copy/backup/draft` names.
+- Keep one best version of a piece; a better version overwrites it. Exception: the model library keeps variations as `<kind>_v<N>` (owner 2026-11-24, [3d playbook](domains/3d/playbook.md)). No `old/copy/backup/draft` names.
 - Generated outputs: commit the generator, not the output.

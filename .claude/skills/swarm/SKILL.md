@@ -57,8 +57,8 @@ Decisions: ...   Blocked: ...   Next: ...
 A new session resumes from this file alone.
 
 ## Retro (end of every wave, 2 min)
-- For each BLOCKED or > 1 try: one cause, one rule. Append to `lessons.md` as `- [L-NNN] (h:0 x:0) YYYY-MM-DD rule — trigger: words` (next free number).
-- A lesson that helped this wave: increment its `h`; one that misled: increment `x`.
+- For each BLOCKED or > 1 try: one cause, one rule, recorded with the `learn` skill (`node scripts/vault.mjs learn ...`, which picks the next id and format).
+- A lesson that helped this wave: `node scripts/vault.mjs bump L-xxx --helped`; one that misled: `--hurt`.
 - `log.md`: `## [YYYY-MM-DD] swarm / <task> wave N` + 1-3 lines.
 
 ## Verification

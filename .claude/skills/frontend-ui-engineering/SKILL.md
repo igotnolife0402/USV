@@ -144,6 +144,10 @@ AI-generated UI has recognizable patterns. Avoid all of them:
 | Oversized padding everywhere | Equal generous padding destroys visual hierarchy and wastes screen space | Consistent spacing scale |
 | Stock card grids | Uniform grids are a layout shortcut that ignores information priority and scanning patterns | Purpose-driven layouts |
 | Shadow-heavy design | Layered shadows add depth that competes with content and slows rendering on low-end devices | Subtle or no shadows unless the design system specifies |
+| Cream or off-white page background | A fallback chosen when no palette is given | The project's background token |
+| Italic accent word inside a headline | A recurring generated-hero styling tic | Headline styles from the design system |
+| Numbered "01 / 02 / 03" section labels, monospace eyebrow labels | Decoration that carries no information | Labels only where they aid navigation |
+| Pill-shaped buttons everywhere | Ignores the system's radius scale | The design system's button shape |
 
 ### Spacing and Layout
 

@@ -59,7 +59,7 @@ test('learnReason: asks for root cause + lesson, clears once the lesson exists',
   const sigs = [{ kind: 'errors', text: '2 tool errors' }];
   const why = L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-045' });
   assert.match(why, /root cause/);
-  assert.match(why, /\[L-045\] \(h:0 x:1\)/);
+  assert.match(why, /vault\.mjs learn[\s\S]*writes L-045/);
   assert.equal(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, nextId: 'L-045' }), null);
   const r = L.learnReason([{ kind: 'router', text: 'miss', domains: ['vfx'] }], { lessonsChanged: true, routerChanged: false, nextId: 'L-1' });
   assert.match(r, /router\.json/);
@@ -117,7 +117,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   put(V, 'state/work.md', 'x\n');
   const run = (extra = {}) => node([join(REPO, 'hooks', 'stop-gate.mjs')], { session_id: 'learn-1', transcript_path: file, ...extra }, { VAULT_ROOT: V });
   const first = run();
-  assert.match(first.stdout, /LEARN \(auto\)[\s\S]*\[L-002\]/);
+  assert.match(first.stdout, /LEARN \(auto\)[\s\S]*writes L-002/);
   assert.ok(existsSync(join(V, 'archive', 'metrics.jsonl')), 'metrics recorded');
   const silent = run({ stop_hook_active: true });
   assert.equal(silent.stdout, '', 'second pass never blocks');

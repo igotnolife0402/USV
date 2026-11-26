@@ -122,7 +122,7 @@ This catalog is harness-agnostic, but most readers will run it on Claude Code. H
 
 ### Where personas live
 
-Plugin subagents go in `agents/` at the plugin root. This repo is a plugin (`.claude-plugin/plugin.json`), so `agents/code-reviewer.md`, `agents/security-auditor.md`, and `agents/test-engineer.md` are auto-discovered when the plugin is enabled. No path configuration needed.
+Project subagents live in `.claude/agents/`; this vault keeps `code-reviewer.md`, `security-auditor.md` and `test-engineer.md` there, and Claude Code discovers them automatically. No path configuration needed.
 
 ### Subagents vs. Agent Teams
 

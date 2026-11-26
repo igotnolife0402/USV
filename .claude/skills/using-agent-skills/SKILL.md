@@ -44,7 +44,7 @@ Task arrives
 
 ## Core Operating Behaviors
 
-These behaviors apply at all times, across all skills. They are non-negotiable.
+These behaviors apply across all skills.
 
 ### 1. Surface Assumptions
 
@@ -64,10 +64,8 @@ Don't silently fill in ambiguous requirements. The most common failure mode is m
 
 When you encounter inconsistencies, conflicting requirements, or unclear specifications:
 
-1. **STOP.** Do not proceed with a guess.
-2. Name the specific confusion.
-3. Present the tradeoff or ask the clarifying question.
-4. Wait for resolution before continuing.
+1. Name the specific confusion and the tradeoff.
+2. If a wrong guess would cost real rework, ask the clarifying question and wait; otherwise state the reading you chose and proceed.
 
 **Bad:** Silently picking one interpretation and hoping it's right.
 **Good:** "I see X in the spec but Y in the existing code. Which takes precedence?"
@@ -85,14 +83,14 @@ Sycophancy is a failure mode. "Of course!" followed by implementing a bad idea h
 
 ### 4. Enforce Simplicity
 
-Your natural tendency is to overcomplicate. Actively resist it.
+Prefer the simplest design that meets the requirement.
 
 Before finishing any implementation, ask:
 - Can this be done in fewer lines?
 - Are these abstractions earning their complexity?
 - Would a staff engineer look at this and say "why didn't you just..."?
 
-If you build 1000 lines and 100 would suffice, you have failed. Prefer the boring, obvious solution. Cleverness is expensive.
+Prefer the boring, obvious solution; cleverness is expensive to maintain.
 
 ### 5. Maintain Scope Discipline
 
@@ -113,30 +111,13 @@ Every skill includes a verification step. A task is not complete until verificat
 
 Per-skill verification is the local check. The project-wide bar that applies to *every* change, regardless of which skill is active, is the Definition of Done: tests pass, no regressions, behavior verified at runtime, docs updated. See `../_references/definition-of-done.md`. It complements each task's acceptance criteria rather than replacing them.
 
-## Failure Modes to Avoid
-
-These are the subtle errors that look like productivity but create problems:
-
-1. Making wrong assumptions without checking
-2. Not managing your own confusion — plowing ahead when lost
-3. Not surfacing inconsistencies you notice
-4. Not presenting tradeoffs on non-obvious decisions
-5. Being sycophantic ("Of course!") to approaches with clear problems
-6. Overcomplicating code and APIs
-7. Modifying code or comments orthogonal to the task
-8. Removing things you don't fully understand
-9. Building without a spec because "it's obvious"
-10. Skipping verification because "it looks right"
-
 ## Skill Rules
 
 1. **Check for an applicable skill before starting work.** Skills encode processes that prevent common mistakes.
 
-2. **Skills are workflows, not suggestions.** Follow the steps in order. Don't skip verification steps.
+2. **A skill's steps are its default workflow.** Adapt the order to the task; keep its verification step.
 
 3. **Multiple skills can apply.** A feature implementation might involve `idea-refine` → `spec-driven-development` → `planning-and-task-breakdown` → `incremental-implementation` → `test-driven-development` → `code-review-and-quality` → `code-simplification` → `shipping-and-launch` in sequence.
-
-4. **When in doubt, start with a spec.** If the task is non-trivial and there's no spec, begin with `spec-driven-development`.
 
 ## Lifecycle Sequence
 

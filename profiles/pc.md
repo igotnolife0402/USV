@@ -36,4 +36,4 @@ Everything connected is allowed. Order: Claude-native (own tools, repo skills) â
 - Binaries stay local/out of git; commit the scripts that produce them.
 - Mobile rules and fallbacks: [profiles/mobile.md](profiles/mobile.md).
 
-- Roblox uploads: one fixed folder `~/RobloxImports/ (the user profile folder)` for everything (models, meshes, animation, VFX, audio); the owner approves it once in Studio MCP Permissions (2026-11-22).
+- Roblox uploads: one fixed folder `~/RobloxImports/` (in the user profile folder) for everything (models, meshes, animation, VFX, audio); the owner approves it once in Studio MCP Permissions (2026-11-22).

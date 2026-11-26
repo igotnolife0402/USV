@@ -121,13 +121,13 @@ The gate is an explicit "yes." The following are **not** yes:
 
 If they correct you, fold the correction in and restate. Loop until you get an explicit yes.
 
-### Step 6: Terminal Turn & Stop Rule (CRITICAL)
+### Step 6: Terminal Turn & Stop Rule
 
 When the user confirms the statement of intent with an explicit "yes":
 
 1. **Deliver the confirmed Statement of Intent.**
 2. **Offer downstream paths** (offer to save it to `docs/intent/[topic].md`, draft a spec with `spec-driven-development`, or move to task planning after the spec).
-3. **STOP YOUR TURN IMMEDIATELY.** Do NOT invoke tools or start downstream work in this turn. Hand control back to the user to choose the next step.
+3. End the turn there, with no tool calls or downstream work, so the user chooses the next step.
 
 ### The 95% Confidence Stop
 

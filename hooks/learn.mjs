@@ -151,7 +151,7 @@ export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged =
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',
-    `Append to lessons.md: - [${nextId}] (h:0 x:1) ${today()} <cause> → <rule> — trigger: <words>. If a lesson already covers it, bump its x: instead (seen twice → promote it).`);
+    `Record it: node scripts/vault.mjs learn --cause "<cause>" --rule "<rule>" --trigger "<words>" (writes ${nextId}), then append " → applied: <path>" to it. If a lesson already covers it: node scripts/vault.mjs bump <id> --hurt (seen twice → promote it).`);
   const sk = need.find(s => s.kind === 'skill');
   if (sk) steps.push(`Skill miss (${sk.skills.join(', ')}): if the skill was needed, record it with /learn so it is invoked next time; if it was the wrong skill for this route, fix the route's "skill" in router.json.`);
   const r = need.find(s => s.kind === 'router');

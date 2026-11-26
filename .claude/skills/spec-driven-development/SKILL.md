@@ -170,11 +170,11 @@ REFRAMED SUCCESS CRITERIA:
 
 This lets you loop, retry, and problem-solve toward a clear goal rather than guessing what "faster" means.
 
-**Stop after writing the spec (CRITICAL).** Once the spec is saved:
+**Stop after writing the spec.** Once the spec is saved:
 
 1. Summarize it and list any Open Questions.
 2. Ask the human to approve it or request changes.
-3. **STOP YOUR TURN IMMEDIATELY.** Do NOT start Phase 2, invoke `planning-and-task-breakdown`, or write code in this turn. Planning starts only after the human approves the spec in a later turn.
+3. End the turn there. Phase 2 (`planning-and-task-breakdown`) and code wait until the human approves the spec in a later turn; the approval gate is the point of the spec.
 
 ### Phase 2: Plan
 
@@ -270,8 +270,6 @@ After the change ships, fold the outcome into the original spec (per Keeping the
 |---|---|
 | "This is simple, I don't need a spec" | Simple tasks don't need *long* specs, but they still need acceptance criteria. A two-line spec is fine. |
 | "I'll write the spec after I code it" | That's documentation, not specification. The spec's value is in forcing clarity *before* code. |
-| "The spec will slow us down" | A 15-minute spec prevents hours of rework. Waterfall in 15 minutes beats debugging in 15 hours. |
-| "Requirements will change anyway" | That's why the spec is a living document. An outdated spec is still better than no spec. |
 | "The user knows what they want" | Even clear requests have implicit assumptions. The spec surfaces those assumptions. |
 | "This idea is good, I'll fold it into the current spec" | Mid-build scope growth is how V1 slips. Park it under Out of Scope (Deferred) — captured without expanding the current cycle. |
 | "The feature already has a spec, I'll just edit it for the change" | A shipped spec describes what exists. A delta spec keeps the change reviewable on its own; the original gets updated after the change ships, not before. |

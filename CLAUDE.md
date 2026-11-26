@@ -6,7 +6,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 
 ## Owner rules (both modes; detail in [profiles/owner.md](profiles/owner.md), read it before any build)
 - 100% honest: never call it done unless checked; else `Failed: <what>`, no excuses or softening. A fallback + queued PC step is not a failure.
-- Always improve: goal met is not the end; every build leaves one concrete improvement in the vault.
+- Always improve: goal met is not the end; every task finds and fixes >= 3 real problems (section 5).
 - No overkill: one big effect when the whole thing completes, or small subtle ones throughout; never a big effect per step. Less when unsure.
 - Never claim a look you did not see: say "not visually verified" and queue the visual check.
 - Replies short (aim <= 10 words); errors, questions and requested reports exempt.
@@ -26,7 +26,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 | Medium | < 5 min | One recipe skill + scaffold; build in one thread; one check (/verify or screenshot); checklist; stop | Plan mode, agent teams, polish past the checklist |
 | Complex | < 30 min | Short plan; contracts first; 2-4 sub-agents in own worktrees with file lists; 3-try cap; qa-gate before merge; `state/<task>.md` | Research rabbit holes, one giant context |
 | Huge | 30-min waves | `swarm` skill: orchestrator plans only, domain leads, workers, qa-gate, retro into lessons.md | Simple/medium work |
-- The prompt-router hook tags tier from router.json `tiers` words. No tag = medium unless obviously one-line.
+- The prompt-router hook tags every prompt simple, medium (default) or complex from router.json `tiers` words; it never tags huge. Retag an obviously one-line ask as simple, and pick huge yourself.
 - Over budget: ship the working subset, log what is left, stop. Never gold-plate.
 - Multiple routes hit (e.g. roblox + vfx): primary = the deliverable's platform; read the secondary playbook only for the part it covers.
 - Ambiguous request: pick the most likely reading, state it in one line, build. Ask only if a wrong guess wastes > 5 min.
@@ -35,7 +35,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Auto-detect (hook): `CLAUDE_CODE_REMOTE=true` → mobile; else pc. `CLAUDE_CODE_BRIDGE_SESSION_ID` set → pc, remote.
 - Override: prompt starting `/pc` or `/mobile` sets mode for this session only (`.claude/.mode`). `/pc` inside a cloud session stays mobile (PC tools do not exist there).
 - In this vault the repo skills `.claude/skills/pc|mobile` and `profiles/` win over any plugin /pc or /mobile skill (plugins don't load in cloud sessions anyway).
-- pc: every connected MCP, tool, plugin and local file is allowed. Claude-native routes first (own tools, repo skills), then MCPs, then computer use. Run [profiles/pc.md](profiles/pc.md) preflight; [queue/pc.md](queue/pc.md): PC QUEUE: do queued items first if the task depends on them or the owner says /pc with no task; otherwise mention them in one line.
+- pc: every connected MCP, tool, plugin and local file is allowed. Claude-native routes first (own tools, repo skills), then MCPs, then computer use. Run [profiles/pc.md](profiles/pc.md) preflight; handle [queue/pc.md](queue/pc.md) per section 0 step 2.
 - mobile: only tools that exist in the cloud session ([profiles/mobile.md](profiles/mobile.md)). PC-only step → use the fallback from the table, append the PC step to [queue/pc.md](queue/pc.md), report "done on mobile, PC step queued". Queue sync: mobile commits queue/pc.md and its work to its cloud session branch (the cloud pushes it); the PC SessionStart hook fetches origin and lists unchecked items from origin/claude/* branches plus the branches to merge.
 - Never report "failed" or "can't" when a fallback exists. Pre-tool hook blocks PC-only tools on mobile: take the fallback it names, do not retry.
 
