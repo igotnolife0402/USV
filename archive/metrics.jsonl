@@ -138,3 +138,4 @@
 {"t":"2026-11-26T01:06:55.373Z","tier":"medium","secs":325,"ok":false,"errors":0,"retry":0,"routes":["vfx","owner"],"touched":[],"signals":["slow","skill"],"mode":"mobile"}
 {"t":"2026-11-26T01:24:37.789Z","tier":"medium","secs":113,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T01:29:37.250Z","tier":"medium","secs":277,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T05:11:38.192Z","tier":"simple","secs":82,"ok":false,"errors":0,"retry":0,"routes":["web"],"touched":[],"signals":["slow"],"mode":"mobile"}
