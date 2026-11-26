@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>
 /* Owner 2026-11-26: "20 second showcase vfx that cycles through a bunch of different vfx to showcase quality, size, aggressiveness".
-   10 shots x 2 s, each layered from white vfx/sheets painted on the GPU (own ramp + texture per layer, colour over life). */
+   20 newly generated sheets x 1 s, each layered from white vfx/sheets painted on the GPU (own ramp + texture per layer, colour over life). */
 :root{--bg:#07060e;--fg:#e8edf5}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
 #stage{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg)}
@@ -15,75 +15,78 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hid
 <pre id="err"></pre>
 <script>
 {
-const LEN = 20, SHOT = 2, BASE = 'vfx/sheets/', GRID = 4, FRAMES = 16
+const LEN = 20, SHOT = 1, BASE = 'vfx/sheets/', GRID = 4, FRAMES = 16
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
 // Ramps: dark edge -> bright end, hue shifts >= 20 deg; only core layers end #ffffff (vfx/README.md rules 2, 8).
 const R = {
-  goldGlow: '#1e0c00,#6a3004,#c8761a,#ffb84a', goldCore: '#4a2000,#e0801e,#ffc560,#fff0c8,#ffffff', goldSpark: '#3a1400,#ff6a14,#ffc048,#ffeaa0',
-  gunCore: '#3a0e00,#c43a08,#ff8a1f,#ffd27a,#ffffff', gunTrace: '#2a0a00,#a83a0a,#ff9a3a,#ffe3a8', gunHit: '#2a0800,#9a2a08,#ff6a1a,#ffc070', gunDebris: '#1c0600,#7a2004,#e05a12,#ffa050',
-  clawCore: '#2a0006,#a0101e,#ff3a3a,#ffb0a0,#ffffff', clawGlow: '#140003,#5a0010,#b01828,#ff5a4a', clawShard: '#1a0004,#5a0010,#c0202a,#ff7060',
-  boltCore: '#05103a,#1a4aff,#5aa8ff,#c8ecff,#ffffff', boltStreak: '#080a30,#3a2aff,#6a8aff,#b0d8ff', boltBurst: '#020820,#1030a0,#3a7aff,#9ad0ff',
-  acidCore: '#031a05,#0e6a18,#46d22e,#b8ff5a,#ffffff', acidSpray: '#021405,#0a4a20,#2aa03a,#7ae05a,#d0ff9a', acidFume: '#020c04,#0a3018,#2a7a3a,#6ac070',
-  voidCore: '#12002a,#5a12b0,#a64aff,#e0b8ff,#ffffff', voidNick: '#0e0024,#40108a,#8a3aff,#d090ff', voidFlurry: '#14002a,#6a0a8a,#c02ad0,#ff8af0',
-  smoke: '#08080a,#141418,#2a2a30,#4a4a52', fireRing: '#1a0200,#6a0a02,#d02a08,#ff7a1a,#ffc060', fireCore: '#2a0400,#9a1a04,#ff4a12,#ffa21f,#ffe7a0,#ffffff', fireSpark: '#2a0600,#c02a06,#ff7a1a,#ffd070',
-  iceCore: '#021428,#0a4a8a,#3aa8e0,#a8ecff,#ffffff', iceShard: '#020c20,#0a3070,#2a80d0,#8ad8ff', iceMist: '#041020,#103a5a,#4a90b0,#a0d8e8',
-  bhCore: '#0a0014,#3a0a6a,#8a1ad0,#ff5ae0,#ffffff', bhSuck: '#06001a,#200a6a,#4a2ae0,#9a8aff', bhDark: '#000000,#020004,#05000a,#0a0012',
-  novaCrack: '#140600,#5a1a00,#d06a10,#ffb040', novaCore: '#0a0a3a,#2a3aff,#8a9aff,#e0e8ff,#ffffff', novaBurst: '#1a0a00,#a04a08,#ffaa2a,#ffe0a0', novaDash: '#06082a,#1a2a9a,#4a7aff,#b0c8ff', novaSpark: '#0a0c30,#3050ff,#90b0ff,#dce6ff'
+  gunCore: '#3a0e00,#c43a08,#ff8a1f,#ffd27a,#ffffff', gunGlow: '#2a0800,#9a2a08,#ff6a1a,#ffc070',
+  steelCore: '#060a18,#2a3a6a,#8aa8e0,#e0ecff,#ffffff', steelGlow: '#04060e,#141c3a,#3a5a9a,#8ab0f0',
+  healCore: '#021a10,#0a6a3a,#3ad08a,#b0ffd8,#ffffff', healGlow: '#011008,#06401f,#1a9a5a,#6ae0a0',
+  boltCore: '#05103a,#1a4aff,#5aa8ff,#c8ecff,#ffffff', boltGlow: '#020820,#1030a0,#3a7aff,#9ad0ff',
+  acidCore: '#031a05,#0e6a18,#46d22e,#b8ff5a,#ffffff', acidGlow: '#020c04,#0a3018,#2a7a3a,#6ac070',
+  bloodCore: '#1a0003,#6a0008,#c0101a,#ff4a3a', bloodGlow: '#0e0002,#3a0006,#801018,#c02a2a',
+  iceCore: '#021428,#0a4a8a,#3aa8e0,#a8ecff,#ffffff', iceGlow: '#041020,#103a5a,#4a90b0,#a0d8e8',
+  poisonCore: '#0e0418,#3a1a5a,#7a3aa0,#b0e04a', poisonGlow: '#06020c,#1a0a2a,#3a1a4a,#5a7a2a',
+  laserCore: '#2a0010,#b00a3a,#ff3a6a,#ffb0c8,#ffffff', laserGlow: '#1a0008,#6a0420,#d0204a,#ff7090',
+  shadowCore: '#08000e,#2a0a3a,#6a2a8a,#c080e0', shadowGlow: '#040006,#14041e,#3a0e50,#7a3aa0',
+  fireCore: '#2a0400,#9a1a04,#ff4a12,#ffa21f,#ffe7a0,#ffffff', fireGlow: '#1a0200,#6a0a02,#d02a08,#ff7a1a', smoke: '#08080a,#141418,#2a2a30,#4a4a52',
+  holyCore: '#2a1800,#a07010,#ffd860,#fff6d0,#ffffff', holyGlow: '#1a0e00,#6a4806,#d0a030,#ffe08a',
+  dashCore: '#001a2a,#0a6aa0,#3ad0ff,#d0f6ff,#ffffff', dashGlow: '#000c18,#043a6a,#1a8ad0,#7ad8ff',
+  crystalCore: '#100620,#5a2aa0,#b080ff,#f0e0ff,#ffffff', crystalGlow: '#080214,#2a1060,#6a40c0,#b090ff',
+  windCore: '#0a1418,#2a5a64,#7ac0c8,#d8f6f8,#ffffff', windGlow: '#060c10,#1a3a44,#4a8a96,#a0d8de',
+  earthCore: '#140a02,#5a3410,#b07a3a,#ffd8a0', earthGlow: '#0a0806,#2a2218,#5a4a38,#9a8a70',
+  plasmaCore: '#001a20,#0a7a90,#3ae0ff,#c0f8ff,#ffffff', plasmaGlow: '#000c14,#04405a,#1a9ac0,#70e0ff',
+  bhCore: '#0a0014,#3a0a6a,#8a1ad0,#ff5ae0,#ffffff', bhGlow: '#06001a,#200a6a,#4a2ae0,#9a8aff',
+  novaCore: '#0a0a3a,#2a3aff,#8a9aff,#e0e8ff,#ffffff', novaGlow: '#1a0a00,#a04a08,#ffaa2a,#ffe0a0', novaSpark: '#0a0c30,#3050ff,#90b0ff,#dce6ff'
 }
-// One shot = 2 s. L(slug, ramp, {x,y,sz,t,life,...}): sz in screen heights, t/life in s from shot start; tex 0 noise 1 cells 2 streaks.
-const L = (s, r, o) => ({ s, r, x: 0, y: 0, sz: .5, sx: 1, t: .2, life: .6, rot: 0, spin: 0, grow: 1, tex: 0, amt: .4, k: 1, norm: false, ...o })
+// One shot = 1 s. L(slug, ramp, {x,y,sz,t,life,...}): sz in screen heights, t/life in s from shot start; tex 0 noise 1 cells 2 streaks.
+// Every sheet is new (owner 2026-11-26): tools/vfx/showcase/gen/<combat|elements|magic>/<name>.js, its header comment is the detailed prompt it was drawn from.
+const L = (s, r, o) => ({ s, r, x: 0, y: 0, sz: .5, sx: 1, t: .02, life: .9, rot: 0, spin: 0, grow: 1, tex: 0, amt: .4, k: 1, norm: false, ...o })
+// core + soft glow copy of the same sheet (bigger, glow ramp, dimmer): the bloom without a post pass
+const G = (s, c, g, o, go = {}) => [L(s, g, { ...o, sz: o.sz * 1.3, k: .5, amt: .45, ...go }), L(s, c, { tex: 1, amt: .3, ...o })]
 const SHOTS = [
-  { name: 'Ember Aura', el: 'Holy fire', size: 2, aggr: 1, col: '#ffb040', hit: .15, push: .03, layers: [
-    L('gen-orb-aura', 'goldGlow', { sz: .66, t: .05, life: 1.75, k: .55, amt: .45, spin: 10, grow: 1.15 }),
-    L('gen-orb-aura', 'goldCore', { sz: .36, t: .1, life: 1.65, tex: 1, amt: .35, spin: -14 }),
-    L('gen-rising-sparks', 'goldSpark', { sz: .58, y: .04, t: .2, life: 1.55, tex: 2, amt: .3 })] },
-  { name: 'Gunshot', el: 'Ballistic', size: 1, aggr: 3, col: '#ff7a1a', hit: .2, push: .02, layers: [
-    L('gen-muzzle-flash', 'gunCore', { x: -.5, sz: .3, t: .2, life: .4, amt: .35 }),
-    L('gen-bullet-tracer', 'gunTrace', { x: -.02, sz: .3, sx: 2.6, t: .22, life: .45, tex: 2 }),
-    L('gen-hit-burst', 'gunHit', { x: .5, sz: .24, t: .34, life: .55, tex: 1 }),
-    L('gen-shard-debris', 'gunDebris', { x: .5, sz: .36, t: .36, life: .95, amt: .35 }),
-    L('gen-muzzle-flash', 'gunCore', { x: -.5, y: .03, sz: .3, t: 1.0, life: .4, rot: 3, amt: .35 }),
-    L('gen-bullet-tracer', 'gunTrace', { x: -.02, y: .05, sz: .3, sx: 2.6, t: 1.02, life: .45, rot: 3, tex: 2 }),
-    L('gen-hit-burst', 'gunHit', { x: .5, y: .07, sz: .28, t: 1.14, life: .55, tex: 1 }),
-    L('gen-shard-debris', 'gunDebris', { x: .5, y: .07, sz: .4, t: 1.16, life: .8, amt: .35 })] },
-  { name: 'Claw Rend', el: 'Blood', size: 3, aggr: 4, col: '#ff2a3a', hit: .26, push: .05, layers: [
-    L('gen-claw-slash', 'clawGlow', { sz: .98, t: .24, life: .66, rot: -10, k: .45, tex: 2, amt: .45 }),
-    L('gen-claw-slash', 'clawCore', { sz: .72, t: .25, life: .6, rot: -10, tex: 2, amt: .45 }),
-    L('gen-shard-debris', 'clawShard', { sz: .82, t: .32, life: 1.0 })] },
-  { name: 'Thunder Strike', el: 'Lightning', size: 3, aggr: 4, col: '#4a8aff', hit: .22, push: .05, layers: [
-    L('act-013-streaks-bolt', 'boltStreak', { sz: .92, t: .22, life: .6, k: .9, tex: 2 }),
-    L('act-047-bolt-orbit', 'boltCore', { sz: .86, y: .04, t: .2, life: .6, tex: 2 }),
-    L('gen-collision-burst', 'boltBurst', { sz: .5, y: -.22, t: .25, life: .7, k: .8, tex: 1 }),
-    L('act-047-bolt-orbit', 'boltCore', { sz: 1.0, x: .06, y: .06, sx: -1, t: .95, life: .6, tex: 2 }),
-    L('gen-collision-burst', 'boltBurst', { sz: .62, x: .06, y: -.22, t: 1.0, life: .75, k: .9, tex: 1 })] },
-  { name: 'Acid Splash', el: 'Poison', size: 3, aggr: 2, col: '#4ad22e', hit: .22, push: .03, layers: [
-    L('gen-rising-puffs', 'acidFume', { sz: .74, y: .02, t: .45, life: 1.4, k: .45, amt: .5 }),
-    L('gen-ground-splash', 'acidCore', { sz: .8, y: -.26, t: .2, life: 1.2, tex: 1, amt: .45 }),
-    L('gen-liquid-spray', 'acidSpray', { sz: .86, y: -.1, t: .25, life: 1.2 })] },
-  { name: 'Void Crescent', el: 'Void', size: 3, aggr: 4, col: '#a64aff', hit: .22, push: .05, layers: [
-    L('act-017-crescent', 'voidCore', { sz: .92, t: .2, life: .55, rot: 15, tex: 2 }),
-    L('gen-crescent-nick', 'voidNick', { sz: .76, t: .36, life: .55, rot: -160, tex: 2 }),
-    L('gen-cut-flurry', 'voidFlurry', { sz: .82, t: .52, life: .8, k: .9, tex: 2, amt: .45 })] },
-  { name: 'Hellfire', el: 'Fire', size: 4, aggr: 4, col: '#ff5a14', hit: .22, push: .07, layers: [
-    L('gen-rising-puffs', 'smoke', { sz: 1.0, y: .1, t: .35, life: 1.5, k: .75, amt: .5, norm: true, grow: 1.2 }),
-    L('act-009-shock-flames', 'fireRing', { sz: .98, y: .02, t: .2, life: .66, amt: .45 }),
-    L('act-061-flames-orbit', 'fireCore', { sz: .82, t: .3, life: .72 }),
-    L('gen-rising-sparks', 'fireSpark', { sz: .92, y: .1, t: .42, life: 1.4, tex: 2, amt: .3 })] },
-  { name: 'Frost Shatter', el: 'Ice', size: 3, aggr: 3, col: '#5ac0ff', hit: .22, push: .04, layers: [
-    L('gen-rising-puffs', 'iceMist', { sz: .82, t: .3, life: 1.4, k: .5, amt: .5 }),
-    L('gen-hit-burst', 'iceCore', { sz: .6, t: .2, life: .55, tex: 1, amt: .45 }),
-    L('gen-shard-debris', 'iceShard', { sz: .96, t: .24, life: 1.1, tex: 1 })] },
-  { name: 'Black Hole', el: 'Gravity', size: 4, aggr: 3, col: '#b040ff', hit: .25, push: .06, layers: [
-    L('gen-suction-vortex', 'bhSuck', { sz: 1.02, t: .1, life: 1.45, tex: 2, spin: -40 }),
-    L('gen-black-hole-vortex', 'bhCore', { sz: .92, t: .2, life: 1.55, spin: -60 }),
-    L('gen-orb-aura', 'bhDark', { sz: .24, t: .3, life: 1.3, norm: true, amt: .2 })] },
-  { name: 'Storm Nova', el: 'Storm finale', size: 5, aggr: 5, col: '#5a7aff', hit: .3, push: .12, layers: [
-    L('gen-rising-puffs', 'smoke', { sz: 1.25, y: .05, t: .45, life: 1.4, k: .8, amt: .5, norm: true, grow: 1.25 }),
-    L('gen-ground-crack-ring', 'novaCrack', { sz: 1.3, y: -.3, t: .3, life: 1.0, tex: 1, amt: .45 }),
-    L('gen-storm-nova', 'novaCore', { sz: 1.15, t: .2, life: 1.4 }),
-    L('gen-collision-burst', 'novaBurst', { sz: .7, t: .3, life: .8, tex: 1 }),
-    L('gen-shock-dashes', 'novaDash', { sz: 1.25, t: .32, life: 1.0, tex: 2 }),
-    L('gen-rising-sparks', 'novaSpark', { sz: 1.2, y: .1, t: .45, life: 1.4, tex: 2, amt: .3 })] }
+  { name: 'Rifle Muzzle Flash', el: 'Ballistic', size: 2, aggr: 4, col: '#ff8a1f', hit: 0.05, push: 0.02, layers: [
+    ...G('gen-rifle-muzzle-flash','gunCore','gunGlow',{ x: -.1, sz: .62, life: .75 })] },
+  { name: 'Iai Slash', el: 'Steel', size: 3, aggr: 4, col: '#8ab0ff', hit: 0.08, push: 0.04, layers: [
+    ...G('gen-iai-slash','steelCore','steelGlow',{ sz: .85, life: .85, tex: 2 })] },
+  { name: 'Healing Aura', el: 'Life', size: 3, aggr: 1, col: '#3ad08a', hit: 0.25, push: 0.02, layers: [
+    ...G('gen-heal-aura','healCore','healGlow',{ sz: .9, y: -0.182, life: .95 })] },
+  { name: 'Chain Lightning', el: 'Lightning', size: 4, aggr: 5, col: '#5aa8ff', hit: 0.08, push: 0.05, layers: [
+    ...G('gen-chain-lightning','boltCore','boltGlow',{ sz: 1.0, life: .85, tex: 2 })] },
+  { name: 'Acid Geyser', el: 'Poison', size: 4, aggr: 3, col: '#46d22e', hit: 0.2, push: 0.04, layers: [
+    ...G('gen-acid-geyser','acidCore','acidGlow',{ sz: .95, y: -0.103, life: .95 })] },
+  { name: 'Blood Spray', el: 'Blood', size: 3, aggr: 5, col: '#ff2a3a', hit: 0.05, push: 0.04, layers: [
+    ...G('gen-blood-spray-arc','bloodCore','bloodGlow',{ sz: .8, y: -0.158, life: .85 })] },
+  { name: 'Ice Spikes', el: 'Ice', size: 4, aggr: 4, col: '#5ac0ff', hit: 0.1, push: 0.05, layers: [
+    ...G('gen-ice-spikes','iceCore','iceGlow',{ sz: .95, y: -0.121, life: .9, tex: 1 })] },
+  { name: 'Poison Cloud', el: 'Toxin', size: 3, aggr: 1, col: '#9a4ad0', hit: 0.3, push: 0.02, layers: [
+    ...G('gen-poison-cloud','poisonCore','poisonGlow',{ sz: .95, life: .95 })] },
+  { name: 'Laser Beam', el: 'Energy', size: 3, aggr: 4, col: '#ff3a6a', hit: 0.22, push: 0.04, layers: [
+    ...G('gen-laser-beam','laserCore','laserGlow',{ sz: .95, sx: 1.35, life: .85, tex: 2 })] },
+  { name: 'Shadow Tendrils', el: 'Shadow', size: 4, aggr: 3, col: '#a64aff', hit: 0.2, push: 0.05, layers: [
+    ...G('gen-shadow-tendrils','shadowCore','shadowGlow',{ sz: .95, life: .9, spin: -12 })] },
+  { name: 'Fireball Explosion', el: 'Fire', size: 5, aggr: 5, col: '#ff5a14', hit: 0.1, push: 0.08, layers: [
+    L('gen-fireball-explosion','smoke',{ sz: 1.25, y: .06, t: .2, life: .78, k: .7, amt: .5 }),
+    ...G('gen-fireball-explosion','fireCore','fireGlow',{ sz: 1.05, life: .9 })] },
+  { name: 'Holy Pillar', el: 'Light', size: 3, aggr: 2, col: '#ffd860', hit: 0.2, push: 0.03, layers: [
+    ...G('gen-holy-pillar','holyCore','holyGlow',{ sz: .95, y: -0.086, life: .95, tex: 2 })] },
+  { name: 'Electric Dash', el: 'Lightning', size: 3, aggr: 4, col: '#3ad0ff', hit: 0.12, push: 0.04, layers: [
+    ...G('gen-electric-dash','dashCore','dashGlow',{ sz: .95, sx: 1.3, life: .8, tex: 2 })] },
+  { name: 'Crystal Shatter', el: 'Arcane', size: 3, aggr: 4, col: '#b080ff', hit: 0.22, push: 0.05, layers: [
+    ...G('gen-crystal-shatter','crystalCore','crystalGlow',{ sz: .85, life: .9, tex: 1 })] },
+  { name: 'Tornado', el: 'Wind', size: 4, aggr: 3, col: '#7ac0c8', hit: 0.2, push: 0.04, layers: [
+    ...G('gen-tornado','windCore','windGlow',{ sz: 1.05, y: -0.021, life: .95, tex: 2 })] },
+  { name: 'Earth Slam', el: 'Earth', size: 4, aggr: 5, col: '#d09a5a', hit: 0.06, push: 0.07, layers: [
+    ...G('gen-earth-slam','earthCore','earthGlow',{ sz: 1.05, y: -0.18, life: .92, tex: 1 })] },
+  { name: 'Plasma Orb', el: 'Plasma', size: 4, aggr: 4, col: '#3ae0ff', hit: 0.5, push: 0.05, layers: [
+    ...G('gen-plasma-orb','plasmaCore','plasmaGlow',{ sz: .95, life: .95 })] },
+  { name: 'Black Hole', el: 'Gravity', size: 4, aggr: 3, col: '#b040ff', hit: 0.7, push: 0.06, layers: [
+    ...G('gen-black-hole','bhCore','bhGlow',{ sz: 1.0, life: .95, spin: 20 })] },
+  { name: 'Meteor Impact', el: 'Fire', size: 5, aggr: 5, col: '#ff6a1a', hit: 0.29, push: 0.08, layers: [
+    ...G('gen-meteor-impact','fireCore','fireGlow',{ sz: 1.1, y: -0.109, life: .92 })] },
+  { name: 'Cataclysm', el: 'Storm finale', size: 5, aggr: 5, col: '#5a7aff', hit: 0.27, push: 0.12, layers: [
+    ...G('gen-cataclysm','novaCore','novaGlow',{ sz: 1.15, life: .96 }),
+    L('gen-cataclysm','novaSpark',{ sz: .8, rot: 22, t: .08, life: .88, tex: 2, k: .8 })] },
 ]
 const $ = id => document.getElementById(id), err = m => { $('err').textContent += m + '\n' }
 const cv = $('gl'), hud = $('hud'), hx = hud.getContext('2d')
@@ -185,7 +188,7 @@ function render(T) {
   const pre = since < 0 ? ease((ts) / Math.max(sh.hit, .01)) * 0.25 : 0
   const amp = RM ? 0 : [0, 0, .002, .006, .012, .022][sh.aggr] * hitEnv
   const shake = [Math.sin(T * 91.7) * amp + Math.sin(T * 53.1) * amp * .5, Math.cos(T * 77.3) * amp]
-  const zoom = 1 + sh.push * ease(ts / 1.4) + (RM ? 0 : sh.aggr * .006 * hitEnv)
+  const zoom = 1 + sh.push * ease(ts / (SHOT * .8)) + (RM ? 0 : sh.aggr * .006 * hitEnv)
   const col = hex(sh.col), light = Math.min(1, hitEnv * (0.5 + sh.aggr * 0.12) + pre + 0.12)
   gl.viewport(0, 0, W, H); gl.disable(gl.BLEND)
   gl.useProgram(BG.p); attr(BG.p, fb)
@@ -214,7 +217,7 @@ function pips(x, y, label, n, s, c) {
   for (let i = 0; i < 5; i++) { hx.fillStyle = i < n ? c : '#ffffff22'; hx.fillRect(x + w + i * s * .9, y - s * .55, s * .7, s * .55) }
 }
 function drawHud(T, si, sh, ts) {
-  const s = H / 30, a = Math.min(1, ts / .25, (SHOT - ts) / .2)
+  const s = H / 30, a = Math.min(1, ts / .12, (SHOT - ts) / .1)
   hx.clearRect(0, 0, W, H); hx.globalAlpha = Math.max(0, a); hx.textBaseline = 'alphabetic'
   hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .7}px system-ui,sans-serif`
   hx.fillText(`${String(si + 1).padStart(2, '0')} / ${SHOTS.length}  ·  ${sh.el.toUpperCase()}`, s * 1.4, s * 2)

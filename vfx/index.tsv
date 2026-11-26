@@ -122,4 +122,24 @@ gen-orb-aura	Orb Aura	action	4	16	1	hub/gen|prbva1
 gen-hit-burst	Hit Burst	action	4	16	0.7	hub/gen|q6qfij
 gen-cut-flurry	Cut Flurry	action	4	16	0.9	hub/gen|r3r189
 gen-muzzle-thrust	Muzzle Thrust	action	4	16	0.5	hub/gen|y0ao5u
-gen-storm-nova	Storm Nova	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/storm-nova.js
+gen-storm-nova	Storm Nova	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/magic/storm-nova.js
+gen-acid-geyser	Acid Geyser	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/acid-geyser.js
+gen-black-hole	Black Hole	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/black-hole.js
+gen-blood-spray-arc	Blood Spray Arc	action	4	16	0.8	gen/claude|tools/vfx/showcase/gen/combat/blood-spray-arc.js
+gen-cataclysm	Cataclysm	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/magic/cataclysm.js
+gen-chain-lightning	Chain Lightning	action	4	16	0.6	gen/claude|tools/vfx/showcase/gen/elements/chain-lightning.js
+gen-crystal-shatter	Crystal Shatter	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/crystal-shatter.js
+gen-earth-slam	Earth Slam	action	4	16	1	gen/claude|tools/vfx/showcase/gen/combat/earth-slam.js
+gen-electric-dash	Electric Dash	action	4	16	0.6	gen/claude|tools/vfx/showcase/gen/combat/electric-dash.js
+gen-fireball-explosion	Fireball Explosion	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/fireball-explosion.js
+gen-heal-aura	Heal Aura	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/magic/heal-aura.js
+gen-holy-pillar	Holy Pillar	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/holy-pillar.js
+gen-iai-slash	Iai Slash	action	4	16	0.5	gen/claude|tools/vfx/showcase/gen/combat/iai-slash.js
+gen-ice-spikes	Ice Spikes	action	4	16	0.9	gen/claude|tools/vfx/showcase/gen/elements/ice-spikes.js
+gen-laser-beam	Laser Beam	action	4	16	0.8	gen/claude|tools/vfx/showcase/gen/combat/laser-beam.js
+gen-meteor-impact	Meteor Impact	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/combat/meteor-impact.js
+gen-rifle-muzzle-flash	Rifle Muzzle Flash	action	4	16	0.4	gen/claude|tools/vfx/showcase/gen/combat/rifle-muzzle-flash.js
+gen-plasma-orb	Plasma Orb	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/plasma-orb.js
+gen-poison-cloud	Poison Cloud	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/elements/poison-cloud.js
+gen-shadow-tendrils	Shadow Tendrils	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/shadow-tendrils.js
+gen-tornado	Tornado	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/elements/tornado.js

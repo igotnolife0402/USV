@@ -572,3 +572,7 @@ improved: repair fills missing sheet names (validate failed on them); char regex
 ## [2026-11-26] build / vfx showcase reel 20 s
 tools/vfx/showcase/reel.html (artifact Rkbb6hcGYJ4zwPa6FP8Zkb): 10 shots (aura, gunshot, claw, thunder, acid, void, hellfire, frost, black hole, storm nova finale), size + aggression meters; MP4 via reel-capture.cjs + ffmpeg.
 improved: peak-frame contact check caught 2 empty half-shots (gunshot, thunder) -> double strikes; reel-capture.cjs committed (regenerates the MP4, binary gitignored); router vfx words showcase/reel; playbook + index lines for reel requests; charset meta fixed mojibake in HUD
+
+## [2026-11-26] build / VFX reel: 20 brand-new ugen sheets
+20 new sheets (tools/vfx/showcase/gen/*.js, each with a `// PROMPT:` detailed prompt), all jump < 3, empty <= 2, into vfx/sheets + index.tsv; reel.html now 20 shots x 1 s; MP4 tools/vfx/showcase/out/vfx-reel-20s.mp4; artifact republished. Peaks contact viewed; full motion not visually verified frame by frame.
+improved: draw.mjs --dir batch mode (one browser, 20 sheets ~18 s); slug clash check rule in vfx playbook (L-214, restored 2 overwritten hub sheets); jump-safe curve rule (L-215); reel-capture peaks follow SHOT length
