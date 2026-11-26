@@ -361,3 +361,7 @@ Lint fixed: repo-check exempts tools/3d/models/<kind>/<kind>_v<N> from the copy/
 ## [2026-11-24] 3d / prune models below the owner floor
 Gate = own --check or detail.py on generated output. Removed: vehicle/drones.py (39 parts, 5 colors, 11.4k tris, same_size 0.278), armor.py (helm 7 parts, 0 textures), sets.py (6 parts, 0 textures) + solids.py, venomreaver.py + vhq_helm/limbs/torso.py (14 parts, 0 textures), committed armor/x/y geo output. props.py kept (every generator imports it) but retagged helper so its toon/lowpoly props leave the library. PASS kept: car, setup, house, lantern_v1, vapes, guns, shotgun. Not checkable here (glb/rbxmx output or missing skimage): beast dragon/orc/shadow*, avatar, shatter, voxel city, tiger. improve 60: 77.5 s FAIL (+17.5 s: generators ran before the brief).
 improved: library 28 → 23 entries, all checkable ones pass the floor; armor README/tool.json now point to the hq.py kit; improve skill + 3d playbook helmet template fixed (vhq_helm gone)
+
+## [2026-11-26] vault / /prompt audit (no such command; asked which audit)
+/prompt is not a skill or command on any branch; "audit" routed nowhere.
+improved: vault route owns audit / vault audit / prompt audit / health check

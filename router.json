@@ -488,7 +488,11 @@
         "slash menu",
         "skill not showing",
         "skill missing",
-        "not in the menu"
+        "not in the menu",
+        "audit",
+        "vault audit",
+        "prompt audit",
+        "health check"
       ],
       "notes": [
         "profiles/vault-rules.md",
