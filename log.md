@@ -813,3 +813,4 @@ improved: tool trivia and incident stories stripped; 3D floor vs every-part rule
 
 ## [2026-11-26] improve / Prism build prompt
 - /improve 300: Umbrio-successor build prompt (Rust+WGSL Prism) delivered at 349.7 s (FAIL +49.7); L-274 rule added to improve skill.
+- [2026-11-26] Prism prompt exported as txt+zip (scratchpad); added self-contained 09-umbrio-reference after owner flagged missing Umbrio context (L-276).

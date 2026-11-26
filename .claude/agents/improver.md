@@ -62,3 +62,5 @@ WRITING/RESEARCH/OTHER: audience, outcome, outline with headings, sources rule (
 - Always improve: every task fixes >= 3 real vault problems, logged in log.md as `improved: a; b; c`.
 - Mobile cloud sessions DO have headless Chromium + Playwright: screenshot checks work there.
 - Mobile: PC-only steps (Studio, Blender, local files) → fallback + append to queue/pc.md.
+
+- Self-contained (2026-11-26, Prism prompt): a prompt meant for another vault or session must describe every tool, file or name it references (e.g. "like Umbrio" -> a section saying what Umbrio is, its feature list and formats); the reader has none of this vault.
