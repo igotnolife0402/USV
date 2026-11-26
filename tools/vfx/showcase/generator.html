@@ -308,7 +308,9 @@ function validate(S) {
 
 // ---------- build (build.mjs logic, then Studio's cinePass + cineLights)
 // short targets (< 4 s) scale the cine build-up, slow-mo and hit-stop down so fitDuration barely compresses the story
-const cineOpts = (S, opt) => ({ payoff: S.payoff, kind: opt.loop ? 'loop' : S.cine_kind || 'burst', tint: S.tint, push: S.push ?? 0.2,
+const cineOpts = (S, opt) => opt.type === 'consistent' && !opt.loop
+  ? { payoff: S.payoff, kind: 'impact', tint: S.tint, push: 0.08, build: Math.min(0.12, S.payoff), shake: 0.02, flash: 0.6, dip: 0.05 }
+  : ({ payoff: S.payoff, kind: opt.loop ? 'loop' : S.cine_kind || 'burst', tint: S.tint, push: S.push ?? 0.2,
   ...(opt.ms && opt.ms < 4000 ? { build: Math.min(1.6, 0.35 * S.len), slow: 0.7, hold: 1 } : {}) })
 function build(S, opt = {}) {
   const objs = {}, tracks = {}
@@ -325,6 +327,7 @@ function build(S, opt = {}) {
     if (e.grow) tracks[id] = { scale: e.grow.map(([t, s, ez]) => [t, [s, s, s], ez || 'auto']) }
   })
   let clip = { name: S.name, len: S.len, fps: 60, loop: !!opt.loop, tracks, camera: S.camera_keys }
+  if (opt.type === 'consistent' && !opt.loop) clip.warp = [[0, 0], [S.len, S.len]]      // real time: cinePass keeps an existing warp
   clip = cinePass(clip, cineOpts(S, opt), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov })
   const cam = clip.camera ||= {}
   // camera setting: static drops every motion key (flash and grade stay); orbit swaps the drift for a 90° orbit of the target
@@ -517,7 +520,7 @@ $('scrub').oninput = e => { if (!CUR) return; playing = false; $('play').textCon
 // test hook: headless checks seek to an exact clip time
 
 // ---------- generate: Claude writes the spec (artifact `sample` capability)
-const RULES = `You make a VFX clip in two parts, returned as ONE JSON object (no prose, no code fences):
+const RULES = `You make a VFX clip in two parts, returned as ONE minified JSON object, "sheets" FIRST (no prose, no code fences, no indentation or line breaks: every extra character makes the owner wait):
 (1) "sheets": NEW flipbook sheets you WRITE as draw scripts. They are drawn by the exact method of the owner's sheet library (the stylized unique.py): 16 frames, 160 px frames drawn at 2x with tapered disc strokes, 6 lingering motes added for you, noise erosion after 55 % of life added for you, glow lighting + edge fade + white Grid4x4 1024 px sheet (light = alpha). Colour is NOT in the script: the player paints each sheet by ramp.
 (2) the clip spec that places those sheets in a three.js scene with an automatic cinematic pass (camera push-in, slow-mo, hit-stop, dark dip, white flash, decaying shake, colour grade) and impact/rim lights.
 
@@ -530,9 +533,9 @@ SHEET SCRIPTS: "sheets": {"<id>": {"name": "<what this sheet IS, 1-3 generic wor
 - rng is re-seeded every frame: call it in the same order every frame so particles keep their paths. Never Math.random, never Date. Return {motes:false} only for a clean single shape.
 - HOUSE STYLE (how every library sheet is made, keep it): one primary element at the origin + at most one partner element. Draw the partner FIRST at U.at(0,0) | U.at(U.C*.18,0) | U.at(0,U.C*.2) with U.rng(0), then U.at(0,0) and the primary with rng. Write custom pen strokes only when no element shows the action (e.g. a bubble swelling then popping); then copy the element style: fast-in timing with U.ease(t/0.3..0.5), tapered widths 0.4..8, hollow rings as stroke(U.arc(...)) width 1.2-5, everything inside radius ~70 px, never fade by hand (the wrapper erodes).
 - Template: const S2 = U.params(0.75), S1 = U.params(0.9, {k: 10})\nU.at(0, U.C*.2); U.EL.shock(pen, U.rng(0), t, S2); U.at(0, 0)\nU.EL.bubbles(pen, rng, t, S1)
-- Write 4-8 sheets, one per layer role of THIS animation (e.g. poison bubble burst: swelling bubble + pop ring, bubble cluster rising, droplet fountain, splash shards, ground splash ring, lingering rising bubbles). "life" = 0.5-1.6 s.
+- Write 4-6 sheets, one per layer role of THIS animation (e.g. poison bubble burst: swelling bubble + pop ring, bubble cluster rising, droplet fountain, splash shards, ground splash ring, lingering rising bubbles). "life" = 0.5-1.6 s.
 
-CLIP SPEC (same schema as the example, but every fx uses "sheet": "<id>" from your sheets; NO library slugs). All times are STORY seconds (the cine pass adds ~2 s of slow-mo around the payoff itself).
+CLIP SPEC (after "sheets"; same schema as the example, but every fx uses "sheet": "<id>" from your sheets; NO library slugs). All times are STORY seconds (the cine pass adds ~2 s of slow-mo around the payoff itself).
 - name, len (4..14 s), payoff (the ONE biggest moment), cine_kind "impact" (sharp hit) or "burst" (build then release), tint "#rrggbb" (light tint of the dominant hue), push (0.1..0.35).
 - camera {pos,target,fov} at t=0; camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: slow orbit/drift over 0..len with a key exactly at payoff; y-up metres.
 - env {bg "#hex" dark, fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
@@ -546,12 +549,38 @@ PAINT RULE (owner, checked by code; a spec that breaks it is sent back): every s
   * no two fx share the same sheet + ramp + tex: the same sheet used twice gets a different ramp or tex; >= 3 distinct ramps per clip (all layers blend additive: big back glow = deeper, darker-edged ramp at opacity 0.4-0.7, core = hottest, sparks = brightest accent, ground decal = deep saturated).
 - impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one}], rims [{pos, color, base 1.0-1.5}] 1-2.
 
-QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, one contrasting accent allowed). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-24 fx. Exactly what the owner describes, nothing extra.`
+QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, one contrasting accent allowed). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-16 fx. Exactly what the owner describes, nothing extra.`
 let ctl = null
+// the reply's shape in ~1 kB (the 8 kB library example made every call read more and copy its long style)
+const SKELETON = '{"sheets":{"core":{"name":"burst core","code":"const S1 = U.params(0.9); U.at(0, 0); U.EL.spikes(pen, rng, t, S1)","seed":1,"life":0.8}},"name":"Fire Burst","len":5,"payoff":2,"cine_kind":"impact","tint":"#ff8a12","push":0.2,"camera":{"pos":[0,2.2,9],"target":[0,1.2,0],"fov":45},"camera_keys":{"pos":[[0,[0,2.2,9],"auto"],[2,[0.8,2,7.5],"auto"],[5,[1.2,2.1,8.5],"auto"]],"target":[[0,[0,1.2,0],"auto"],[5,[0,1.2,0],"auto"]],"fov":[[0,45,"auto"],[5,45,"auto"]]},"env":{"bg":"#07060e","fog":null,"grid":false,"light":"night"},"parts":{"orb":{"shape":"sphere","name":"orb","size":[0.6,0.6,0.6],"pos":[0,1.2,0],"color":"#ffd27a","material":"Neon"}},"tracks":{"orb":{"scale":[[1.85,[1.2,1.2,1.2],"in"],[2,[0.01,0.01,0.01],"out"]]}},"fx":[{"sheet":"core","t":1.95,"life":0.8,"pos":[0,1.2,0],"size":5,"ramp":"#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#ffffff","tex":"noise","tex_amt":0.45}],"impacts":[{"t":2,"at":[0,1.2,0],"color":"#ff8a12","payoff":true}],"rims":[{"pos":[-3,3,-2],"color":"#ff8a12","base":1.2}]}'
+// draws each sheet the moment its script is complete in the streamed reply ("sheets" come first), so drawing overlaps
+// Claude writing the clip spec; enforce() gives sheet i seed seed0 + i, the same key, so prepare() finds them drawn
+function earlyDraw(seed0) {
+  let n = 0
+  return text => {
+    const a = text.indexOf('"sheets"'), i = a < 0 ? -1 : text.indexOf('{', a); if (i < 0) return
+    let depth = 0, str = false, esc = false, start = -1, k = 0
+    for (let j = i; j < text.length; j++) {
+      const c = text[j]
+      if (str) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') str = false; continue }
+      if (c === '"') str = true
+      else if (c === '{') { if (++depth === 2) start = j }
+      else if (c === '}') {
+        if (depth === 2 && k++ >= n) {
+          n = k
+          try { const d = JSON.parse(text.slice(start, j + 1)), seed = seed0 + k - 1, key = genKey({ code: d.code, seed }); if (typeof d.code === 'string' && !GEN.has(key)) { const p = drawSheet(d.code, seed); p.catch(() => {}); GEN.set(key, p) } } catch {}
+        }
+        if (--depth === 0) return
+      }
+    }
+  }
+}
 function extractJSON(t) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('no JSON in the reply'); return JSON.parse(t.slice(a, b + 1)) }
 
 // ---------- slots: each slot = its own prompt, length, settings, Claude call, sheets and clip; all run at once
-const MODEL = { model: 'claude-opus-5-5', modelTier: 'complex', effort: 'medium' }, CAP_MS = 60000, FIX_CUTOFF = 30000, TARGET_MS = 15000
+// speed (owner 2026-11-26: 30-45 s -> 15 s goal): effort low (medium thought before writing), minified reply, sheets drawn while the
+// reply streams, mechanical errors repaired in code (each fix round was another full ~10-20 s reply)
+const MODEL = { model: 'claude-opus-5-5', modelTier: 'complex', effort: 'low' }, CAP_MS = 60000, FIX_CUTOFF = 20000, TARGET_MS = 15000
 const STYLES = {
   library: ['Library (default)', 'the library house style: one primary element + at most one partner per sheet, as in RULES'],
   sharp: ['Sharp / fast', 'sharp and fast: favour crescent, xcut, thrust, claw, spikes, cracks, bolt, shards; thin tapered strokes (w 0.7-0.9)'],
@@ -559,14 +588,21 @@ const STYLES = {
   heavy: ['Heavy / elemental', 'heavy and elemental: favour shock, ground, faultline, column, flames, fountain, pillar, shards; wide strokes (w 1.2-1.4)']
 }
 const BGS = { dark: { bg: '#07060e', light: 'night' }, sky: { bg: '#bcd8ff', light: 'day' } }
-const DEF_SET = () => ({ style: 'library', hue: '#9be04a', hueOn: false, intensity: 'normal', camera: 'cine', loop: false, seed: 1125, lock: false, bg: 'dark' })
+const DEF_SET = () => ({ type: 'cinematic', style: 'library', hue: '#9be04a', hueOn: false, intensity: 'normal', camera: 'cine', loop: false, seed: 1125, lock: false, bg: 'dark' })
 const slots = []; let sel = -1, nid = 0
 const fmtS = ms => (ms / 1000).toFixed(3)
 // Shortest a one-shot flipbook may play in clip time: 16 frames at 60 fps x1.5 (0.4 s), less only when the clip itself is shorter.
 const minLife = ms => Math.min(0.4, 0.6 * ms / 1000)
 const clampMs = v => Math.round(Math.min(14, Math.max(0.5, +v || 3)) * 1000)
 function settingsText(sl) {
-  const s = sl.set, out = [`TARGET LENGTH: the played clip will be exactly ${fmtS(sl.ms)} s INCLUDING the cine slow-mo and hit-stop; the player time-scales your clip to fit, so plan the beats for it: ${sl.ms >= 6000 ? `story len ≈ ${Math.max(3, (sl.ms / 1000 - 2)).toFixed(1)} s` : sl.ms >= 4000 ? `story len ≈ ${(sl.ms / 1000 - 1).toFixed(1)} s, quick build` : `SHORT CLIP: story len = ${fmtS(sl.ms)} s exactly (overrides the 4..14 rule), payoff at 40-55% of len, build-up <= 35% of len, every one-shot fx life >= ${(minLife(sl.ms) * 1.3).toFixed(2)} s and t + life <= len so every fade finishes on screen`}.`]
+  const s = sl.set, life = `every one-shot fx life >= ${(minLife(sl.ms) * 1.3).toFixed(2)} s and t + life <= len so every fade finishes on screen`
+  if (s.type === 'consistent' && !s.loop) return [`TYPE consistent (owner): a gameplay VFX that plays the same way every time (gunshot, hit, cast, pickup). NO build-up, NO charge, NO anticipation beat: the action starts at once. The first fx (muzzle flash, slash, impact) at t 0-0.05 s, the main hit = payoff within the first 15% of len (a projectile that travels may land later), then follow-through and lingering smoke/sparks to the end. cine_kind "impact". The player plays it in REAL TIME (no slow-mo, no hit-stop; only a small camera punch, flash and shake at the payoff).`,
+    `TARGET LENGTH: story len = ${fmtS(sl.ms)} s exactly (real time; overrides the 4..14 rule), ${life}.`, ...settingsRest(sl)].join('\n')
+  const out = [`TYPE cinematic (owner): build-up, then the payoff in slow-mo with hit-stop, as RULES.`, `TARGET LENGTH: the played clip will be exactly ${fmtS(sl.ms)} s INCLUDING the cine slow-mo and hit-stop; the player time-scales your clip to fit, so plan the beats for it: ${sl.ms >= 6000 ? `story len ≈ ${Math.max(3, (sl.ms / 1000 - 2)).toFixed(1)} s` : sl.ms >= 4000 ? `story len ≈ ${(sl.ms / 1000 - 1).toFixed(1)} s, quick build` : `SHORT CLIP: story len = ${fmtS(sl.ms)} s exactly (overrides the 4..14 rule), payoff at 40-55% of len, build-up <= 35% of len, ${life}`}.`]
+  return [...out, ...settingsRest(sl)].join('\n')
+}
+function settingsRest(sl) {
+  const s = sl.set, out = []
   out.push(`STYLE: ${STYLES[s.style][1]}.`)
   if (s.hueOn) out.push(`DOMINANT HUE ${s.hue}: tint = "${s.hue}"; every ramp centres on this hue but still shifts hue 20-40 deg along it per the PAINT RULE ("#dark edge,...,#ffffff"; one contrasting accent ramp allowed).`)
   out.push({ subtle: 'INTENSITY subtle: 6-10 fx, sizes 2-5 m, small payoff (2 sheets), push 0.1.', normal: 'INTENSITY normal: as the quality floor.', big: 'INTENSITY big: ONE big payoff (4 sheets at once, sizes 6-10 m, push 0.3); everything before and after stays small and sparse (no effect per step).' }[s.intensity])
@@ -574,7 +610,7 @@ function settingsText(sl) {
   if (s.loop) out.push('LOOP on: a seamless ambient loop; every fx uses dur (looping, fps 12-16) from t 0 to len; no one-shot burst; keep one gentle payoff impact (required by the schema).')
   out.push(s.bg === 'sky' ? 'BACKGROUND light sky (#bcd8ff, day light): additive light washes out on it, so use darker, saturated ramp edges and opacity 0.8-1 on core layers.' : 'BACKGROUND dark (night).')
   out.push(`SEEDS: sheet seeds ${s.seed}, ${s.seed + 1}, ${s.seed + 2}, …`)
-  return out.join('\n')
+  return out
 }
 // settings the code enforces on Claude's spec (so a setting always takes effect, whatever the reply)
 function enforce(spec, sl) {
@@ -583,11 +619,104 @@ function enforce(spec, sl) {
   if (s.intensity !== 'normal') spec.push = s.intensity === 'big' ? 0.3 : 0.1
   spec.env = { ...(spec.env || {}), ...BGS[s.bg] }
   Object.values(spec.sheets || {}).forEach((d, i) => { d.seed = s.seed + i })
+  // consistent: the first fx fires at once (2026-11-26 gunshot: 4 s of a 7 s clip passed before the bullet); a lead-in is cut
+  if (s.type === 'consistent' && !s.loop) {
+    spec.cine_kind = 'impact'
+    const t0 = Math.min(...(spec.fx || []).map(e => +e.t).filter(Number.isFinite)), off = t0 - 0.05
+    if (off > 0.05 && off < spec.len - 0.3) shiftStory(spec, off)
+  }
   // a missing texture is filled, never left flat (paintCheck still rejects an explicit "none")
   ;(spec.fx || []).forEach((e, i) => { if (e.tex == null) e.tex = TEXES[i % 3]; if (e.tex_amt == null) e.tex_amt = 0.45 })
   return spec
 }
-const optOf = sl => ({ ms: sl.ms, loop: sl.set.loop, camera: sl.set.camera })
+// move every story time earlier by off and shorten len by it (fx, grow, impacts, payoff, part tracks, camera keys)
+function shiftStory(S, off) {
+  const r = v => Math.max(0, +(v - off).toFixed(4))
+  const sh = ks => Array.isArray(ks) ? ks.map(k => [r(k[0]), ...k.slice(1)]).filter((k, i, a) => !(k[0] <= 0 && a[i + 1] && a[i + 1][0] <= 0)) : ks
+  for (const e of S.fx || []) { e.t = r(e.t); if (e.grow) e.grow = sh(e.grow) }
+  for (const m of S.impacts || []) m.t = r(m.t)
+  S.payoff = Math.max(0.05, r(S.payoff))
+  for (const tr of Object.values(S.tracks || {})) for (const ch of Object.keys(tr)) tr[ch] = sh(tr[ch])
+  for (const ch of Object.keys(S.camera_keys || {})) S.camera_keys[ch] = sh(S.camera_keys[ch])
+  S.len = +(S.len - off).toFixed(4)
+}
+// ---------- repair: mechanical faults the code fixes itself instead of a fix round (paint rule, timing, names, payoff)
+const hx2 = v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')
+const hslHex = (h, s, l) => { const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)) }; return '#' + hx2(f(0)) + hx2(f(8)) + hx2(f(4)) }
+const hueOf = st => { const m = st.filter(x => HEX.test(x)).map(hsl).filter(([, s, l]) => s > 0.25 && l > 0.15 && l < 0.85); return m.length ? m[m.length >> 1][0] : null }
+const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d) }
+const nearPresets = h => Object.keys(RAMPS).sort((a, b) => hueDist(hueOf(rampStops(a)), h) - hueDist(hueOf(rampStops(b)), h)).map(k => RAMPS[k])
+const rampOk = st => st.length >= 4 && st.every(x => HEX.test(x)) && hueSpread(st) >= 20 && hsl(st[0])[2] <= 0.3 && hsl(st[st.length - 1])[2] >= 0.55
+const shiftHue = (r, dh) => rampStops(r).map(x => { const [h, s, l] = hsl(x); return hslHex((h + dh + 360) % 360, s, l) }).join(',')
+function repair(S, sl) {
+  const n = new Set(), fx = Array.isArray(S.fx) ? S.fx : [], L = +S.len
+  if (!(L > 0)) return []
+  if (S.cine_kind && S.cine_kind !== 'impact' && S.cine_kind !== 'burst') { S.cine_kind = 'impact'; n.add('cine kind') }
+  for (const [id, d] of Object.entries(S.sheets || {})) {
+    if (!d || typeof d !== 'object') continue
+    const w = String(d.name || id).replace(/[_-]+/g, ' ').trim().split(/\s+/).filter(Boolean)
+    if (w.length < 1 || w.length > 3) { d.name = w.slice(0, 3).join(' ') || id; n.add('sheet names') }
+  }
+  const tintHue = HEX.test(S.tint || '') ? hsl(S.tint)[0] : null
+  // paint: every layer its own texture + a vibrant hue-shifting ramp (a broken one becomes the nearest preset of its hue)
+  fx.forEach((e, i) => {
+    if (!TEXES.includes(e.tex)) { e.tex = TEXES[i % 3]; n.add('textures') }
+    if (!(e.tex_amt >= 0.3 && e.tex_amt <= 0.55)) { e.tex_amt = Math.min(0.55, Math.max(0.3, +e.tex_amt || 0.45)); n.add('textures') }
+    if (RAMPS[e.ramp]) e.ramp = RAMPS[e.ramp]
+    const st = rampStops(e.ramp)
+    if (!rampOk(st)) { e.ramp = nearPresets(hueOf(st) ?? tintHue ?? 20)[0]; n.add('ramps') }
+  })
+  if (fx.length >= 3) {
+    const used = () => new Set(fx.map(e => e.ramp)), order = nearPresets(tintHue ?? hueOf(rampStops(fx[0].ramp)) ?? 20)
+    for (const i of fx.map((e, i) => i).sort((a, b) => fx[b].size - fx[a].size)) {   // biggest back layers get the extra ramps
+      if (used().size >= 3) break
+      if (fx.filter(e => e.ramp === fx[i].ramp).length < 2) continue
+      const r = order.find(r => !used().has(r)); if (r) { fx[i].ramp = r; n.add('ramps') }
+    }
+    const hot = e => hsl(rampStops(e.ramp).at(-1))[2] >= 0.9, pay = +S.payoff
+    if (!fx.some(hot)) {
+      const c = fx.reduce((b, e) => (Math.abs(e.t - pay) < Math.abs(b.t - pay) - 1e-6 || (Math.abs(e.t - pay) <= Math.abs(b.t - pay) + 1e-6 && e.size < b.size)) ? e : b)
+      const st = rampStops(c.ramp); st[st.length - 1] = '#ffffff'; c.ramp = st.join(','); n.add('white core')
+    }
+    // stacked additive white ends blow out (Storm Nova): the biggest layers past ceil(n/2) end in a bright saturated colour
+    const hots = fx.filter(hot).sort((a, b) => b.size - a.size)
+    for (const e of hots.slice(0, Math.max(0, hots.length - Math.ceil(fx.length / 2)))) {
+      const st = rampStops(e.ramp), keep = st.filter(x => hsl(x)[2] <= 0.75), sat = keep.filter(x => hsl(x)[1] > 0.25)
+      const h = sat.length ? hsl(sat.at(-1))[0] : hueOf(st) ?? tintHue ?? 20
+      while (keep.length < 3) keep.splice(keep.length, 0, hslHex(h, 0.9, 0.3 + 0.15 * keep.length))
+      e.ramp = [...keep, hslHex(h, 1, 0.72)].join(','); n.add('saturated ends')
+    }
+    // the steps above can flatten a ramp (dropped gold/white stops): warm its brightest coloured stop until the hue shifts again
+    fx.forEach(e => {
+      const st = rampStops(e.ramp)
+      for (let k = 0; hueSpread(st) < 20 && k < 3; k++) { const i = st.findLastIndex(x => { const [, s, l] = hsl(x); return s > 0.25 && l > 0.08 && l < 0.92 }); if (i < 1) break; const [h, s, l] = hsl(st[i]); st[i] = hslHex((h + 35) % 360, Math.max(s, 0.8), l) }
+      if (st.join(',') !== e.ramp) { e.ramp = st.join(','); n.add('ramps') }
+    })
+  }
+  const seen = new Set()
+  fx.forEach(e => {
+    const key = () => [e.sheet || e.slug, e.ramp, e.tex].join('|')
+    if (seen.has(key())) n.add('duplicate layers')
+    for (let j = 0; seen.has(key()) && j < 2; j++) e.tex = TEXES[(TEXES.indexOf(e.tex) + 1) % 3]
+    for (let j = 1; seen.has(key()) && j < 6; j++) e.ramp = shiftHue(e.ramp, 25)
+    seen.add(key())
+  })
+  // timing: every fx inside 0..len, its fade finishing on screen; exactly one payoff impact
+  fx.forEach(e => {
+    if (!(e.t >= 0)) { e.t = 0; n.add('timing') }
+    if ('dur' in e) { if (!(e.t + e.dur <= L + 1e-6)) { if (L - e.t < 0.3) e.t = Math.max(0, L - Math.max(0.3, +e.dur || 0)); e.dur = +(L - e.t).toFixed(4); n.add('timing') } return }
+    let life = +(e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9) || 0.9
+    if (e.t + life > L + 1e-6) { if (L - e.t >= Math.max(0.4, 0.6 * life)) life = L - e.t; else { e.t = Math.max(0, L - life); life = Math.min(life, L - e.t) } e.life = +life.toFixed(4); e.t = +e.t.toFixed(4); n.add('timing') }
+  })
+  if (!(S.payoff > 0 && S.payoff < L)) { S.payoff = +Math.min(L - 0.05, Math.max(0.05, +S.payoff || L * 0.4)).toFixed(4); n.add('payoff') }
+  const ims = Array.isArray(S.impacts) ? S.impacts : (S.impacts = [])
+  ims.forEach(m => { if (Number.isFinite(+m.t) && (m.t < 0 || m.t > L)) { m.t = Math.min(L, Math.max(0, m.t)); n.add('timing') } })
+  if (ims.length && ims.filter(m => m.payoff).length !== 1) {
+    const b = ims.reduce((b, m) => Math.abs(m.t - S.payoff) < Math.abs(b.t - S.payoff) ? m : b); ims.forEach(m => { m.payoff = m === b }); n.add('payoff')
+  }
+  return [...n]
+}
+const optOf = sl => ({ ms: sl.ms, loop: sl.set.loop, camera: sl.set.camera, type: sl.set.type })
 // clip time at story time s through the fitted warp ([clip s, story s] keys; a hit-stop key pair maps to its first clip time)
 function clipAt(clip, s) {
   const w = clip.warp; if (!w?.length) return s
@@ -595,6 +724,17 @@ function clipAt(clip, s) {
   return w[w.length - 1][0]
 }
 // short targets compress the story: every one-shot fx must still play long enough and finish its fade before len
+function fixLives(S, clip, ms) {
+  const lo = minLife(ms) * 1.15; let ch = false
+  ;(S.fx || []).forEach(e => {
+    if ('dur' in e) return
+    const life = e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9, c = clipAt(clip, Math.min(S.len, e.t + life)) - clipAt(clip, e.t)
+    if (c >= lo) return
+    let nl = Math.min(S.len, life * lo / Math.max(c, 1e-3)); if (e.t + nl > S.len) e.t = +Math.max(0, S.len - nl).toFixed(4)
+    e.life = +Math.min(nl, S.len - e.t).toFixed(4); ch = true
+  })
+  return ch
+}
 function lifeErrs(S, clip, ms) {
   const lo = minLife(ms), bad = []
   ;(S.fx || []).forEach((e, i) => {
@@ -620,6 +760,7 @@ function renderSlots() {
 <textarea class="p" placeholder="Describe the exact animation: the caster or object, what charges, each hit in order, the payoff, colours, camera feel, how it settles…"></textarea>
 <label>Duration <input class="dur" type="number" min="0.5" max="14" step="0.001"> s (exact clip length)</label>
 <details><summary>Settings</summary><div class="set">
+<label>Type <select class="type"><option value="consistent">consistent (gameplay: action at once, real time)</option><option value="cinematic">cinematic (build-up + slow-mo)</option></select></label>
 <label>Style <select class="style">${Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${v[0]}</option>`).join('')}</select></label>
 <label><input class="hueOn" type="checkbox"> Hue <input class="hue" type="color"></label>
 <label>Intensity <select class="intensity"><option value="subtle">subtle</option><option value="normal">normal</option><option value="big">big</option></select></label>
@@ -635,7 +776,7 @@ function renderSlots() {
     if (i === 0) q('p').id = 'prompt'
     q('p').value = sl.prompt; q('p').oninput = e => { sl.prompt = e.target.value; store.set('vfxgen.slots', JSON.stringify(slots.map(s => ({ prompt: s.prompt, ms: s.ms, set: s.set })))) }
     q('dur').value = fmtS(sl.ms); q('dur').onchange = e => { sl.ms = clampMs(e.target.value); e.target.value = fmtS(sl.ms) }
-    for (const k of ['style', 'intensity', 'camera', 'bg']) { q(k).value = sl.set[k]; q(k).onchange = e => { sl.set[k] = e.target.value } }
+    for (const k of ['type', 'style', 'intensity', 'camera', 'bg']) { q(k).value = sl.set[k]; q(k).onchange = e => { sl.set[k] = e.target.value } }
     for (const k of ['hueOn', 'loop', 'lock']) { q(k).checked = sl.set[k]; q(k).onchange = e => { sl.set[k] = e.target.checked } }
     q('hue').value = sl.set.hue; q('hue').oninput = e => { sl.set.hue = e.target.value; sl.set.hueOn = true; q('hueOn').checked = true }
     q('seed').value = sl.set.seed; q('seed').onchange = e => { sl.set.seed = Math.round(+e.target.value) || 1125 }
@@ -664,7 +805,7 @@ function renderTabs() {
 }
 setInterval(() => { for (const sl of slots) if (sl.running) paintSlot(sl) }, 100)
 
-// one slot, start to finish: Claude call (Opus 5.5 medium) -> checks -> parallel sheet drawing -> fitted clip; hard cap 60 s
+// one slot, start to finish: Claude call (Opus 5.5, MODEL.effort) -> streamed sheets drawn early -> code repair -> checks -> parallel sheet drawing -> fitted clip; hard cap 60 s
 async function runSlot(sl) {
   const want = (sl.prompt || '').trim(); if (!want) { slotStatus(sl, 'Type the animation first.', 'bad'); return }
   const S = await samplerP; if (!S) { slotStatus(sl, 'Failed: no Claude sample permission here (open inside Claude-Hub).', 'bad'); return }
@@ -675,20 +816,26 @@ async function runSlot(sl) {
   const cap = setTimeout(() => { sl.over = true; ctrl.abort() }, CAP_MS)
   const aborted = new Promise((_, rej) => ctrl.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))))
   aborted.catch(() => {})
-  const msgs = [{ role: 'user', content: `${RULES}\n\nEXAMPLE CLIP SPEC (schema only: it uses library slugs, yours must use your own sheets):\n${JSON.stringify(DEFAULT)}\n\nOWNER'S SETTINGS (follow exactly):\n${settingsText(sl)}\n\nOWNER'S ANIMATION:\n${want}\n\nWrite the JSON (sheets + clip spec) for the owner's animation now.` }]
-  let applied = ''
+  const msgs = [{ role: 'user', content: `${RULES}\n\nSHAPE (schema only, one of each; yours has 4-6 sheets, 8-16 fx):\n${SKELETON}\n\nOWNER'S SETTINGS (follow exactly):\n${settingsText(sl)}\n\nOWNER'S ANIMATION:\n${want}\n\nWrite the JSON (sheets + clip spec) for the owner's animation now.` }]
+  let applied = ''; const fixed = new Set()
   try {
     for (let round = 0; ; round++) {
-      slotStatus(sl, round ? `Fixing (try ${round + 1})…` : 'Claude (Opus 5.5, medium) is writing the sheet scripts…')
+      slotStatus(sl, round ? `Fixing (try ${round + 1})…` : `Claude (Opus 5.5, ${MODEL.effort}) is writing the sheet scripts…`)
       const m0 = performance.now(); t.calls.push(m0)
-      const res = await S(msgs, { ...MODEL, signal: ctrl.signal, cache: false, onText: ({ text }) => slotStatus(sl, (round ? 'Fixing… ' : 'Writing the sheet scripts… ') + text.length + ' chars') })
+      const early = earlyDraw(sl.set.seed)
+      const res = await S(msgs, { ...MODEL, signal: ctrl.signal, cache: false, onText: ({ text }) => { slotStatus(sl, (round ? 'Fixing… ' : 'Writing… ') + text.length + ' chars' + (GEN.size ? ' · drawing sheets as they arrive' : '')); early(text) } })
       t.model += performance.now() - m0
-      applied = res.modelApplied ? `${res.modelApplied} · medium` : `tier ${res.modelTierApplied} (Opus 5.5 not applied)`
+      applied = res.modelApplied ? `${res.modelApplied} · ${MODEL.effort}` : `tier ${res.modelTierApplied} (Opus 5.5 not applied)`
       let spec, errs
-      try { spec = enforce(extractJSON(res.text), sl); errs = [...validate(spec), ...paintCheck(spec)]; if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
+      try { spec = enforce(extractJSON(res.text), sl); repair(spec, sl).forEach(x => fixed.add(x)); errs = [...validate(spec), ...paintCheck(spec)]; if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
       if (!errs.length) {
         const d0 = performance.now()
-        try { const P = await Promise.race([prepare(spec, optOf(sl), m => slotStatus(sl, m)), aborted]); t.draw += performance.now() - d0; errs = lifeErrs(spec, P.B.clip, sl.ms); if (!errs.length) { sl.P = P; sl.spec = spec } }
+        try {
+          let P = await Promise.race([prepare(spec, optOf(sl), m => slotStatus(sl, m)), aborted]); errs = lifeErrs(spec, P.B.clip, sl.ms)
+          // a layer that plays too short in the fitted clip gets a longer life here (sheets are cached, a rebuild is ms), not a fix round
+          for (let k = 0; errs.length && k < 2 && fixLives(spec, P.B.clip, sl.ms); k++) { fixed.add('lives'); P = await Promise.race([prepare(spec, optOf(sl)), aborted]); errs = lifeErrs(spec, P.B.clip, sl.ms) }
+          t.draw += performance.now() - d0; if (!errs.length) { sl.P = P; sl.spec = spec }
+        }
         catch (e) { t.draw += performance.now() - d0; if (e.name === 'AbortError') throw e; errs = ['build failed: ' + e.message] }
       }
       if (!errs.length) break
@@ -697,7 +844,7 @@ async function runSlot(sl) {
       msgs.push({ role: 'assistant', content: res.text }, { role: 'user', content: `That spec failed these checks:\n- ${errs.join('\n- ')}\nReturn the corrected full JSON only.` })
     }
     t.end = performance.now(); const tot = t.end - t.start
-    sl.cls = 'ok'; slotStatus(sl, `Generated "${sl.spec.name}" · clip ${sl.P.B.clip.len.toFixed(3)} s (target ${fmtS(sl.ms)}) · ${applied}\nmodel ${(t.model / 1000).toFixed(1)} s · draw ${(t.draw / 1000).toFixed(1)} s · total ${(tot / 1000).toFixed(1)} s (target 15 s)`, 'ok')
+    sl.cls = 'ok'; slotStatus(sl, `Generated "${sl.spec.name}" · clip ${sl.P.B.clip.len.toFixed(3)} s (target ${fmtS(sl.ms)}) · ${applied}\nmodel ${(t.model / 1000).toFixed(1)} s · draw after reply ${(t.draw / 1000).toFixed(1)} s · total ${(tot / 1000).toFixed(1)} s (target 15 s)${t.calls.length > 1 ? ` · ${t.calls.length - 1} fix round` : ''}${fixed.size ? `\nauto-fixed in code: ${[...fixed].join(', ')}` : ''}`, 'ok')
     saveSheets(sl.spec, sl.P.res, want).then(r => { const add = r.failed ? `\nFailed: sheet save (${r.failed}); kept for this session in Sheet` : r.saved ? `\n${r.saved} new sheets saved to Sheet` : r.store ? '' : '\nSheets kept for this session in Sheet (no hub storage here)'; if (add) slotStatus(sl, sl.status + add, r.failed ? 'bad' : 'ok') })
     if (sel < 0 || sel === slots.indexOf(sl) || !slots[sel]?.P) { sel = slots.indexOf(sl); show(sl.P); playing = true }
   } catch (e) {
@@ -708,7 +855,7 @@ async function runSlot(sl) {
 async function generateAll() {
   const go = slots.filter(s => (s.prompt || '').trim() && !s.running)
   if (!go.length) return status('Type an animation in a slot first.', 'bad')
-  $('gen').disabled = true; $('stop').hidden = false; status(`Generating ${go.length} slot${go.length > 1 ? 's' : ''} at once (Opus 5.5 medium requested)…`)
+  $('gen').disabled = true; $('stop').hidden = false; status(`Generating ${go.length} slot${go.length > 1 ? 's' : ''} at once (Opus 5.5 ${MODEL.effort} requested)…`)
   const r = await Promise.allSettled(go.map(runSlot))       // every Claude call starts in the same tick; one failure never blocks the rest
   const ok = go.filter(s => s.P && s.cls === 'ok').length
   $('gen').disabled = false; $('stop').hidden = true

@@ -548,3 +548,7 @@ improved: library.py keeps gen/ rows on rebuild; tools/vfx/showcase/gen/draw.mjs
 ## [2026-11-25] vfx / generator paint rule: every layer painted, vibrant (L-203)
 Read the changed Umbrio colouring rule (L-156 on claude/magical-galileo-ukn1v0); wrote it into generator RULES + `paintCheck` (rejects flat/one-hue ramps, tex none, reused sheet+ramp+tex, all-white ends); Storm Nova re-rendered with 5 own-painted layers.
 improved: generator enforces per-layer hue-shifting ramps + textures; build.mjs paints each layer itself (no shared painted png); paint.py + generator presets now multi-hue; vfx/README rule 8 rewritten; white-end cap found by render (stacked white cores went grey)
+
+## [2026-11-26] vfx / generator speed (15 s goal) + Type consistent|cinematic (L-205)
+Cut the hub generator's wait: effort low, minified sheets-first reply (4-6 sheets, 8-16 fx), ~1 kB skeleton instead of the 8 kB example, sheets drawn while the reply streams, paint/timing/life faults fixed in code (no fix round). New per-slot Type: consistent = real time, action at t 0 (gunshot); cinematic = old build-up + slow-mo. Hub v65. Headless mock: early draw cut draw-after-reply ~40 s -> 9.7 s; real model time not measured (needs the hub).
+improved: repair() auto-fixes ramps/textures/white ends/duplicates/timing instead of a 10-20 s model round; fixLives() fixes short lives locally; earlyDraw overlaps drawing with writing; repair keeps hue spread after dropping white stops (found by the streamed test); status shows fix rounds + auto-fixes; playbook speed rule + router words

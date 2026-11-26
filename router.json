@@ -489,7 +489,12 @@
         "exact duration",
         "generate all",
         "stand-in",
-        "filler"
+        "filler",
+        "generations",
+        "generator speed",
+        "cinematic vfx",
+        "consistent vfx",
+        "gunshot"
       ],
       "notes": [
         "domains/vfx/playbook.md",
