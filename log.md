@@ -562,3 +562,4 @@ improved (learn L-208): vault learn rejects lessons > 350 chars before lint; pla
 ## [2026-11-26] fix / vfx generator: fight prompts were 2 flash hits
 Diagnosed from hub db vfxsheets (Anime fight: 5 impact sheets, clip not logged) + headless repro (2 impacts, still fighters). Added ACTION RULE + actionErrs, run log (vfxruns); hub republished.
 improved: fight beat/motion check in code; SCOPE RULE no longer shrinks beats; every generation logged with prompt+reply for diagnosis
+- learn L-210: improved: playbook rule read vfxruns first when diagnosing; mock repro specs pre-checked for jump gate; publish-refusal diff/republish step written down

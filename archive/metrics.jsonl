@@ -132,3 +132,4 @@
 {"t":"2026-11-25T23:53:58.115Z","tier":"medium","secs":304,"ok":false,"errors":0,"retry":0,"routes":["vfx","tools"],"touched":[],"signals":["slow"],"mode":"mobile"}
 {"t":"2026-11-26T00:12:23.053Z","tier":"complex","secs":565,"ok":true,"errors":2,"retry":1,"routes":["animation","images"],"touched":[],"signals":["errors","improve"],"mode":"mobile"}
 {"t":"2026-11-26T00:28:55.605Z","tier":"medium","secs":328,"ok":false,"errors":0,"retry":0,"routes":["vfx","3d"],"touched":[],"signals":["slow"],"mode":"mobile"}
+{"t":"2026-11-26T00:39:11.025Z","tier":"medium","secs":474,"ok":false,"errors":4,"retry":2,"routes":["vfx"],"touched":[],"signals":["errors","slow"],"mode":"mobile"}
