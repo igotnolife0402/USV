@@ -418,3 +418,7 @@ improved: baseline + detail gate added to checklists/vfx.md; playbook rule with 
 ## [2026-11-26] studio / home multi-delete
 Home page: Select → tap cards (checkbox, accent ring) → Select all/Clear → Delete N (one confirm listing names) → deletes one by one, toast with failures. core.mjs home test extended (2 picked, deleted, other stays): PASS. Published Claude-Hub v67, ui.js read-back identical. Not visually verified.
 improved: multi-delete UI + test; repo drift found (live hub has plugins modlist/rbx/sample the repo lacks) noted; core boot cap already failing at 820 KB before change (now ~823 KB) noted
+
+## [2026-11-26] fix / studio delete speed
+Owner: "20 seconds per delete". Cause: sub-docs deleted one by one after full download. Now meta first (card vanishes), sub-docs 8 in parallel, 3 projects in parallel. Hub v69, read back identical. Real-hub speed not measured (mock has no latency).
+improved: parallel pooled delete in store.js; meta-first so the list updates instantly; home test race fixed with waitFor

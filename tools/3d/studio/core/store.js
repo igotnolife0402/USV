@@ -173,9 +173,17 @@ class Store {
   }
   async deleteProject(id) {
     if (id === this.pid) { this.closeProject(true); this.app.closeProject() }
-    for (const kind of ['geo', 'tex', 'ops']) for (const d of await this.subDocs(id, kind)) await this.ref(`projects/${id}/${kind}/${d.id}`).delete().catch(() => {})
-    await this.ref('projects/' + id).delete()
+    // speed (owner 2026-11-26: "20 seconds per delete"): meta first so the card leaves the list at once, then every
+    // sub doc in parallel (8 in flight) instead of one round trip each; a big project has dozens of geo/tex docs
     await this.ref('meta/' + id).delete()
+    const docs = (await Promise.all(['geo', 'tex', 'ops'].map(async kind => (await this.subDocs(id, kind)).map(d => `projects/${id}/${kind}/${d.id}`)))).flat()
+    await pool(docs, 8, path => this.ref(path).delete().catch(() => {}))
+    await this.ref('projects/' + id).delete()
+  }
+  async deleteProjects(ids, onDone) {   // several at once, 3 projects in flight; returns failure messages
+    const bad = []
+    await pool(ids, 3, id => this.deleteProject(id).then(() => onDone?.(id), err => bad.push(err.message)))
+    return bad
   }
 
   // ---------- open project ----------
@@ -466,3 +474,9 @@ class Store {
   }
 }
 function blobToDataURL(b) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b) }) }
+
+// run fn over items with at most n in flight
+async function pool(items, n, fn) {
+  let i = 0
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) await fn(items[i++]) }))
+}

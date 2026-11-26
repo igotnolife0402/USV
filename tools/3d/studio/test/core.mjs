@@ -69,7 +69,7 @@ export default async function (t) {
     await s.page.click('.h-top .h-del')
     await s.page.click('.dlg-a [data-a="ok"]')
     await s.waitFor(n => document.querySelectorAll('.home .card[data-id]').length === n && !document.querySelector('.h-del'), 2)
-    t.ok(await s.eval(ids => ids.every(id => !window.__mock.get('projects/' + id) && !window.__mock.get('meta/' + id)), extra), 'multi-delete removes both projects')
+    await s.waitFor(ids => ids.every(id => !window.__mock.get('projects/' + id) && !window.__mock.get('meta/' + id)), extra)   // cards go first (meta), docs follow in parallel
     // the New project button opens the name dialog; Enter creates and opens it
     await s.page.click('.h-top .h-new')
     await s.page.waitForSelector('.dialog input')

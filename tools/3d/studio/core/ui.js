@@ -711,8 +711,9 @@ export function mountUI(app, root) {
   async function deletePicked() {
     const ids = [...picked], names = ids.map(id => homeList?.find(p => p.id === id)?.name || id)
     if (!ids.length || !await ui.confirm(`Delete ${ids.length} project${ids.length === 1 ? '' : 's'}?`, { body: names.slice(0, 8).join(', ') + (names.length > 8 ? ` and ${names.length - 8} more` : '') + '. This removes them with their meshes and textures.', danger: true })) return
-    let ok = 0; const bad = []
-    for (const id of ids) { try { await app.store.deleteProject(id); ok++; picked.delete(id) } catch (err) { bad.push(err.message) } }   // one at a time: each delete is many doc writes
+    picking = false; renderHome(homeList)   // cards vanish as each meta doc goes; no waiting on the dialog
+    ui.toast(`Deleting ${ids.length}…`)
+    let ok = 0; const bad = await app.store.deleteProjects(ids, id => { ok++; picked.delete(id) })
     picking = picked.size > 0
     ui.toast(bad.length ? `Deleted ${ok}, ${bad.length} failed: ${bad[0]}` : `Deleted ${ok} project${ok === 1 ? '' : 's'}`, bad.length ? 'error' : 'ok')
     renderHome(homeList)
