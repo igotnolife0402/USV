@@ -143,3 +143,7 @@ gen-plasma-orb	Plasma Orb	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/
 gen-poison-cloud	Poison Cloud	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/elements/poison-cloud.js
 gen-shadow-tendrils	Shadow Tendrils	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/shadow-tendrils.js
 gen-tornado	Tornado	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/elements/tornado.js
+gen-mushroom-blast	Mushroom Blast	action	4	16	1.0	gen/claude|tools/vfx/showcase/gen/elements/mushroom-blast.js
+gen-toxic-creep	Toxic Creep	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/elements/toxic-creep.js
+gen-star-rift	Star Rift	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/star-rift.js
+gen-plasma-crescent	Plasma Crescent	action	4	16	1.0	gen/claude|tools/vfx/showcase/gen/magic/plasma-crescent.js

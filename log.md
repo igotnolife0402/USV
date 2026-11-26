@@ -576,3 +576,7 @@ improved: peak-frame contact check caught 2 empty half-shots (gunshot, thunder) 
 ## [2026-11-26] build / VFX reel: 20 brand-new ugen sheets
 20 new sheets (tools/vfx/showcase/gen/*.js, each with a `// PROMPT:` detailed prompt), all jump < 3, empty <= 2, into vfx/sheets + index.tsv; reel.html now 20 shots x 1 s; MP4 tools/vfx/showcase/out/vfx-reel-20s.mp4; artifact republished. Peaks contact viewed; full motion not visually verified frame by frame.
 improved: draw.mjs --dir batch mode (one browser, 20 sheets ~18 s); slug clash check rule in vfx playbook (L-214, restored 2 overwritten hub sheets); jump-safe curve rule (L-215); reel-capture peaks follow SHOT length
+
+## [2026-11-26] build / VFX reel: outline styles, new silhouettes, HUD layouts
+Owner "try different outlines" → all three: core-layer outline shader (none/ink/rim/hot/toon, 8-tap dilate/erode), 4 new-silhouette sheets (mushroom-blast, toxic-creep, star-rift, plasma-crescent; jump 2.93/2.72/1.5/1.63) replacing round blobs, HUD layouts bar/frame/minimal; buttons + ?ol=&hud= in reel.html. Stills checked via styles grid; motion not visually verified.
+improved: reel-capture `styles` mode (one comparison grid per run); window.reelStyle hook for captures; blob shots swapped for distinct silhouettes

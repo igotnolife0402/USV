@@ -9,9 +9,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hid
 #stage{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg)}
 #wrap{position:relative;width:min(100vw,calc(100dvh*16/9));aspect-ratio:16/9}
 #wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:6px}
+#ui button{font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:7px 10px;cursor:pointer}
+#ui button:focus-visible{outline:2px solid #7d9cff}
 #err{position:fixed;left:8px;bottom:8px;margin:0;color:#ff8a8a;font:12px monospace;white-space:pre-wrap}
 </style>
 <div id="stage"><div id="wrap"><canvas id="gl"></canvas><canvas id="hud"></canvas></div></div>
+<div id="ui"><button id="bOl"></button><button id="bHud"></button></div>
 <pre id="err"></pre>
 <script>
 {
@@ -43,7 +47,7 @@ const R = {
 // Every sheet is new (owner 2026-11-26): tools/vfx/showcase/gen/<combat|elements|magic>/<name>.js, its header comment is the detailed prompt it was drawn from.
 const L = (s, r, o) => ({ s, r, x: 0, y: 0, sz: .5, sx: 1, t: .02, life: .9, rot: 0, spin: 0, grow: 1, tex: 0, amt: .4, k: 1, norm: false, ...o })
 // core + soft glow copy of the same sheet (bigger, glow ramp, dimmer): the bloom without a post pass
-const G = (s, c, g, o, go = {}) => [L(s, g, { ...o, sz: o.sz * 1.3, k: .5, amt: .45, ...go }), L(s, c, { tex: 1, amt: .3, ...o })]
+const G = (s, c, g, o, go = {}) => [L(s, g, { ...o, sz: o.sz * 1.3, k: .5, amt: .45, ...go }), L(s, c, { tex: 1, amt: .3, core: 1, ...o })]
 const SHOTS = [
   { name: 'Rifle Muzzle Flash', el: 'Ballistic', size: 2, aggr: 4, col: '#ff8a1f', hit: 0.05, push: 0.02, layers: [
     ...G('gen-rifle-muzzle-flash','gunCore','gunGlow',{ x: -.1, sz: .62, life: .75 })] },
@@ -59,15 +63,15 @@ const SHOTS = [
     ...G('gen-blood-spray-arc','bloodCore','bloodGlow',{ sz: .8, y: -0.158, life: .85 })] },
   { name: 'Ice Spikes', el: 'Ice', size: 4, aggr: 4, col: '#5ac0ff', hit: 0.1, push: 0.05, layers: [
     ...G('gen-ice-spikes','iceCore','iceGlow',{ sz: .95, y: -0.121, life: .9, tex: 1 })] },
-  { name: 'Poison Cloud', el: 'Toxin', size: 3, aggr: 1, col: '#9a4ad0', hit: 0.3, push: 0.02, layers: [
-    ...G('gen-poison-cloud','poisonCore','poisonGlow',{ sz: .95, life: .95 })] },
+  { name: 'Toxic Creep', el: 'Toxin', size: 4, aggr: 1, col: '#9a4ad0', hit: 0.3, push: 0.02, layers: [
+    ...G('gen-toxic-creep','poisonCore','poisonGlow',{ sz: 1.0, y: -0.02, life: .95 })] },
   { name: 'Laser Beam', el: 'Energy', size: 3, aggr: 4, col: '#ff3a6a', hit: 0.22, push: 0.04, layers: [
     ...G('gen-laser-beam','laserCore','laserGlow',{ sz: .95, sx: 1.35, life: .85, tex: 2 })] },
   { name: 'Shadow Tendrils', el: 'Shadow', size: 4, aggr: 3, col: '#a64aff', hit: 0.2, push: 0.05, layers: [
     ...G('gen-shadow-tendrils','shadowCore','shadowGlow',{ sz: .95, life: .9, spin: -12 })] },
-  { name: 'Fireball Explosion', el: 'Fire', size: 5, aggr: 5, col: '#ff5a14', hit: 0.1, push: 0.08, layers: [
-    L('gen-fireball-explosion','smoke',{ sz: 1.25, y: .06, t: .2, life: .78, k: .7, amt: .5 }),
-    ...G('gen-fireball-explosion','fireCore','fireGlow',{ sz: 1.05, life: .9 })] },
+  { name: 'Mushroom Blast', el: 'Fire', size: 5, aggr: 5, col: '#ff5a14', hit: 0.1, push: 0.08, layers: [
+    L('gen-mushroom-blast','smoke',{ sz: 1.15, y: -0.03, t: .2, life: .78, k: .7, amt: .5 }),
+    ...G('gen-mushroom-blast','fireCore','fireGlow',{ sz: 1.05, y: -0.06, life: .9 })] },
   { name: 'Holy Pillar', el: 'Light', size: 3, aggr: 2, col: '#ffd860', hit: 0.2, push: 0.03, layers: [
     ...G('gen-holy-pillar','holyCore','holyGlow',{ sz: .95, y: -0.086, life: .95, tex: 2 })] },
   { name: 'Electric Dash', el: 'Lightning', size: 3, aggr: 4, col: '#3ad0ff', hit: 0.12, push: 0.04, layers: [
@@ -78,12 +82,12 @@ const SHOTS = [
     ...G('gen-tornado','windCore','windGlow',{ sz: 1.05, y: -0.021, life: .95, tex: 2 })] },
   { name: 'Earth Slam', el: 'Earth', size: 4, aggr: 5, col: '#d09a5a', hit: 0.06, push: 0.07, layers: [
     ...G('gen-earth-slam','earthCore','earthGlow',{ sz: 1.05, y: -0.18, life: .92, tex: 1 })] },
-  { name: 'Plasma Orb', el: 'Plasma', size: 4, aggr: 4, col: '#3ae0ff', hit: 0.5, push: 0.05, layers: [
-    ...G('gen-plasma-orb','plasmaCore','plasmaGlow',{ sz: .95, life: .95 })] },
+  { name: 'Plasma Crescent', el: 'Plasma', size: 4, aggr: 4, col: '#3ae0ff', hit: 0.12, push: 0.05, layers: [
+    ...G('gen-plasma-crescent','plasmaCore','plasmaGlow',{ sz: 1.0, life: .95 })] },
   { name: 'Black Hole', el: 'Gravity', size: 4, aggr: 3, col: '#b040ff', hit: 0.7, push: 0.06, layers: [
     ...G('gen-black-hole','bhCore','bhGlow',{ sz: 1.0, life: .95, spin: 20 })] },
-  { name: 'Meteor Impact', el: 'Fire', size: 5, aggr: 5, col: '#ff6a1a', hit: 0.29, push: 0.08, layers: [
-    ...G('gen-meteor-impact','fireCore','fireGlow',{ sz: 1.1, y: -0.109, life: .92 })] },
+  { name: 'Star Rift', el: 'Arcane', size: 4, aggr: 4, col: '#c8a0ff', hit: 0.1, push: 0.06, layers: [
+    ...G('gen-star-rift','crystalCore','crystalGlow',{ sz: 1.05, life: .95 })] },
   { name: 'Cataclysm', el: 'Storm finale', size: 5, aggr: 5, col: '#5a7aff', hit: 0.27, push: 0.12, layers: [
     ...G('gen-cataclysm','novaCore','novaGlow',{ sz: 1.15, life: .96 }),
     L('gen-cataclysm','novaSpark',{ sz: .8, rot: 22, t: .08, life: .88, tex: 2, k: .8 })] },
@@ -117,22 +121,34 @@ void main(){ vUv=c+0.5; float s=sin(uRot),k=cos(uRot); vec2 p=c*uSize; p=vec2(k*
   p=p*uZoom+uShake; gl_Position=vec4(p.x*2.0/uAsp,p.y*2.0,0.0,1.0); }`,
 `#version 300 es
 precision highp float; in vec2 vUv; out vec4 o;
-uniform sampler2D uMap,uRamp; uniform float uFrame,uU,uK,uAmt,uTex,uSeed,uNorm,uTime;
+uniform sampler2D uMap,uRamp; uniform float uFrame,uU,uK,uAmt,uTex,uSeed,uNorm,uTime,uOl,uCore; uniform vec3 uOlCol;
 ${NOISE}
 float cellA(float f,vec2 uv){ float col=mod(f,4.0),row=floor(f/4.0); return texture(uMap,(vec2(col,row)+uv)/4.0).a; }
+float shp(vec2 uv,float f0,float f1,float w){ uv=clamp(uv,0.004,0.996); return smoothstep(0.12,0.3,mix(cellA(f0,uv),cellA(f1,uv),w)); }
 void main(){
   vec2 uv=clamp(vec2(vUv.x,1.0-vUv.y),0.004,0.996);
   float f0=floor(uFrame),f1=min(f0+1.0,15.0),w=fract(uFrame);
   float a=mix(cellA(f0,uv),cellA(f1,uv),w);
+  // Outline styles (core layer only): 1 ink, 2 colour rim, 3 hot inner edge, 4 toon (cel bands + ink). Edge = 8-tap dilate/erode of the shape.
+  float ol=(uCore>0.5)?uOl:0.0, outer=0.0, inner=0.0;
+  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0;
+    for(int i=0;i<8;i++){ float an=float(i)*0.7853982; float q=shp(uv+vec2(cos(an),sin(an))*0.016,f0,f1,w); mx=max(mx,q); mn=min(mn,q); }
+    outer=mx*(1.0-s0); inner=s0*(1.0-mn); }
   vec2 q=vUv*3.0+uSeed; float n;
   if(uTex<0.5) n=fbm(q+vec2(0.0,-uTime*0.6));
   else if(uTex<1.5) n=1.0-cells(q*1.6+vec2(uTime*0.2,0.0))*1.2;
   else n=fbm(vec2(q.x*0.7,q.y*5.0-uTime*1.5));
   a*=mix(1.0,0.5+0.9*clamp(n,0.0,1.0),uAmt);
   float fade=smoothstep(0.0,0.05,uU)*(1.0-smoothstep(0.82,1.0,uU));
-  vec3 col=texture(uRamp,vec2(clamp(a,0.0,1.0)*mix(1.0,0.6,uU),0.5)).rgb;
-  float al=clamp(a,0.0,1.0)*fade;
+  float x=clamp(a,0.0,1.0);
+  if(ol>3.5){ x=(floor(x*3.0)+1.0)/3.0*smoothstep(0.16,0.22,x); }
+  vec3 col=texture(uRamp,vec2(x*mix(1.0,0.6,uU),0.5)).rgb;
+  float al=x*fade;
   o = uNorm>0.5 ? vec4(col*al*uK,al*uK) : vec4(col*al*uK,0.0);
+  float ink=(ol>0.5&&ol<1.5||ol>3.5)?outer*fade*0.95:0.0;
+  o += vec4(vec3(0.02,0.01,0.04)*ink,ink);
+  if(ol>1.5&&ol<2.5) o.rgb+=uOlCol*outer*fade*1.3;
+  if(ol>2.5&&ol<3.5) o.rgb+=vec3(1.0)*inner*fade*0.9;
 }`)
 // Stage: night sky, floor with faint perspective grid, light pool and back glow in the shot colour.
 const BG = prog(`#version 300 es
@@ -178,6 +194,10 @@ const ready = Promise.all([...new Set(SHOTS.flatMap(s => s.layers.map(l => l.s))
 window.reelReady = ready
 
 let W = 0, H = 0
+// Styles (owner 2026-11-26 "try different outlines"): outline per core layer, HUD layout. URL ?ol=ink&hud=frame or the buttons.
+const OL = ['none', 'ink', 'rim', 'hot', 'toon'], HUD = ['bar', 'frame', 'minimal'], qs = new URLSearchParams(location.search)
+const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol'))), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) }
+window.reelStyle = (ol, hud) => { if (ol != null) ST.ol = Math.max(0, OL.indexOf(ol)); if (hud != null) ST.hud = Math.max(0, HUD.indexOf(hud)); syncUi() }
 function size(w, h) { if (w === W && h === H) return; W = cv.width = hud.width = w; H = cv.height = hud.height = h }
 const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x)
 function attr(p, buf) { gl.bindBuffer(gl.ARRAY_BUFFER, buf); const l = gl.getAttribLocation(p, 'c'); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0) }
@@ -206,7 +226,7 @@ function render(T) {
     gl.uniform1f(FX.u.uRot, (l.rot + l.spin * (ts - l.t)) * Math.PI / 180)
     gl.uniform1f(FX.u.uFrame, Math.min(u * FRAMES, FRAMES - 1.001)); gl.uniform1f(FX.u.uU, u)
     gl.uniform1f(FX.u.uK, l.k); gl.uniform1f(FX.u.uAmt, l.amt); gl.uniform1f(FX.u.uTex, l.tex); gl.uniform1f(FX.u.uSeed, si * 3.1 + i * 1.7)
-    gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0)
+    gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0); gl.uniform1f(FX.u.uCore, l.core ? 1 : 0); gl.uniform1f(FX.u.uOl, ST.ol); gl.uniform3fv(FX.u.uOlCol, col)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   })
   drawHud(T, si, sh, ts)
@@ -216,9 +236,26 @@ function pips(x, y, label, n, s, c) {
   const w = hx.measureText(label).width + s * .5
   for (let i = 0; i < 5; i++) { hx.fillStyle = i < n ? c : '#ffffff22'; hx.fillRect(x + w + i * s * .9, y - s * .55, s * .7, s * .55) }
 }
+function loopFade(T) { const f = Math.max(0, (T - (LEN - .25)) / .25, 1 - T / .15); if (f > 0) { hx.fillStyle = `rgba(7,6,14,${Math.min(1, f)})`; hx.fillRect(0, 0, W, H) } }
 function drawHud(T, si, sh, ts) {
   const s = H / 30, a = Math.min(1, ts / .12, (SHOT - ts) / .1)
   hx.clearRect(0, 0, W, H); hx.globalAlpha = Math.max(0, a); hx.textBaseline = 'alphabetic'
+  if (ST.hud === 1) { // frame: corner brackets in the shot colour, boxed title bottom-left, stats under it
+    const m = s * 1.2, L2 = s * 2.2; hx.globalAlpha = 1; hx.strokeStyle = sh.col + 'aa'; hx.lineWidth = Math.max(1, s * .12)
+    for (const [x, y, dx, dy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { hx.beginPath(); hx.moveTo(x, y + dy * L2); hx.lineTo(x, y); hx.lineTo(x + dx * L2, y); hx.stroke() }
+    hx.globalAlpha = Math.max(0, a); hx.font = `700 ${s * 1.1}px system-ui,sans-serif`; const tw = hx.measureText(sh.name).width
+    hx.fillStyle = '#07060ecc'; hx.fillRect(m + s * .6, H - m - s * 3.6, tw + s * 1.6, s * 1.9); hx.fillStyle = sh.col; hx.fillRect(m + s * .6, H - m - s * 3.6, s * .2, s * 1.9)
+    hx.fillStyle = '#e8edf5'; hx.fillText(sh.name, m + s * 1.4, H - m - s * 2.25)
+    hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .6}px system-ui,sans-serif`
+    hx.fillText(`${String(si + 1).padStart(2, '0')}/${SHOTS.length}  ${sh.el.toUpperCase()}  ·  SIZE ${sh.size}  ·  AGGR ${sh.aggr}`, m + s * .6, H - m - s * .9)
+    hx.globalAlpha = 1; loopFade(T); return
+  }
+  if (ST.hud === 2) { // minimal: centred small caps name, one thin progress line
+    hx.textAlign = 'center'; hx.fillStyle = '#e8edf5cc'; hx.font = `600 ${s * .75}px system-ui,sans-serif`
+    hx.fillText(sh.name.toUpperCase().split('').join(' '), W / 2, H - s * 1.8); hx.textAlign = 'left'
+    hx.globalAlpha = 1; hx.fillStyle = '#ffffff22'; hx.fillRect(0, H - s * .12, W, s * .12); hx.fillStyle = sh.col; hx.fillRect(0, H - s * .12, W * T / LEN, s * .12)
+    loopFade(T); return
+  }
   hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .7}px system-ui,sans-serif`
   hx.fillText(`${String(si + 1).padStart(2, '0')} / ${SHOTS.length}  ·  ${sh.el.toUpperCase()}`, s * 1.4, s * 2)
   hx.fillStyle = '#e8edf5'; hx.font = `700 ${s * 1.5}px system-ui,sans-serif`; hx.fillText(sh.name, s * 1.4, s * 3.7)
@@ -227,13 +264,16 @@ function drawHud(T, si, sh, ts) {
   const bw = W - s * 2.8, seg = bw / SHOTS.length
   for (let i = 0; i < SHOTS.length; i++) { hx.fillStyle = i < si ? '#ffffff55' : '#ffffff1a'; hx.fillRect(s * 1.4 + i * seg + 1, H - s * 1.2, seg - 2, s * .16) }
   hx.fillStyle = sh.col; hx.fillRect(s * 1.4 + si * seg + 1, H - s * 1.2, (seg - 2) * ts / SHOT, s * .16)
-  const fadeLoop = Math.max(0, (T - (LEN - .25)) / .25, 1 - T / .15)
-  if (fadeLoop > 0) { hx.fillStyle = `rgba(7,6,14,${Math.min(1, fadeLoop)})`; hx.fillRect(0, 0, W, H) }
+  loopFade(T)
 }
 // Capture: fixed size, returns one composited JPEG frame (MP4 export via headless Chromium + ffmpeg).
 const comp = document.createElement('canvas'), cx = comp.getContext('2d')
 window.reelFrame = (t, w = 1280, h = 720) => { size(w, h); render(t); comp.width = w; comp.height = h; cx.drawImage(cv, 0, 0); cx.drawImage(hud, 0, 0); return comp.toDataURL('image/jpeg', .92) }
-window.reelInfo = { LEN, shots: SHOTS.map(s => s.name) }
+window.reelInfo = { LEN, shots: SHOTS.map(s => s.name), OL, HUD }
+function syncUi() { $('bOl').textContent = 'Outline: ' + OL[ST.ol]; $('bHud').textContent = 'HUD: ' + HUD[ST.hud] }
+$('bOl').onclick = e => { e.stopPropagation(); ST.ol = (ST.ol + 1) % OL.length; syncUi() }
+$('bHud').onclick = e => { e.stopPropagation(); ST.hud = (ST.hud + 1) % HUD.length; syncUi() }
+syncUi()
 if (!/[?&]cap\b/.test(location.search)) {
   let t0 = performance.now(), paused = false, pt = 0
   const fit = () => { const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2); size(Math.round(r.width * d), Math.round(r.height * d)) }
