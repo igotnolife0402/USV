@@ -60,3 +60,4 @@ triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 | Chained Bash with `sed -i` on a .js/.cjs file denied whole (L-045 hook) | sed -i used to prepend a header to a script | build scripts with `{ echo header; cat src; } > file.cjs` or the Edit tool; keep sed -i for .md/.html only | 2026-11-26 |
 | headless generator.html stuck at Loading (ERR_TUNNEL_CONNECTION_FAILED on jsdelivr) | Chromium can't tunnel the proxy; package three has no build/three.module.min.js | route the CDN to local three, min.js -> module.js (gen-outline-check.cjs THREE_DIR) | 2026-11-26 |
 | `git rev-parse --short a b` fatal: Needed a single revision | --short takes one rev | `git rev-parse a b` or loop | 2026-11-26 |
+| generator check times out, pageerror `Unexpected token ')'` | replaced fragment ended with a `//` comment that hid the rest of the line | put the comment on its own line above | 2026-11-26 |
