@@ -195,3 +195,5 @@
 {"t":"2026-11-26T21:04:21.455Z","tier":"medium","secs":9,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T21:06:48.413Z","tier":"medium","secs":18,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":["vault"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T21:09:30.887Z","tier":"medium","secs":11,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T21:10:15.303Z","tier":"medium","secs":4,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T21:14:26.410Z","tier":"medium","secs":25,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":["vault"],"touched":[],"signals":[],"mode":"mobile"}
