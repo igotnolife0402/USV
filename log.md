@@ -422,3 +422,7 @@ improved: multi-delete UI + test; repo drift found (live hub has plugins modlist
 ## [2026-11-26] fix / studio delete speed
 Owner: "20 seconds per delete". Cause: sub-docs deleted one by one after full download. Now meta first (card vanishes), sub-docs 8 in parallel, 3 projects in parallel. Hub v69, read back identical. Real-hub speed not measured (mock has no latency).
 improved: parallel pooled delete in store.js; meta-first so the list updates instantly; home test race fixed with waitFor
+
+## [2026-11-26] fix / studio mass delete
+Owner: "mass delete them all instead of 1 at a time". deleteProjects now runs phases across ALL picked projects (all metas, then one shared pool of every sub doc, then project docs, 16 in flight); UI hides every picked card in one frame. Hub v70 read back identical; home test passes. Real-hub timing not measured.
+improved: phased mass delete instead of per-project; instant UI hide via gone set; checked db.d.ts: no batch verb, concurrent-write cap -> 16 in flight

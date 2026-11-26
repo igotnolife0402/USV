@@ -671,8 +671,9 @@ export function mountUI(app, root) {
 
   // ---------- home page ----------
   let homeUnsub = null, homeList = null, picking = false
-  const picked = new Set()   // multi-delete (owner 2026-11-26): pick cards, delete them in one go
+  const picked = new Set(), gone = new Set()   // multi-delete (owner 2026-11-26): pick cards, delete them in one go
   function renderHome(list) {
+    if (list && gone.size) list = list.filter(p => !gone.has(p.id))   // mass delete: hidden before the db answers
     homeList = list
     if (list) for (const id of [...picked]) if (!list.some(p => p.id === id)) picked.delete(id)
     const mode = app.store?.mode
@@ -711,11 +712,11 @@ export function mountUI(app, root) {
   async function deletePicked() {
     const ids = [...picked], names = ids.map(id => homeList?.find(p => p.id === id)?.name || id)
     if (!ids.length || !await ui.confirm(`Delete ${ids.length} project${ids.length === 1 ? '' : 's'}?`, { body: names.slice(0, 8).join(', ') + (names.length > 8 ? ` and ${names.length - 8} more` : '') + '. This removes them with their meshes and textures.', danger: true })) return
-    picking = false; renderHome(homeList)   // cards vanish as each meta doc goes; no waiting on the dialog
+    ids.forEach(id => gone.add(id)); picked.clear(); picking = false; renderHome(homeList)   // every picked card goes in one frame
     ui.toast(`Deleting ${ids.length}…`)
-    let ok = 0; const bad = await app.store.deleteProjects(ids, id => { ok++; picked.delete(id) })
-    picking = picked.size > 0
-    ui.toast(bad.length ? `Deleted ${ok}, ${bad.length} failed: ${bad[0]}` : `Deleted ${ok} project${ok === 1 ? '' : 's'}`, bad.length ? 'error' : 'ok')
+    const bad = await app.store.deleteProjects(ids)
+    ids.forEach(id => gone.delete(id))
+    ui.toast(bad.length ? `Deleted ${ids.length}, ${bad.length} doc writes failed: ${bad[0]}` : `Deleted ${ids.length} project${ids.length === 1 ? '' : 's'}`, bad.length ? 'error' : 'ok')
     renderHome(homeList)
   }
   homeEl.addEventListener('keydown', e => {

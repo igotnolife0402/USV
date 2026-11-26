@@ -180,9 +180,17 @@ class Store {
     await pool(docs, 8, path => this.ref(path).delete().catch(() => {}))
     await this.ref('projects/' + id).delete()
   }
-  async deleteProjects(ids, onDone) {   // several at once, 3 projects in flight; returns failure messages
-    const bad = []
-    await pool(ids, 3, id => this.deleteProject(id).then(() => onDone?.(id), err => bad.push(err.message)))
+  // mass delete (owner 2026-11-26: "mass delete them all instead of 1 at a time"): one phase per doc kind across ALL
+  // projects, never project by project: every meta at once (all cards leave together), then one shared pool of every
+  // sub doc, then every project doc. The page db has no batch verb; 16 in flight stays under its concurrent-write cap.
+  async deleteProjects(ids, onDone) {
+    if (ids.includes(this.pid)) { this.closeProject(true); this.app.closeProject() }
+    const bad = [], del = path => this.ref(path).delete().catch(err => { bad.push(err.message) })
+    await pool(ids.map(id => 'meta/' + id), 16, del)
+    ids.forEach(id => onDone?.(id))
+    const lists = await Promise.all(ids.flatMap(id => ['geo', 'tex', 'ops'].map(async kind => (await this.subDocs(id, kind)).map(d => `projects/${id}/${kind}/${d.id}`))))
+    await pool(lists.flat(), 16, del)
+    await pool(ids.map(id => 'projects/' + id), 16, del)
     return bad
   }
 
