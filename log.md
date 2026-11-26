@@ -394,3 +394,7 @@ Owner: zfight is not for VFX. must.md rule 7 scoped to models; vfx checklist say
 improved: must.md rule 7 scoped; vfx checklist no-zfight line; lesson L-160 applied
 Disk full (ENOSPC): 72 leaked 2.6 GB test dirs; tests now filter big files + clean up (L-161).
 improved: cli test skips big binaries; cli/global/learn tests clean tmp; ENOSPC errors row
+
+## [2026-11-26] render / Frost Comet MP4
+clip.mp4 rendered via studio shots harness (SHOTS_VIDEO=1, 22 s) and sent. Seen in strip: yellow light markers visible, mist blob hides crystal, scene small in frame.
+improved: mp4 recipe in vfx playbook; strip check before sending; issues listed honestly
