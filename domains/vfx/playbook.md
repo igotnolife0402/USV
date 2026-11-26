@@ -78,3 +78,4 @@ Run [checklists/vfx.md](checklists/vfx.md). Add new failures to [errors](domains
 - Swing trails are traced from the real blade-tip path (fk.py), split until each arc is planar (< 0.1 stud), one sheet + flat card per arc (`tools/3d/avatar/duel/supernova3/build.py`).
 - Density: ~300 cards / 20 s (6x v2), <= 40 sheets; cover > 60 deg/frame pose snaps with 3-frame spark cards.
 - Library rule (owner 2026-11-24): every VFX generator run ends by adding its white sheets to the repo folder `vfx/` (`tools/vfx/library.py`, add the set to `SRC`); find effects by grepping `vfx/index.tsv`, never by opening sheets; colour only at use time per [vfx/README.md](../../vfx/README.md).
+- Hub republish refused as stale (L-212): if the live page equals local `tools/hub/index.html`, the first resend is refused as identical by design; send the same publish once more and it goes through. Copying a harness: grep the exact string first, never guess it.
