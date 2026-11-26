@@ -42,6 +42,7 @@ triggers: [roblox, luau, studio mcp, rojo, play test]
 - Disconnect connections on cleanup; no per-frame `Instance.new` in loops without pooling.
 - UI: `UIScale`/`UIAspectRatioConstraint`, test phone emulator in Studio (Device emulator) for touch.
 - Mobile players: buttons >= 44 px, `ContextActionService` for touch + keyboard.
+- Showcase cameras: before shipping a push-in, sim camera-to-mesh distance over every point incl. wing/limb tips (gate >= 8 studs) and sweep push (L-140; tools/roblox/wyvern/test/sim.mjs).
 
 ## Speed tricks
 - Start from a template place (Baseplate/Obby) not empty; reuse snippets in [snippets](domains/roblox/snippets/README.md).

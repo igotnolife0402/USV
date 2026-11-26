@@ -24,6 +24,7 @@ Motion for 3D pieces: key poses with `smooth` (sine in-out) tweens in the Studio
 - Modes: [profiles/pc.md](profiles/pc.md), [profiles/mobile.md](profiles/mobile.md); PC-only leftovers → [queue/pc.md](queue/pc.md).
 
 ## Code
+- Path-loop showcase (long flyer around the player): [wyvern](tools/roblox/wyvern/README.md).
 - Creature specs: [beast](tools/3d/beast/README.md) (`rig.py`: `evalpose`, `window`, `key_poses`, `ANIM_LUA`; templates `orc.py`, `dragon.py`; video `video.html`/`video.mjs`).
 - Avatar clips: [avatar](tools/3d/avatar/README.md) (`POSES`, `CLIPS`, `ik_arm`, `arc_keys`).
 - Fight cutscene (two fighters, one clip, world fx, 2026-11-24): [duel](tools/3d/avatar/duel/README.md): `avatar.py --clipfile` per fighter, then `duel.py SPEC OUT` (beat gate: no action > 2 s).

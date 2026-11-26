@@ -636,3 +636,13 @@ improved: L-222 speed rule (pageerror first, no mid-line // comments); errors.md
 ## [2026-11-25] improve / VFX generator upgrade prompt
 /improve 60: prompt for upgrading hub tool vfx generator (slots, exact duration, 60 s cap / 15 s target, Opus 5.5 medium). improve 60: ~35 s research, ~32 s brief, 19 s Sonnet, 97 s total (FAIL +37), rungs 1-3.
 improved: tools.md VFX Generator row pointed at liquid CLI, now hub entry; hub-tool code read rule (Artifact read path); router words vfx generator/hub tool; improve skill brief-start rule for <= 60 s (L-143)
+## [2026-11-24] build / wyvern pet showcase loop (/improve 80)
+tools/roblox/wyvern: one spec -> GLB (39 parts, 34.6k tris, scale atlas + normal map), baked Luau LocalScript (path follow, wings, jaw, VFX, R15 anime pose), three.js preview artifact. test/sim.mjs all 7 PASS (body clearance 19.3, wingtips 4.8, seam 1.7e-8 / 0.64 %); 4 headless shots, 0 console errors. Not run in Studio (queued); Luau not analyzed (binary blocked).
+improve 80: brief ~45 s, Sonnet 24 s, done logged 185.8 s (late: hand-back arrived mid-build), rungs 1-3.
+improved: improve skill runs timer done on hand-back (L-136); mobile profile CDN-403 headless workaround (L-137); pre-tool install check ignores heredoc data + test (L-135 promoted); animation route skill 3d-editor -> roblox + wyvern/pet router words + complex tier words; animation playbook/index + tools/roblox index list the wyvern tool; roblox errors row for blocked luau binary
+learn: L-138 flight-path clearance rule in animation playbook; vfx skill not invoked (VFX were native Roblox objects built in Fx.luau, primary route roblox)
+
+## [2026-11-24] build / wyvern cinematic camera + post pass
+Baked camera track (camera.mjs) with slow-mo hit-stop payoff, flash, shake, push-in; Camera.luau plays it with Bloom/CC/DoF; preview Cine/Free. sim 11/11 PASS; preview shots 0 errors; not run in Roblox (queued).
+improve 60: 153 s total, FAIL +93 (late start + branch read).
+improved: camera-to-body sim gate incl. wing tips (caught 5-stud clip); flash keyed on a sample (peak 0.69 -> 0.85); shot.mjs exits with install hint when three is missing; flash overlay no longer covers HUD; L-139 improve no-explore rule; router words camera/cinematic/graphics

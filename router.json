@@ -91,7 +91,14 @@
         "post-mortem",
         "mistakes of this game",
         "roblox cutscene",
-        "in-game cutscene"
+        "in-game cutscene",
+        "wyvern",
+        "dragon pet",
+        "pet animation",
+        "circling the player",
+        "camera",
+        "cinematic",
+        "graphics"
       ],
       "notes": [
         "domains/roblox/playbook.md",
@@ -358,7 +365,10 @@
         "only take 5 minutes",
         "too slow fight",
         "faster fight",
-        "make it faster"
+        "make it faster",
+        "flight path",
+        "circling",
+        "loop path"
       ],
       "notes": [
         "domains/animation/umbrio-animator.md",
@@ -367,7 +377,7 @@
         "domains/animation/rules.md"
       ],
       "checklist": "checklists/3d.md",
-      "skill": "3d-editor"
+      "skill": "roblox"
     },
     {
       "id": "images",
@@ -777,7 +787,10 @@
       "sampler",
       "animations",
       "cinematic",
-      "frame by frame"
+      "frame by frame",
+      "wyvern",
+      "dragon pet",
+      "pet animation"
     ]
   }
 }

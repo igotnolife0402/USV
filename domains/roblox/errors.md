@@ -8,6 +8,7 @@ triggers: [roblox error, luau error, studio crash, rojo error, datastore error]
 
 | Symptom | Cause | Fix | Seen |
 |---|---|---|---|
+| Cloud session: running a downloaded luau/luau-analyze binary is denied by the auto-mode classifier | Unverified downloaded executables are blocked | Don't download toolchains on mobile; review Luau by hand, queue `luau-lsp analyze` for PC | 2026-11-24 |
 | Studio MCP tools missing from tool list | Studio closed or MCP not enabled in Studio settings | Open Studio, enable MCP server in settings, restart Claude session | 2026-11-21 |
 | Someone suggests studio-rust-mcp-server | Old repo, deprecated | Use Studio's built-in MCP (create.roblox.com/docs/studio/mcp) | 2026-11-21 |
 | `Infinite yield possible on 'ReplicatedStorage:WaitForChild("X")'` | Name typo or object created later on server only | Check exact name/path; create object in Rojo tree or server before client waits | 2026-11-21 |

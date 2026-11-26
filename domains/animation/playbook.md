@@ -20,6 +20,7 @@ Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing 
 - IK in-betweens (2026-11-24, L-160/161): after a mid key, re-solve the target from it but keep the lower-residual solve; a blade turning > 120° in one swing turns at the shoulder, so regularise the hand rot toward the previous key (a wrist flipping bound to bound = lint euler-jump that no in-between fixes).
 - Weight is timing: slow lift, long wind-up with the tip sagging behind, a held beat, a fast cut (0.22 s at 60 fps), a braked follow-through, slow recovery.
 - Root `pos` keys keep the feet on the ground in every key. Never animate the root of a big build on phones (moves every object; bake statics first).
+- Flight paths around a player: author the path with clearance >= wing half-span + 4 studs (not body radius), and run the loop test (tools/roblox/wyvern/test/sim.mjs) before tuning anything else; the wyvern took 2 failed rounds (2026-11-24).
 - Effects ride the clip: flipbooks with `start`/`life` or `show: [t0, t1]`; swing trails fitted to the tip path's plane and circle (`kind: swing`).
 
 ## Which tool
@@ -28,6 +29,7 @@ Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing 
 | Creature idle/attack loop for Roblox + video | [beast](tools/3d/beast/README.md) `ANIM` spec (sine terms + action windows) |
 | Roblox avatar pose, emote, weapon swing | [avatar](tools/3d/avatar/README.md) `POSES` + `CLIPS` (`--pose`, `--clip`) |
 | Simple prop motion (bob, spin, pulse, walk, wave) | Studio animator presets (`anim.js`: bob, pulse, swing, walk...) |
+| Long creature flying a showcase loop around the player (pet, boss intro) | [wyvern](tools/roblox/wyvern/README.md): path moves + `dur` in `spec.mjs`, chord follow-the-leader body, baked Luau tables, headless `test/sim.mjs` |
 | Anything in Blender | Blender MCP keyframes (PC), export GLB with animation (FBX from Studio has none) |
 
 ## PC (/pc)
