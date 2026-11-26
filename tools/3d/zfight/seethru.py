@@ -110,7 +110,12 @@ def main(argv):
         print('view', np.round(D, 2).tolist(), 'hits', len(t), 'back', len(back),
               '(%.2f%%)' % (100 * len(back) / max(len(t), 1)), 'worst', (f'{w[0][0]} x{w[0][1]}' if w else '-'))
     frac = tot_back / max(tot_hit, 1)
-    if frac < fail: print('SEETHRU PASS %.2f%%' % (frac * 100)); return 0
+    if frac < fail:
+        # upload gate (owner 2026-11-24: gaps must never ship): hooks/pre-tool.mjs denies live geo writes not listed here
+        import tempfile
+        with open(os.path.join(tempfile.gettempdir(), 'umbrio-seethru-pass.txt'), 'a') as fh:
+            fh.write(''.join(os.path.splitext(n)[0] + '\n' for n in sorted(docs)))
+        print('SEETHRU PASS %.2f%%' % (frac * 100)); return 0
     print('SEETHRU FAIL %.2f%% (need < %.2f%%) worst: %s' % (frac * 100, fail * 100,
           ' '.join(f'{g}:{n}' for g, n in worst.most_common(5)))); return 1
 

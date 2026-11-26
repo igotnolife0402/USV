@@ -25,7 +25,8 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 5. Readability and look rules (`ref-quality.md`, dark-metal rule) and real references.
 6. Contradiction pass: every number in the brief agrees with every other (totals, dims vs parts, units).
 7. Depth: more distinct parts, wear, sub-assemblies, build stages, then repeat 4 and 6 for the additions.
-- Budget under ~15 s: no Sonnet; write the outline yourself from rung 1 only, then build.
+- Budget under ~15 s: no Sonnet; write the outline yourself from rung 1 only, then build. A pure question still delivers at the think time (+-5 s): the 15 s DB question (2026-11-24) answered at 4.7 s = early FAIL.
+- Think time counts inside the tier budget (owner 2026-11-24): a medium build after /improve 120 has 180 s left; the pre-tool hook denies new agents past 50 % and all non-wrap-up work past 100 %.
 - Measure: log `improve <s>: <s> brief, <s> Sonnet, <s> total, rungs 1-<n>` in log.md.
 
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
@@ -44,7 +45,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 
 ## Do exactly this
 0. Climb the value ladder until `left` says write the brief (budget <= 15 s: build from your outline).
-1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: true` (owner 2026-11-23: build starts from the brief, never wait for Sonnet), prompt =
+1. Next tool call: Agent, `subagent_type: improver`, `run_in_background: false` (2026-11-24: background runs FAILED delivery every time, 4.7/15, 28.2/20, 163.9/45, and the prompt was never shown: its result hid behind build tool calls), prompt =
    ```
    MODE: <mobile|pc from the hook block>
    RAW PROMPT: <the owner's text after /improve, verbatim, the seconds removed>

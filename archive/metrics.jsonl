@@ -157,3 +157,15 @@
 {"t":"2026-11-25T22:05:29.334Z","tier":"medium","secs":3,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
 {"t":"2026-11-25T22:06:59.732Z","tier":"medium","secs":1066,"ok":false,"errors":2,"retry":1,"routes":["3d","vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
 {"t":"2026-11-25T22:29:52.480Z","tier":"medium","secs":939,"ok":false,"errors":1,"retry":1,"routes":["3d","owner"],"touched":[],"signals":["errors","slow"],"mode":"mobile"}
+{"t":"2026-11-23T23:51:17.398Z","tier":"medium","secs":35,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-23T23:58:29.914Z","tier":"medium","secs":118,"ok":true,"errors":0,"retry":0,"routes":["roblox","vault"],"touched":[],"signals":["skill","improve"],"mode":"mobile"}
+{"t":"2026-11-24T00:00:58.720Z","tier":"medium","secs":65,"ok":true,"errors":0,"retry":0,"routes":["vault"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T00:08:40.565Z","tier":"medium","secs":267,"ok":true,"errors":4,"retry":2,"routes":["3d"],"touched":[],"signals":["errors","improve"],"mode":"mobile"}
+{"t":"2026-11-24T00:13:23.187Z","tier":"medium","secs":10,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve"],"mode":"mobile"}
+{"t":"2026-11-24T00:15:48.934Z","tier":"medium","secs":65,"ok":true,"errors":1,"retry":1,"routes":["3d"],"touched":[],"signals":["errors"],"mode":"mobile"}
+{"t":"2026-11-24T00:19:14.095Z","tier":"medium","secs":122,"ok":true,"errors":1,"retry":1,"routes":[],"touched":[],"signals":["errors"],"mode":"mobile"}
+{"t":"2026-11-24T00:26:14.696Z","tier":"medium","secs":180,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T00:32:13.398Z","tier":"medium","secs":112,"ok":true,"errors":0,"retry":0,"routes":["owner"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T00:36:34.322Z","tier":"medium","secs":138,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T00:41:18.529Z","tier":"medium","secs":109,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-24T00:44:19.312Z","tier":"medium","secs":409,"ok":false,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["slow"],"mode":"mobile"}

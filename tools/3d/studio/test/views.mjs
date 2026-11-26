@@ -26,6 +26,17 @@ export default async function (t) {
     await s.page.evaluate(id => { window.studio.open(id) }, pid)
     await s.page.waitForFunction(() => window.studio.app.loaded && window.studio.app.viewport, null, { timeout: 30000 })
     await new Promise(r => setTimeout(r, 1500))   // procedural textures finish
+    // VIEWS_RBXMX=1: dry-run the Roblox export (owner on phone, 2026-11-23): build the .rbxmx in memory, report, write nothing
+    if (process.env.VIEWS_RBXMX) {
+      const r = await s.eval(() => window.studio.app.exec('roblox.rbxmx', {}))
+      const xml = r.xml || '', mp = (xml.match(/class="MeshPart"/g) || []).length
+      // faces are polygons: an n-gon is n-2 triangles
+      const tris = Object.entries(docs).filter(([k]) => k.includes('/geo/')).map(([, g]) => (g.faces || []).reduce((a, f) => a + f.length - 2, 0))
+      const ok = await s.eval(x => !new DOMParser().parseFromString(x, 'application/xml').querySelector('parsererror'), xml)
+      t.log(`rbxmx dry-run: ${xml.length} bytes, valid XML ${ok}, ${mp} MeshParts, max tris/part ${Math.max(0, ...tris)} (cap 20000), counts ${JSON.stringify(r.counts)} notes ${JSON.stringify(r.notes)}`)
+      if (!ok) throw new Error('rbxmx dry-run XML does not parse')
+      if (!xml.startsWith('<roblox') || !mp) throw new Error('rbxmx dry-run produced no MeshParts')
+    }
     // Bounds from the tab's own geometry (scene-wide Box3 also catches the ground grid / sky and lands the camera km away)
     const proj = docs[`projects/${pid}`], lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9]
     for (const o of Object.values(proj.objects || {})) {

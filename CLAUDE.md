@@ -11,6 +11,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Never claim a look you did not see: say "not visually verified" and queue the visual check.
 - Mute layout always on, both modes ([profiles/mute.md](profiles/mute.md)): no narration, <= 10-word result or `Done`; "don't respond" = `Done` only; errors, questions and requested reports exempt.
 - Max quality, no placeholders, scope = exactly what was asked. Owner's latest word beats any stored rule: fix that rule now.
+- Owner orders = this turn (owner 2026-11-24, caps): finish what was asked now, never park it as Next; past the tier target keep building (no research) up to 2x, Next = unasked ideas only.
 
 ## 0. Session start (every session)
 1. Read the hook-injected block: mode, profile, index, newest lessons, PC queue. Do not re-read those files. No block (sub-agent, hooks off): first call `node scripts/vault.mjs route "<task>"` and read exactly the notes, checklist and skill it names.

@@ -658,3 +658,54 @@ improved: router fast path umbrio tools → 3d-editor (was vfx); improve skill b
 ## [2026-11-25] 3d / Umbrio round 2: +8 Modify ops, separate/join, 13 Add shapes, 4 brushes; boot cap fixed
 Quality decimate (quadric collapse), autoSmooth, connect, makeCircle, greeble, extrudeRepeat, snapSymmetry, fractal, bulge; quadSphere, roundedCube, capsule, tube, dome, wedge, gear, star, spring, torusKnot, chainLink, pipe, rock; clayStrips, planes, relax, elastic. Roblox converter lazy (rbx.js) → core 10/10 (boot back under 800 KB). Suites: modops 3/3, mesh 8/8, sculpt 8/8, core 10/10; roblox 1/7 and io 11/14 fail exactly as before (pre-existing). Hub v54 published on the hub's newer roblox.js. Not visually verified.
 improved: core boot cap fixed (roblox lazy-load); hub publish rule: absolute paths + sha-compare to hub copy (L-146); decimate counts triangles like Blender (test fixed); merge conflict queued for PC
+## [2026-11-24] 3d / car60 rbxmx dry-run + rerun (Failed: live upload, DB full; car200 stopped over budget)
+- car60 built locally (182 parts, 120.9k tris, zfight 0); rbxmx dry-run: 19,982 bytes, valid XML, 21 merged MeshParts (cap 19k), no file written. Views rendered; top view shows a light roof-interior area (check).
+improved: views.mjs VIEWS_RBXMX=1 dry-run export check; lesson + errors row for hub DB quota; car200 builder stopped at budget per L-142.
+
+## [2026-11-24] vault / hard tier clock in hooks (improve 30: 29.6 s PASS)
+- Owner: medium = 5 min, stop overrunning. Warnings failed 3x, so pre-tool now enforces it.
+improved: budgetGate denies new agents past 50 % of target; denies all non-wrap-up tools past 100 %; improve skill counts think time inside the tier budget; Agent/Task/Workflow added to the PreToolUse matcher; stale clocks fail open (test 47/47)
+
+## [2026-11-24] build / car60-a live upload to Umbrio hub
+Body, trim, glass, lights, mirrors, suspension and 2 rear brakes are live; the 4 wheels (54 docs) were refused by the 100 MB DB quota after deleting car-a, computer-setup-1122/1122b, dab-a/b/c geo (owner approved).
+improved: delete batches pre-built with if_version so freeing space is 1 call per 50 docs; geo uploads sized by batch before sending; projects/meta pinned by returned version (no re-read)
+
+improved: L-143 bumped (x:2, promote next): free by bytes not doc count; errors.md row with du sizing rule; wheel docs measured (1.3 MB) for next prune
+
+## [2026-11-24] answer / hub DB limit question (/improve 15)
+100 MB per-artifact cap, not expandable via tools; options: pack geo, assets, 2nd hub, prune.
+improved: playbook rule that the DB cap is fixed + ways out; router 3d words database full/storage limit/quota; improve skill: short questions still deliver at think time
+
+
+## [2026-11-24] fix / car60 gaps
+seethru 22.2% -> 0.68% by flipping 4 inward-wound shells (cabin, body-1..3), pushed live (v2). car200 not built; wheels still blocked by quota.
+improved: seethru measured (root cause found: inward winding); 4 shells fixed live; L-145 + errors row: seethru before live upload
+
+improved: errors row + L-146: pin only uploaded ids
+
+## [2026-11-24] fix / car60 Next list (/improve 20)
+improve 20: 4 s brief, 11 s Sonnet, 28.2 s total (+8.2 FAIL), rungs 1. Front wheels live; rear wheels refused by quota after deleting helmets hv-k/m/t. car_p60 loft() now orients shells by signed volume (both winding directions tested).
+improved: car_p60 loft winding fixed at the source; helmet tests deleted (91 docs); front wheels live (28 docs)
+
+improved: L-143 promoted to playbook rule (x3): no upload without 1.2x free bytes
+
+## [2026-11-24] build / car60-a wheels live; car200 missing (/improve 45)
+improve 45: 26 s brief, 12 s Sonnet, 163.9 s total (+118.9 FAIL: done called late after upload work), rungs 1. car60-a all 186 geo docs live (rear wheels 26). car_p200.py is a byte copy of car_p60 (only loft fix differs) and emits the same 186 docs: the 200 s car was never built.
+improved: car60 size measured (4.5 MB/186 docs, discs 115 KB, cabin 174 KB); car200 generator found to be a car60 copy; rear wheels live
+
+
+## [2026-11-24] fix / geo to asset store + /improve delivery
+car60-cabin geo moved to the hub asset store ({asset:id}); read-back sha256 identical; hub render not visually verified. /improve: improver now foreground, prompt shown in <details> + done in the very next response.
+improved: geo docs can live in the asset store at ~0 DB bytes (no loader change needed); /improve delivery root cause fixed (background result hidden behind build calls); measured text-level packing = 0% so no wasted encoder work
+
+## [2026-11-24] build / car60 gap fix via /improve 30
+improve 30: ~12 s brief, 15.8 s Sonnet, 34.5 s total PASS (+4.5), rungs 1-2; first foreground delivery shown on time. Seethru 0.68% -> 0.54% (still FAIL < 0.30%): flipped faces seen from behind in more views than from front (body-1 56, body-2 28, rim-fr-2 39); 3 docs live via asset store, read-back not run. Not visually verified.
+improved: /improve foreground delivery PASS first try; per-face flip by view vote beats centroid flip (centroid made it worse 0.84%); discs already 0.024 m (brief claim of thick discs was wrong, checked code)
+
+## [2026-11-24] fix / gap gate + car60 hole map (/improve 30)
+improve 30: ~11 s brief, 13.1 s Sonnet, 30.0 s total PASS (0 off). Hole map: body-3 back hits at hood front (z~2.0, y~0.75, full width), body-1 at rear underside (z -1.5..-1.75, y~0.25); loft/grid_mesh caps verified closed, so cause is not the loft seam. car60 still 0.54% FAIL, not rebuilt (budget).
+improved: pre-tool gap gate blocks live geo writes that never passed seethru (tested: fail doc denied, pass doc allowed, deletes/meta allowed); seethru PASS stamps doc ids; loft/cap winding ruled out as cause
+
+## [2026-11-24] fix / car60 gaps root cause + do-it-now rule (/improve 30)
+improve 30: 38.3 s FAIL (+8.3; timer start ran at 8 s). Root cause of all car60 gaps: zfight fix cut split body docs (exact-name skip). Regex skip + hood/rear-glass 0.045 thick: seethru 0.00%, zfight PASS on live read-back of 182 docs; 8 docs uploaded. Not visually verified.
+improved: root cause found by cutting variants instead of flipping faces; budget gate lets the owner ask finish up to 2x target; owner rule "orders = this turn" in CLAUDE.md + owner.md

@@ -1,8 +1,9 @@
 import { join, resolve, relative } from 'node:path';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { ROOT, readInput, emit, safe, getMode, readIf, isMain } from './lib.mjs';
 import { isNote } from '../scripts/vault-lint.mjs';
-import { readTail, parseTurn, retryCapHit } from './learn.mjs';
+import { readTail, parseTurn, retryCapHit, loadTurnState, TARGET_S } from './learn.mjs';
+import { budgetGate } from './budget.mjs';
 
 const deny = (reason) => emit({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason } });
 
@@ -69,6 +70,20 @@ export function dangerousCommand(cmd, root = ROOT) {
   return null;
 }
 
+// Gap gate (owner 2026-11-24: "gaps should never happen for future builds"): a live geo write is denied unless
+// tools/3d/zfight/seethru.py passed on that doc this machine (it appends passing ids to <tmpdir>/umbrio-seethru-pass.txt).
+export function seethruGate(tool, ti = {}, passFile = join(tmpdir(), 'umbrio-seethru-pass.txt')) {
+  if (tool !== 'ArtifactData' || !/^(set|update|batch)$/.test(ti.action || '')) return null;
+  const isGeo = c => /^projects\/[^/]+\/geo$/.test(String(c || ''));
+  const ids = ti.action === 'batch'
+    ? (ti.writes || []).filter(w => w.op !== 'delete' && isGeo(w.collection)).map(w => w.doc_id)
+    : isGeo(ti.collection) ? [ti.doc_id] : [];
+  if (!ids.length) return null;
+  const ok = new Set((readIf(passFile) || '').split(/\r?\n/).filter(Boolean));
+  const bad = ids.filter(id => !ok.has(String(id)));
+  return bad.length ? `GAP GATE: ${bad.slice(0, 5).join(', ')} never passed seethru. Run python tools/3d/zfight/seethru.py check project.json geo/ on the tab; fix gaps until SEETHRU PASS, then upload` : null;
+}
+
 // Returns { what, key } when mobile must not run this call, else null. key picks the fallback.
 export function mobileBlock(tool, ti = {}, modes = {}) {
   if ((modes.pcOnly || []).some(p => new RegExp(p).test(tool))) return { what: tool, key: tool };
@@ -108,6 +123,16 @@ if (isMain(import.meta.url)) safe(() => {
   if (/Roblox_Studio__(screen_capture|video_capture|character_navigation)$/.test(tool) ||
       (/Roblox_Studio__(execute_luau|multi_edit)$/.test(tool) && /CurrentCamera|\.CameraType|BindToRenderStep|Camera\.CFrame|cam\.CFrame/.test(JSON.stringify(ti))))
     return deny('Owner rule: never move or capture the Roblox Studio camera (no screenshots, videos, cinematics, camera code). Check looks from the export instead: Sandbox studio shots render (tools/3d/studio test/run.mjs shots) or the exported file.');
+
+  // Hard tier clock: deny new agents past 50 %, all non-wrap-up work past 100 % (owner 2026-11-24)
+  if (transcript_path) {
+    const t0 = parseTurn(readTail(transcript_path, 1_500_000)).t0, st = loadTurnState(session_id);
+    const why = budgetGate(tool, ti, (Date.now() - t0) / 1000, TARGET_S[st.tier || 'medium']);
+    if (why) return deny(why);
+  }
+
+  const gap = seethruGate(tool, ti);
+  if (gap) return deny(gap);
 
   // 3-try cap: the exact same call already failed 3 times this turn -> change approach instead of looping.
   if (transcript_path && /^(Bash|PowerShell|mcp__)/.test(tool)) {
