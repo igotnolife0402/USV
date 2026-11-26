@@ -41,6 +41,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - 2026-11-24 (L-189, 60 s run +14.8 s): a loop over files (20 paint.py calls, ~13 s) after the spawn hid an on-time Sonnet return; per-file loops, generators and skill calls wait until the prompt is shown.
 - Promoted 2026-11-24 (L-177/L-178, +36 s and +48.6 s): prototype code is rung 4, never a reason to pass send_brief_at; a script run > 5 s before the spawn is forbidden.
 - send_brief_at is a hard line (2026-11-24, 120 s run spawned 8 s late -> +12.4 s): when `left` says write, spawn in the next call; no 'one more' lookup. After the prompt shows, invoke every skill the router named, not only the first.
+- Long briefs (2026-11-26 Prism, +49.7 s on 300): budgets >= 240 s draft the brief into `state/improve-brief.md` during research (compaction cannot lose it); briefs over ~80 lines spawn 1 s earlier per extra 10 lines, since Sonnet took 49 s, not the predicted 27 s.
 - Interrupted turns before `/improve` (2026-11-25, +49.5 s): start with `start <s> --now` so earlier turns do not eat the budget.
 - The improver hand-back can land mid-build: run `node scripts/improve-timer.mjs done` as the very next call when it arrives, before any other tool (2026-11-24: done ran 115 s late -> false FAIL).
 - The build usually continues in the improver's hand-back turn: run `fix add` there as you go; the Stop hook now checks working relay turns (2026-11-24).

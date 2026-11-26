@@ -810,3 +810,6 @@ improved: pressure words 27→18; thinking-control lines 4→0; pep-talk 6→1; 
 ## [2026-11-26] vault / vault-next: one-file vault distilled from this vault
 Crew pattern, owner override: 6 Opus-medium analysts (core, mechanisms+metrics, ~270 lessons, 3d+anim, vfx+img+audio, roblox+web+games+math) scored ~330 items >= 8 and ~150 skips; brain wrote .orchestration/vault-next/CLAUDE.md (386 lines, 13 sections); Opus adversarial review: round 1 FAIL (25+ lines < 8, 5 contradictions), round 2 two one-line fixes, applied. Self-scores: routing 8, rules 9, speed 8, quality 9, precision 9, decisions 9, bugfix 9, analysis 9. improve 240: 219.2 s FAIL (-20.8 s, no wait-out).
 improved: tool trivia and incident stories stripped; 3D floor vs every-part rule reconciled; push rule allows session branch; VFX exception to realistic default; queue location + session-start order added; analysis gains recorded-data, baseline and hypothesis rules; mechanism specs drop the main push; duplicate primary-domain rule merged; stale mute-footer claim named precisely; volatile hook caps dated
+
+## [2026-11-26] improve / Prism build prompt
+- /improve 300: Umbrio-successor build prompt (Rust+WGSL Prism) delivered at 349.7 s (FAIL +49.7); L-274 rule added to improve skill.

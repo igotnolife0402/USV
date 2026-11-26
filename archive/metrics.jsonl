@@ -197,3 +197,5 @@
 {"t":"2026-11-26T21:09:30.887Z","tier":"medium","secs":11,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T21:10:15.303Z","tier":"medium","secs":4,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T21:14:26.410Z","tier":"medium","secs":25,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":["vault"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T21:40:49.646Z","tier":"medium","secs":79,"ok":false,"inLimit":true,"errors":0,"retry":0,"routes":["vault"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T22:25:17.755Z","tier":"complex","secs":241,"ok":true,"inLimit":true,"errors":1,"retry":1,"routes":["3d","vfx"],"touched":[],"signals":[],"mode":"mobile"}
