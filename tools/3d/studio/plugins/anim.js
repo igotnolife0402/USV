@@ -73,6 +73,7 @@ const ratio = (a, b) => Math.abs(b) > 1e-9 ? a / b : a
 function mix(a, b, e, ch) {
   if (ch === 'visible') return e >= 1 ? b : a
   if (ch === 'color') { const p = hexRGB(a), q = hexRGB(b); return rgbHex(p.map((v, i) => v + (q[i] - v) * e)) }
+  if (typeof a === 'number') return a + ((+b || a) - a) * e   // scalar channels (camera fov, shake)
   return a.map((v, i) => v + ((b[i] ?? v) - v) * e)
 }
 // Sample one channel's keys [[t, value, ease?], ...] at time t (ease belongs to the segment's first key).
@@ -266,6 +267,7 @@ function evaluate(t = A?.time || 0, force = false) {
   }
   for (const oid of S.posed) if (!next.has(oid)) { const o = vp.objects.get(oid); if (o) unpose(o) }
   S.posed = next
+  if (c?.camera && vp.setCamera) poseCamera(vp, c.camera, t)
   const m = on && isModelRef(id) ? modelClip(id) : null
   if (S.mix && (!m || S.mix.key !== m.key || S.mix.root !== m.o)) stopMix()
   if (m) {
@@ -276,6 +278,16 @@ function evaluate(t = A?.time || 0, force = false) {
   if (!S.playing) vp.updateGizmo?.()
   vp.requestRender()
 }
+// Clip camera keys {pos, target, fov, shake} drive the view (cine clips); without this the video export was a static far shot (2026-11-26).
+export function cameraAt(cam, t) {
+  const s = {}
+  for (const ch of ['pos', 'target']) { const v = sample(cam[ch], t); if (v) s[ch] = v }
+  const f = sample(cam.fov, t); if (f) s.fov = f
+  const k = sample(cam.shake, t) || 0
+  if (k && s.pos) s.pos = s.pos.map((v, i) => v + k * 0.1 * Math.sin(t * (37 + 11 * i) + i * 1.7))   // deterministic: same frame every export
+  return s
+}
+function poseCamera(vp, cam, t) { const s = cameraAt(cam, t); if (s.pos || s.target || s.fov) vp.setCamera(s) }
 function restAll() {
   const vp = A?.viewport
   if (!vp) return

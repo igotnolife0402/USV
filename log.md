@@ -398,3 +398,7 @@ improved: cli test skips big binaries; cli/global/learn tests clean tmp; ENOSPC 
 ## [2026-11-26] render / Frost Comet MP4
 clip.mp4 rendered via studio shots harness (SHOTS_VIDEO=1, 22 s) and sent. Seen in strip: yellow light markers visible, mist blob hides crystal, scene small in frame.
 improved: mp4 recipe in vfx playbook; strip check before sending; issues listed honestly
+
+## [2026-11-26] build / frost-comet v2 (improve 60)
+improve 60: 0 s brief late, 17 s Sonnet, 124.3 s total, FAIL (spawned past send_brief_at). Camera keyed close + moving, crystal 3.2 m hero, mist removed, ice-only palette; mp4 frames seen. Hub tab frost-comet-2 not written (over budget).
+improved: Studio now plays clip camera keys (anim.js); video export hides light diamonds (video.js); scalar key sampling fixed (mix); cine rule in vfx playbook

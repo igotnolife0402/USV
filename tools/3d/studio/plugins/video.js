@@ -38,6 +38,7 @@ export async function mp4 (app, o = {}) {
   const frame = render ? null : Object.assign(document.createElement('canvas'), { width: W, height: H }), g = frame?.getContext('2d')
   const was = { t: app.time, playing: A.playing, helpers: vp.helpers.visible, gizmo: vp.gizmo?.visible }
   const temps = o.temp ? [] : app.ids().filter(id => app.obj(id)?.temp).map(id => vp.objects.get(id)).filter(x => x?.visible).map(x => [x, x.visible])   // temporary models are not in the video
+  vp.scene.traverse(x => { if (x.userData.lightHelper && x.visible) temps.push([x, true]) })   // light diamonds showed in the Frost Comet mp4 (2026-11-26)
   for (const [x] of temps) x.visible = false
   if (A.playing) A.pause()
   if (!render) { vp.helpers.visible = false; if (vp.gizmo) vp.gizmo.visible = false }                 // the render path hides these itself
