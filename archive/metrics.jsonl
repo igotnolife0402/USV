@@ -191,3 +191,5 @@
 {"t":"2026-11-24T13:13:58.584Z","tier":"medium","secs":41,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T20:31:37.069Z","tier":"medium","secs":545,"ok":false,"inLimit":false,"errors":1,"retry":1,"routes":["vault","math"],"touched":[],"signals":["errors","slow"],"mode":"mobile"}
 {"t":"2026-11-26T20:49:23.570Z","tier":"complex","secs":258,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":["vault","owner"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T21:02:04.724Z","tier":"medium","secs":41,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T21:04:21.455Z","tier":"medium","secs":9,"ok":true,"inLimit":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
