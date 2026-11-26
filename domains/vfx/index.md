@@ -32,3 +32,4 @@ Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox
 
 ## Default pipeline (owner rule 2026-11-21)
 - Liquid effects: [tools/vfx/liquid](tools/vfx/liquid/README.md) (VFX Generator); other effects: [tools/vfx/flipbook](tools/vfx/flipbook/README.md). Then import the layered sheets into **Umbrio Sandbox** and attach to the animation ([profiles/tools.md](profiles/tools.md)). Never Blender unless the owner names it.
+- Showcase reel: [tools/vfx/showcase/reel.html](../../tools/vfx/showcase/reel.html) (artifact https://claude.ai/artifact/Rkbb6hcGYJ4zwPa6FP8Zkb): 10 shots x 2 s of library sheets painted on the GPU; MP4 via `reel-capture.cjs` + ffmpeg.

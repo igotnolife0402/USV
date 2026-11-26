@@ -568,3 +568,7 @@ improved: fight beat/motion check in code; SCOPE RULE no longer shrinks beats; e
 Generator-wide: fixColors (element hue family, colour word wins), OFFSCOPE bubbles/petals/bolt/zigring, reactRepair (dissolve/char/freeze tracks, hole/cut/scorch/burn/crack/frost marks, test target/dummy), marks system + dummy/target/crate/car models, RULES text (FILLER, COLOUR, TEST). Headless: acid -> dissolve 0.6 + burn mark visible; gun -> test target + hole visible, ramps on hue 25; 0 errors. Not visually verified.
 improve 60: 124.6 s total (FAIL +64.6), brief late after long edits; Sonnet 16.5 s
 improved: repair fills missing sheet names (validate failed on them); char regex no longer matches "character"; colours re-fixed after duplicate-layer hue nudges; check10 harness with PROMPT=; router words bullet holes/test models/filler
+
+## [2026-11-26] build / vfx showcase reel 20 s
+tools/vfx/showcase/reel.html (artifact Rkbb6hcGYJ4zwPa6FP8Zkb): 10 shots (aura, gunshot, claw, thunder, acid, void, hellfire, frost, black hole, storm nova finale), size + aggression meters; MP4 via reel-capture.cjs + ffmpeg.
+improved: peak-frame contact check caught 2 empty half-shots (gunshot, thunder) -> double strikes; reel-capture.cjs committed (regenerates the MP4, binary gitignored); router vfx words showcase/reel; playbook + index lines for reel requests; charset meta fixed mojibake in HUD
