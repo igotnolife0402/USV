@@ -41,3 +41,4 @@ status: current
 - Learn hook must cover the turn where the work happened: a relay turn (agent hand-back, task notification) with errors, writes or >= 3 tool calls gets every signal (2026-11-24 Macarena build ran in the improver hand-back, nothing learned); test in tests/learn.test.mjs
 - Run the vault tests as `node --test tests/*.test.mjs` (a bare `tests/` folder fails on Node 22, 2026-11-24)
 - JS/MJS/TS edits: Edit tool only, never `sed -i` (pre-tool denies it, L-045 x9); insert an import with Edit on the line before.
+- Branch consolidation (2026-11-26): merge claude/* branches into the session branch with union merges for append-only files; anything that writes main (push, auto-merge workflow, branch deletes) waits for the owner's explicit yes, because the permission classifier refuses it.

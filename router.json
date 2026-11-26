@@ -861,7 +861,12 @@
       "atleast 50",
       "more tools",
       "as many as possible",
-      "blender quality"
+      "blender quality",
+      "apply all",
+      "merge branches",
+      "different branches",
+      "million branches",
+      "branches"
     ]
   }
 }
