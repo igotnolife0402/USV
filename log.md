@@ -584,3 +584,7 @@ improved: reel-capture `styles` mode (one comparison grid per run); window.reelS
 ## [2026-11-26] edit / reel default outline = rim
 Owner picked "colour but brighter" (rim); reel.html defaults to it (?ol= still overrides). Headless check: button "Outline: rim", 0 errors, frame viewed. Artifact v4.
 improved: rim default in reel.html; router vfx words outline/outlines/rim outline/reel; playbook reel line fixed (1 s shots, reel.test route for checks); L-216
+
+## [2026-11-26] edit / rim outline 70% thinner
+Rim dilate offset 0.016 -> 0.0048 (other modes unchanged). Frame viewed, 0 errors, artifact v5.
+improved: rim width; reel-check.cjs one-frame check committed (was scratch-only); playbook reel line records width

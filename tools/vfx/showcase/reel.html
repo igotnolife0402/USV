@@ -131,8 +131,9 @@ void main(){
   float a=mix(cellA(f0,uv),cellA(f1,uv),w);
   // Outline styles (core layer only): 1 ink, 2 colour rim, 3 hot inner edge, 4 toon (cel bands + ink). Edge = 8-tap dilate/erode of the shape.
   float ol=(uCore>0.5)?uOl:0.0, outer=0.0, inner=0.0;
-  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0;
-    for(int i=0;i<8;i++){ float an=float(i)*0.7853982; float q=shp(uv+vec2(cos(an),sin(an))*0.016,f0,f1,w); mx=max(mx,q); mn=min(mn,q); }
+  // Rim (default) width 0.0048 = 70% thinner than the others (owner 2026-11-26: "way too thick").
+  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0,ow=(ol>1.5&&ol<2.5)?0.0048:0.016;
+    for(int i=0;i<8;i++){ float an=float(i)*0.7853982; float q=shp(uv+vec2(cos(an),sin(an))*ow,f0,f1,w); mx=max(mx,q); mn=min(mn,q); }
     outer=mx*(1.0-s0); inner=s0*(1.0-mn); }
   vec2 q=vUv*3.0+uSeed; float n;
   if(uTex<0.5) n=fbm(q+vec2(0.0,-uTime*0.6));
