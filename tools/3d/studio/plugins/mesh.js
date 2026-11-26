@@ -5,6 +5,8 @@ import * as THREE from 'three'
 import { addIcons, isPhone } from '../core/ui.js'
 import { toBufferGeometry } from '../core/model.js'
 import { toM, toGeo, V3, add, sub, mul, dot, cross, len, norm, lerp, ek, setV, centroid, fnormal, halfEdges, edgesOf, mergeDist, int, PRIM, regionBoundary, extrude, extrudeEdges, inset, bevel, loopCut, subdivide, catmull, mergeCenter, del, fill, flip, recalc, knife, mirrorMap, placeVerts } from './meshops.js'
+import { MODOPS, MODGROUPS, params as modParams } from './modlist.js'
+let RUN = null // modops.js implementations, loaded on first use
 export { toM, toGeo, signedVolume, mergeDist, PRIM, regionBoundary, extrude, extrudeEdges, inset, bevel, loopCut, subdivide, catmull, mergeCenter, del, fill, flip, recalc, knife } from './meshops.js'
 
 addIcons({
@@ -614,6 +616,82 @@ const moveTool = gizmoTool('mesh-move', 'Move', 'gmove', 1.1), rotateTool = gizm
 knifeTool.order = 2
 
 // ---------- panel ----------
+// Modify tools (plugins/modops.js): mesh.<id> with the op's params; nothing selected = whole mesh.
+const MOD_ICON = { deform: 'gmove', generate: 'extrude', clean: 'merge', uv: 'fsel', select: 'vsel' }
+function targetMesh(app, tid) {
+  const o = app.obj(tid), g = o && o.type === 'mesh' && app.geo.peek(o.geo)
+  if (!g) throw new Error('Target must be a loaded mesh object')
+  const T = toM(g), mtx = new THREE.Matrix4().copy(app.worldMatrix(E.id)).invert().multiply(app.worldMatrix(tid)), p = new THREE.Vector3()
+  for (let i = 0; i < T.v.length; i += 3) { p.set(T.v[i], T.v[i + 1], T.v[i + 2]).applyMatrix4(mtx); T.v[i] = p.x; T.v[i + 1] = p.y; T.v[i + 2] = p.z }
+  return T
+}
+const ADD_SMOOTH = { quadSphere: 1, capsule: 1, dome: 1, spring: 1, torusKnot: 1, chainLink: 1, pipe: 1, rock: 1 }
+for (const o of MODOPS.filter(o => o.group === 'add')) {
+  CMD['mesh.' + o.id] = {
+    label: o.label, icon: 'mcube', modop: 'add',
+    async run(app, a = {}) {
+      RUN = RUN || (await import('./modops.js')).RUN
+      const m = RUN[o.id](null, {}, { ...modParams(o, a), points: a.points })
+      let lo = Infinity; for (let i = 1; i < m.v.length; i += 3) lo = Math.min(lo, m.v[i])
+      const ob = { type: 'mesh', geo: app.geo.put(toGeo(m)), name: a.name || o.label, pos: a.pos || [0, -lo, 0], smooth: a.smooth ?? !!ADD_SMOOTH[o.id] }
+      if (a.color) ob.color = a.color
+      const id = app.add(ob); app.select([id]); return id
+    }
+  }
+}
+// Separate (P): selected faces become a new object with the same transform. Join (Ctrl+J): selected meshes merge into the first.
+def('mesh.separate', {
+  label: 'Separate selection', icon: 'mdel', key: 'P',
+  run(app, a = {}) {
+    ensure(app, a)
+    const faces = need(argFaces(a), 'faces'), keep = new Set(faces), part = { v: E.m.v, f: faces.map(fi => E.m.f[fi]), uv: E.m.uv }
+    const sub = { v: part.v.slice(), f: part.f.map(f => f.slice()), uv: part.uv ? part.uv.slice() : null }
+    sub.f = sub.f.filter(Boolean); const used = new Map(), v = [], uv = sub.uv ? [] : null
+    sub.f = sub.f.map(f => f.map(i => { if (!used.has(i)) { used.set(i, v.length / 3); v.push(sub.v[3 * i], sub.v[3 * i + 1], sub.v[3 * i + 2]); if (uv) uv.push(sub.uv[2 * i], sub.uv[2 * i + 1]) } return used.get(i) }))
+    sub.v = v; sub.uv = uv
+    if (keep.size >= E.m.f.length) throw new Error('Leave some faces: separating all of them is a duplicate')
+    del(E.m, 'face', faces)
+    const src = app.obj(E.id), { id: _i, geo: _g, name, ...rest } = src
+    let nid = null
+    const go = () => { nid = app.add({ ...rest, geo: app.geo.put(toGeo(sub)), name: name + ' part' }); const g = app.geo.put(toGeo(E.m)); E.geoId = g; app.set(E.id, { geo: g }) }
+    app.transact ? app.transact('Separate', go) : go()
+    clearSel(); validateSel(); refresh(app); notify(app)
+    return nid
+  }
+})
+CMD['mesh.join'] = {
+  label: 'Join meshes', icon: 'merge', key: 'Ctrl+J',
+  enabled: (app, a = {}) => [].concat(a.ids || [...(app.selection || [])]).filter(id => app.obj(id)?.type === 'mesh').length > 1,
+  run(app, a = {}) {
+    const ids = [].concat(a.ids || [...(app.selection || [])]).filter(id => app.obj(id)?.type === 'mesh')
+    if (ids.length < 2) throw new Error('Select 2+ mesh objects; the first one keeps the result')
+    const [to, ...rest] = ids, inv = new THREE.Matrix4().copy(app.worldMatrix(to)).invert(), base = toM(app.geo.peek(app.obj(to).geo)), q = new THREE.Vector3()
+    for (const id of rest) {
+      const g = toM(app.geo.peek(app.obj(id).geo)), mtx = inv.clone().multiply(app.worldMatrix(id)), off = base.v.length / 3
+      for (let i = 0; i < g.v.length; i += 3) { q.set(g.v[i], g.v[i + 1], g.v[i + 2]).applyMatrix4(mtx); base.v.push(q.x, q.y, q.z) }
+      if (base.uv) { if (g.uv) base.uv.push(...g.uv); else base.uv.push(...new Array(g.v.length / 3 * 2).fill(0)) }
+      for (const f of g.f) base.f.push(f.map(i => i + off))
+    }
+    const go = () => { app.set(to, { geo: app.geo.put(toGeo(base)) }); app.remove(rest); app.select([to]) }
+    app.transact ? app.transact('Join', go) : go()
+    return to
+  }
+}
+for (const o of MODOPS.filter(o => o.group !== 'add')) {
+  def('mesh.' + o.id, {
+    label: o.label, icon: MOD_ICON[o.group], modop: o.group, noUndo: !!o.select,
+    async run(app, a = {}) {
+      RUN = RUN || (await import('./modops.js')).RUN
+      ensure(app, a)
+      const p = modParams(o, a), vs = argVerts(a), fs = argFaces(a), es = argEdges(a)
+      const sel = { verts: vs.length ? new Set(vs) : null, faces: fs.length ? fs : null, edges: es.length ? es : null, target: a.target ? targetMesh(app, a.target) : null }
+      const r = RUN[o.id](E.m, sel, p)
+      if (o.select) { setSel(r.kind, r.ids); validateSel(); shown(app); return { kind: E.sel, count: curSet().size } }
+      if (r?.smooth) app.set(E.id, { smooth: true })
+      return done(app, o.label, r?.kind || null, r?.ids || [])
+    }
+  })
+}
 const OPS = [
   ['mesh.extrude', 'Extrude', () => ({ dist: E.opts.extrude })], ['mesh.inset', 'Inset', () => ({ amount: E.opts.inset })], ['mesh.bevel', 'Bevel', () => ({ width: E.opts.bevel, segments: E.opts.segments })], ['mesh.loopcut', 'Loop cut', () => ({ cuts: E.opts.cuts })],
   ['mesh.subdivide', 'Subdivide'], ['mesh.smooth', 'Smooth', () => ({ level: E.opts.level })], ['mesh.knife', 'Knife'], ['mesh.fill', 'Fill'],
@@ -656,7 +734,24 @@ const panel = {
     const kn = h('div', 'mesh-kn', '<span></span>'), apply = h('button', 'mesh-op mesh-go', ic('knife') + '<span>Cut</span>'), cancel = h('button', 'mesh-op', ic('close') + '<span>Cancel</span>')
     apply.addEventListener('click', () => app.exec('mesh.knifeApply')); cancel.addEventListener('click', () => app.setTool('mesh-select'))
     kn.append(apply, cancel)
-    el.append(seg, info, kn, h('div', 'pg-h', 'Selection'), xyz, h('div', 'pg-h', 'Operations'), ops, h('div', 'pg-h', 'Settings'), opts)
+    // Modify: pick one of the Blender-style tools, set its params, Apply.
+    const mod = h('div', 'mesh-mod'), pick = h('select', 'mesh-num'), mp = h('div', 'mesh-opts'), go = h('button', 'mesh-op mesh-go', ic('extrude') + '<span>Apply</span>'), mv = {}
+    for (const [g, gl] of MODGROUPS) { const og = h('optgroup'); og.label = gl; for (const o of MODOPS) if (o.group === g) { const x = h('option', '', o.label); x.value = o.id; og.appendChild(x) } pick.appendChild(og) }
+    const modOf = () => MODOPS.find(o => o.id === pick.value)
+    const fillParams = () => {
+      mp.textContent = ''; const o = modOf(); mv[o.id] = mv[o.id] || {}
+      for (const d of o.params) {
+        const l = h('label', '', '<span>' + d.label + '</span>'), cur = mv[o.id][d.k] ?? d.d
+        let inp; if (d.opts) { inp = h('select', 'mesh-num'); for (const v of d.opts) { const x = h('option', '', v); x.value = v; inp.appendChild(x) } inp.value = cur } else { inp = num('', d.step, cur); if (d.min !== undefined) inp.min = d.min; if (d.max !== undefined) inp.max = d.max }
+        inp.addEventListener('change', () => { mv[o.id][d.k] = d.opts ? inp.value : parseFloat(inp.value) })
+        l.appendChild(inp); mp.appendChild(l)
+      }
+      go.lastChild.textContent = o.select ? 'Select' : 'Apply'
+    }
+    pick.addEventListener('change', fillParams)
+    go.addEventListener('click', () => { const o = modOf(), args = { ...mv[o.id] }; if (o.id === 'shrinkwrap') args.target = [...(app.selection || [])].find(x => x !== E.id); app.exec('mesh.' + o.id, args) })
+    fillParams(); mod.append(pick, go)
+    el.append(seg, info, kn, h('div', 'pg-h', 'Selection'), xyz, h('div', 'pg-h', 'Operations'), ops, h('div', 'pg-h', 'Modify (' + MODOPS.filter(o => o.group !== 'add').length + ' tools)'), mod, mp, h('div', 'pg-h', 'Settings'), opts)
     el._upd = () => {
       if (!E.m) return
       for (const b of seg.children) b.classList.toggle('on', b.dataset.k === E.sel)
@@ -692,7 +787,8 @@ const CSS = `.mesh-box{position:fixed;border:1px dashed var(--accent);background
 .mesh-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
 .mesh-opts label{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute)}.mesh-opts label span{width:60px;flex:none}
 .mesh-kn{display:grid;grid-template-columns:1fr 70px 70px;gap:4px;align-items:center;margin:8px 0 2px;font-size:12px;color:#3fb950}.mesh-kn[hidden]{display:none}
-.mesh-go{border-color:#3fb950}`
+.mesh-go{border-color:#3fb950}
+.mesh-mod{display:grid;grid-template-columns:1fr 70px;gap:4px;margin-bottom:4px}.mesh-mod .mesh-op{height:var(--h);flex-direction:row}`
 
 // ---------- wiring ----------
 let entering = false
@@ -709,10 +805,10 @@ export default {
   id: 'mesh', name: 'Mesh',
   commands: CMD,
   menus: {
-    Add: ['-', ...PRIMS.map(p => 'mesh.' + p[0])],
+    Add: ['-', ...PRIMS.map(p => 'mesh.' + p[0]), '-', ...MODOPS.filter(o => o.group === 'add').map(o => 'mesh.' + o.id)],
     Mesh: ['mesh.edit', '-', 'mesh.selVert', 'mesh.selEdge', 'mesh.selFace', 'mesh.selectAll', 'mesh.deselectAll', 'mesh.selectLinked', '-', 'mesh.gMove', 'mesh.gRotate', 'mesh.gScale', 'mesh.mirrorX', '-',
       'mesh.extrude', 'mesh.inset', 'mesh.bevel', 'mesh.loopcut', 'mesh.knife', 'mesh.knifeApply', '-', 'mesh.subdivide', 'mesh.smooth', '-', 'mesh.mergeDist', 'mesh.mergeCenter', 'mesh.fill', 'mesh.delete', '-',
-      'mesh.flip', 'mesh.recalc', 'mesh.shadeSmooth', 'mesh.shadeFlat'],
+      'mesh.flip', 'mesh.recalc', 'mesh.shadeSmooth', 'mesh.shadeFlat', '-', 'mesh.separate', 'mesh.join', ...MODGROUPS.flatMap(([g]) => ['-', ...MODOPS.filter(o => o.group === g).map(o => 'mesh.' + o.id)])],
     Model: ['-', 'mesh.edit'],
     Context: ['-', 'mesh.edit', 'mesh.extrude', 'mesh.inset', 'mesh.bevel', 'mesh.loopcut', 'mesh.subdivide', 'mesh.mergeCenter', 'mesh.delete']
   },

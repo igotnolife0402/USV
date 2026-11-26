@@ -154,3 +154,6 @@
 {"t":"2026-11-25T22:52:27.379Z","tier":"medium","secs":9,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
 {"t":"2026-11-23T22:59:28.206Z","tier":"medium","secs":4,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
 {"t":"2026-11-24T02:22:07.421Z","tier":"medium","secs":1400,"ok":false,"errors":4,"retry":1,"routes":["animation","vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
+{"t":"2026-11-25T22:05:29.334Z","tier":"medium","secs":3,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":["improve","improve"],"mode":"mobile"}
+{"t":"2026-11-25T22:06:59.732Z","tier":"medium","secs":1066,"ok":false,"errors":2,"retry":1,"routes":["3d","vfx"],"touched":[],"signals":["errors","slow","skill"],"mode":"mobile"}
+{"t":"2026-11-25T22:29:52.480Z","tier":"medium","secs":939,"ok":false,"errors":1,"retry":1,"routes":["3d","owner"],"touched":[],"signals":["errors","slow"],"mode":"mobile"}

@@ -1,12 +1,13 @@
 ---
 summary: Studio, the owner's web 3D editor in tools/3d/studio - files, data, live builds, speed caps, tests, shots check
-updated: 2026-11-21
+updated: 2026-11-25
 status: current
 triggers: [studio, studio tab, web editor, 3d editor, shots, shots check, scene json, plugin, viewport, look, toon, render image, mp4, publish]
 ---
 # Studio (web 3D editor)
 
 The owner's browser 3D editor (iPhone + PC): parts like Roblox Studio, mesh edit/sculpt, animation, textures, paint, draw, VFX flipbooks, Roblox GUI, import/export, MP4. Code: [tools/3d/studio](tools/3d/studio/README.md). Reuse it before writing a new editor ([3d-editor skill](.claude/skills/3d-editor/SKILL.md)).
+- Blender-style tools since 2026-11-25: 65 Modify ops (deform, solidify, wireframe, spin/screw, quality decimate, shrinkwrap, greeble, extrude repeat, UV projects, selects), separate/join, 13 Add shapes (rounded cube, capsule, gear, spring, torus knot, pipe, rock...) and 21 sculpt brushes: list in [for-ais.md](tools/3d/studio/docs/for-ais.md). Use them in model builds (solidify for real thickness, displace/smoothKeep for organic surfaces, decimate to pass tri caps).
 Docs (open only the one you need): [scene format](tools/3d/studio/docs/scene-format.md), [for AIs](tools/3d/studio/docs/for-ais.md), [plugins](tools/3d/studio/docs/plugins.md), [plugin API](tools/3d/studio/docs/plugin-api.md), [tests](tools/3d/studio/docs/tests.md), [limits](tools/3d/studio/docs/limits.md).
 
 ## Where projects live

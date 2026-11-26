@@ -127,7 +127,9 @@ export function signals(turn, state = {}, extra = {}) {
   if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
   // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
-  const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
+  // A contentless prompt (".", "?") with no tool work is a nudge, not a task: nothing to improve (owner 2026-11-25).
+  const idle = !/[\p{L}\p{N}]/u.test(turn.prompt || '') && !turn.writes.length && !turn.errors.length;
+  const imp = idle ? null : extra.improved; // null = not measured (unit calls / idle nudges); the Stop hooks always pass a number
   // Mute (owner 2026-11-24): a turn with no tool calls, or a prompt saying don't reply, owes no footer or fixes.
   if (turn.tools === 0 || NO_REPLY.test(turn.prompt || '')) return out;
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });

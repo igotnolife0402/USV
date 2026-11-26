@@ -25,6 +25,8 @@ const stroke = (s, a) => s.run('sculpt.stroke', a)
 // largest vertex move, and the max / min distance from the local origin
 const diff = (a, b) => { let m = 0, sum = 0; for (let i = 0; i < a.length; i += 3) { const d = Math.hypot(b[i] - a[i], b[i + 1] - a[i + 1], b[i + 2] - a[i + 2]); m = Math.max(m, d); sum += d } return { max: m, sum } }
 const radii = v => { let lo = 1e9, hi = 0; for (let i = 0; i < v.length; i += 3) { const r = Math.hypot(v[i], v[i + 1], v[i + 2]); lo = Math.min(lo, r); hi = Math.max(hi, r) } return [lo, hi] }
+// summed vertex move along +X (the stroke direction of `top`)
+const dX = (a, b) => { let d = 0; for (let i = 0; i < a.length; i += 3) d += b[i] - a[i]; return d }
 const maxY = v => { let m = -1e9; for (let i = 1; i < v.length; i += 3) m = Math.max(m, v[i]); return m }
 // half-edges without a twin (0 = watertight)
 const openEdges = (s, id) => s.eval(id => { const A = window.studio.app, g = A.geo.peek(A.obj(id).geo), he = new Set(); for (const f of g.faces) f.forEach((a, k) => he.add(a + ',' + f[(k + 1) % f.length])); let n = 0; for (const k of he) { const [a, b] = k.split(','); if (!he.has(b + ',' + a)) n++ } return n }, id)
@@ -44,13 +46,26 @@ export default async function (t) {
       inflate: (a, b) => radii(b)[1] > radii(a)[1] + 0.01,
       flatten: (a, b) => maxY(b) < maxY(a) - 0.005,
       pinch: (a, b) => diff(a, b).max > 1e-3,
-      crease: (a, b) => radii(b)[0] < radii(a)[0] - 0.005
+      crease: (a, b) => radii(b)[0] < radii(a)[0] - 0.005,
+      drawSharp: (a, b) => radii(b)[1] > radii(a)[1] + 0.005,
+      layer: (a, b) => radii(b)[1] > radii(a)[1] + 0.01 && diff(a, b).max <= 0.9 * 0.12 * 1.15,
+      blob: (a, b) => radii(b)[1] > radii(a)[1] + 0.01,
+      scrape: (a, b) => maxY(b) < maxY(a) - 0.005,
+      fill: (a, b) => diff(a, b).max > 1e-3 && radii(b)[0] >= radii(a)[0] - 1e-6,
+      snakeHook: (a, b) => dX(a, b) > 0.05,
+      thumb: (a, b) => dX(a, b) > 0.01,
+      nudge: (a, b) => dX(a, b) > 0.01,
+      rotate: (a, b) => diff(a, b).max > 1e-3,
+      clayStrips: (a, b) => radii(b)[1] > radii(a)[1] + 0.01,
+      planes: (a, b) => diff(a, b).max > 1e-3,
+      relax: (a, b) => diff(a, b).max > 1e-4 && Math.abs(radii(b)[1] - radii(a)[1]) < 0.02,
+      elastic: (a, b) => maxY(b) > maxY(a) + 0.3
     }
     const out = []
     for (const brush of Object.keys(want)) {
       const id = await addSphere(s, { name: brush, pos: [0, 3, 0], R: 24, S: 32 })
       const a = await vertsOf(s, id)
-      const pts = brush === 'grab' ? [[0, 5, 0], [0, 6, 0]] : top
+      const pts = brush === 'grab' || brush === 'elastic' ? [[0, 5, 0], [0, 6, 0]] : top
       const r = await stroke(s, { id, brush, points: pts, radius: 0.9, strength: 0.7, symmetry: false })
       const b = await vertsOf(s, id)
       t.eq(b.length, a.length, brush + ' keeps the vertex count')
@@ -222,7 +237,7 @@ export default async function (t) {
     t.eq(await s.eval(() => window.studio.app.sculpt.cfg.brush), 'draw', 'X picks Draw')
     // panel: brush grid and sliders
     const pan = await s.eval(() => { const e = document.querySelector('[data-panel=sculpt]'); return e ? [e.querySelectorAll('.sculpt-b').length, e.querySelectorAll('input[type=range]').length, e.querySelector('.sculpt-b.on')?.dataset.brush] : null })
-    t.eq(pan, [8, 2, 'draw'], 'panel shows 8 brushes, 2 sliders, Draw on')
+    t.eq(pan, [21, 2, 'draw'], 'panel shows 21 brushes, 2 sliders, Draw on')
     await p.click('[data-panel=sculpt] .sculpt-b[data-brush=inflate]')
     t.eq(await s.eval(() => window.studio.app.tool), 'sculpt-inflate', 'panel button picks the brush')
     await p.click('[data-panel=sculpt] .sculpt-b[data-brush=draw]')

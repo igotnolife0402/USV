@@ -19,6 +19,19 @@ addIcons({
   'sc-flatten': 'M1.5 13h13 M3.5 10h9 M8 2v5.5 M6 5.5l2 2 2-2',
   'sc-pinch': 'M1.5 8h4 M3.5 6l2 2-2 2 M14.5 8h-4 M12.5 6l-2 2 2 2 M8 3v10',
   'sc-crease': 'M1.5 5h3.5L8 12.5 11 5h3.5',
+  'sc-sharp': 'M1.5 12.5h4.5L8 3l2 9.5h4.5',
+  'sc-layer': 'M1.5 13h13 M4 13V9h8v4 M4 9h8 M8 2v5',
+  'sc-blob': 'M8 4a4.5 4.5 0 1 0 0 9 4.5 4.5 0 1 0 0-9 M6 7.5a1 1 0 1 0 0 .1',
+  'sc-scrape': 'M1.5 13h13 M2.5 9.5c2-2 3-2 5 0h6 M10 3 7 7',
+  'sc-fill': 'M1.5 9h13 M3 9c0 3 2 4.5 5 4.5s5-1.5 5-4.5 M8 2v5 M6 5l2 2 2-2',
+  'sc-snake': 'M2 13.5c3 0 3-4 6-4s2-6 5-6 M11 2.5l2 1-1 2',
+  'sc-thumb': 'M1.5 12h13 M3 12c1-3 3-4 6-4h4 M11 6l2 2-2 2',
+  'sc-nudge': 'M1.5 13h13 M2.5 8h9 M9.5 6l2 2-2 2 M4 13c1-2 3-2 4 0',
+  'sc-rotate': 'M12.5 8a4.5 4.5 0 1 1-1.3-3.2 M11.5 2v3h-3',
+  'sc-strips': 'M1.5 13h13 M3 10.5h10 M3.5 8h9 M5 5.5h6',
+  'sc-planes': 'M1.5 13h13 M2.5 9h11 M5 9l1.5-4h3L11 9',
+  'sc-relax': 'M2 4.5h12 M2 8h12 M2 11.5h12 M5 3v10 M8 3v10 M11 3v10',
+  'sc-elastic': 'M1.5 13.5c4 0 4-9 6.5-9s2.5 9 6.5 9 M6 4 8 2l2 2',
   'sc-sym': 'M8 1.5v13 M6 4.5 2.5 8 6 11.5z M10 4.5 13.5 8 10 11.5z',
   'sc-invert': 'M2.5 5h4 M4.5 3v4 M9.5 11h4 M12.5 3.5 3.5 12.5',
   'sc-sub': 'M2.5 2.5h11v11h-11z M8 2.5v11 M2.5 8h11',
@@ -38,8 +51,23 @@ const BR = {
   inflate: { label: 'Inflate', key: 'I', icon: 'sc-inflate', tip: 'Swells along each normal' },
   flatten: { label: 'Flatten', key: 'Shift+T', icon: 'sc-flatten', tip: 'Presses toward the average plane' },
   pinch: { label: 'Pinch', key: 'P', icon: 'sc-pinch', tip: 'Pulls vertices to the brush centre' },
-  crease: { label: 'Crease', key: 'Shift+C', icon: 'sc-crease', tip: 'Cuts a sharp groove; Ctrl ridges' }
+  crease: { label: 'Crease', key: 'Shift+C', icon: 'sc-crease', tip: 'Cuts a sharp groove; Ctrl ridges' },
+  drawSharp: { label: 'Draw sharp', icon: 'sc-sharp', tip: 'Thin hard-edged lines: cuts, cracks, seams; Ctrl carves' },
+  layer: { label: 'Layer', icon: 'sc-layer', tip: 'Raises to one even height per stroke; Ctrl lowers' },
+  blob: { label: 'Blob', icon: 'sc-blob', tip: 'Round bulges: knuckles, warts, rivets' },
+  scrape: { label: 'Scrape', icon: 'sc-scrape', tip: 'Shaves peaks down to a plane; Ctrl fills' },
+  fill: { label: 'Fill', icon: 'sc-fill', tip: 'Fills valleys up to a plane; Ctrl scrapes' },
+  snakeHook: { label: 'Snake hook', icon: 'sc-snake', tip: 'Pulls horns, spikes and tentacles along the stroke' },
+  thumb: { label: 'Thumb', icon: 'sc-thumb', tip: 'Smears the surface along the stroke, flattening it' },
+  nudge: { label: 'Nudge', icon: 'sc-nudge', tip: 'Pushes the surface along the stroke' },
+  rotate: { label: 'Rotate', icon: 'sc-rotate', tip: 'Twists the surface under the brush; Ctrl turns the other way' },
+  clayStrips: { label: 'Clay strips', icon: 'sc-strips', tip: 'Fast blocky clay layers for forms and muscles' },
+  planes: { label: 'Planes', icon: 'sc-planes', tip: 'Cuts flat planes for hard edges; Ctrl presses in' },
+  relax: { label: 'Relax', icon: 'sc-relax', tip: 'Evens out the mesh flow without changing the shape' },
+  elastic: { label: 'Elastic grab', icon: 'sc-elastic', tip: 'Grab with a soft elastic falloff: big natural pulls' }
 }
+// Brushes that drag a region with the pointer instead of dabbing along the stroke.
+const isGrab = b => b === 'grab' || b === 'elastic'
 const BRUSHES = Object.keys(BR)
 const FALL = {
   smooth: t => { const u = 1 - t; return u * u * (3 - 2 * u) },
@@ -338,6 +366,89 @@ function dab (s, st, cx, cy, cz) {
       }
       break
     }
+    case 'clayStrips': {
+      const off = sign * r * 0.1, qx = px + ax * off, qy = py + ay * off, qz = pz + az * off
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3, d = ((pos[o] - qx) * ax + (pos[o + 1] - qy) * ay + (pos[o + 2] - qz) * az) * sign
+        if (d < 0) { const w = -d * sign * Math.min(1, Math.sqrt(qw[i]) * 1.6); pos[o] += ax * w; pos[o + 1] += ay * w; pos[o + 2] += az * w }
+      }
+      break
+    }
+    case 'planes': {
+      const off = sign * r * 0.04, qx = px + ax * off, qy = py + ay * off, qz = pz + az * off
+      for (let i = 0; i < n; i++) { const o = qv[i] * 3, d = (pos[o] - qx) * ax + (pos[o + 1] - qy) * ay + (pos[o + 2] - qz) * az, w = -d * Math.min(1, qw[i] * 1.3); pos[o] += ax * w; pos[o + 1] += ay * w; pos[o + 2] += az * w }
+      break
+    }
+    case 'relax': {
+      const { vvOff, vvList, tmp } = s
+      for (let i = 0; i < n; i++) {
+        const v = qv[i], o = v * 3; let sx = 0, sy = 0, sz = 0
+        const b = vvOff[v], e = vvOff[v + 1]
+        for (let j = b; j < e; j++) { const u = vvList[j] * 3; sx += pos[u]; sy += pos[u + 1]; sz += pos[u + 2] }
+        const c = e - b || 1; let dx = sx / c - pos[o], dy = sy / c - pos[o + 1], dz = sz / c - pos[o + 2]
+        const dn = dx * nrm[o] + dy * nrm[o + 1] + dz * nrm[o + 2]; dx -= nrm[o] * dn; dy -= nrm[o + 1] * dn; dz -= nrm[o + 2] * dn
+        tmp[i * 3] = dx; tmp[i * 3 + 1] = dy; tmp[i * 3 + 2] = dz
+      }
+      for (let i = 0; i < n; i++) { const o = qv[i] * 3, w = Math.min(1, qw[i] * 1.6); pos[o] += tmp[i * 3] * w; pos[o + 1] += tmp[i * 3 + 1] * w; pos[o + 2] += tmp[i * 3 + 2] * w }
+      break
+    }
+    case 'drawSharp': {
+      const d = sign * r * 0.08, kk = Math.max(k, 1e-6)
+      for (let i = 0; i < n; i++) { const o = qv[i] * 3, w = qw[i] * qw[i] * qw[i] / (kk * kk) * d; pos[o] += ax * w; pos[o + 1] += ay * w; pos[o + 2] += az * w }
+      break
+    }
+    case 'layer': {
+      const H = sign * r * 0.12, st0 = st.start
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3, cur = (pos[o] - st0[o]) * ax + (pos[o + 1] - st0[o + 1]) * ay + (pos[o + 2] - st0[o + 2]) * az, left = H - cur
+        if (left * sign <= 0) continue
+        const w = left * Math.min(1, qw[i] * 1.5); pos[o] += ax * w; pos[o + 1] += ay * w; pos[o + 2] += az * w
+      }
+      break
+    }
+    case 'blob': {
+      const d = sign * r * 0.06
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3; let dx = pos[o] - cx, dy = pos[o + 1] - cy, dz = pos[o + 2] - cz
+        const l = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1, w = qw[i] * d; dx /= l; dy /= l; dz /= l
+        pos[o] += (dx * 0.6 + ax * 0.4) * w; pos[o + 1] += (dy * 0.6 + ay * 0.4) * w; pos[o + 2] += (dz * 0.6 + az * 0.4) * w
+      }
+      break
+    }
+    case 'scrape':
+    case 'fill': {
+      const up = (st.brush === 'fill') === (sign > 0)
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3, d = (pos[o] - px) * ax + (pos[o + 1] - py) * ay + (pos[o + 2] - pz) * az
+        if (up ? d >= 0 : d <= 0) continue
+        const w = -d * Math.min(1, qw[i]); pos[o] += ax * w; pos[o + 1] += ay * w; pos[o + 2] += az * w
+      }
+      break
+    }
+    case 'snakeHook':
+    case 'thumb':
+    case 'nudge': {
+      const mv = st.mv || [0, 0, 0], dn = mv[0] * ax + mv[1] * ay + mv[2] * az
+      // snake hook follows the stroke fully (spikes); thumb and nudge stay on the surface
+      const tx = st.brush === 'snakeHook' ? mv[0] : mv[0] - ax * dn, ty = st.brush === 'snakeHook' ? mv[1] : mv[1] - ay * dn, tz = st.brush === 'snakeHook' ? mv[2] : mv[2] - az * dn
+      const f = st.brush === 'snakeHook' ? 1 : st.brush === 'nudge' ? 0.5 : 0.35, kk = Math.max(k, 1e-6)
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3, w = Math.min(1, qw[i] / kk) * Math.min(1, k * 2) * f
+        pos[o] += tx * w; pos[o + 1] += ty * w; pos[o + 2] += tz * w
+        if (st.brush === 'thumb') { const d = (pos[o] - px) * ax + (pos[o + 1] - py) * ay + (pos[o + 2] - pz) * az, g = -d * Math.min(1, qw[i]) * 0.3; pos[o] += ax * g; pos[o + 1] += ay * g; pos[o + 2] += az * g }
+      }
+      break
+    }
+    case 'rotate': {
+      for (let i = 0; i < n; i++) {
+        const o = qv[i] * 3, th = sign * 0.12 * qw[i], cs = Math.cos(th), sn = Math.sin(th)
+        const vx = pos[o] - cx, vy = pos[o + 1] - cy, vz = pos[o + 2] - cz, dd = vx * ax + vy * ay + vz * az
+        // Rodrigues rotation about the brush normal through the brush centre
+        const kx = ay * vz - az * vy, ky = az * vx - ax * vz, kz = ax * vy - ay * vx
+        pos[o] = cx + vx * cs + kx * sn + ax * dd * (1 - cs); pos[o + 1] = cy + vy * cs + ky * sn + ay * dd * (1 - cs); pos[o + 2] = cz + vz * cs + kz * sn + az * dd * (1 - cs)
+      }
+      break
+    }
     case 'pinch':
     case 'crease': {
       const crease = st.brush === 'crease', pf = crease ? 0.25 : 0.3 * sign, d = crease ? -sign * r * 0.05 : 0
@@ -362,7 +473,7 @@ function dab (s, st, cx, cy, cz) {
 // Dab at c and, with X symmetry, at c mirrored over the object's local X = 0.
 function dabSym (s, st, c) {
   dab(s, st, c.x, c.y, c.z)
-  if (st.sym) dab(s, st, -c.x, c.y, c.z)
+  if (st.sym) { const mv = st.mv; if (mv) st.mv = [-mv[0], mv[1], mv[2]]; dab(s, st, -c.x, c.y, c.z); st.mv = mv }
 }
 
 // Dabs every SPACING*r along from -> to (local), carrying the remainder between calls.
@@ -372,6 +483,8 @@ function walk (s, st, from, to, cap) {
   if (cap && dist / sp > cap) sp = dist / cap
   let t = st.carry
   const c = new THREE.Vector3()
+  // per-dab advance along the stroke: snake hook, thumb and nudge move vertices by it
+  st.mv = dist > 1e-12 ? [(to.x - from.x) / dist * sp, (to.y - from.y) / dist * sp, (to.z - from.z) / dist * sp] : [0, 0, 0]
   while (t <= dist) { c.lerpVectors(from, to, dist > 0 ? t / dist : 0); dabSym(s, st, c); t += sp }
   st.carry = t - dist
 }
@@ -397,10 +510,13 @@ function finishStep (s) {
 // Grab: weights are taken once at the stroke start; each move sets pos = start + delta * weight.
 function grabStart (s, st, c) {
   if (!s.gA) { s.gA = new Float32Array(s.nV); s.gB = new Float32Array(s.nV); s.gList = new Uint32Array(s.nV) }
-  const fall = FALL[st.falloff] || FALL.smooth, k = Math.min(1, st.strength * 2) * st.pressure, id = s.tId + 0x40000000
+  // elastic: Kelvinlet-like falloff over 2.5x the radius, zeroed at its edge
+  const EL = 2.5, kel = u => Math.pow(1 / (1 + u * u), 1.5), k0 = kel(EL)
+  const fall = st.brush === 'elastic' ? t => (kel(t * EL) - k0) / (1 - k0) : FALL[st.falloff] || FALL.smooth, k = Math.min(1, st.strength * 2) * st.pressure, id = s.tId + 0x40000000
+  const rq = st.brush === 'elastic' ? st.rL * EL : st.rL
   s.nG = 0
   const add = (cx, cy, cz, arr) => {
-    const n = query(s, cx, cy, cz, st.rL)
+    const n = query(s, cx, cy, cz, rq)
     for (let i = 0; i < n; i++) {
       const v = s.qv[i]
       arr[v] = fall(s.qd[i]) * k
@@ -545,7 +661,7 @@ function onDown (ev) {
     brush: cfg.brush, sign: (!!ev.ctrl !== !!cfg.invert) ? -1 : 1, sym: cfg.sym, strength: cfg.strength, pressure,
     falloff: cfg.falloff, rL: rW / sc, rW, sc, mw: mw.clone(), start: s.pos.slice(), last: hit.local.clone(), carry: 0, moved: false
   }
-  if (stroke.brush === 'grab') {
+  if (isGrab(stroke.brush)) {
     grabStart(s, stroke, hit.local)
     stroke.p0 = hit.world.clone()
     const dir = new THREE.Vector3(); APP.viewport.camera.getWorldDirection(dir)
@@ -565,7 +681,7 @@ function onMove (ev) {
   const s = S
   if (!s) return
   const t0 = performance.now()
-  if (stroke.brush === 'grab') {
+  if (isGrab(stroke.brush)) {
     const p = ev.ray && ev.ray.intersectPlane(stroke.plane, new THREE.Vector3())
     if (!p) return
     _inv.copy(stroke.mw).invert()
@@ -593,7 +709,7 @@ function onUp () {
   const s = S, st = stroke
   stroke = null
   if (!s) return
-  if (st.brush === 'grab') grabEnd(s)
+  if (isGrab(st.brush)) grabEnd(s)
   commit(s, 'Sculpt ' + BR[st.brush].label)
   if (isPhone()) hideRing()
 }
@@ -603,7 +719,7 @@ function onCancel () {
   const s = S, st = stroke
   stroke = null
   if (!s) return
-  if (st.brush === 'grab') grabEnd(s)
+  if (isGrab(st.brush)) grabEnd(s)
   s.pos.set(st.start)
   allNormals(s)
   s.bvh.refit()
@@ -630,7 +746,7 @@ function scriptStroke (app, s, a, inRun) {
   let pts = (a.points || []).map(p => new THREE.Vector3(+p[0] || 0, +p[1] || 0, +p[2] || 0).applyMatrix4(inv))
   if (!pts.length) throw new Error('Sculpt stroke needs points: [[x,y,z], ...]')
   if (a.snap !== false) {
-    pts = pts.map((p, i) => { if (brush === 'grab' && i) return p; const r = s.bvh.closestPointToPoint(p, {}); return r && r.point ? r.point.clone() : p })
+    pts = pts.map((p, i) => { if (isGrab(brush) && i) return p; const r = s.bvh.closestPointToPoint(p, {}); return r && r.point ? r.point.clone() : p })
   }
   const st = {
     brush, sign: a.invert ? -1 : 1, sym: a.symmetry === undefined ? cfg.sym : !!a.symmetry,
@@ -638,7 +754,7 @@ function scriptStroke (app, s, a, inRun) {
     falloff: FALL[a.falloff] ? a.falloff : cfg.falloff, rL: (a.radius > 0 ? +a.radius : 1) / sc, carry: 0, start: s.pos.slice()
   }
   const t0 = performance.now(), d0 = stats.dabs
-  if (brush === 'grab') {
+  if (isGrab(brush)) {
     grabStart(s, st, pts[0])
     const d = pts[pts.length - 1].clone().sub(pts[0])
     grabApply(s, st, d)
