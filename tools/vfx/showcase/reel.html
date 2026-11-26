@@ -12,13 +12,18 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hid
 #ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:6px}
 #ui button{font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:7px 10px;cursor:pointer}
 #ui button:focus-visible{outline:2px solid #7d9cff}
-#ui label{display:flex;align-items:center;gap:6px;font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:0 10px;min-height:30px}
+#owBox{display:flex;flex-direction:column;gap:4px;font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:6px 10px}
+#owBox[aria-disabled=true]{opacity:.45}
+#ui label{display:flex;align-items:center;gap:6px}
 #ui input{width:min(28vw,120px);accent-color:#7d9cff;margin:0}
-#ui label[aria-disabled=true]{opacity:.45}
+/* Thickness preview: a line drawn at the outline's real on-screen width (measured from the live core layer) */
+#owLine{display:flex;align-items:center;gap:6px;min-height:12px}
+#lOw{flex:1;height:2px;border-radius:2px;background:#7d9cff}
+#pxOw{font:600 11px system-ui,sans-serif;color:#93a0b4;min-width:3.2em;text-align:right}
 #err{position:fixed;left:8px;bottom:8px;margin:0;color:#ff8a8a;font:12px monospace;white-space:pre-wrap}
 </style>
 <div id="stage"><div id="wrap"><canvas id="gl"></canvas><canvas id="hud"></canvas></div></div>
-<div id="ui"><button id="bOl"></button><label for="sOw">Width <input id="sOw" type="range" min="5" max="150" step="5"><span id="vOw"></span></label><button id="bHud"></button></div>
+<div id="ui"><button id="bOl"></button><div id="owBox"><label for="sOw">Width <input id="sOw" type="range" min="5" max="50" step="5"><span id="vOw"></span></label><div id="owLine" title="Actual outline thickness on screen"><i id="lOw"></i><b id="pxOw"></b></div></div><button id="bHud"></button></div>
 <pre id="err"></pre>
 <script>
 {
@@ -202,7 +207,9 @@ let W = 0, H = 0
 const OL = ['none', 'ink', 'rim', 'hot', 'toon'], HUD = ['bar', 'frame', 'minimal'], qs = new URLSearchParams(location.search)
 const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol') || 'rim')), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) } // owner 2026-11-26: rim (shot colour, brighter) is the default outline
 // Outline width per style in % of the old 0.016-uv edge (rim 30 = 70% thinner); Width slider edits the current style, ?ow= sets it at load.
-const OW = [0, 100, 30, 100, 100]; if (+qs.get('ow') > 0) OW[ST.ol] = Math.min(150, +qs.get('ow'))
+// Owner 2026-11-26: range 5-50 %, never thicker.
+const OW = [0, 50, 30, 50, 50]; if (+qs.get('ow') > 0) OW[ST.ol] = Math.min(50, Math.max(5, +qs.get('ow')))
+let olFrac = 0, olCol = [0.49, 0.61, 1] // outline width as a fraction of canvas height + colour, from the last core layer drawn
 window.reelStyle = (ol, hud) => { if (ol != null) ST.ol = Math.max(0, OL.indexOf(ol)); if (hud != null) ST.hud = Math.max(0, HUD.indexOf(hud)); syncUi() }
 function size(w, h) { if (w === W && h === H) return; W = cv.width = hud.width = w; H = cv.height = hud.height = h }
 const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x)
@@ -233,9 +240,10 @@ function render(T) {
     gl.uniform1f(FX.u.uFrame, Math.min(u * FRAMES, FRAMES - 1.001)); gl.uniform1f(FX.u.uU, u)
     gl.uniform1f(FX.u.uK, l.k); gl.uniform1f(FX.u.uAmt, l.amt); gl.uniform1f(FX.u.uTex, l.tex); gl.uniform1f(FX.u.uSeed, si * 3.1 + i * 1.7)
     gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0); gl.uniform1f(FX.u.uCore, l.core ? 1 : 0); gl.uniform1f(FX.u.uOl, ST.ol); gl.uniform1f(FX.u.uOw, OW[ST.ol] * 0.00016);gl.uniform3fv(FX.u.uOlCol, col)
+    if (l.core) { olFrac = OW[ST.ol] * 0.00016 * sz * zoom; olCol = col }
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   })
-  drawHud(T, si, sh, ts)
+  drawHud(T, si, sh, ts); if (typeof syncLine === 'function') syncLine()
 }
 function pips(x, y, label, n, s, c) {
   hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .62}px system-ui,sans-serif`; hx.fillText(label, x, y)
@@ -277,9 +285,17 @@ const comp = document.createElement('canvas'), cx = comp.getContext('2d')
 window.reelFrame = (t, w = 1280, h = 720) => { size(w, h); render(t); comp.width = w; comp.height = h; cx.drawImage(cv, 0, 0); cx.drawImage(hud, 0, 0); return comp.toDataURL('image/jpeg', .92) }
 window.reelInfo = { LEN, shots: SHOTS.map(s => s.name), OL, HUD }
 function syncUi() { $('bOl').textContent = 'Outline: ' + OL[ST.ol]; $('bHud').textContent = 'HUD: ' + HUD[ST.hud]
-  const off = ST.ol === 0, s = $('sOw'); s.disabled = off; s.parentNode.setAttribute('aria-disabled', off); s.value = OW[ST.ol] || 30; $('vOw').textContent = off ? '–' : OW[ST.ol] + '%' }
+  const off = ST.ol === 0, s = $('sOw'); s.disabled = off; $('owBox').setAttribute('aria-disabled', off); s.value = OW[ST.ol] || 30; $('vOw').textContent = off ? '–' : OW[ST.ol] + '%'; syncLine() }
+// Preview line = real on-screen outline px (uv width x layer size x zoom x displayed canvas height), shot colour.
+let linePx = -1
+function syncLine() {
+  const px = ST.ol ? olFrac * cv.getBoundingClientRect().height : 0, r = Math.round(px * 10) / 10
+  if (r === linePx) return; linePx = r
+  $('lOw').style.height = Math.max(px, .5) + 'px'; $('lOw').style.background = ST.ol ? `rgb(${olCol.map(c => Math.round(c * 255))})` : '#93a0b4'
+  $('pxOw').textContent = ST.ol ? r.toFixed(1) + ' px' : '–'
+}
 $('sOw').oninput = e => { if (ST.ol) { OW[ST.ol] = +e.target.value; syncUi() } }
-$('sOw').parentNode.onclick = e => e.stopPropagation()
+$('owBox').onclick = e => e.stopPropagation()
 $('bOl').onclick = e => { e.stopPropagation(); ST.ol = (ST.ol + 1) % OL.length; syncUi() }
 $('bHud').onclick = e => { e.stopPropagation(); ST.hud = (ST.hud + 1) % HUD.length; syncUi() }
 syncUi()
