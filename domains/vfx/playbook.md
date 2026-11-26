@@ -49,6 +49,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - Respects `prefers-reduced-motion` (reduce shake/flash); no full-screen flashing > 3 Hz.
 - No allocation per frame in update loops; no shader compile hitch at first trigger (warm up).
 - 3D heroes in a showcase (comet, crystal, projectile) are custom textured meshes from props.py, sized for the shot (comet >= 1.5 m), never Glass/Neon primitives (L-163; pattern tools/vfx/frost-comet/models.py).
+- Never deliver without the baseline gate in [checklists/vfx.md](../../checklists/vfx.md): baseline.py 7/7 and detail.py DETAIL PASS on hero meshes (owner 2026-11-26). Scores 2026-11-26: fireball 5/7 + detail FAIL (9 parts), frost-comet 6/7 + detail FAIL (24 parts); both miss rule 1 (dark dip before the hit).
 
 ## Speed tricks
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.
