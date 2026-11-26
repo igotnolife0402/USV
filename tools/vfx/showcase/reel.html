@@ -194,9 +194,9 @@ const ready = Promise.all([...new Set(SHOTS.flatMap(s => s.layers.map(l => l.s))
 window.reelReady = ready
 
 let W = 0, H = 0
-// Styles (owner 2026-11-26 "try different outlines"): outline per core layer, HUD layout. URL ?ol=ink&hud=frame or the buttons.
+// Styles (owner 2026-11-26 "try different outlines"): outline per core layer, HUD layout. URL ?ol=ink&hud=frame or the buttons. Default outline = rim.
 const OL = ['none', 'ink', 'rim', 'hot', 'toon'], HUD = ['bar', 'frame', 'minimal'], qs = new URLSearchParams(location.search)
-const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol'))), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) }
+const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol') || 'rim')), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) } // owner 2026-11-26: rim (shot colour, brighter) is the default outline
 window.reelStyle = (ol, hud) => { if (ol != null) ST.ol = Math.max(0, OL.indexOf(ol)); if (hud != null) ST.hud = Math.max(0, HUD.indexOf(hud)); syncUi() }
 function size(w, h) { if (w === W && h === H) return; W = cv.width = hud.width = w; H = cv.height = hud.height = h }
 const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x)

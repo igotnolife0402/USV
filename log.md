@@ -580,3 +580,7 @@ improved: draw.mjs --dir batch mode (one browser, 20 sheets ~18 s); slug clash c
 ## [2026-11-26] build / VFX reel: outline styles, new silhouettes, HUD layouts
 Owner "try different outlines" → all three: core-layer outline shader (none/ink/rim/hot/toon, 8-tap dilate/erode), 4 new-silhouette sheets (mushroom-blast, toxic-creep, star-rift, plasma-crescent; jump 2.93/2.72/1.5/1.63) replacing round blobs, HUD layouts bar/frame/minimal; buttons + ?ol=&hud= in reel.html. Stills checked via styles grid; motion not visually verified.
 improved: reel-capture `styles` mode (one comparison grid per run); window.reelStyle hook for captures; blob shots swapped for distinct silhouettes
+
+## [2026-11-26] edit / reel default outline = rim
+Owner picked "colour but brighter" (rim); reel.html defaults to it (?ol= still overrides). Headless check: button "Outline: rim", 0 errors, frame viewed. Artifact v4.
+improved: rim default in reel.html; router vfx words outline/outlines/rim outline/reel; playbook reel line fixed (1 s shots, reel.test route for checks); L-216
