@@ -1,6 +1,6 @@
 ---
 summary: Known VFX/particle/shader/post-processing failures with cause and fix
-updated: 2026-11-21
+updated: 2026-11-26
 status: current
 triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 ---
@@ -52,3 +52,4 @@ triggers: [shader error, glsl error, particles lag, bloom broken, black screen]
 | old vfx reused, last frames cut | vfx generator rendered saved sheets and deterministic seeds; short targets squeezed a 4-14 s story + cine slow-mo into < 1 s so flipbooks played 2-3 frames; prompt routed 3d | lifeErrs fix rounds + cineOpts | 2026-11-25 |
 | low quality sheets saved; names like gunshot smoke cloud; sheets not findable by other tools | hub generator saved sheets over the quality floor (jump 3.25) under prompt-context names in its own db only, never in vfx/sheets on main | JUMP_MAX gate + sheetName in generator.html; hub_import.mjs; CLAUDE.md tool-output rule | 2026-11-25 |
 | publish refused, Monitor InputValidationError, sleep blocked, 457 s vs 300 | hub republish sent vfx/index.tsv without contentType (.tsv not served); Monitor called without description; sleep+read blocked | vfx/README.md importer step names contentType text/plain | 2026-11-25 |
+| gunshot: 4 s before the bullet fired (7 s clip); generations 30-45 s | every clip got the cinematic build-up + slow-mo; Opus medium thinking, pretty JSON, model fix rounds, drawing after the full reply | Type consistent (real time, action at t 0); effort low, minified sheets-first reply, earlyDraw, repair()/fixLives() in code (L-205) | 2026-11-26 |
