@@ -48,6 +48,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - 60 fps on mid phone; particle cap enforced (pool), DPR capped at 2 for full-screen shaders.
 - Respects `prefers-reduced-motion` (reduce shake/flash); no full-screen flashing > 3 Hz.
 - No allocation per frame in update loops; no shader compile hitch at first trigger (warm up).
+- 3D heroes in a showcase (comet, crystal, projectile) are custom textured meshes from props.py, sized for the shot (comet >= 1.5 m), never Glass/Neon primitives (L-163; pattern tools/vfx/frost-comet/models.py).
 
 ## Speed tricks
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.

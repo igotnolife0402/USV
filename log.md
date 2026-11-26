@@ -402,3 +402,7 @@ improved: mp4 recipe in vfx playbook; strip check before sending; issues listed 
 ## [2026-11-26] build / frost-comet v2 (improve 60)
 improve 60: 0 s brief late, 17 s Sonnet, 124.3 s total, FAIL (spawned past send_brief_at). Camera keyed close + moving, crystal 3.2 m hero, mist removed, ice-only palette; mp4 frames seen. Hub tab frost-comet-2 not written (over budget).
 improved: Studio now plays clip camera keys (anim.js); video export hides light diamonds (video.js); scalar key sampling fixed (mix); cine rule in vfx playbook
+
+## [2026-11-26] build / frost-comet v3 (owner: bland models, tiny comet, no texture)
+models.py: textured faceted ice-rock comet 1.9 m + 7 spikes + glow core, 13-shard crystal cluster + frozen base (24 parts, 8632 tris, 5 procedural textures); ramps no longer end pure white, texAmt 0.6, trail/gather bigger, flat ground mist back. mp4 frames seen; crystal marble veins faint at video res. Hub tab frost-comet-3 FAILED: hub DB at 100 MB quota, nothing written.
+improved: build.mjs runs models.py itself; comet core shrunk (poked out as a pale bulb); L-163 rule in vfx playbook + 2 errors rows (incl. hub quota)
