@@ -275,6 +275,7 @@ function validate(S) {
   for (const [id, d] of Object.entries(S.sheets || {})) { const w = String(d?.name || '').trim().split(/\s+/).filter(Boolean).length; if (w < 1 || w > 3) bad.push(`sheets.${id}.name: 1-3 words saying what the sheet is (e.g. smoke cloud), no prompt context`) }
   for (const [k, p] of Object.entries(parts)) {
     if (!SHAPES.includes(p.shape || 'box')) bad.push(`part ${k}: shape ${p.shape}`)
+    if (p.model && !(p.model in MODELS)) bad.push(`part ${k}: model ${p.model} (one of ${Object.keys(MODELS).join(', ')})`)
     if (!vec(p.size)) bad.push(`part ${k}: size [x,y,z]`)
     if (p.pos && !vec(p.pos)) bad.push(`part ${k}: pos`)
     if (p.parent && !parts[p.parent]) bad.push(`part ${k}: parent ${p.parent} missing`)
@@ -282,7 +283,8 @@ function validate(S) {
   for (const [k, tr] of Object.entries(S.tracks || {})) {
     if (!parts[k]) { bad.push(`track ${k}: no such part`); continue }
     for (const [ch, ks] of Object.entries(tr)) {
-      if (!['pos', 'rot', 'scale'].includes(ch)) bad.push(`track ${k}.${ch}: only pos/rot/scale`)
+      if (ch === 'dissolve') { if (!Array.isArray(ks) || !ks.every(q => typeof q[0] === 'number' && disV(q) >= 0 && disV(q) <= 1)) bad.push(`track ${k}.dissolve: keys [t,[0..1],ease]`) }
+      else if (!['pos', 'rot', 'scale'].includes(ch)) bad.push(`track ${k}.${ch}: only pos/rot/scale/dissolve`)
       else if (!Array.isArray(ks) || !ks.every(q => typeof q[0] === 'number' && vec(q[1]))) bad.push(`track ${k}.${ch}: keys [t,[x,y,z],ease]`)
     }
   }
@@ -416,12 +418,60 @@ function partGeo(shape, s) {
   }
   g.scale(s[0], s[1], s[2]); return g
 }
-function partMesh(o) {
+// placeholder models (owner 2026-11-26: "acid eroding character ... a grey cube, i have no idea if it even erodes"): a part with
+// `model` is a recognizable primitive figure; size = its bounding box in metres (uniform fit), pos = its centre
+const capG = (r, l) => new THREE.CapsuleGeometry(r, l, 6, 14)
+const atG = (g, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => { g.scale(sx, sy, sz); g.rotateX(rx); g.rotateY(ry); g.rotateZ(rz); g.translate(x, y, z); return g }
+const MODELS = {
+  humanoid: { nat: [0.62, 1.8, 0.3], parts: () => [
+    atG(new THREE.SphereGeometry(0.115, 24, 16), 0, 0.775, 0, 0, 0, 0, 0.9, 1.05, 0.95), atG(new THREE.CylinderGeometry(0.045, 0.055, 0.1, 12), 0, 0.64, 0),
+    atG(capG(0.16, 0.26), 0, 0.33, 0, 0, 0, 0, 1.15, 1, 0.68), atG(capG(0.14, 0.08), 0, -0.02, 0, 0, 0, 0, 1.05, 1, 0.7),
+    ...[-1, 1].flatMap(sd => [
+      atG(capG(0.052, 0.22), sd * 0.235, 0.41, 0, 0, 0, sd * 0.1), atG(capG(0.046, 0.21), sd * 0.265, 0.12, 0.01, 0, 0, sd * 0.04), atG(new THREE.SphereGeometry(0.05, 12, 8), sd * 0.272, -0.04, 0.015, 0, 0, 0, 0.8, 1.2, 0.9),
+      atG(capG(0.075, 0.3), sd * 0.1, -0.27, 0), atG(capG(0.058, 0.32), sd * 0.1, -0.65, 0), atG(new THREE.BoxGeometry(0.1, 0.06, 0.24), sd * 0.1, -0.87, 0.04)])] },
+  sword: { nat: [0.26, 1.1, 0.06], parts: () => [
+    atG(new THREE.BoxGeometry(0.07, 0.74, 0.016), 0, 0.2, 0), atG(new THREE.ConeGeometry(0.0495, 0.1, 4), 0, 0.62, 0, 0, Math.PI / 4, 0, 1, 1, 0.23),
+    atG(new THREE.BoxGeometry(0.26, 0.035, 0.05), 0, -0.185, 0), atG(new THREE.CylinderGeometry(0.02, 0.022, 0.2, 12), 0, -0.3, 0), atG(new THREE.SphereGeometry(0.035, 12, 8), 0, -0.43, 0)] },
+  gun: { nat: [0.62, 0.26, 0.06], parts: () => [
+    atG(new THREE.BoxGeometry(0.3, 0.09, 0.055), 0, 0.03, 0), atG(new THREE.CylinderGeometry(0.018, 0.018, 0.3, 12), 0.29, 0.045, 0, 0, 0, Math.PI / 2),
+    atG(new THREE.BoxGeometry(0.06, 0.14, 0.05), -0.09, -0.07, 0, 0, 0, 0.28), atG(new THREE.BoxGeometry(0.04, 0.1, 0.035), 0.05, -0.05, 0), atG(new THREE.BoxGeometry(0.1, 0.07, 0.05), -0.19, 0.02, 0)] },
+  staff: { nat: [0.16, 1.8, 0.16], parts: () => [atG(new THREE.CylinderGeometry(0.022, 0.03, 1.62, 12), 0, -0.09, 0), atG(new THREE.SphereGeometry(0.075, 20, 14), 0, 0.82, 0), atG(new THREE.TorusGeometry(0.06, 0.012, 8, 20), 0, 0.72, 0, Math.PI / 2)] },
+  shield: { nat: [0.7, 0.7, 0.12], parts: () => [atG(new THREE.CylinderGeometry(0.35, 0.35, 0.05, 40), 0, 0, 0, Math.PI / 2), atG(new THREE.TorusGeometry(0.34, 0.02, 8, 40), 0, 0, 0.02), atG(new THREE.SphereGeometry(0.08, 16, 10), 0, 0, 0.03, 0, 0, 0, 1, 1, 0.5)] },
+  rock: { nat: [1, 0.7, 0.9], parts: () => { const g = new THREE.IcosahedronGeometry(0.5, 1), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const f = 0.82 + 0.18 * Math.abs(Math.sin(p.getX(i) * 12.9 + p.getY(i) * 78.2 + p.getZ(i) * 37.7)); p.setXYZ(i, p.getX(i) * f, p.getY(i) * f * 0.7, p.getZ(i) * f * 0.9) } g.computeVertexNormals(); return [g] } },
+  crystal: { nat: [0.4, 1, 0.4], parts: () => [atG(new THREE.OctahedronGeometry(0.2), 0, 0, 0, 0, 0, 0, 1, 2.5, 1)] },
+  tree: { nat: [1, 2, 1], parts: () => [atG(new THREE.CylinderGeometry(0.07, 0.11, 0.8, 12), 0, -0.6, 0), atG(new THREE.ConeGeometry(0.5, 0.9, 16), 0, 0.05, 0), atG(new THREE.ConeGeometry(0.38, 0.75, 16), 0, 0.5, 0), atG(new THREE.ConeGeometry(0.25, 0.55, 16), 0, 0.72, 0)] },
+  wall: { nat: [2, 1.2, 0.3], parts: () => [atG(new THREE.BoxGeometry(2, 1.1, 0.26), 0, -0.05, 0), atG(new THREE.BoxGeometry(2.04, 0.1, 0.3), 0, 0.55, 0)] },
+  barrel: { nat: [0.62, 0.8, 0.62], parts: () => [new THREE.CylinderGeometry(0.29, 0.29, 0.8, 24), ...[-0.28, 0, 0.28].map(y => atG(new THREE.TorusGeometry(0.295, 0.015, 6, 28), 0, y, 0, Math.PI / 2))] },
+}
+// dissolve: a part with a `dissolve` track erodes away by 3D noise with a glowing rim (part.edge colour); 1 = fully gone
+const disV = q => +(Array.isArray(q[1]) ? q[1][0] : q[1])
+const DIS_GLSL = `uniform float uDis;uniform vec3 uEdge;uniform vec3 uOrg;varying vec3 vDisP;
+float disH(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float disV(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(mix(disH(i),disH(i+vec3(1.0,0.0,0.0)),f.x),mix(disH(i+vec3(0.0,1.0,0.0)),disH(i+vec3(1.0,1.0,0.0)),f.x),f.y),mix(mix(disH(i+vec3(0.0,0.0,1.0)),disH(i+vec3(1.0,0.0,1.0)),f.x),mix(disH(i+vec3(0.0,1.0,1.0)),disH(i+vec3(1.0,1.0,1.0)),f.x),f.y),f.z);}
+float disN(vec3 p){return clamp((disV(p)*0.6+disV(p*2.13)*0.3+disV(p*4.37)*0.1-0.2)/0.6,0.0,1.0);}
+`
+function addDissolve(m, edge) {
+  const u = { uDis: { value: 0 }, uEdge: { value: new THREE.Color(edge) }, uOrg: { value: new THREE.Vector3() } }
+  m.userData.dis = u; m.customProgramCacheKey = () => 'vfxgen-dissolve'
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, u)
+    sh.vertexShader = 'varying vec3 vDisP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvDisP = (modelMatrix * vec4(transformed, 1.0)).xyz;')
+    sh.fragmentShader = DIS_GLSL + sh.fragmentShader.replace('void main() {', 'void main() {\nfloat dn = disN((vDisP - uOrg) * 7.0);\nif (dn < uDis * 1.001) discard;')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\nif (uDis > 0.0) totalEmissiveRadiance += uEdge * 4.0 * (1.0 - smoothstep(0.0, 0.08, dn - uDis));')
+  }
+}
+function partMesh(o, dissolve) {
   const neon = o.material === 'Neon', m = new THREE.MeshStandardMaterial({ color: o.color || '#a3a2a5', roughness: o.roughness ?? (neon ? 0.5 : 0.5), metalness: o.metalness ?? 0, side: THREE.DoubleSide })
   if (neon) { m.emissive.set(o.color || '#ffffff'); m.emissiveIntensity = 1; m.toneMapped = false }
   if (o.emissive) { m.emissive.set(o.emissive); m.emissiveIntensity = o.glow ?? o.emissiveIntensity ?? 1 }
   if (o.transparency) { m.transparent = true; m.opacity = 1 - o.transparency }
-  return new THREE.Mesh(partGeo(o.shape || 'box', o.size || [1, 1, 1]), m)
+  if (dissolve) addDissolve(m, HEX.test(o.edge || '') ? o.edge : '#9dff3a')
+  const M = MODELS[o.model], size = o.size || [1, 1, 1]
+  if (!M) { const n = new THREE.Mesh(partGeo(o.shape || 'box', size), m); n.userData.mat = m; return n }
+  // outer group carries pos/rot/scale tracks; the inner group holds the uniform fit, so a scale track multiplies it
+  const n = new THREE.Group(), inner = new THREE.Group(), k = Math.max(...size) / Math.max(...M.nat)
+  for (const g of M.parts()) inner.add(new THREE.Mesh(g, m))
+  inner.scale.setScalar(k); n.add(inner); n.userData.mat = m; return n
 }
 
 let CUR = null, T = 0, playing = true
@@ -446,7 +496,7 @@ function show(P) {
   const nodes = {}
   for (const [id, o] of Object.entries(B.objects)) {
     let n
-    if (o.type === 'part') { n = partMesh(o); n.material.visible = STANDINS }
+    if (o.type === 'part') { n = partMesh({ edge: S.tint, ...o }, !!B.clip.tracks?.[id]?.dissolve); n.userData.mat.visible = STANDINS }
     else if (o.type === 'flipbook') { n = VFX.types.flipbook.build(o, APP); n.userData.op = o.opacity }
     else if (o.type === 'light') { n = new THREE.PointLight(o.color, o.intensity * 6, o.range, 1.2) }
     else continue
@@ -494,6 +544,8 @@ function frameAt(t) {
     if (o.type !== 'light') n.rotation.set(rot[0] * D2R, rot[1] * D2R, rot[2] * D2R, 'XYZ')
     if (k.scale) { const s = sample(k.scale, st, 'scale'); n.scale.set(s[0], s[1], s[2]) }
     if (o.type === 'light') n.intensity = (k.intensity ? sample(k.intensity, st, 'intensity')[0] : o.intensity) * 6
+    const du = n.userData.mat?.userData.dis
+    if (du) { du.uDis.value = k.dissolve ? Math.min(1, Math.max(0, sample(k.dissolve.map(q => [q[0], [disV(q)], q[2]]), st, 'pos')[0])) : 0; n.updateWorldMatrix(true, false); n.getWorldPosition(du.uOrg.value) }
   }
   APP.time = st; for (const fn of listeners) fn(t)
   const c = camAt(clip, st), cam0 = B.camera
@@ -527,7 +579,7 @@ const RULES = `You make a VFX clip in two parts, returned as ONE minified JSON o
 SHEET SCRIPTS: "sheets": {"<id>": {"name": "<what this sheet IS, 1-3 generic words, e.g. smoke cloud, blood spray, ground cracks; never the clip or prompt context (not gunshot smoke cloud)>", "code": "<JS function body>", "seed": <int>, "life": <s>}}. The body runs once per frame as (pen, rng, t, U); t = 0.05 -> 1 over the 16 frames. Frame coordinates: px, frame 160x160, centre 0,0, x right, y DOWN (negative y = up).
 - pen.dot(x,y,r,v=1); pen.stroke(points,w0,w1,v=1) = tapered stroke, radius w0 -> w1 along the points; pen.poly(points,v=1). v = light 0..1 (overlaps replace, not add).
 - U.EL.<name>(pen, rngX, t, S) draws one library element at the pen origin, timing built in. Elements: ${Object.keys(EL).join(', ')}. Ring-like (use once, never paired with another ring): shock, ground, vortex, zigring, polyshock, dashring.
-  Meanings: crescent slash arc; claw 3-4 parallel arcs; xcut cross slash; thrust stab line; shock ring; ground flat ring; spikes star burst; cracks jagged radial cracks; dashes inward speed dashes; spiral arms; helix twin rising strands; streaks horizontal wind lines; waves wavy lines; puffs soft blob cluster; flames rising licks; bolt lightning; fountain droplets arcing up then falling; beam horizontal beam; orbit circling dots; rise rising dots/crosses; shards spinning shards flying out; column rising blob column; fan upward fan of rays; pillar light pillar; faultline ground crack + debris; comet diagonal comet; petals spinning petals; zigring zigzag ring; bubbles bubble rings rising (hollow circles); vortex inward rings; sparkfall sparks thrown up then falling; polyshock polygon ring; dashring dashed ring.
+  Meanings: crescent slash arc; claw 3-4 parallel arcs; xcut cross slash; thrust stab line; shock ring; ground flat ring; spikes star burst; cracks jagged radial cracks; dashes inward speed dashes; spiral arms; helix twin rising strands; streaks horizontal wind lines; waves wavy lines; puffs soft blob cluster; bolt lightning; fountain droplets arcing up then falling; beam horizontal beam; orbit circling dots; rise rising dots + "+" crosses (ONLY for healing/buff/holy prompts); flames rising fire licks (ONLY for fire/heat/explosion prompts); shards spinning shards flying out; column rising blob column; fan upward fan of rays; pillar light pillar; faultline ground crack + debris; comet diagonal comet; petals spinning petals; zigring zigzag ring; bubbles bubble rings rising (hollow circles); vortex inward rings; sparkfall sparks thrown up then falling; polyshock polygon ring; dashring dashed ring.
 - U.params(scale, overrides) -> S {R radius px, w width mult 0.7-1.4, n 1-6, k count 5-12, sweep 1.8-3.6, sq squash 0.45-1}. Primary scale 0.8-0.95, partner 0.65-0.85. Override k for counts (e.g. {k: 12}).
 - U.at(x,y) sets the pen origin; U.rng(0) = a separate stable random stream (for the partner); U.ease(x) = 1-(1-x)^3 clamped; U.arc(r,a0,a1,{cx,cy,sq,rot,k}); U.jag(rngX,x0,y0,x1,y1,k,amp); U.linspace(a,b,n); U.C = 160.
 - rng is re-seeded every frame: call it in the same order every frame so particles keep their paths. Never Math.random, never Date. Return {motes:false} only for a clean single shape.
@@ -539,8 +591,8 @@ CLIP SPEC (after "sheets"; same schema as the example, but every fx uses "sheet"
 - name, len (4..14 s), payoff (the ONE biggest moment), cine_kind "impact" (sharp hit) or "burst" (build then release), tint "#rrggbb" (light tint of the dominant hue), push (0.1..0.35).
 - camera {pos,target,fov} at t=0; camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: slow orbit/drift over 0..len with a key exactly at payoff; y-up metres.
 - env {bg "#hex" dark, fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
-- parts {id:{shape box|cylinder|sphere|cone|torus|plane, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Parts are PREVIEW STAND-INS only (orb, icicle, character, sword...): simple primitives that Umbrio's real models replace later, so keep 1-4, name each for what it stands in for, no dressing. They are not the effect: no sheet draws the object itself, and the effect must read on its own with every part hidden; parts may still move (tracks) and parent fx.
-- tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...]}}: "auto" through motion; anticipation (squash/pull-back "in" 0.1-0.15 s before) then "out" pop on the hit, settle "auto". A part that bursts scales to [0.01,0.01,0.01] at the payoff.
+- parts {id:{shape box|cylinder|sphere|cone|torus|plane OR model ${Object.keys(MODELS).join('|')}, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency, edge "#hex" (dissolve rim glow)}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Parts are the PLACEHOLDER MODELS the effect plays on (Umbrio swaps in the real ones): every character, creature, weapon or object the prompt names gets a part, and it must LOOK like that thing: use "model" (character/person/enemy/npc -> humanoid size [0.8,1.8,0.3] pos [0,0.9,0] standing on the floor; sword; gun with the muzzle at +x; staff; shield; rock; crystal; tree; wall; barrel), never a plain box for a character or weapon; plain shapes only for orbs, projectiles, floors, simple props. size = the model's bounding box in metres, pos = its centre. Grey-blue neutral colour (#8a909c), never the effect colour. 1-4 parts, nothing the prompt does not need. No sheet draws the object itself. The effect must VISIBLY ACT on the model with a track: acid/erode/melt/corrode/disintegrate/burn away/dissolve/decay -> "dissolve" track (0 -> 1 = gone; erodes by noise with an edge-colour glowing rim; reach 1 only if the prompt says it is destroyed, otherwise stop at 0.4-0.7), shatter/explode -> scale to 0.01, hit/knockback -> pos + rot recoil, freeze -> color stays, add frost fx on it. Example: "parts":{"hero":{"model":"humanoid","name":"character","size":[0.8,1.8,0.3],"pos":[0,0.9,0],"color":"#8a909c","edge":"#b6ff3a"}},"tracks":{"hero":{"dissolve":[[1.2,[0],"in"],[3.6,[1],"out"]]}}.
+- tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...], dissolve:[[t,[0..1],ease]...]}}: "auto" through motion; anticipation (squash/pull-back "in" 0.1-0.15 s before) then "out" pop on the hit, settle "auto". A part that bursts scales to [0.01,0.01,0.01] at the payoff.
 - fx [{sheet, t, life (one-shot) OR dur (+fps 12-16, loops), pos, size (metres 2-10), parent (optional part id), flat (true = ground decal), opacity (0.4-0.8 for big back layers), rot, grow [[t,scale],...], ramp, tex, tex_amt}].
 - ramp: fire, ice, electric, poison, holy, void, blood, wind, or "#edge,...,#core" (4-7 stops, dark edge -> white-hot core). tex "noise"|"cells"|"streaks", tex_amt 0.3-0.55.
 PAINT RULE (owner, checked by code; a spec that breaks it is sent back): every sheet is white, so EVERY fx layer is painted on its own so the clip looks vibrant, never bland:
@@ -549,13 +601,14 @@ PAINT RULE (owner, checked by code; a spec that breaks it is sent back): every s
   * no two fx share the same sheet + ramp + tex: the same sheet used twice gets a different ramp or tex; >= 3 distinct ramps per clip (all layers blend additive: big back glow = deeper, darker-edged ramp at opacity 0.4-0.7, core = hottest, sparks = brightest accent, ground decal = deep saturated).
 - impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one}], rims [{pos, color, base 1.0-1.5}] 1-2.
 
-QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, one contrasting accent allowed). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-16 fx. Exactly what the owner describes, nothing extra.`
+SCOPE RULE (owner, checked by code): draw ONLY what the prompt names. Every sheet must trace to a word in the prompt (acid eroding a character = acid drips, corrosive bubbles, fumes, eroding flecks; NOT fire, NOT sparks of another element, NOT symbols). Never add "+" crosses, hearts, stars, runes, sigils, healing/buff motifs or a second element the prompt did not ask for; no "rise" or "flames" element unless the prompt is about healing or fire. When unsure, fewer layers.
+QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, one contrasting accent allowed). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-16 fx. Exactly what the owner describes, nothing extra (SCOPE RULE).`
 let ctl = null
 // the reply's shape in ~1 kB (the 8 kB library example made every call read more and copy its long style)
 const SKELETON = '{"sheets":{"core":{"name":"burst core","code":"const S1 = U.params(0.9); U.at(0, 0); U.EL.spikes(pen, rng, t, S1)","seed":1,"life":0.8}},"name":"Fire Burst","len":5,"payoff":2,"cine_kind":"impact","tint":"#ff8a12","push":0.2,"camera":{"pos":[0,2.2,9],"target":[0,1.2,0],"fov":45},"camera_keys":{"pos":[[0,[0,2.2,9],"auto"],[2,[0.8,2,7.5],"auto"],[5,[1.2,2.1,8.5],"auto"]],"target":[[0,[0,1.2,0],"auto"],[5,[0,1.2,0],"auto"]],"fov":[[0,45,"auto"],[5,45,"auto"]]},"env":{"bg":"#07060e","fog":null,"grid":false,"light":"night"},"parts":{"orb":{"shape":"sphere","name":"orb","size":[0.6,0.6,0.6],"pos":[0,1.2,0],"color":"#ffd27a","material":"Neon"}},"tracks":{"orb":{"scale":[[1.85,[1.2,1.2,1.2],"in"],[2,[0.01,0.01,0.01],"out"]]}},"fx":[{"sheet":"core","t":1.95,"life":0.8,"pos":[0,1.2,0],"size":5,"ramp":"#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#ffffff","tex":"noise","tex_amt":0.45}],"impacts":[{"t":2,"at":[0,1.2,0],"color":"#ff8a12","payoff":true}],"rims":[{"pos":[-3,3,-2],"color":"#ff8a12","base":1.2}]}'
 // draws each sheet the moment its script is complete in the streamed reply ("sheets" come first), so drawing overlaps
 // Claude writing the clip spec; enforce() gives sheet i seed seed0 + i, the same key, so prepare() finds them drawn
-function earlyDraw(seed0) {
+function earlyDraw(seed0, want = '') {
   let n = 0
   return text => {
     const a = text.indexOf('"sheets"'), i = a < 0 ? -1 : text.indexOf('{', a); if (i < 0) return
@@ -568,7 +621,7 @@ function earlyDraw(seed0) {
       else if (c === '}') {
         if (depth === 2 && k++ >= n) {
           n = k
-          try { const d = JSON.parse(text.slice(start, j + 1)), seed = seed0 + k - 1, key = genKey({ code: d.code, seed }); if (typeof d.code === 'string' && !GEN.has(key)) { const p = drawSheet(d.code, seed); p.catch(() => {}); GEN.set(key, p) } } catch {}
+          try { const d = JSON.parse(text.slice(start, j + 1)), seed = seed0 + k - 1; d.code = scopeCode(d.code, want)[0]; const key = genKey({ code: d.code, seed }); if (typeof d.code === 'string' && !GEN.has(key)) { const p = drawSheet(d.code, seed); p.catch(() => {}); GEN.set(key, p) } } catch {}
         }
         if (--depth === 0) return
       }
@@ -648,6 +701,18 @@ const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 
 const nearPresets = h => Object.keys(RAMPS).sort((a, b) => hueDist(hueOf(rampStops(a)), h) - hueDist(hueOf(rampStops(b)), h)).map(k => RAMPS[k])
 const rampOk = st => st.length >= 4 && st.every(x => HEX.test(x)) && hueSpread(st) >= 20 && hsl(st[0])[2] <= 0.3 && hsl(st[st.length - 1])[2] >= 0.55
 const shiftHue = (r, dh) => rampStops(r).map(x => { const [h, s, l] = hsl(x); return hslHex((h + dh + 360) % 360, s, l) }).join(',')
+// owner 2026-11-26: "+ signs for healing, random green fire ... so unnecessary": themed elements only when the prompt names the theme
+const OFFSCOPE = [
+  ['rise', /\b(heal|buff|holy|bless|regen|restor|reviv|cure|life|divine|angel|saint|sacred)/, 'puffs'],
+  ['flames', /\b(fire|flame|burn|blaz|inferno|lava|magma|ember|torch|hell|scorch|ignit|explo|napalm|phoenix|dragon|heat|hot|sun|solar|meteor|gun|muzzle|shot|blast|bomb|grenade|rocket|cannon|candle|camp)/, 'puffs'],
+]
+// same swap in earlyDraw, so the sheet drawn while the reply streams is the one the clip keeps
+function scopeCode(code, want) {
+  const gone = []
+  if (typeof code !== 'string') return [code, gone]
+  for (const [el, words, to] of OFFSCOPE) if (code.includes(`U.EL.${el}(`) && !words.test(want)) { code = code.split(`U.EL.${el}(`).join(`U.EL.${to}(`); gone.push(el) }
+  return [code, gone]
+}
 function repair(S, sl) {
   const n = new Set(), fx = Array.isArray(S.fx) ? S.fx : [], L = +S.len
   if (!(L > 0)) return []
@@ -656,6 +721,11 @@ function repair(S, sl) {
     if (!d || typeof d !== 'object') continue
     const w = String(d.name || id).replace(/[_-]+/g, ' ').trim().split(/\s+/).filter(Boolean)
     if (w.length < 1 || w.length > 3) { d.name = w.slice(0, 3).join(' ') || id; n.add('sheet names') }
+  }
+  const want = String(sl?.prompt || '').toLowerCase()
+  for (const d of Object.values(S.sheets || {})) {
+    if (!d || typeof d.code !== 'string') continue
+    const [code, gone] = scopeCode(d.code, want); d.code = code; gone.forEach(el => n.add(`off-prompt ${el} removed`))
   }
   const tintHue = HEX.test(S.tint || '') ? hsl(S.tint)[0] : null
   // paint: every layer its own texture + a vibrant hue-shifting ramp (a broken one becomes the nearest preset of its hue)
@@ -822,7 +892,7 @@ async function runSlot(sl) {
     for (let round = 0; ; round++) {
       slotStatus(sl, round ? `Fixing (try ${round + 1})…` : `Claude (Opus 5.5, ${MODEL.effort}) is writing the sheet scripts…`)
       const m0 = performance.now(); t.calls.push(m0)
-      const early = earlyDraw(sl.set.seed)
+      const early = earlyDraw(sl.set.seed, String(sl.prompt || '').toLowerCase())
       const res = await S(msgs, { ...MODEL, signal: ctrl.signal, cache: false, onText: ({ text }) => { slotStatus(sl, (round ? 'Fixing… ' : 'Writing… ') + text.length + ' chars' + (GEN.size ? ' · drawing sheets as they arrive' : '')); early(text) } })
       t.model += performance.now() - m0
       applied = res.modelApplied ? `${res.modelApplied} · ${MODEL.effort}` : `tier ${res.modelTierApplied} (Opus 5.5 not applied)`
@@ -864,7 +934,7 @@ async function generateAll() {
 $('gen').onclick = generateAll
 $('stop').onclick = () => slots.forEach(s => s.ctrl?.abort())
 $('add').onclick = () => { addSlot(); renderTabs() }
-$('standins').onchange = e => { STANDINS = e.target.checked; if (CUR) for (const n of Object.values(CUR.nodes)) if (n.userData.o.type === 'part') n.material.visible = STANDINS }
+$('standins').onchange = e => { STANDINS = e.target.checked; if (CUR) for (const n of Object.values(CUR.nodes)) if (n.userData.o.type === 'part') n.userData.mat.visible = STANDINS }
 const showP = () => sel >= 0 ? slots[sel]?.P : EX
 $('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; if (Object.keys(P.S.sheets || {}).length) saveSheets(P.S, P.res, ''); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
 async function saveSpec(spec, nm) {
@@ -881,7 +951,9 @@ window.vfxgen = {
   clipLen: i => (i == null ? CUR?.B.clip : slots[i]?.P?.B.clip)?.len, generateAll, runSlot, fitDuration,
   clipLives: i => { const sl = slots[i], S = sl.spec, c = sl.P.B.clip; return (S.fx || []).filter(e => !('dur' in e)).map(e => +(clipAt(c, Math.min(S.len, e.t + (e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9))) - clipAt(c, e.t)).toFixed(3)) },
   lifeErrsOf: (S, ms) => { const c = cinePass({ name: S.name, len: S.len, fps: 60, loop: false, tracks: {}, camera: S.camera_keys }, cineOpts(S, { ms }), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov }); fitDuration(c, ms, S.len); return lifeErrs(S, c, ms) },
-  partsVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'part' && n.material.visible).length : 0,
+  partsVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'part' && n.userData.mat.visible).length : 0,
+  dissolveAt: id => CUR?.nodes[id]?.userData.mat?.userData.dis?.uDis.value ?? null,
+  partKids: id => { let c = 0; CUR?.nodes[id]?.traverse(x => { if (x.isMesh) c++ }); return c },
   fxVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'flipbook' && n.userData.card?.visible).length : 0
 }
 const cap = n => (window.claude?.use ? window.claude.use(n).catch(() => null) : Promise.resolve(null))

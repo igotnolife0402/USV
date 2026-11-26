@@ -494,7 +494,14 @@
         "generator speed",
         "cinematic vfx",
         "consistent vfx",
-        "gunshot"
+        "gunshot",
+        "placeholder models",
+        "grey cube",
+        "erode",
+        "erosion",
+        "dissolve",
+        "acid",
+        "plus signs"
       ],
       "notes": [
         "domains/vfx/playbook.md",
