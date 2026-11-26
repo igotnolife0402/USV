@@ -59,6 +59,17 @@ export default async function (t) {
     await s.eval(id => window.studio.app.store.deleteProject(id), dup)
     await s.waitFor(n => document.querySelectorAll('.home .card[data-id]').length === n, 2)
     t.ok(await s.eval(id => !window.__mock.get('projects/' + id) && !window.__mock.get('meta/' + id), dup), 'delete removes project and meta docs')
+    // multi-delete (owner 2026-11-26): Select, pick 2 cards, Delete 2, confirm -> both gone, the other stays, picking ends
+    const extra = await s.eval(async () => { const st = window.studio.app.store; return [await st.createProject('Tmp A'), await st.createProject('Tmp B')] })
+    await s.waitFor(n => document.querySelectorAll('.home .card[data-id]').length === n, 4)
+    await s.page.click('.h-top .h-sel')
+    for (const id of extra) await s.page.click(`.card[data-id="${id}"]`)
+    t.eq(await s.eval(() => document.querySelectorAll('.card.on').length), 2, 'two cards picked')
+    t.ok(await s.eval(() => location.hash === '' || location.hash === '#'), 'picking a card does not open it')
+    await s.page.click('.h-top .h-del')
+    await s.page.click('.dlg-a [data-a="ok"]')
+    await s.waitFor(n => document.querySelectorAll('.home .card[data-id]').length === n && !document.querySelector('.h-del'), 2)
+    t.ok(await s.eval(ids => ids.every(id => !window.__mock.get('projects/' + id) && !window.__mock.get('meta/' + id)), extra), 'multi-delete removes both projects')
     // the New project button opens the name dialog; Enter creates and opens it
     await s.page.click('.h-top .h-new')
     await s.page.waitForSelector('.dialog input')

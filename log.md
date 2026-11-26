@@ -414,3 +414,7 @@ improved: core sphere unit-radius bug found (swallowed the flames); trail size 4
 ## [2026-11-26] vfx / baseline gate made mandatory
 Scored: fireball 5/7 (fail contrast dip, ground anchor) + detail FAIL (9 parts, 12.4k tris); frost-comet 6/7 (fail contrast dip) + detail FAIL (24 parts, 8.6k tris).
 improved: baseline + detail gate added to checklists/vfx.md; playbook rule with today's scores; L-164 + router words baseline/umbrio quality
+
+## [2026-11-26] studio / home multi-delete
+Home page: Select → tap cards (checkbox, accent ring) → Select all/Clear → Delete N (one confirm listing names) → deletes one by one, toast with failures. core.mjs home test extended (2 picked, deleted, other stays): PASS. Published Claude-Hub v67, ui.js read-back identical. Not visually verified.
+improved: multi-delete UI + test; repo drift found (live hub has plugins modlist/rbx/sample the repo lacks) noted; core boot cap already failing at 820 KB before change (now ~823 KB) noted

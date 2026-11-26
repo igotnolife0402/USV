@@ -66,6 +66,12 @@ select.inp{padding:0 6px;cursor:pointer}
 .c-a::before{content:' · '}
 .card.skel{height:206px;background:linear-gradient(100deg,var(--panel) 30%,#272b32 50%,var(--panel) 70%) 0 0/300% 100%;animation:skel 1.2s infinite linear}
 @keyframes skel{to{background-position:-150% 0}}
+.card.pick{position:relative}
+.card.pick .c-more{visibility:hidden}
+.c-chk{position:absolute;top:8px;left:8px;z-index:1;width:22px;height:22px;border-radius:6px;border:2px solid #ffffffb0;background:#0009;display:grid;place-items:center;color:#fff}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.card.on .c-chk{background:var(--accent);border-color:var(--accent)}
+.h-top .btn[disabled]{opacity:.5;cursor:default}
 .empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:80px 20px;gap:4px}
 .empty h2{font-size:17px;margin:14px 0 2px}.empty p{color:var(--mute);margin:0 0 18px}
 .banner{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;margin-bottom:16px;font-size:12px}

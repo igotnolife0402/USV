@@ -670,13 +670,16 @@ export function mountUI(app, root) {
   setInterval(() => { if (!document.hidden) renderTabs() }, 15e3)
 
   // ---------- home page ----------
-  let homeUnsub = null
+  let homeUnsub = null, homeList = null, picking = false
+  const picked = new Set()   // multi-delete (owner 2026-11-26): pick cards, delete them in one go
   function renderHome(list) {
+    homeList = list
+    if (list) for (const id of [...picked]) if (!list.some(p => p.id === id)) picked.delete(id)
     const mode = app.store?.mode
     const banner = mode === 'local' ? `<div class="banner warn">${icon('cloudOff')}Offline: projects are saved in this browser only.</div>` : mode === 'memory' ? `<div class="banner bad">${icon('warn')}Not saved: storage is blocked, so projects are lost when this page closes.</div>` : ''
-    homeEl.innerHTML = `<header class="h-top"><div class="brand">${icon('cube')}<span>Umbrio Sandbox</span></div><span class="grow"></span><button class="btn primary h-new">${icon('plus')}New project</button></header>
+    homeEl.innerHTML = `<header class="h-top"><div class="brand">${icon('cube')}<span>Umbrio Sandbox</span></div><span class="grow"></span>${picking ? `<span class="mute h-cnt">${picked.size} selected</span><button class="btn h-all">${list && picked.size === list.length ? 'Clear' : 'Select all'}</button><button class="btn danger h-del"${picked.size ? '' : ' disabled'}>${icon('trash')}Delete${picked.size ? ' ' + picked.size : ''}</button><button class="btn h-cancel">Cancel</button>` : `${list?.length ? `<button class="btn h-sel">${icon('check')}Select</button>` : ''}<button class="btn primary h-new">${icon('plus')}New project</button>`}</header>
       <div class="h-main">${banner}<div class="h-title"><h1>Projects</h1><span class="mute">${list ? list.length : ''}</span></div>
-      ${list === null ? '<div class="h-grid">' + '<div class="card skel"></div>'.repeat(4) + '</div>' : list.length ? `<div class="h-grid">${list.map(p => `<div class="card" data-id="${esc(p.id)}" tabindex="0" role="link" aria-label="Open ${esc(p.name)}"><div class="thumb">${p.thumb ? `<img src="${esc(p.thumb)}" alt="" loading="lazy">` : icon('cube', 'big')}</div><div class="c-b"><div class="c-t"><div class="c-n">${p.ai ? `<b class="c-ai${isLive(p) ? ' live' : ''}">AI</b>` : ''}${esc(p.name)}</div><div class="c-m"><span>${p.count ?? 0} object${p.count === 1 ? '' : 's'}</span><span class="c-a">${esc(ago(p.updated))}</span></div></div><button class="ib c-more" aria-label="Project actions">${icon('more')}</button></div></div>`).join('')}</div>`
+      ${list === null ? '<div class="h-grid">' + '<div class="card skel"></div>'.repeat(4) + '</div>' : list.length ? `<div class="h-grid">${list.map(p => `<div class="card${picking ? ' pick' : ''}${picked.has(p.id) ? ' on' : ''}" data-id="${esc(p.id)}" tabindex="0" role="${picking ? 'checkbox' : 'link'}" ${picking ? 'aria-checked="' + picked.has(p.id) + '" ' : ''}aria-label="${picking ? 'Select' : 'Open'} ${esc(p.name)}">${picking ? `<span class="c-chk">${picked.has(p.id) ? icon('check') : ''}</span>` : ''}<div class="thumb">${p.thumb ? `<img src="${esc(p.thumb)}" alt="" loading="lazy">` : icon('cube', 'big')}</div><div class="c-b"><div class="c-t"><div class="c-n">${p.ai ? `<b class="c-ai${isLive(p) ? ' live' : ''}">AI</b>` : ''}${esc(p.name)}</div><div class="c-m"><span>${p.count ?? 0} object${p.count === 1 ? '' : 's'}</span><span class="c-a">${esc(ago(p.updated))}</span></div></div><button class="ib c-more" aria-label="Project actions">${icon('more')}</button></div></div>`).join('')}</div>`
         : `<div class="empty">${icon('cube', 'huge')}<h2>No projects yet</h2><p>Create a project to start building.</p><button class="btn primary h-new">${icon('plus')}New project</button></div>`}</div>`
   }
   async function newProject() {
@@ -685,8 +688,13 @@ export function mountUI(app, root) {
   }
   homeEl.addEventListener('click', async e => {
     if (e.target.closest('.h-new')) return newProject()
+    if (e.target.closest('.h-sel')) { picking = true; picked.clear(); return renderHome(homeList) }
+    if (e.target.closest('.h-cancel')) { picking = false; picked.clear(); return renderHome(homeList) }
+    if (e.target.closest('.h-all')) { if (homeList && picked.size === homeList.length) picked.clear(); else (homeList || []).forEach(p => picked.add(p.id)); return renderHome(homeList) }
+    if (e.target.closest('.h-del')) return deletePicked()
     const card = e.target.closest('.card[data-id]'); if (!card) return
     const id = card.dataset.id, st = app.store
+    if (picking) { picked.has(id) ? picked.delete(id) : picked.add(id); return renderHome(homeList) }
     if (e.target.closest('.c-more')) {
       const r = e.target.closest('.c-more').getBoundingClientRect()
       const name = card.querySelector('.c-n').textContent
@@ -700,10 +708,24 @@ export function mountUI(app, root) {
     }
     location.hash = '#' + id
   })
-  homeEl.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList.contains('card')) location.hash = '#' + e.target.dataset.id })
+  async function deletePicked() {
+    const ids = [...picked], names = ids.map(id => homeList?.find(p => p.id === id)?.name || id)
+    if (!ids.length || !await ui.confirm(`Delete ${ids.length} project${ids.length === 1 ? '' : 's'}?`, { body: names.slice(0, 8).join(', ') + (names.length > 8 ? ` and ${names.length - 8} more` : '') + '. This removes them with their meshes and textures.', danger: true })) return
+    let ok = 0; const bad = []
+    for (const id of ids) { try { await app.store.deleteProject(id); ok++; picked.delete(id) } catch (err) { bad.push(err.message) } }   // one at a time: each delete is many doc writes
+    picking = picked.size > 0
+    ui.toast(bad.length ? `Deleted ${ok}, ${bad.length} failed: ${bad[0]}` : `Deleted ${ok} project${ok === 1 ? '' : 's'}`, bad.length ? 'error' : 'ok')
+    renderHome(homeList)
+  }
+  homeEl.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    if (!e.target.classList.contains('card')) return
+    if (picking) { e.preventDefault(); e.target.click() } else if (e.key === 'Enter') location.hash = '#' + e.target.dataset.id
+  })
   ui.showHome = () => {
     closeMenus(); closeSide()
     editor.hidden = true; homeEl.hidden = false
+    picking = false; picked.clear()
     document.title = 'Umbrio Sandbox'
     watchTabs()
     if (!homeUnsub && app.store?.db) { renderHome(null); homeUnsub = app.store.listProjects(list => { if (!homeEl.hidden) renderHome(list) }) }
