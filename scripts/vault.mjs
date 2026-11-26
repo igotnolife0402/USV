@@ -60,6 +60,8 @@ export function learn({ cause, rule, trigger, domain, symptom, fix, helped }) {
   if (!cause || !rule || !trigger) throw new Error('learn needs --cause, --rule and --trigger');
   const lp = P('lessons.md'), text = readIf(lp), id = nextLessonId(text);
   const bullet = `- [${id}] (h:${helped ? 1 : 0} x:${helped ? 0 : 1}) ${today()} ${cause} → ${rule} — trigger: ${trigger}`;
+  // vault-lint caps a lesson at 400 chars incl. the later ' → applied: <path>' (~50): reject here, not at commit (L-208)
+  if (bullet.length > 350) throw new Error(`lesson is ${bullet.length} chars (max 350 before → applied): shorten --cause/--rule`);
   const last = [...text.matchAll(/^- \[L-\d+\].*$/gm)].pop();
   writeFileSync(lp, last ? text.slice(0, last.index + last[0].length) + '\n' + bullet + text.slice(last.index + last[0].length) : text.replace(/\n*$/, '\n') + bullet + '\n');
   const wrote = [`lessons.md ${id}`];
