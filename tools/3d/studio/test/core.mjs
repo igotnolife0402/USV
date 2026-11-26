@@ -70,6 +70,16 @@ export default async function (t) {
     await s.page.click('.dlg-a [data-a="ok"]')
     await s.waitFor(n => document.querySelectorAll('.home .card[data-id]').length === n && !document.querySelector('.h-del'), 2)
     await s.waitFor(ids => ids.every(id => !window.__mock.get('projects/' + id) && !window.__mock.get('meta/' + id)), extra)   // cards go first (meta), docs follow in parallel
+    await s.waitFor(ids => ids.every(id => !window.__mock.get('trash/' + id)), extra)   // finished deletes leave no trash marker
+    // a delete cut short (trash marker + leftovers) is finished by the sweep; a project with no meta and no marker is kept
+    const swept = await s.eval(async () => {
+      const M = window.__mock, st = window.studio.app.store
+      M.external('trash/cut-0a0a', { at: 'x' }, { set: true }); M.external('projects/cut-0a0a', { name: 'Cut', objects: {} }, { set: true })
+      M.external('projects/cut-0a0a/geo/g1', { p: [] }, { set: true }); M.external('projects/keep-0a0b', { name: 'Keep', objects: {} }, { set: true })
+      const n = await st.sweepTrash()
+      return { n, gone: !M.get('trash/cut-0a0a') && !M.get('projects/cut-0a0a') && !M.get('projects/cut-0a0a/geo/g1'), kept: !!M.get('projects/keep-0a0b') }
+    })
+    t.ok(swept.n === 1 && swept.gone && swept.kept, 'sweepTrash finishes cut-short deletes only ' + JSON.stringify(swept))
     // the New project button opens the name dialog; Enter creates and opens it
     await s.page.click('.h-top .h-new')
     await s.page.waitForSelector('.dialog input')

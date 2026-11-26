@@ -426,3 +426,7 @@ improved: parallel pooled delete in store.js; meta-first so the list updates ins
 ## [2026-11-26] fix / studio mass delete
 Owner: "mass delete them all instead of 1 at a time". deleteProjects now runs phases across ALL picked projects (all metas, then one shared pool of every sub doc, then project docs, 16 in flight); UI hides every picked card in one frame. Hub v70 read back identical; home test passes. Real-hub timing not measured.
 improved: phased mass delete instead of per-project; instant UI hide via gone set; checked db.d.ts: no batch verb, concurrent-write cap -> 16 in flight
+
+## [2026-11-26] fix / studio trash sweep
+Owner asked "only 2 projects or only cards": only cards; 23 projects' docs remained (delete cut short after the meta phase). Added trash/<id> markers (first in, last out) + sweepTrash 3 s after boot; seeded markers for the 23 via one batch. Hub v71 read back identical; home test covers sweep (keeps unmarked projects). Sweep runs when the studio is next opened; not yet confirmed on the real hub.
+improved: trash markers make deletes resumable; sweep never touches meta-less AI imports; single delete reuses the mass path

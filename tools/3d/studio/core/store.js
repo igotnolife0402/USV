@@ -128,6 +128,7 @@ class Store {
     if (db) { this.db = db; this.mode = 'cloud' }
     else { this.db = await LocalDB.open(); this.mode = this.db.persistent ? 'local' : 'memory' }
     this.app.emit('storage', this.mode)
+    setTimeout(() => this.sweepTrash(), 3000)   // after boot, never in its way
     return this.mode
   }
   setStatus(s) { if (s === this.status) return; this.status = s; this.app.emit('save', s) }
@@ -171,27 +172,40 @@ class Store {
     if (m.exists && m.data().thumb) await this.ref('meta/' + nid).update({ thumb: m.data().thumb, count: Object.keys(data.objects || {}).length })
     return nid
   }
-  async deleteProject(id) {
-    if (id === this.pid) { this.closeProject(true); this.app.closeProject() }
-    // speed (owner 2026-11-26: "20 seconds per delete"): meta first so the card leaves the list at once, then every
-    // sub doc in parallel (8 in flight) instead of one round trip each; a big project has dozens of geo/tex docs
-    await this.ref('meta/' + id).delete()
-    const docs = (await Promise.all(['geo', 'tex', 'ops'].map(async kind => (await this.subDocs(id, kind)).map(d => `projects/${id}/${kind}/${d.id}`)))).flat()
-    await pool(docs, 8, path => this.ref(path).delete().catch(() => {}))
-    await this.ref('projects/' + id).delete()
-  }
+  deleteProject(id) { return this.deleteProjects([id]).then(bad => { if (bad.length) throw new Error(bad[0]) }) }
   // mass delete (owner 2026-11-26: "mass delete them all instead of 1 at a time"): one phase per doc kind across ALL
-  // projects, never project by project: every meta at once (all cards leave together), then one shared pool of every
-  // sub doc, then every project doc. The page db has no batch verb; 16 in flight stays under its concurrent-write cap.
+  // projects, never project by project. A trash/<id> marker goes first and is removed last, so a delete cut short
+  // (tab closed mid-way left 23 card-less projects eating the quota, 2026-11-26) is finished by sweepTrash on next open.
+  // The page db has no batch verb; 16 in flight stays under its concurrent-write cap.
   async deleteProjects(ids, onDone) {
     if (ids.includes(this.pid)) { this.closeProject(true); this.app.closeProject() }
     const bad = [], del = path => this.ref(path).delete().catch(err => { bad.push(err.message) })
+    await pool(ids, 16, id => this.ref('trash/' + id).set({ at: now() }).catch(err => { bad.push(err.message) }))
     await pool(ids.map(id => 'meta/' + id), 16, del)
     ids.forEach(id => onDone?.(id))
+    await this.purge(ids, del)
+    if (!bad.length) await pool(ids.map(id => 'trash/' + id), 16, del)
+    return bad
+  }
+  async purge(ids, del) {   // sub docs of every project in one shared pool, then the project docs
     const lists = await Promise.all(ids.flatMap(id => ['geo', 'tex', 'ops'].map(async kind => (await this.subDocs(id, kind)).map(d => `projects/${id}/${kind}/${d.id}`))))
     await pool(lists.flat(), 16, del)
     await pool(ids.map(id => 'projects/' + id), 16, del)
-    return bad
+  }
+  // finish deletes that were cut short: only ids the owner confirmed (trash markers), never "projects without meta"
+  // (Claude imports write the project doc before its meta, and ensureMeta repairs those on open)
+  async sweepTrash() {
+    if (this.mode !== 'cloud' || this.sweeping) return 0
+    this.sweeping = true
+    try {
+      const ids = (await this.db.collection('trash').get()).docs.map(d => d.id).filter(id => id !== this.pid)
+      if (!ids.length) return 0
+      const bad = [], del = path => this.ref(path).delete().catch(err => { bad.push(err.message) })
+      await pool(ids.map(id => 'meta/' + id), 16, del)
+      await this.purge(ids, del)
+      if (!bad.length) await pool(ids.map(id => 'trash/' + id), 16, del)
+      return ids.length
+    } catch (e) { console.warn('trash sweep', e); return 0 } finally { this.sweeping = false }
   }
 
   // ---------- open project ----------
