@@ -153,6 +153,8 @@ test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays
   assert.ok(L.signals({ ...clean, lastText: 'Fixed: a, b, c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Next/.test(s.text)), 'backlog list required');
   assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
   assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
+  assert.equal(L.signals({ ...clean, tools: 0, lastText: 'Done' }, { tier: 'simple' }, { improved: 0 }).length, 0, 'mute: no-tool turn owes no footer');
+  assert.equal(L.signals({ ...clean, tools: 2, prompt: 'Dont respond', lastText: 'Done' }, { tier: 'simple' }, { improved: 0 }).length, 0, 'mute: dont respond owes no footer');
   const crew = { ...clean, skills: ['crew'], agentSecs: 45, specSecs: 120 };
   assert.equal(L.signals(crew, { tier: 'medium' }, { improved: 3 }).filter(s => s.kind === 'slow').length, 2);
 });

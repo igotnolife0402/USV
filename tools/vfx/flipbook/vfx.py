@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Roblox flipbook VFX: python3 vfx.py OUT <preset|preset:key=v,key=v|a+b+c+d|all> [--name ID] [--seed N] [--check]   (README "Recipes", "Layers")
+"""Roblox flipbook VFX: python3 vfx.py OUT <preset|preset:key=v,key=v|a+b+c+d|all> [--name ID] [--seed N] [--check] [--bands 5[,10]] [--color]   (README "Recipes", "Layers")
 Writes OUT/<preset>.png (one 1024 px sheet), OUT/<preset>.json (its emitter settings) and OUT/VFXLibrary.lua (all built
 presets, for VFX.lua). --check also writes OUT/<preset>.jpg (sheet over a dark and a light sky), prints timing and the
 preset's own checks, and fails any preset over 60 s (owner's cap; VFX_NO_CAP=1 skips it on slow CI runners)."""
@@ -99,7 +99,97 @@ def stack(layers):
     return out
 
 
-def build(out, spec, seed, check, name=None):
+def white(frames):
+    """Owner 2026-11-24: every sheet ships white (greyscale), recoloured per scene by the emitter Color / a tint, so one effect
+    serves every theme. Luminance of the physical colour, scaled so the brightest visible pixel is 1.0; alpha unchanged."""
+    a = np.stack(frames).astype(np.float32) / 255
+    L = (a[..., :3] * [0.299, 0.587, 0.114]).sum(-1)
+    vis = a[..., 3] > 0.05
+    top = float(np.percentile(L[vis], 99.9)) if vis.any() else 1.0
+    L = sustain(np.clip(L / max(top, 1e-3), 0, 1), a[..., 3])
+    g = (L * 255 + 0.5).astype(np.uint8)
+    return [np.dstack([g[i], g[i], g[i], frames[i][..., 3]]) for i in range(len(frames))]
+
+
+def sustain(L, A, keep=0.65, gmin=0.35):
+    """Owner 2026-11-24 ("I only see the first 0.1 s"): impact sheets lost 75 %+ of their light within 10 of 64 frames (shock,
+    crystal-burst, glints), so in game they read as a blink. After the peak frame, each frame's light sum(L*A) is lifted to at
+    least peak*(1 - keep*p) by a per-frame gamma L**g (g >= gmin, dim pixels rise most, white stays white); alpha is untouched,
+    so a frame with no alpha left still ends the play."""
+    E = (L * A).sum((1, 2)); pk = int(E.argmax()); n = len(L)
+    for i in range(pk + 1, n):
+        T = E[pk] * (1 - keep * i / max(n - 1, 1))
+        if E[i] >= T or not A[i].any(): continue
+        lo, hi = gmin, 1.0
+        for _ in range(14):   # energy falls as g grows: find the largest g that still reaches T
+            g = (lo + hi) / 2
+            if (L[i] ** g * A[i]).sum() >= T: lo = g
+            else: hi = g
+        L[i] = L[i] ** lo
+    return L
+
+
+def layer_colors(id, cols):
+    """Band colours, darkest first: 5 per palette colour, the brightest 5 take colour 1. Same maths as VFX.lua layerColors and
+    the preview: RAMP step, then a +-2..6 RGB jitter seeded by id + band index so no two layers match (owner 2026-11-24)."""
+    nc, res = len(cols), []
+    for k in range(5 * nc):
+        c = cols[nc - 1 - k // 5]; mode, f, g = RAMP[k % 5]
+        mx, mn = max(c), min(c)
+        s = 1.0 if mode == 0 else min(1.0, g * (mx - mn) / max(mx, 1))
+        base = [v if mx == mn else mx * (1 - s * (mx - v) / (mx - mn)) for v in c]   # same hue and value, HSV saturation s
+        rgb = [v * f if mode == 0 else v + (255 - v) * f for v in base]
+        h = 0
+        for b in f'{id}#{k}'.encode(): h = (h * 31 + b) % 16777216
+        res.append(tuple(int(min(255, max(0, round(v + (2 + (h >> (4 * i)) % 5) * (1 if (h >> (12 + i)) & 1 else -1))))) for i, v in enumerate(rgb)))
+    return res
+
+
+# (mode, amount, sat): owner 2026-11-24 reference = stylized glow (saturated hue, white-hot core, no brown/grey darks).
+# mode 0: full HSV saturation, value x amount; mode 1: saturation x sat (cap 1), then toward white by amount
+RAMP = [(0, .55, 1), (0, .8, 1), (0, 1, 1), (1, .45, 1.1), (1, .85, 1.1)]
+BRIGHT = [1, 1, 1.3, 2, 3]   # ParticleEmitter.Brightness per step: hot steps bloom past 1 like the reference cores
+
+
+def glow(frames, r=0.08):
+    """Halo texture (owner 2026-11-24 reference: every effect sits in a big soft glow of its hue). Per frame: L x A blurred by
+    r x frame px, one p99.9 scale for the whole sheet so it fades with the effect; white RGB, the blur in alpha."""
+    from PIL import Image, ImageFilter
+    S = frames[0].shape[0]
+    bl = [np.asarray(Image.fromarray((f[..., 0].astype(np.float32) * f[..., 3] / 255).astype(np.uint8)).filter(
+        ImageFilter.GaussianBlur(r * S)), np.float32) for f in frames]
+    top = max(float(np.percentile(np.stack(bl), 99.9)), 1.0)
+    return [np.dstack([np.full((S, S, 3), 255, np.uint8), np.clip(b / top * 255, 0, 255).astype(np.uint8)]) for b in bl]
+
+
+def bands(frames, n=5, ov=None):
+    """Owner 2026-11-24: one tinted sheet is flat (Roblox Color is per particle, not per pixel). Split the white sheet by
+    luminance into n soft bands (smoothstep edges +-ov) whose alphas sum to the sheet's alpha; band k = one texture = one
+    emitter with its own colour, so the effect gets a real dark->bright gradient. Edges sit 85/15 between the sheet's alpha-weighted
+    luminance quantiles and even steps, so every band holds pixels (all n layers show) and edges are >= 0.15/n apart.
+    Returns (band frame lists, edges, tops); grey_k = L / top_k keeps the detail inside each band (L ~= sum w_k grey_k top_k)."""
+    a = np.stack(frames).astype(np.float32) / 255
+    L, A = a[..., 0], a[..., 3]
+    vis = A > 0.05
+    if vis.any():   # alpha-weighted quantiles: a band's share is its alpha mass, so faint pixels count less (sustain lifts darks)
+        o = np.argsort(L[vis]); lv, cw = L[vis][o], np.cumsum(A[vis][o]); q = np.interp(np.arange(1, n) / n * cw[-1], cw, lv)
+    else: q = np.arange(1, n) / n
+    edges = [round(float(0.85 * q[j] + 0.15 * (j + 1) / n), 4) for j in range(n - 1)]
+    # owner 2026-11-24 'cartoon, not realistic': a fixed 0.06 overlap gave 5 hard colour steps (cel shading). Overlap = 0.45 x the
+    # tightest band gap, so neighbouring colours cross-fade across most of each band; alphas still telescope to A.
+    ov = ov if ov is not None else 0.45 * float(np.diff([0] + edges + [1]).min())
+    s = [np.ones_like(L)] + [img.smooth(e - ov, e + ov, L) for e in edges] + [np.zeros_like(L)]
+    tops = [min(1.0, round(e + ov, 4)) for e in edges] + [1.0]
+    out = []
+    for k in range(n):
+        w = s[k] - s[k + 1]
+        g = (np.clip(L / tops[k], 0, 1) * 255 + 0.5).astype(np.uint8)
+        al = (A * w * 255 + 0.5).astype(np.uint8)
+        out.append([np.dstack([g[i], g[i], g[i], al[i]]) for i in range(len(frames))])
+    return out, edges, tops
+
+
+def build(out, spec, seed, check, name=None, color=False, nbands=(5,)):
     t0 = time.time()
     if spec in STACKS: name, spec = name or spec, STACKS[spec]
     parts = [recipe(s) for s in spec.split('+')]
@@ -109,8 +199,19 @@ def build(out, spec, seed, check, name=None):
     entry = dict(runs[0][1], Lifetime=max(r[1]['Lifetime'] for r in runs))
     checks = {k: v for r in runs for k, v in r[2].items()}
     if len(runs) > 1: checks['layers'] = len(runs)
+    if not color: frames = white(frames)   # --color keeps the physical colours
     sh = img.sheet(frames, os.path.join(out, name + '.png'))
-    entry = dict(id=name, file=name + '.png', frames=len(frames), framePx=frames[0].shape[0], sheetPx=sh.shape[0], **entry)
+    entry = dict(id=name, file=name + '.png', white=not color, frames=len(frames), framePx=frames[0].shape[0], sheetPx=sh.shape[0], **entry)
+    if not color:
+        bd = {}
+        for n in nbands:   # each band set = n textures; 5 per theme colour (10 for a 2-colour palette)
+            fs, edges, tops = bands(frames, n)
+            files = [f'{name}-b{k}of{n}.png' for k in range(n)]
+            for f, b in zip(files, fs): img.sheet(b, os.path.join(out, f))
+            bd[n] = dict(edges=edges, tops=tops, files=files)
+        entry['bands'] = bd
+        entry['glow'] = name + '-glow.png'
+        img.sheet(glow(frames), os.path.join(out, entry['glow']))
     json.dump(entry, open(os.path.join(out, name + '.json'), 'w'), indent=1)
     dt = time.time() - t0
     if check:
@@ -157,22 +258,33 @@ def lua(v):
     if isinstance(v, bool): return 'true' if v else 'false'
     if isinstance(v, (int, float)): return repr(v)
     if isinstance(v, (list, tuple)): return '{' + ', '.join(lua(x) for x in v) + '}'
+    if isinstance(v, dict): return '{' + ', '.join(f'[{lua(int(k) if str(k).isdigit() else k)}] = {lua(x)}' for k, x in v.items()) + '}'
     return '"' + str(v).replace('"', '\\"') + '"'
+
+
+def library(out):
+    """VFXLibrary.lua from every entry JSON in OUT (white sheets: VFX.make(id, parent, studs, theme) tints them)."""
+    lib = [json.load(open(os.path.join(out, f))) for f in sorted(os.listdir(out)) if f.endswith('.json') and f != 'batch.json']
+    ids = lambda e: {int(n): [0] * int(n) for n in e.get('bands', {})}   # paste each band PNG's id here, same order as files
+    rows = [f'\t["{e["id"]}"] = {{ ' + ', '.join(f'{k} = {lua(v)}' for k, v in e.items()) + f', AssetId = 0, BandIds = {lua(ids(e))}, GlowId = 0 }},' for e in lib]
+    open(os.path.join(out, 'VFXLibrary.lua'), 'w').write('-- Generated by vfx.py. Upload each PNG and paste its id into AssetId.\n'
+        '-- white = true: greyscale sheet; bands[n].files = n luminance-band PNGs (upload each, ids into BandIds[n] in order).\n'
+        '-- VFX.make(id, parent, studs, "fire"|{"fire","holy"}|Color3) builds one emitter per band, each its own colour.\nreturn {\n' + '\n'.join(rows) + '\n}\n')
+    return lib
 
 
 if __name__ == '__main__':
     a = sys.argv[1:]
     out, which = a[0], a[1]
     seed = int(a[a.index('--seed') + 1]) if '--seed' in a else 1
+    nb = tuple(int(x) for x in a[a.index('--bands') + 1].split(',')) if '--bands' in a else (5,)
     os.makedirs(out, exist_ok=True)
     slow = []
     for n in ([*PRESETS, *STACKS] if which == 'all' else [which]):
-        e, dt = build(out, n, seed, '--check' in a, a[a.index('--name') + 1] if '--name' in a else None)
+        e, dt = build(out, n, seed, '--check' in a, a[a.index('--name') + 1] if '--name' in a else None, '--color' in a, nb)
         if dt > CAP_S:
             slow.append(f'{n} {dt:.0f}s')
-    lib = [json.load(open(os.path.join(out, f))) for f in sorted(os.listdir(out)) if f.endswith('.json')]
-    rows = [f'\t["{e["id"]}"] = {{ ' + ', '.join(f'{k} = {lua(v)}' for k, v in e.items()) + ', AssetId = 0 },' for e in lib]
-    open(os.path.join(out, 'VFXLibrary.lua'), 'w').write('-- Generated by vfx.py. Upload each PNG and paste its id into AssetId.\nreturn {\n' + '\n'.join(rows) + '\n}\n')
+    lib = library(out)
     if '--check' in a and which == 'all':
         overview(out, [e['id'] for e in lib])
     if slow and '--check' in a and not os.environ.get('VFX_NO_CAP'):

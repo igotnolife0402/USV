@@ -1,0 +1,310 @@
+<meta charset="utf-8">
+<title>VFX Reel 20s</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+/* Owner 2026-11-26: "20 second showcase vfx that cycles through a bunch of different vfx to showcase quality, size, aggressiveness".
+   20 newly generated sheets x 1 s, each layered from white vfx/sheets painted on the GPU (own ramp + texture per layer, colour over life). */
+:root{--bg:#07060e;--fg:#e8edf5}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+#stage{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg)}
+#wrap{position:relative;width:min(100vw,calc(100dvh*16/9));aspect-ratio:16/9}
+#wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ui{position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));display:flex;gap:6px}
+#ui button{font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:7px 10px;cursor:pointer}
+#ui button:focus-visible{outline:2px solid #7d9cff}
+#owBox{display:flex;flex-direction:column;gap:4px;font:600 12px system-ui,sans-serif;color:#e8edf5;background:#10141bcc;border:1px solid #ffffff2e;border-radius:8px;padding:6px 10px}
+#owBox[aria-disabled=true]{opacity:.45}
+#ui label{display:flex;align-items:center;gap:6px}
+#ui input{width:min(28vw,120px);accent-color:#7d9cff;margin:0}
+/* Thickness preview: a line drawn at the outline's real on-screen width (measured from the live core layer) */
+#owLine{display:flex;align-items:center;gap:6px;min-height:12px}
+#lOw{flex:1;height:2px;border-radius:2px;background:#7d9cff}
+#pxOw{font:600 11px system-ui,sans-serif;color:#93a0b4;min-width:3.2em;text-align:right}
+#err{position:fixed;left:8px;bottom:8px;margin:0;color:#ff8a8a;font:12px monospace;white-space:pre-wrap}
+</style>
+<div id="stage"><div id="wrap"><canvas id="gl"></canvas><canvas id="hud"></canvas></div></div>
+<div id="ui"><button id="bOl"></button><div id="owBox"><label for="sOw">Width <input id="sOw" type="range" min="5" max="50" step="5"><span id="vOw"></span></label><div id="owLine" title="Actual outline thickness on screen"><i id="lOw"></i><b id="pxOw"></b></div></div><button id="bHud"></button></div>
+<pre id="err"></pre>
+<script>
+{
+const LEN = 20, SHOT = 1, BASE = 'vfx/sheets/', GRID = 4, FRAMES = 16
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+// Ramps: dark edge -> bright end, hue shifts >= 20 deg; only core layers end #ffffff (vfx/README.md rules 2, 8).
+const R = {
+  gunCore: '#3a0e00,#c43a08,#ff8a1f,#ffd27a,#ffffff', gunGlow: '#2a0800,#9a2a08,#ff6a1a,#ffc070',
+  steelCore: '#060a18,#2a3a6a,#8aa8e0,#e0ecff,#ffffff', steelGlow: '#04060e,#141c3a,#3a5a9a,#8ab0f0',
+  healCore: '#021a10,#0a6a3a,#3ad08a,#b0ffd8,#ffffff', healGlow: '#011008,#06401f,#1a9a5a,#6ae0a0',
+  boltCore: '#05103a,#1a4aff,#5aa8ff,#c8ecff,#ffffff', boltGlow: '#020820,#1030a0,#3a7aff,#9ad0ff',
+  acidCore: '#031a05,#0e6a18,#46d22e,#b8ff5a,#ffffff', acidGlow: '#020c04,#0a3018,#2a7a3a,#6ac070',
+  bloodCore: '#1a0003,#6a0008,#c0101a,#ff4a3a', bloodGlow: '#0e0002,#3a0006,#801018,#c02a2a',
+  iceCore: '#021428,#0a4a8a,#3aa8e0,#a8ecff,#ffffff', iceGlow: '#041020,#103a5a,#4a90b0,#a0d8e8',
+  poisonCore: '#0e0418,#3a1a5a,#7a3aa0,#b0e04a', poisonGlow: '#06020c,#1a0a2a,#3a1a4a,#5a7a2a',
+  laserCore: '#2a0010,#b00a3a,#ff3a6a,#ffb0c8,#ffffff', laserGlow: '#1a0008,#6a0420,#d0204a,#ff7090',
+  shadowCore: '#08000e,#2a0a3a,#6a2a8a,#c080e0', shadowGlow: '#040006,#14041e,#3a0e50,#7a3aa0',
+  fireCore: '#2a0400,#9a1a04,#ff4a12,#ffa21f,#ffe7a0,#ffffff', fireGlow: '#1a0200,#6a0a02,#d02a08,#ff7a1a', smoke: '#08080a,#141418,#2a2a30,#4a4a52',
+  holyCore: '#2a1800,#a07010,#ffd860,#fff6d0,#ffffff', holyGlow: '#1a0e00,#6a4806,#d0a030,#ffe08a',
+  dashCore: '#001a2a,#0a6aa0,#3ad0ff,#d0f6ff,#ffffff', dashGlow: '#000c18,#043a6a,#1a8ad0,#7ad8ff',
+  crystalCore: '#100620,#5a2aa0,#b080ff,#f0e0ff,#ffffff', crystalGlow: '#080214,#2a1060,#6a40c0,#b090ff',
+  windCore: '#0a1418,#2a5a64,#7ac0c8,#d8f6f8,#ffffff', windGlow: '#060c10,#1a3a44,#4a8a96,#a0d8de',
+  earthCore: '#140a02,#5a3410,#b07a3a,#ffd8a0', earthGlow: '#0a0806,#2a2218,#5a4a38,#9a8a70',
+  plasmaCore: '#001a20,#0a7a90,#3ae0ff,#c0f8ff,#ffffff', plasmaGlow: '#000c14,#04405a,#1a9ac0,#70e0ff',
+  bhCore: '#0a0014,#3a0a6a,#8a1ad0,#ff5ae0,#ffffff', bhGlow: '#06001a,#200a6a,#4a2ae0,#9a8aff',
+  novaCore: '#0a0a3a,#2a3aff,#8a9aff,#e0e8ff,#ffffff', novaGlow: '#1a0a00,#a04a08,#ffaa2a,#ffe0a0', novaSpark: '#0a0c30,#3050ff,#90b0ff,#dce6ff'
+}
+// One shot = 1 s. L(slug, ramp, {x,y,sz,t,life,...}): sz in screen heights, t/life in s from shot start; tex 0 noise 1 cells 2 streaks.
+// Every sheet is new (owner 2026-11-26): tools/vfx/showcase/gen/<combat|elements|magic>/<name>.js, its header comment is the detailed prompt it was drawn from.
+const L = (s, r, o) => ({ s, r, x: 0, y: 0, sz: .5, sx: 1, t: .02, life: .9, rot: 0, spin: 0, grow: 1, tex: 0, amt: .4, k: 1, norm: false, ...o })
+// core + soft glow copy of the same sheet (bigger, glow ramp, dimmer): the bloom without a post pass
+const G = (s, c, g, o, go = {}) => [L(s, g, { ...o, sz: o.sz * 1.3, k: .5, amt: .45, ...go }), L(s, c, { tex: 1, amt: .3, core: 1, ...o })]
+const SHOTS = [
+  { name: 'Rifle Muzzle Flash', el: 'Ballistic', size: 2, aggr: 4, col: '#ff8a1f', hit: 0.05, push: 0.02, layers: [
+    ...G('gen-rifle-muzzle-flash','gunCore','gunGlow',{ x: -.1, sz: .62, life: .75 })] },
+  { name: 'Iai Slash', el: 'Steel', size: 3, aggr: 4, col: '#8ab0ff', hit: 0.08, push: 0.04, layers: [
+    ...G('gen-iai-slash','steelCore','steelGlow',{ sz: .85, life: .85, tex: 2 })] },
+  { name: 'Healing Aura', el: 'Life', size: 3, aggr: 1, col: '#3ad08a', hit: 0.25, push: 0.02, layers: [
+    ...G('gen-heal-aura','healCore','healGlow',{ sz: .9, y: -0.182, life: .95 })] },
+  { name: 'Chain Lightning', el: 'Lightning', size: 4, aggr: 5, col: '#5aa8ff', hit: 0.08, push: 0.05, layers: [
+    ...G('gen-chain-lightning','boltCore','boltGlow',{ sz: 1.0, life: .85, tex: 2 })] },
+  { name: 'Acid Geyser', el: 'Poison', size: 4, aggr: 3, col: '#46d22e', hit: 0.2, push: 0.04, layers: [
+    ...G('gen-acid-geyser','acidCore','acidGlow',{ sz: .95, y: -0.103, life: .95 })] },
+  { name: 'Blood Spray', el: 'Blood', size: 3, aggr: 5, col: '#ff2a3a', hit: 0.05, push: 0.04, layers: [
+    ...G('gen-blood-spray-arc','bloodCore','bloodGlow',{ sz: .8, y: -0.158, life: .85 })] },
+  { name: 'Ice Spikes', el: 'Ice', size: 4, aggr: 4, col: '#5ac0ff', hit: 0.1, push: 0.05, layers: [
+    ...G('gen-ice-spikes','iceCore','iceGlow',{ sz: .95, y: -0.121, life: .9, tex: 1 })] },
+  { name: 'Toxic Creep', el: 'Toxin', size: 4, aggr: 1, col: '#9a4ad0', hit: 0.3, push: 0.02, layers: [
+    ...G('gen-toxic-creep','poisonCore','poisonGlow',{ sz: 1.0, y: -0.02, life: .95 })] },
+  { name: 'Laser Beam', el: 'Energy', size: 3, aggr: 4, col: '#ff3a6a', hit: 0.22, push: 0.04, layers: [
+    ...G('gen-laser-beam','laserCore','laserGlow',{ sz: .95, sx: 1.35, life: .85, tex: 2 })] },
+  { name: 'Shadow Tendrils', el: 'Shadow', size: 4, aggr: 3, col: '#a64aff', hit: 0.2, push: 0.05, layers: [
+    ...G('gen-shadow-tendrils','shadowCore','shadowGlow',{ sz: .95, life: .9, spin: -12 })] },
+  { name: 'Mushroom Blast', el: 'Fire', size: 5, aggr: 5, col: '#ff5a14', hit: 0.1, push: 0.08, layers: [
+    L('gen-mushroom-blast','smoke',{ sz: 1.15, y: -0.03, t: .2, life: .78, k: .7, amt: .5 }),
+    ...G('gen-mushroom-blast','fireCore','fireGlow',{ sz: 1.05, y: -0.06, life: .9 })] },
+  { name: 'Holy Pillar', el: 'Light', size: 3, aggr: 2, col: '#ffd860', hit: 0.2, push: 0.03, layers: [
+    ...G('gen-holy-pillar','holyCore','holyGlow',{ sz: .95, y: -0.086, life: .95, tex: 2 })] },
+  { name: 'Electric Dash', el: 'Lightning', size: 3, aggr: 4, col: '#3ad0ff', hit: 0.12, push: 0.04, layers: [
+    ...G('gen-electric-dash','dashCore','dashGlow',{ sz: .95, sx: 1.3, life: .8, tex: 2 })] },
+  { name: 'Crystal Shatter', el: 'Arcane', size: 3, aggr: 4, col: '#b080ff', hit: 0.22, push: 0.05, layers: [
+    ...G('gen-crystal-shatter','crystalCore','crystalGlow',{ sz: .85, life: .9, tex: 1 })] },
+  { name: 'Tornado', el: 'Wind', size: 4, aggr: 3, col: '#7ac0c8', hit: 0.2, push: 0.04, layers: [
+    ...G('gen-tornado','windCore','windGlow',{ sz: 1.05, y: -0.021, life: .95, tex: 2 })] },
+  { name: 'Earth Slam', el: 'Earth', size: 4, aggr: 5, col: '#d09a5a', hit: 0.06, push: 0.07, layers: [
+    ...G('gen-earth-slam','earthCore','earthGlow',{ sz: 1.05, y: -0.18, life: .92, tex: 1 })] },
+  { name: 'Plasma Crescent', el: 'Plasma', size: 4, aggr: 4, col: '#3ae0ff', hit: 0.12, push: 0.05, layers: [
+    ...G('gen-plasma-crescent','plasmaCore','plasmaGlow',{ sz: 1.0, life: .95 })] },
+  { name: 'Black Hole', el: 'Gravity', size: 4, aggr: 3, col: '#b040ff', hit: 0.7, push: 0.06, layers: [
+    ...G('gen-black-hole','bhCore','bhGlow',{ sz: 1.0, life: .95, spin: 20 })] },
+  { name: 'Star Rift', el: 'Arcane', size: 4, aggr: 4, col: '#c8a0ff', hit: 0.1, push: 0.06, layers: [
+    ...G('gen-star-rift','crystalCore','crystalGlow',{ sz: 1.05, life: .95 })] },
+  { name: 'Cataclysm', el: 'Storm finale', size: 5, aggr: 5, col: '#5a7aff', hit: 0.27, push: 0.12, layers: [
+    ...G('gen-cataclysm','novaCore','novaGlow',{ sz: 1.15, life: .96 }),
+    L('gen-cataclysm','novaSpark',{ sz: .8, rot: 22, t: .08, life: .88, tex: 2, k: .8 })] },
+]
+const $ = id => document.getElementById(id), err = m => { $('err').textContent += m + '\n' }
+const cv = $('gl'), hud = $('hud'), hx = hud.getContext('2d')
+const gl = cv.getContext('webgl2', { antialias: true, premultipliedAlpha: true, alpha: false })
+if (!gl) err('WebGL2 not available')
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+function prog(vs, fs) {
+  const p = gl.createProgram()
+  for (const [t, src] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+    const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s)
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) err(gl.getShaderInfoLog(s)); gl.attachShader(p, s)
+  }
+  gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) err(gl.getProgramInfoLog(p))
+  const u = {}; for (let i = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i--;) { const n = gl.getActiveUniform(p, i).name; u[n] = gl.getUniformLocation(p, n) }
+  return { p, u }
+}
+const NOISE = `
+float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+  return mix(mix(h21(i),h21(i+vec2(1.0,0.0)),f.x),mix(h21(i+vec2(0.0,1.0)),h21(i+vec2(1.0,1.0)),f.x),f.y);}
+float fbm(vec2 p){float a=0.5,s=0.0;for(int i=0;i<4;i++){s+=a*vn(p);p*=2.03;a*=0.5;}return s;}
+float cells(vec2 p){vec2 i=floor(p),f=fract(p);float d=1.0;
+  for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y));vec2 r=o+vec2(h21(i+o),h21(i+o+7.7))-f;d=min(d,dot(r,r));}return sqrt(d);}`
+// Layer card: flipbook frame blend, texture overlay into alpha, gradient map by light, colour over life (lookup cools as it dies).
+const FX = prog(`#version 300 es
+in vec2 c; uniform vec2 uPos,uSize,uShake; uniform float uRot,uAsp,uZoom; out vec2 vUv;
+void main(){ vUv=c+0.5; float s=sin(uRot),k=cos(uRot); vec2 p=c*uSize; p=vec2(k*p.x-s*p.y,s*p.x+k*p.y)+uPos;
+  p=p*uZoom+uShake; gl_Position=vec4(p.x*2.0/uAsp,p.y*2.0,0.0,1.0); }`,
+`#version 300 es
+precision highp float; in vec2 vUv; out vec4 o;
+uniform sampler2D uMap,uRamp; uniform float uFrame,uU,uK,uAmt,uTex,uSeed,uNorm,uTime,uOl,uCore,uOw; uniform vec3 uOlCol;
+${NOISE}
+float cellA(float f,vec2 uv){ float col=mod(f,4.0),row=floor(f/4.0); return texture(uMap,(vec2(col,row)+uv)/4.0).a; }
+float shp(vec2 uv,float f0,float f1,float w){ uv=clamp(uv,0.004,0.996); return smoothstep(0.12,0.3,mix(cellA(f0,uv),cellA(f1,uv),w)); }
+void main(){
+  vec2 uv=clamp(vec2(vUv.x,1.0-vUv.y),0.004,0.996);
+  float f0=floor(uFrame),f1=min(f0+1.0,15.0),w=fract(uFrame);
+  float a=mix(cellA(f0,uv),cellA(f1,uv),w);
+  // Outline styles (core layer only): 1 ink, 2 colour rim, 3 hot inner edge, 4 toon (cel bands + ink). Edge = 8-tap dilate/erode of the shape.
+  float ol=(uCore>0.5)?uOl:0.0, outer=0.0, inner=0.0;
+  // uOw = edge width in uv, from the Width slider (rim default 0.0048 = 70% thinner, owner 2026-11-26).
+  if(ol>0.5){ float s0=smoothstep(0.12,0.3,a),mx=0.0,mn=1.0,ow=uOw;
+    for(int i=0;i<8;i++){ float an=float(i)*0.7853982; float q=shp(uv+vec2(cos(an),sin(an))*ow,f0,f1,w); mx=max(mx,q); mn=min(mn,q); }
+    outer=mx*(1.0-s0); inner=s0*(1.0-mn); }
+  vec2 q=vUv*3.0+uSeed; float n;
+  if(uTex<0.5) n=fbm(q+vec2(0.0,-uTime*0.6));
+  else if(uTex<1.5) n=1.0-cells(q*1.6+vec2(uTime*0.2,0.0))*1.2;
+  else n=fbm(vec2(q.x*0.7,q.y*5.0-uTime*1.5));
+  a*=mix(1.0,0.5+0.9*clamp(n,0.0,1.0),uAmt);
+  float fade=smoothstep(0.0,0.05,uU)*(1.0-smoothstep(0.82,1.0,uU));
+  float x=clamp(a,0.0,1.0);
+  if(ol>3.5){ x=(floor(x*3.0)+1.0)/3.0*smoothstep(0.16,0.22,x); }
+  vec3 col=texture(uRamp,vec2(x*mix(1.0,0.6,uU),0.5)).rgb;
+  float al=x*fade;
+  o = uNorm>0.5 ? vec4(col*al*uK,al*uK) : vec4(col*al*uK,0.0);
+  float ink=(ol>0.5&&ol<1.5||ol>3.5)?outer*fade*0.95:0.0;
+  o += vec4(vec3(0.02,0.01,0.04)*ink,ink);
+  if(ol>1.5&&ol<2.5) o.rgb+=uOlCol*outer*fade*1.3;
+  if(ol>2.5&&ol<3.5) o.rgb+=vec3(1.0)*inner*fade*0.9;
+}`)
+// Stage: night sky, floor with faint perspective grid, light pool and back glow in the shot colour.
+const BG = prog(`#version 300 es
+in vec2 c; out vec2 vP; uniform float uAsp; void main(){ vP=vec2(c.x*uAsp,c.y)*0.5; gl_Position=vec4(c,0.0,1.0); }`,
+`#version 300 es
+precision highp float; in vec2 vP; out vec4 o; uniform vec3 uCol; uniform float uLight,uFloor,uTime;
+${NOISE}
+void main(){
+  vec2 p=vP; vec3 c=mix(vec3(0.03,0.027,0.06),vec3(0.06,0.06,0.11),smoothstep(-0.5,0.5,p.y));
+  float fl=step(p.y,uFloor);
+  if(fl>0.5){ float d=uFloor-p.y+0.02; vec2 g=vec2(p.x/d*0.12,0.06/d+uTime*0.0);
+    float gl=max(1.0-smoothstep(0.0,0.05,abs(fract(g.x)-0.5)*2.0-0.9),0.0);
+    float line=smoothstep(0.96,1.0,abs(fract(g.x)-0.5)*2.0)+smoothstep(0.96,1.0,abs(fract(g.y)-0.5)*2.0);
+    c=vec3(0.035,0.032,0.055)+line*0.025*smoothstep(0.0,0.3,d)*(1.0-smoothstep(0.3,0.6,d)); }
+  vec2 e=(p-vec2(0.0,uFloor))/vec2(0.62,0.1); float pool=exp(-dot(e,e)*1.6)*fl;
+  vec2 b=(p-vec2(0.0,0.0))/vec2(0.7,0.55); float back=exp(-dot(b,b)*2.2);
+  c+=uCol*(pool*(0.08+0.55*uLight)+back*(0.03+0.16*uLight));
+  c*=1.0-0.55*dot(p*vec2(0.8,1.1),p*vec2(0.8,1.1));
+  c+=(h21(gl_FragCoord.xy+fract(uTime)*91.0)-0.5)*0.012;
+  o=vec4(c,1.0);
+}`)
+const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-.5, -.5, .5, -.5, -.5, .5, .5, .5]), gl.STATIC_DRAW)
+const fb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, fb)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW)
+function ramp(stops) {
+  const cs = stops.split(',').map(hex), d = new Uint8Array(256 * 4)
+  for (let i = 0; i < 256; i++) { const x = i / 255 * (cs.length - 1), j = Math.min(Math.floor(x), cs.length - 2), w = x - j
+    for (let k = 0; k < 3; k++) d[i * 4 + k] = Math.round((cs[j][k] * (1 - w) + cs[j + 1][k] * w) * 255); d[i * 4 + 3] = 255 }
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, d)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  return t
+}
+const ramps = Object.fromEntries(Object.entries(R).map(([k, v]) => [k, ramp(v)]))
+const maps = {}
+const load = s => new Promise((ok, no) => { const im = new Image(); im.onload = () => {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im); gl.generateMipmap(gl.TEXTURE_2D)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); maps[s] = t; ok() }; im.onerror = () => no(Error('sheet ' + s)); im.src = BASE + s + '.png' })
+const ready = Promise.all([...new Set(SHOTS.flatMap(s => s.layers.map(l => l.s)))].map(load)).catch(e => err(e.message))
+window.reelReady = ready
+
+let W = 0, H = 0
+// Styles (owner 2026-11-26 "try different outlines"): outline per core layer, HUD layout. URL ?ol=ink&hud=frame or the buttons. Default outline = rim.
+const OL = ['none', 'ink', 'rim', 'hot', 'toon'], HUD = ['bar', 'frame', 'minimal'], qs = new URLSearchParams(location.search)
+const ST = { ol: Math.max(0, OL.indexOf(qs.get('ol') || 'rim')), hud: Math.max(0, HUD.indexOf(qs.get('hud'))) } // owner 2026-11-26: rim (shot colour, brighter) is the default outline
+// Outline width per style in % of the old 0.016-uv edge (rim 30 = 70% thinner); Width slider edits the current style, ?ow= sets it at load.
+// Owner 2026-11-26: range 5-50 %, never thicker.
+const OW = [0, 50, 30, 50, 50]; if (+qs.get('ow') > 0) OW[ST.ol] = Math.min(50, Math.max(5, +qs.get('ow')))
+let olFrac = 0, olCol = [0.49, 0.61, 1] // outline width as a fraction of canvas height + colour, from the last core layer drawn
+window.reelStyle = (ol, hud) => { if (ol != null) ST.ol = Math.max(0, OL.indexOf(ol)); if (hud != null) ST.hud = Math.max(0, HUD.indexOf(hud)); syncUi() }
+function size(w, h) { if (w === W && h === H) return; W = cv.width = hud.width = w; H = cv.height = hud.height = h }
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x)
+function attr(p, buf) { gl.bindBuffer(gl.ARRAY_BUFFER, buf); const l = gl.getAttribLocation(p, 'c'); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0) }
+function render(T) {
+  T = ((T % LEN) + LEN) % LEN
+  const si = Math.min(Math.floor(T / SHOT), SHOTS.length - 1), sh = SHOTS[si], ts = T - si * SHOT, asp = W / H
+  const since = ts - sh.hit, hitEnv = since < 0 ? 0 : Math.exp(-since * (2 + sh.aggr * 0.6))
+  const pre = since < 0 ? ease((ts) / Math.max(sh.hit, .01)) * 0.25 : 0
+  const amp = RM ? 0 : [0, 0, .002, .006, .012, .022][sh.aggr] * hitEnv
+  const shake = [Math.sin(T * 91.7) * amp + Math.sin(T * 53.1) * amp * .5, Math.cos(T * 77.3) * amp]
+  const zoom = 1 + sh.push * ease(ts / (SHOT * .8)) + (RM ? 0 : sh.aggr * .006 * hitEnv)
+  const col = hex(sh.col), light = Math.min(1, hitEnv * (0.5 + sh.aggr * 0.12) + pre + 0.12)
+  gl.viewport(0, 0, W, H); gl.disable(gl.BLEND)
+  gl.useProgram(BG.p); attr(BG.p, fb)
+  gl.uniform1f(BG.u.uAsp, asp); gl.uniform3fv(BG.u.uCol, col); gl.uniform1f(BG.u.uLight, light); gl.uniform1f(BG.u.uFloor, -.36); gl.uniform1f(BG.u.uTime, T)
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+  gl.useProgram(FX.p); attr(FX.p, vb)
+  gl.uniform1f(FX.u.uAsp, asp); gl.uniform1f(FX.u.uZoom, zoom); gl.uniform2fv(FX.u.uShake, shake); gl.uniform1f(FX.u.uTime, T)
+  gl.uniform1i(FX.u.uMap, 0); gl.uniform1i(FX.u.uRamp, 1)
+  sh.layers.forEach((l, i) => {
+    const u = (ts - l.t) / l.life; if (u < 0 || u >= 1 || !maps[l.s]) return
+    const sz = l.sz * (1 + (l.grow - 1) * u)
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, maps[l.s]); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, ramps[l.r])
+    gl.uniform2f(FX.u.uPos, l.x, l.y); gl.uniform2f(FX.u.uSize, sz * l.sx, sz)
+    gl.uniform1f(FX.u.uRot, (l.rot + l.spin * (ts - l.t)) * Math.PI / 180)
+    gl.uniform1f(FX.u.uFrame, Math.min(u * FRAMES, FRAMES - 1.001)); gl.uniform1f(FX.u.uU, u)
+    gl.uniform1f(FX.u.uK, l.k); gl.uniform1f(FX.u.uAmt, l.amt); gl.uniform1f(FX.u.uTex, l.tex); gl.uniform1f(FX.u.uSeed, si * 3.1 + i * 1.7)
+    gl.uniform1f(FX.u.uNorm, l.norm ? 1 : 0); gl.uniform1f(FX.u.uCore, l.core ? 1 : 0); gl.uniform1f(FX.u.uOl, ST.ol); gl.uniform1f(FX.u.uOw, OW[ST.ol] * 0.00016);gl.uniform3fv(FX.u.uOlCol, col)
+    if (l.core) { olFrac = OW[ST.ol] * 0.00016 * sz * zoom; olCol = col }
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+  })
+  drawHud(T, si, sh, ts); if (typeof syncLine === 'function') syncLine()
+}
+function pips(x, y, label, n, s, c) {
+  hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .62}px system-ui,sans-serif`; hx.fillText(label, x, y)
+  const w = hx.measureText(label).width + s * .5
+  for (let i = 0; i < 5; i++) { hx.fillStyle = i < n ? c : '#ffffff22'; hx.fillRect(x + w + i * s * .9, y - s * .55, s * .7, s * .55) }
+}
+function loopFade(T) { const f = Math.max(0, (T - (LEN - .25)) / .25, 1 - T / .15); if (f > 0) { hx.fillStyle = `rgba(7,6,14,${Math.min(1, f)})`; hx.fillRect(0, 0, W, H) } }
+function drawHud(T, si, sh, ts) {
+  const s = H / 30, a = Math.min(1, ts / .12, (SHOT - ts) / .1)
+  hx.clearRect(0, 0, W, H); hx.globalAlpha = Math.max(0, a); hx.textBaseline = 'alphabetic'
+  if (ST.hud === 1) { // frame: corner brackets in the shot colour, boxed title bottom-left, stats under it
+    const m = s * 1.2, L2 = s * 2.2; hx.globalAlpha = 1; hx.strokeStyle = sh.col + 'aa'; hx.lineWidth = Math.max(1, s * .12)
+    for (const [x, y, dx, dy] of [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]]) { hx.beginPath(); hx.moveTo(x, y + dy * L2); hx.lineTo(x, y); hx.lineTo(x + dx * L2, y); hx.stroke() }
+    hx.globalAlpha = Math.max(0, a); hx.font = `700 ${s * 1.1}px system-ui,sans-serif`; const tw = hx.measureText(sh.name).width
+    hx.fillStyle = '#07060ecc'; hx.fillRect(m + s * .6, H - m - s * 3.6, tw + s * 1.6, s * 1.9); hx.fillStyle = sh.col; hx.fillRect(m + s * .6, H - m - s * 3.6, s * .2, s * 1.9)
+    hx.fillStyle = '#e8edf5'; hx.fillText(sh.name, m + s * 1.4, H - m - s * 2.25)
+    hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .6}px system-ui,sans-serif`
+    hx.fillText(`${String(si + 1).padStart(2, '0')}/${SHOTS.length}  ${sh.el.toUpperCase()}  ·  SIZE ${sh.size}  ·  AGGR ${sh.aggr}`, m + s * .6, H - m - s * .9)
+    hx.globalAlpha = 1; loopFade(T); return
+  }
+  if (ST.hud === 2) { // minimal: centred small caps name, one thin progress line
+    hx.textAlign = 'center'; hx.fillStyle = '#e8edf5cc'; hx.font = `600 ${s * .75}px system-ui,sans-serif`
+    hx.fillText(sh.name.toUpperCase().split('').join(' '), W / 2, H - s * 1.8); hx.textAlign = 'left'
+    hx.globalAlpha = 1; hx.fillStyle = '#ffffff22'; hx.fillRect(0, H - s * .12, W, s * .12); hx.fillStyle = sh.col; hx.fillRect(0, H - s * .12, W * T / LEN, s * .12)
+    loopFade(T); return
+  }
+  hx.fillStyle = '#93a0b4'; hx.font = `600 ${s * .7}px system-ui,sans-serif`
+  hx.fillText(`${String(si + 1).padStart(2, '0')} / ${SHOTS.length}  ·  ${sh.el.toUpperCase()}`, s * 1.4, s * 2)
+  hx.fillStyle = '#e8edf5'; hx.font = `700 ${s * 1.5}px system-ui,sans-serif`; hx.fillText(sh.name, s * 1.4, s * 3.7)
+  pips(s * 1.4, H - s * 2.6, 'SIZE', sh.size, s, sh.col); pips(s * 9, H - s * 2.6, 'AGGRESSION', sh.aggr, s, sh.col)
+  hx.globalAlpha = 1
+  const bw = W - s * 2.8, seg = bw / SHOTS.length
+  for (let i = 0; i < SHOTS.length; i++) { hx.fillStyle = i < si ? '#ffffff55' : '#ffffff1a'; hx.fillRect(s * 1.4 + i * seg + 1, H - s * 1.2, seg - 2, s * .16) }
+  hx.fillStyle = sh.col; hx.fillRect(s * 1.4 + si * seg + 1, H - s * 1.2, (seg - 2) * ts / SHOT, s * .16)
+  loopFade(T)
+}
+// Capture: fixed size, returns one composited JPEG frame (MP4 export via headless Chromium + ffmpeg).
+const comp = document.createElement('canvas'), cx = comp.getContext('2d')
+window.reelFrame = (t, w = 1280, h = 720) => { size(w, h); render(t); comp.width = w; comp.height = h; cx.drawImage(cv, 0, 0); cx.drawImage(hud, 0, 0); return comp.toDataURL('image/jpeg', .92) }
+window.reelInfo = { LEN, shots: SHOTS.map(s => s.name), OL, HUD }
+function syncUi() { $('bOl').textContent = 'Outline: ' + OL[ST.ol]; $('bHud').textContent = 'HUD: ' + HUD[ST.hud]
+  const off = ST.ol === 0, s = $('sOw'); s.disabled = off; $('owBox').setAttribute('aria-disabled', off); s.value = OW[ST.ol] || 30; $('vOw').textContent = off ? '–' : OW[ST.ol] + '%'; syncLine() }
+// Preview line = real on-screen outline px (uv width x layer size x zoom x displayed canvas height), shot colour.
+let linePx = -1
+function syncLine() {
+  const px = ST.ol ? olFrac * cv.getBoundingClientRect().height : 0, r = Math.round(px * 10) / 10
+  if (r === linePx) return; linePx = r
+  $('lOw').style.height = Math.max(px, .5) + 'px'; $('lOw').style.background = ST.ol ? `rgb(${olCol.map(c => Math.round(c * 255))})` : '#93a0b4'
+  $('pxOw').textContent = ST.ol ? r.toFixed(1) + ' px' : '–'
+}
+$('sOw').oninput = e => { if (ST.ol) { OW[ST.ol] = +e.target.value; syncUi() } }
+$('owBox').onclick = e => e.stopPropagation()
+$('bOl').onclick = e => { e.stopPropagation(); ST.ol = (ST.ol + 1) % OL.length; syncUi() }
+$('bHud').onclick = e => { e.stopPropagation(); ST.hud = (ST.hud + 1) % HUD.length; syncUi() }
+syncUi()
+if (!/[?&]cap\b/.test(location.search)) {
+  let t0 = performance.now(), paused = false, pt = 0
+  const fit = () => { const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2); size(Math.round(r.width * d), Math.round(r.height * d)) }
+  addEventListener('resize', fit)
+  $('stage').onclick = () => { paused = !paused; if (paused) pt = performance.now() - t0; else t0 = performance.now() - pt }
+  ready.then(() => { fit(); const tick = () => { try { render(((paused ? pt : performance.now() - t0) / 1000)) } catch (e) { err(e.message) } requestAnimationFrame(tick) }; tick() })
+}
+}
+</script>

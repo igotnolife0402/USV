@@ -43,3 +43,4 @@ __pycache__/
 .obsidian/
 state/.improve-timer*.json
 .claude/worktrees/
+tools/vfx/showcase/out/

@@ -33,6 +33,11 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - While `advice` says keep researching, spend the time on rungs 4-7 (gate math, contradiction pass, depth) and re-check `left`; an early brief wastes the owner's think time.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
+- Promoted 2026-11-24 (L-136 seen 4x: 78.9, 69.4, 74.3 s on 60 s budgets): between the spawn and the shown prompt, every tool call must finish in <= 5 s (no Edits of big files, no test runs, no batches) and each one is chained with `left`; build work starts only after the prompt is shown.
+- 2026-11-24 (L-189, 60 s run +14.8 s): a loop over files (20 paint.py calls, ~13 s) after the spawn hid an on-time Sonnet return; per-file loops, generators and skill calls wait until the prompt is shown.
+- Promoted 2026-11-24 (L-177/L-178, +36 s and +48.6 s): prototype code is rung 4, never a reason to pass send_brief_at; a script run > 5 s before the spawn is forbidden.
+- send_brief_at is a hard line (2026-11-24, 120 s run spawned 8 s late -> +12.4 s): when `left` says write, spawn in the next call; no 'one more' lookup. After the prompt shows, invoke every skill the router named, not only the first.
+- Interrupted turns before `/improve` (2026-11-25, +49.5 s): start with `start <s> --now` so earlier turns do not eat the budget.
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this

@@ -20,6 +20,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - VFX: make layered sheets with `tools/vfx/liquid` (liquid) or `tools/vfx/flipbook`, then import into Umbrio Sandbox and attach to the animation (Animate tab → Effects list → drag onto the part row).
 
 ## No overkill (owner rule 2026-11-21, every model, effect, animation, UI)
+- Exception (owner 2026-11-24): fight cutscenes want dense, violent VFX ("use 5x more"), every effect made for the shot (fitted to the swing, coloured per fighter), never a reused preset sheet.
 - Effects punctuate, they don't repeat: never a big effect on every small step (each armor piece, each hit of a combo, each UI tap). Pick ONE of: one big moment when the whole thing completes (all armor on, the combo ends), or a small, subtle continuous effect (drips, faint glow) that runs throughout.
 - Small steps get at most a tiny cue (a glint, a few drops), never a full burst. Nothing extra that wasn't asked for; when unsure, use less.
 
@@ -34,6 +35,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - No detail limits (owner 2026-11-23, caps): use as many parts as possible for maximum detail; never build less to fit a cap. Limits are met only at the very end: cut useless (hidden, degenerate) triangles, then split/compress meshes so the gates pass (`props.py` `fit_parts`).
 - Every model meets the [detail floor](domains/3d/detail.md) (custom meshes + textures + many combined parts, gate-checked); the owner rated cheap few-primitive builds "Haiku quality" (2026-11-22).
 - Default style = REALISTIC (owner 2026-11-22: "make me a house" came out toon and looked bad): real proportions, real materials/PBR textures, believable detail. Toon, low-poly, voxel or any named style ONLY when the owner asks for it. The props tool styles (lowpoly/toon) are never a default for a plain request.
+- VFX exception (owner 2026-11-24, reference image): effects are stylized glow, saturated hue + white-hot core + soft halo, not realistic ([rules](../domains/vfx/rules.md)).
 - Models are built from many separate parts (spheres, capsules, cones, cylinders, wedges; owner 2026-11-22), with real detail; never one big fused mesh, never voxels/blocks unless asked.
 - ALWAYS textures + custom meshes + real 3D thickness, any style (owner 2026-11-22, repeated): "voxel" = a voxel LOOK built from chunky textured mesh parts, never plain untextured Parts or a flat 1-stud slab; size readable (rifle ~9 studs). Gate: detail.py must pass before showing. Template: tools/3d/models/guns.py.
 - Scope = what was asked. A model is only that model: no ground, scenery or props unless asked. A named theme (e.g. "grassy meadow") is built first, everywhere the camera sees.

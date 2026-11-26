@@ -16,6 +16,9 @@ No code reading: everything below is the API.
 4. Build: `python3 avatar.py KIT OUT` (~1 s). Pose: `--pose wave|stand|...` (`POSES` at the top of `avatar.py`: joints in the rig frame, degrees; R6 uses Root, Neck, shoulders, hips).
 5. Studio tab (`--clip kamehameha` adds its animation): the avatar is the studio's own rig, a group per joint at its pivot with the meshes at rest under it, so the studio's animator poses it; the pose is the groups' rotations and a clip is smooth key poses on them (Animate mode, play). Never bake a pose into the meshes (owner). Then upload every file in `OUT/studio/uploads.json` in one Artifact call (`asset: true`, `file_paths`); its tex doc is `{"asset": id}`. `OUT/batches.json` lists the db writes: `["geo", id]` = `set projects/<id>/geo/<id>` ← `OUT/studio/geo/<id>.json`; `["tex", t]` = `projects/<id>/tex/<t>` ← `{"asset": <its upload id>}`; `["project"]`, `["meta"]` ← `OUT/studio/project.json`, `meta.json` (has the thumbnail). Replacing a tab (same piece): pin `if_version` and `delete` geo/tex docs the new project no longer uses.
 
+- Clip as data (2026-11-24): `--clipfile clip.json` = `{"name", "poses": {new: {"base": old, joint: [x,y,z]}}, "keys": [[t, pose, ease?]]}`; no code edit for a new clip. Two fighters in one tab: [duel](duel/README.md).
+- Kits (2026-11-24): `v1/asset` answers 401 without a login; `catalog.py` falls back to `v1/assetId` (signed CDN location). Newer items (most anime hair) still need a login: test an id with `v1/assetId` first (classic ones work: hair 18235732955, 340623516).
+
 ## Faces
 - `faces.py OUT.png shocked|scared|grin|cry|smirk [--skin #f2f3f3] [--size 512]`: an expression head texture in the kit's face.png layout (eyes y 0.29, mouth y 0.68), thumbnail-style (white eyes with ink rims, raised brows, open mouth with teeth and tongue). Set it as the Head mesh's texture so the real avatar shows the expression.
 

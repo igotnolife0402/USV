@@ -113,5 +113,12 @@ if (isMain(import.meta.url)) safe(() => {
       spawn('git', ['push', '-u', 'origin', 'HEAD'], { cwd: ROOT, detached: true, stdio: 'ignore', env: ENV, windowsHide: true }).on('error', () => {}).unref();
     else if (branch && !/^(main|master|HEAD)$/.test(branch)) git(['push', '-u', 'origin', 'HEAD'], 30000); // phone: its session branch only
   }
+  // owner 2026-11-25: main is the one path every tool reads; a clean session branch fast-forwards it at stop (never a merge, never force)
+  if (git(['remote']).stdout?.trim()) {
+    const branch = (git(['rev-parse', '--abbrev-ref', 'HEAD']).stdout || '').trim();
+    if (branch && !/^(main|master|HEAD)$/.test(branch) && git(['fetch', '-q', 'origin', 'main'], 20000).status === 0
+      && git(['merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD']).status === 0 && git(['rev-parse', 'FETCH_HEAD']).stdout !== git(['rev-parse', 'HEAD']).stdout)
+      git(['push', '-q', 'origin', 'HEAD:main'], 30000);
+  }
   if (refused.length) block(`Not committed (left unstaged): ${refused.join('; ')}. Add them to .gitignore or delete them; never commit secrets or files over 5 MB.`);
 });

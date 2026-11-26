@@ -7,6 +7,9 @@ description: 'Use for a browser 3D editor, mini-Blender, scene/level editor or m
 ## Models: detail floor
 - Any model (generator, Studio tab, Blender): meet [detail floor](../../../domains/3d/detail.md); `python tools/3d/detail/detail.py check project.json geo/ --class hero` passes before done.
 
+## Animations: cinematic floor (owner 2026-11-24)
+- Every clip: `auto` eases through motion, hit-stops on impacts, `anim.lint` 0. Fights, cutscenes, payoffs and loops: `anim.cine` too, then read the 12 fps sheet of the payoff second ([cinematic-baseline](../../../domains/animation/cinematic-baseline.md)).
+
 ## Step 0: the owner already has an editor
 - [Studio](../../../domains/3d/studio.md) (`tools/3d/studio`): parts, mesh edit, sculpt, anim, textures, paint, draw, VFX, GUI, import/export, MP4, with a test suite. A feature for "the editor" = a Studio plugin: one file in `plugins/`, one line in `plugins/index.js`, a `<link rel="modulepreload">` in `index.html` if it loads at boot (else `import()` on first use), a suite in `test/`. Read only [plugins](../../../tools/3d/studio/docs/plugins.md) and [plugin API](../../../tools/3d/studio/docs/plugin-api.md).
 - Verify: `node test/run.mjs <suite>` plus `core` (boot caps), env vars per [tests](../../../tools/3d/studio/docs/tests.md). No new plugins unasked.

@@ -37,31 +37,13 @@ const CH = ['pos', 'rot', 'scale', 'color', 'visible']
 const XF = ['pos', 'rot', 'scale']
 const CH_LABEL = { pos: 'Position', rot: 'Rotation', scale: 'Scale', color: 'Color', visible: 'Visible' }
 const CH_COL = { pos: '#e5484d', rot: '#3fb950', scale: '#3d8bfd', color: '#ffa23a', visible: '#8b93a1' }
-const EASES = ['linear', 'ease', 'smooth', 'in', 'out', 'step', 'bounce', 'elastic']
+import { EASES, EASE, easeFn, isEase, sample, storyAt, mix, hexRGB, rgbHex } from './sample.js'
+import { cinePass, CINE } from './cine.js'
+export { EASE, easeFn, isEase, sample, storyAt }
 const EASE_LABEL = { linear: 'Linear', ease: 'Ease in-out', smooth: 'Smooth (sine)', in: 'Ease in', out: 'Ease out', step: 'Constant', bounce: 'Bounce', elastic: 'Elastic' }
 const D2R = Math.PI / 180
 const SEP = '\u0001'
 
-function outBounce(x) {
-  const n = 7.5625, d = 2.75
-  if (x < 1 / d) return n * x * x
-  if (x < 2 / d) return n * (x -= 1.5 / d) * x + 0.75
-  if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + 0.9375
-  return n * (x -= 2.625 / d) * x + 0.984375
-}
-export const EASE = {
-  linear: x => x,
-  ease: x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
-  smooth: x => (1 - Math.cos(Math.PI * x)) / 2,   // sine in-out: keys on a wave's peaks replay the wave exactly
-  in: x => x * x * x,
-  out: x => 1 - Math.pow(1 - x, 3),
-  step: () => 0,
-  bounce: outBounce,
-  elastic: x => x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * (2 * Math.PI / 3)) + 1
-}
-
-const hexRGB = h => { const n = parseInt(String(h || '#000000').slice(1, 7), 16) || 0; return [n >> 16 & 255, n >> 8 & 255, n & 255] }
-const rgbHex = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')
 const add = (a, b) => a.map((v, i) => v + (b[i] || 0))
 const mul = (a, b) => a.map((v, i) => v * (Array.isArray(b) ? b[i] : b))
 const mk = (t, v, e) => e && e !== 'linear' ? [t, v, e] : [t, v]
@@ -70,23 +52,6 @@ const r4 = t => Math.round(t * 1e4) / 1e4
 const ref = (id, ch, t) => id + SEP + ch + SEP + r4(t)
 const ratio = (a, b) => Math.abs(b) > 1e-9 ? a / b : a
 
-function mix(a, b, e, ch) {
-  if (ch === 'visible') return e >= 1 ? b : a
-  if (ch === 'color') { const p = hexRGB(a), q = hexRGB(b); return rgbHex(p.map((v, i) => v + (q[i] - v) * e)) }
-  return a.map((v, i) => v + ((b[i] ?? v) - v) * e)
-}
-// Sample one channel's keys [[t, value, ease?], ...] at time t (ease belongs to the segment's first key).
-export function sample(keys, t, ch) {
-  const n = keys?.length
-  if (!n) return undefined
-  if (n === 1 || t <= keys[0][0]) return keys[0][1]
-  if (t >= keys[n - 1][0]) return keys[n - 1][1]
-  let lo = 0, hi = n - 1
-  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (keys[m][0] <= t) lo = m; else hi = m }
-  const a = keys[lo], b = keys[hi], span = b[0] - a[0]
-  const u = span > 0 ? (t - a[0]) / span : 1
-  return mix(a[1], b[1], (EASE[a[2]] || EASE.linear)(u), ch)
-}
 function normVal(ch, v) {
   if (ch === 'visible') return !!v
   if (ch === 'color') return typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : '#ffffff'
@@ -104,7 +69,7 @@ function restVal(obj, ch) {
 // ---------- state ----------
 let A = null
 const S = {
-  clip: null, playing: false, speed: 1, autokey: false, stopLoop: null,
+  clip: null, playing: false, speed: 1, autokey: false, stopLoop: null, camFollow: true, camSaved: null,
   sel: new Set(), clipboard: null, open: new Set(), posed: new Set(), mix: null, ui: null, rows: null, hint: false
 }
 const anims = () => A?.scene?.anims || {}
@@ -246,12 +211,118 @@ function poseObj(o, obj, tr, t) {
   if (s) { const b = obj.scale || [1, 1, 1]; o.scale.set(r.s.x * ratio(s[0], b[0]), r.s.y * ratio(s[1], b[1]), r.s.z * ratio(s[2], b[2])) } else o.scale.copy(r.s)
   o.visible = tr.visible?.length ? r.v && !!sample(tr.visible, t, 'visible') : r.v
   if (tr.color?.length) setColor(o, sample(tr.color, t, 'color')); else unColor(o)
+  // Light intensity track (2026-11-24, cine lighting): [[t, [n], ease]] (array like every channel, so lint/sample/tidy work) in the object's own intensity units (point/spot x6 like model.js).
+  const L = o.userData.light
+  if (L && tr.intensity?.length) { if (o.userData.anI == null) o.userData.anI = L.intensity; L.intensity = Math.max(0, sample(tr.intensity.map(q => [q[0], Array.isArray(q[1]) ? q[1] : [+q[1]], q[2]]), t, 'pos')[0]) * (L.isDirectionalLight ? 1 : 6) }
+  else if (L && o.userData.anI != null) { L.intensity = o.userData.anI; delete o.userData.anI }
   o.updateMatrix()
 }
 function unpose(o) {
   const r = o.userData.anRest
   if (r) { o.position.copy(r.p); o.quaternion.copy(r.q); o.scale.copy(r.s); o.visible = r.v; o.updateMatrix(); delete o.userData.anRest }
   unColor(o)
+  const L = o.userData.light
+  if (L && o.userData.anI != null) { L.intensity = o.userData.anI; delete o.userData.anI }
+}
+// Clip camera (2026-11-24, cutscenes): clip.camera = {pos, target: [[t, [x,y,z], ease]], fov, shake: [[t, n, ease]]}, sampled like
+// object tracks. While a clip with camera keys plays or is in Animate mode (and Follow camera is on) it drives the view; the
+// view the user had is kept and put back when it stops driving. Shake = deterministic noise (amp in studs), so shots,
+// video export and every replay match frame for frame.
+const CAM_V = ['pos', 'target'], CAM_N = ['fov', 'shake']
+export function camAt(c, t) {
+  const k = c?.camera
+  if (!k) return null
+  const s = {}
+  for (const ch of CAM_V) if (k[ch]?.length) s[ch] = sample(k[ch], t, 'pos')
+  for (const ch of CAM_N) if (k[ch]?.length) s[ch] = sample(k[ch].map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0]
+  if (!s.pos && !s.target && s.fov == null) return null
+  const a = s.shake || 0
+  if (a && s.pos) {
+    const n = f => Math.sin(t * f * 6.2832) * 0.6 + Math.sin(t * f * 2.71 + 1.3) * 0.4
+    s.pos = [s.pos[0] + a * n(17), s.pos[1] + a * n(23), s.pos[2] + a * n(29)]
+  }
+  delete s.shake
+  return s
+}
+// Letterbox: clip.camera.bars = [[t, amount 0..1, ease]] (ratio clip.camera.barsRatio, default 2.39:1), drawn as a pass over
+// the frame (vp.post), so the viewport, shots and the MP4 export all show them; amount 0 = none.
+let BARS = null
+function barsPass(vp) {
+  if (BARS) return BARS
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), m = new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false, depthWrite: false })
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(2, 1), m), bot = top.clone(); sc.add(top, bot)
+  BARS = { amount: 0, ratio: 2.39, fn(r) {
+    if (!(BARS.amount > 0)) return
+    const sz = r.getSize(new THREE.Vector2()), want = sz.x / BARS.ratio, h = Math.max(0, (sz.y - want) / 2 / sz.y * 2) * Math.min(1, BARS.amount)   // NDC height of one bar
+    if (h <= 0) return
+    top.scale.set(1, h, 1); top.position.set(0, 1 - h / 2, 0); bot.scale.set(1, h, 1); bot.position.set(0, -1 + h / 2, 0)
+    const ac = r.autoClear; r.autoClear = false; r.render(sc, cam); r.autoClear = ac
+  } }
+  ;(vp.post ||= []).push((r) => BARS.fn(r))
+  return BARS
+}
+// Flash: clip.camera.flash = [[t, amount -1..1, ease]], a full-frame pass like the bars: > 0 = white (impact flash),
+// < 0 = black (the dark dip the owner's refs show right before every flash). Runs whenever the clip plays, Follow or not.
+let FLASH = null
+function flashPass(vp) {
+  if (FLASH) return FLASH
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), m = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false, depthWrite: false })
+  sc.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m))
+  FLASH = { amount: 0, fn(r) {
+    const a = Math.max(-1, Math.min(1, FLASH.amount))
+    if (Math.abs(a) < 1e-3) return
+    m.color.set(a > 0 ? 0xffffff : 0x000000); m.opacity = Math.abs(a)
+    const ac = r.autoClear; r.autoClear = false; r.render(sc, cam); r.autoClear = ac
+  } }
+  ;(vp.post ||= []).push((r) => FLASH.fn(r))
+  return FLASH
+}
+// Grade: clip.camera.grade = [[t, [exp, vig, tint], ease]], clip.camera.gradeTint = '#hex' (2026-11-24, cine lighting).
+// exp < 0 darkens (black overlay), exp > 0 lifts (additive white); vig = radial edge darkening 0..1; tint = additive colour
+// wash 0..1. A full-frame pass after the scene like flash/bars, so viewport, shots and MP4 export all match.
+let GRADE = null
+function gradePass(vp) {
+  if (GRADE) return GRADE
+  const sc = new THREE.Scene(), cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+  const U = { exp: { value: 0 }, vig: { value: 0 }, tint: { value: 0 }, col: { value: new THREE.Color(1, 1, 1) }, aspect: { value: 1 } }
+  const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
+  const dark = new THREE.ShaderMaterial({ uniforms: U, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false,
+    fragmentShader: 'uniform float exp; uniform float vig; uniform float aspect; varying vec2 vUv; void main(){ vec2 d = (vUv - 0.5) * vec2(aspect, 1.0); float r = length(d) / length(vec2(aspect, 1.0) * 0.5); float a = clamp(max(0.0, -exp) + vig * smoothstep(0.45, 1.0, r), 0.0, 1.0); gl_FragColor = vec4(0.0, 0.0, 0.0, a); }' })
+  const lift = new THREE.ShaderMaterial({ uniforms: U, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+    fragmentShader: 'uniform float exp; uniform float tint; uniform vec3 col; varying vec2 vUv; void main(){ vec2 d = vUv - 0.5; float c = 1.0 - 0.6 * dot(d, d) * 4.0; gl_FragColor = vec4(vec3(max(0.0, exp)) + col * tint * c, 1.0); }' })
+  const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), dark); sc.add(q)
+  GRADE = { exp: 0, vig: 0, tint: 0, color: '#ffffff', fn(r) {
+    if (Math.abs(GRADE.exp) < 1e-3 && GRADE.vig < 1e-3 && GRADE.tint < 1e-3) return
+    const sz = r.getSize(new THREE.Vector2()); U.aspect.value = sz.x / Math.max(1, sz.y)
+    U.exp.value = Math.max(-1, Math.min(1, GRADE.exp)); U.vig.value = Math.min(1, Math.max(0, GRADE.vig)); U.tint.value = Math.min(1, Math.max(0, GRADE.tint)); U.col.value.set(GRADE.color)
+    const ac = r.autoClear; r.autoClear = false
+    if (U.exp.value < 0 || U.vig.value > 0) { q.material = dark; r.render(sc, cam) }
+    if (U.exp.value > 0 || U.tint.value > 0) { q.material = lift; r.render(sc, cam) }
+    r.autoClear = ac
+  } }
+  // Before flash and bars: the grade is part of the image, the flash and letterbox sit on top of it.
+  ;(vp.post ||= []).unshift((r) => GRADE.fn(r))
+  return GRADE
+}
+export function gradeAt(c, t) {
+  const gk = c?.camera?.grade
+  if (!gk?.length) return null
+  const v = sample(gk.map(q => [q[0], [0, 1, 2].map(i => +(Array.isArray(q[1]) ? q[1][i] : 0) || 0), q[2]]), t, 'pos')
+  return { exp: v[0], vig: v[1], tint: v[2], color: c.camera.gradeTint || '#ffffff' }
+}
+function camDrive(vp, c, t) {
+  const g = gradeAt(c, t)
+  if (g || GRADE) Object.assign(gradePass(vp), g || { exp: 0, vig: 0, tint: 0 })
+  const fk = c?.camera?.flash?.length ? c.camera.flash : null
+  if (fk || FLASH) flashPass(vp).amount = fk ? sample(fk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0
+  const bk = S.camFollow && c?.camera?.bars?.length ? c.camera.bars : null
+  if (bk || BARS) { const b = barsPass(vp); b.amount = bk ? sample(bk.map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0] : 0; b.ratio = +c?.camera?.barsRatio || 2.39 }
+  const s = S.camFollow && c ? camAt(c, t) : null
+  if (s) {
+    if (!S.camSaved) S.camSaved = vp.getCamera?.()
+    vp.setCamera?.(s); return
+  }
+  if (S.camSaved) { const v = S.camSaved; S.camSaved = null; vp.setCamera?.(v) }
 }
 function evaluate(t = A?.time || 0, force = false) {
   const vp = A?.viewport
@@ -261,11 +332,12 @@ function evaluate(t = A?.time || 0, force = false) {
   if (c) for (const oid in c.tracks || {}) {
     const o = vp.objects.get(oid), obj = A.obj(oid)
     if (!o || !obj || !c.tracks[oid]) continue
-    poseObj(o, obj, c.tracks[oid], t)
+    poseObj(o, obj, c.tracks[oid], storyAt(c, t))
     next.add(oid)
   }
   for (const oid of S.posed) if (!next.has(oid)) { const o = vp.objects.get(oid); if (o) unpose(o) }
   S.posed = next
+  camDrive(vp, c, storyAt(c, t))
   const m = on && isModelRef(id) ? modelClip(id) : null
   if (S.mix && (!m || S.mix.key !== m.key || S.mix.root !== m.o)) stopMix()
   if (m) {
@@ -448,7 +520,7 @@ function toClips(opts = {}) {
       const obj = A.obj(oid), o = node(oid)
       if (!obj || !tr || (byId && !o)) continue                   // not in the export copy (a temporary model)
       const nm = opts.nodeName ? opts.nodeName(oid) : o ? o.uuid : oid
-      const bake = (ch, size, fn) => { const v = new Float32Array((n + 1) * size); for (let i = 0; i <= n; i++) v.set(fn(sample(tr[ch], times[i], ch)), i * size); return v }
+      const bake = (ch, size, fn) => { const v = new Float32Array((n + 1) * size); for (let i = 0; i <= n; i++) v.set(fn(sample(tr[ch], storyAt(a, times[i]), ch)), i * size); return v }
       if (tr.pos?.length) tracks.push(new THREE.VectorKeyframeTrack(nm + '.position', times, bake('pos', 3, v => v)))
       if (tr.rot?.length) {
         let prev = null
@@ -914,6 +986,7 @@ function buildBar(u, ph) {
   u.end = b('an-end', 'Jump to end (Shift+Right)', run('anim.end'))
   u.key = b('an-key', 'Key selected (K)', run('anim.key'))
   u.rec = b('an-rec', 'Auto-key: moves in Animate mode record keys', run('anim.autokey'), 'an-rec')
+  u.cam = b('camera', 'Key camera: the current view becomes a camera key at the playhead', run('anim.camKey'))
   u.time = h('div', 'an-time')
   const sep = () => h('div', 'an-sep'), grow = () => h('div', 'an-grow')
   if (ph) {
@@ -922,7 +995,7 @@ function buildBar(u, ph) {
     const r1 = h('div', 'an-row'), r2 = h('div', 'an-row')
     r1.append(sel, u.time, u.add, u.more)
     u.fx = b('an-fx', 'Effects: drag one onto a row', run('vfx.library'))
-    r2.append(u.start, u.prev, u.play, u.next, u.key, u.rec, u.pre, u.fx)
+    r2.append(u.start, u.prev, u.play, u.next, u.key, u.rec, u.cam, u.pre, u.fx)
     bar.append(r1, r2)
     return
   }
@@ -945,7 +1018,7 @@ function buildBar(u, ph) {
   pre.type = 'button'; pre.onclick = () => presetMenu(pre)
   const fxb = h('button', 'btn an-txt', ic('an-fx') + '<span>Effects</span>')
   fxb.type = 'button'; fxb.title = 'Effects: drag one onto a row'; fxb.onclick = () => A.exec('vfx.library')
-  bar.append(sel, u.add, u.ren, u.dup, u.del, sep(), lw, fw, u.loop, grow(), u.start, u.prev, u.play, u.stop, u.next, u.end, u.speed, grow(), u.time, sep(), u.key, u.rec, sep(), pre, fxb)
+  bar.append(sel, u.add, u.ren, u.dup, u.del, sep(), lw, fw, u.loop, grow(), u.start, u.prev, u.play, u.stop, u.next, u.end, u.speed, grow(), u.time, sep(), u.key, u.rec, u.cam, sep(), pre, fxb)
 }
 function renderPanel(el) {
   const ph = isPhone()
@@ -1101,11 +1174,153 @@ const commands = {
     run(app, a = {}) {
       if (!app.obj(a.id)) throw new Error('Set key needs {id, ch, t, value}')
       if (!KEYS[a.ch]) throw new Error('Channel must be pos, rot, scale, color or visible')
-      if (a.ease && !EASES.includes(a.ease)) throw new Error('Unknown easing: ' + a.ease)
+      if (a.ease && !isEase(a.ease)) throw new Error('Unknown easing: ' + a.ease)
       const { id, c } = ensureClip(app), next = clone(c), t = snap(+a.t || 0, fpsOf(c))
       setKeyIn(next, a.id, a.ch, t, a.value ?? posedVal(c, a.id, a.ch, t), a.ease)
       app.putAnim(id, next)
       return t
+    }
+  },
+  'anim.camKey': {
+    label: 'Key camera', icon: 'camera', mode: 'animate',
+    run(app, a = {}) {
+      if (isModelRef(curId())) throw new Error('Imported clips are read-only')
+      const vp = app.viewport, { id, c } = ensureClip(app)
+      const t = snap(a.t ?? app.time ?? 0, fpsOf(c)), v = { ...(vp?.getCamera?.() || {}), ...(a.values || {}) }, next = clone(c), e = a.ease || 'smooth'
+      const cam = next.camera ||= {}
+      const put = (ch, val) => { const ks = (cam[ch] ||= []).filter(k => Math.abs(k[0] - t) > 1e-4); ks.push([t, val, e]); ks.sort((p, q) => p[0] - q[0]); cam[ch] = ks }
+      for (const ch of a.channels || ['pos', 'target', 'fov', ...(a.values?.shake != null ? ['shake'] : [])]) if (v[ch] != null) put(ch, v[ch])
+      app.putAnim(id, next)
+      return t
+    }
+  },
+  'anim.camClear': {
+    label: 'Clear camera keys', icon: 'camera', enabled: () => !!cur()?.camera,
+    run(app) { const id = curId(), c = anims()[id]; if (!c?.camera) return 0; const next = clone(c); delete next.camera; app.putAnim(id, next); return 1 }
+  },
+  'anim.camFollow': {
+    label: 'Follow clip camera', icon: 'camera', noUndo: true, checked: () => S.camFollow,
+    run: (app, a = {}) => { S.camFollow = a.on != null ? !!a.on : !S.camFollow; evaluate(); return S.camFollow }
+  },
+  // Two-bone IK (2026-11-24): place a hand/foot/blade by its world target; the bend side comes from the pole. Keys upper + lower.
+  'anim.ik': {
+    label: 'IK: place a limb', icon: 'an-key', mode: 'animate',
+    run(app, a = {}) {
+      const [ua, la, ea] = a.chain || [], vp = app.viewport, O = id => vp.objects.get(id)
+      if (![ua, la, ea].every(id => O(id))) throw new Error('anim.ik needs chain: [upper, lower, end] object ids')
+      const { id, c } = ensureClip(app), t = snap(a.t ?? app.time ?? 0, fpsOf(c)), next = clone(c)
+      app.setTime?.(t); evaluate(t, true)
+      const U = O(ua), L = O(la), E = O(ea), W = o => { o.updateWorldMatrix(true, false); return new THREE.Vector3().setFromMatrixPosition(o.matrixWorld) }
+      const pa = W(U), pb = W(L), pc = W(E), T = new THREE.Vector3(...a.target), l1 = pa.distanceTo(pb), l2 = pb.distanceTo(pc)
+      let d = pa.distanceTo(T); const reach = d <= l1 + l2 - 1e-4 && d >= Math.abs(l1 - l2) + 1e-4
+      d = Math.min(Math.max(d, Math.abs(l1 - l2) + 1e-4), l1 + l2 - 1e-4)
+      const u = T.clone().sub(pa).normalize(), pole = a.pole ? new THREE.Vector3(...a.pole) : pb.clone()
+      let nrm = pole.clone().sub(pa); nrm.sub(u.clone().multiplyScalar(nrm.dot(u)))
+      if (nrm.lengthSq() < 1e-9) nrm.set(0, 1, 0).sub(u.clone().multiplyScalar(u.y)); nrm.normalize()
+      const cosA = Math.min(1, Math.max(-1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d))), elbow = pa.clone().add(u.multiplyScalar(l1 * cosA)).add(nrm.multiplyScalar(l1 * Math.sqrt(1 - cosA * cosA)))
+      const aim = (o, from, to, dst) => {          // turn o (world) so the from->to bone points at dst, then store as its local rotation
+        const q = new THREE.Quaternion().setFromUnitVectors(to.clone().sub(from).normalize(), dst.clone().sub(from).normalize())
+        const wq = o.getWorldQuaternion(new THREE.Quaternion()), pq = o.parent ? o.parent.getWorldQuaternion(new THREE.Quaternion()) : new THREE.Quaternion()
+        o.quaternion.copy(pq.invert().multiply(q.multiply(wq))); o.updateMatrixWorld(true)
+      }
+      aim(U, pa, pb, elbow); aim(L, W(L), W(E), T)
+      const deg = o => { const e = new THREE.Euler().setFromQuaternion(o.quaternion, 'XYZ'); return [e.x / D2R, e.y / D2R, e.z / D2R] }
+      setKeyIn(next, ua, 'rot', t, deg(U), a.ease); setKeyIn(next, la, 'rot', t, deg(L), a.ease)
+      app.putAnim(id, next); evaluate(t, true)
+      return { reached: reach, miss: +W(E).distanceTo(new THREE.Vector3(...a.target)).toFixed(4) }
+    }
+  },
+  // Mirror a pose Left <-> Right by object name at t (rot [x,-y,-z], pos [-x,y,z] in the joint's own frame).
+  'anim.mirror': {
+    label: 'Mirror pose L/R', icon: 'an-key', mode: 'animate',
+    run(app, a = {}) {
+      const { id, c } = ensureClip(app), t = snap(a.t ?? app.time ?? 0, fpsOf(c)), next = clone(c), objs = app.scene.objects
+      const byName = new Map(Object.entries(objs).map(([k, o]) => [o.name, k])), from = a.from || 'Left', to = from === 'Left' ? 'Right' : 'Left'
+      let n = 0
+      for (const [k, o] of Object.entries(objs)) {
+        if (!o.name?.includes(from)) continue
+        const dst = byName.get(o.name.replace(from, to)); if (!dst) continue
+        const r = posedVal(c, k, 'rot', t), p = c.tracks?.[k]?.pos?.length ? posedVal(c, k, 'pos', t) : null
+        setKeyIn(next, dst, 'rot', t, [r[0], -r[1], -r[2]]); if (p) setKeyIn(next, dst, 'pos', t, [-p[0], p[1], p[2]]); n++
+      }
+      app.putAnim(id, next); return n
+    }
+  },
+  // Cinematic baseline (2026-11-24, owner refs measured frame by frame): one call adds the eased push-in, suspense slow-mo,
+  // dark dip + white flash, hit-stop, decaying shake and settling pull-back (impact/burst) or a seamless orbit (loop).
+  // Re-running replaces the previous pass; {off: true} restores the clip's own camera, warp and length.
+  'anim.cine': {
+    label: 'Cinematic pass', icon: 'camera', enabled: () => !!cur() && !isModelRef(curId()),
+    run(app, a = {}) {
+      const id = a.id || curId(), c = anims()[id]
+      if (!c) throw new Error('Pick a clip first')
+      if (isModelRef(id)) throw new Error('Imported clips are read-only')
+      const next = cinePass(c, a, app.viewport?.getCamera?.() || {})
+      app.putAnim(id, next); evaluate()
+      return next.cine ? { kind: next.cine.kind, len: next.len, warp: next.cine.warp } : 0
+    }
+  },
+  // Lint the current clip (read-only): the faults the 2026-11-24 duel critique found by hand, found in one call.
+  'anim.lint': {
+    label: 'Lint animation', icon: 'an-key', noUndo: true,
+    run(app, a = {}) {
+      const c = a.id ? anims()[a.id] : cur(); if (!c) return []
+      const out = [], fps = fpsOf(c), len = lenOf(c), q0 = new THREE.Quaternion(), q1 = new THREE.Quaternion(), e = new THREE.Euler()
+      const quat = (q, r) => q.setFromEuler(e.set(r[0] * D2R, r[1] * D2R, r[2] * D2R))
+      for (const [oid, tr] of Object.entries(c.tracks || {})) {
+        const ks = tr.rot || []
+        for (let i = 1; i < ks.length; i++) { const dv = Math.max(...ks[i][1].map((v, j) => Math.abs(v - ks[i - 1][1][j]))); if (dv > 120 && dv < 180) out.push({ type: 'euler-jump', id: oid, t: ks[i][0], value: +dv.toFixed(1) }) }
+        if (ks.length >= 4 && ks.slice(0, -1).every(k => !k[2] || k[2] === 'smooth' || k[2] === 'linear')) out.push({ type: 'robotic', id: oid, t: ks[0][0], value: ks.length })
+        if (ks.length > 1) { let last = -1
+          for (let i = 1; i <= Math.round(len * fps); i++) {
+            const t0 = storyAt(c, (i - 1) / fps), t1 = storyAt(c, i / fps), ang = quat(q0, sample(ks, t0, 'rot')).angleTo(quat(q1, sample(ks, t1, 'rot'))) / D2R
+            if (ang > 60 && i / fps - last > 0.25) { last = i / fps; out.push({ type: 'pose-snap', id: oid, t: +(i / fps).toFixed(3), value: +ang.toFixed(1) }) }
+          } }
+      }
+      // Baseline faults (2026-11-24, domains/animation/cinematic-baseline.md): motion that brakes to 0 mid-move, a camera
+      // that stops at every key or never moves, a hit with no payoff, a loop that pops at the seam.
+      const brakeEnd = e => e === 'smooth' || e === 'ease' || e === 'out', brakeStart = e => e === 'smooth' || e === 'ease' || e === 'in'
+      for (const [oid, tr] of Object.entries(c.tracks || {})) for (const ch of ['pos', 'rot']) {
+        const ks = tr[ch] || []
+        for (let i = 1; i < ks.length - 1; i++) {
+          const d1 = ks[i][1].map((v, j) => v - ks[i - 1][1][j]), d2 = ks[i + 1][1].map((v, j) => v - ks[i][1][j])
+          const n1 = Math.hypot(...d1), n2 = Math.hypot(...d2), cos = n1 > 1e-3 && n2 > 1e-3 ? d1.reduce((s, v, j) => s + v * d2[j], 0) / (n1 * n2) : 0
+          if (cos > 0.7 && brakeEnd(ks[i - 1][2]) && brakeStart(ks[i][2])) out.push({ type: 'motion-stop', id: oid, t: ks[i][0], value: ch })
+        }
+      }
+      const cm = c.camera || {}
+      for (const ch of ['pos', 'target', 'fov']) { const ks = cm[ch] || []
+        if (ks.length >= 3 && ks.slice(0, -1).every(k => !k[2] || k[2] === 'linear' || k[2] === 'smooth')) out.push({ type: 'camera-robotic', id: 'camera', t: ks[0][0], value: ch }) }
+      if (len >= 3 && Object.keys(c.tracks || {}).length && !cm.pos?.length && !cm.target?.length && !cm.fov?.length) out.push({ type: 'static-camera', id: 'camera', t: 0, value: len })
+      const shk = cm.shake || [], top = Math.max(0, ...shk.map(k => +k[1]))
+      for (let i = 0; i < shk.length; i++) { const v = +shk[i][1]
+        if (v > 0 && v >= 0.5 * top && v >= +(shk[i - 1]?.[1] ?? 0) && v >= +(shk[i + 1]?.[1] ?? 0) && !(cm.flash || []).some(f => +f[1] > 0.3 && Math.abs(f[0] - shk[i][0]) <= 0.2)) out.push({ type: 'payoff-flat', id: 'camera', t: shk[i][0], value: v }) }
+      if (c.loop !== false) {
+        const s0 = storyAt(c, 0), s1 = storyAt(c, len), tol = { pos: 0.02, rot: 2, target: 0.02 }
+        const gap = (ks, ch) => Math.max(...sample(ks, s0, ch).map((v, j) => Math.abs(v - sample(ks, s1, ch)[j])))
+        for (const [oid, tr] of Object.entries(c.tracks || {})) for (const ch of ['pos', 'rot']) if (tr[ch]?.length > 1) { const g = gap(tr[ch], ch); if (g > tol[ch]) { out.push({ type: 'loop-seam', id: oid, t: len, value: +g.toFixed(3) }); break } }
+        for (const ch of ['pos', 'target']) if (cm[ch]?.length > 1) { const g = gap(cm[ch], 'pos'); if (g > tol[ch]) out.push({ type: 'loop-seam', id: 'camera', t: len, value: +g.toFixed(3) }) }
+      }
+      const sig = t => JSON.stringify(Object.values(c.tracks || {}).map(tr => Object.entries(tr).map(([ch, k]) => k?.length ? sample(k, storyAt(c, t), ch) : 0)))
+      let runStart = 0, prev = sig(0)
+      for (let t = 0.1; t <= len + 1e-6; t += 0.1) { const s = sig(t); if (s !== prev) { if (t - 0.1 - runStart > 2) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(t - 0.1 - runStart).toFixed(2) }); runStart = t; prev = s } }
+      if (len - runStart > 2 && c.loop === false) out.push({ type: 'dead-hold', id: '*', t: +runStart.toFixed(2), value: +(len - runStart).toFixed(2) })
+      // Spacing + framing (2026-11-24, owner: "spacing"): rig roots (top-level objects with pos keys) closer than 0.8x reach
+      // clip into each other; farther than 3x reach for > 1 s is dead air in a fight. The action (roots' midpoint + a.chest
+      // studs up, default 0) outside the centre 60 % of a 16:9 frame for > 0.3 s is lost off-frame. reach = a.reach (default 2.2 studs).
+      const roots = Object.entries(c.tracks || {}).filter(([oid, tr]) => tr.pos?.length && !A?.obj?.(oid)?.parent).map(([oid, tr]) => [oid, tr.pos])
+      const reach = +a.reach || 2.2, chest = +a.chest || 0, step = 0.1, pc = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 1e4), v3 = new THREE.Vector3()
+      for (let i = 0; i < roots.length; i++) for (let j = i + 1; j < roots.length; j++) { let near = -1, far = -1
+        for (let t = 0; t <= len + 1e-6; t += step) { const st = storyAt(c, t), p = sample(roots[i][1], st, 'pos'), q = sample(roots[j][1], st, 'pos'), d = Math.hypot(p[0] - q[0], p[2] - q[2])
+          if (d < 0.8 * reach) { if (near < 0) { near = t; out.push({ type: 'spacing-close', id: roots[i][0] + '|' + roots[j][0], t: +t.toFixed(2), value: +d.toFixed(2) }) } } else near = -1
+          if (d > 3 * reach) { if (far === -1) far = t; else if (far >= 0 && t - far > 1) { out.push({ type: 'spacing-far', id: roots[i][0] + '|' + roots[j][0], t: +far.toFixed(2), value: +d.toFixed(2) }); far = -2 } } else far = -1 } }
+      if (roots.length && (cm.pos?.length || cm.target?.length)) { let off = -1
+        for (let t = 0; t <= len + 1e-6; t += step) { const st = storyAt(c, t), s = camAt(c, st); if (!s?.pos || !s?.target) continue
+          const m = [0, 1, 2].map(k => roots.reduce((n, r) => n + sample(r[1], st, 'pos')[k], 0) / roots.length); m[1] += chest
+          pc.fov = s.fov || 50; pc.position.fromArray(s.pos); pc.lookAt(v3.fromArray(s.target)); pc.updateProjectionMatrix(); pc.updateMatrixWorld()
+          const n = v3.fromArray(m).project(pc), outside = n.z > 1 || Math.abs(n.x) > 0.6 || Math.abs(n.y) > 0.6
+          if (!outside) off = -1; else if (off === -1) off = t; else if (off >= 0 && t - off > 0.3) { out.push({ type: 'framing', id: 'camera', t: +off.toFixed(2), value: +Math.max(Math.abs(n.x), Math.abs(n.y)).toFixed(2) }); off = -2 } } }
+      return out
     }
   },
   'anim.autokey': { label: 'Auto-key', icon: 'an-rec', noUndo: true, checked: () => S.autokey, run: (app, a = {}) => { S.autokey = a.on != null ? !!a.on : !S.autokey; syncUI(); return S.autokey } },
@@ -1157,7 +1372,7 @@ const commands = {
     label: 'Set easing', icon: 'an-ease', enabled: (app, a) => !!cur() && refsOf(a).size > 0,
     run(app, a = {}) {
       if (!a.ease) { keyMenu(innerWidth / 2, innerHeight / 2); return null }
-      if (!EASES.includes(a.ease)) throw new Error('Easing must be one of ' + EASES.join(', '))
+      if (!isEase(a.ease)) throw new Error('Easing must be one of ' + EASES.join(', ') + ', auto or cubic:x1,y1,x2,y2')
       const c = needClip(), next = clone(c)
       let n = 0
       eachKey(next, refsOf(a), (k, oid, ch, i) => { next.tracks[oid][ch][i] = mk(k[0], k[1], a.ease); n++ })
@@ -1247,6 +1462,7 @@ const plugin = {
     Animate: ['anim.mode', '-', 'anim.new', 'anim.rename', 'anim.duplicate', 'anim.set', 'anim.loop', 'anim.delete', '-',
       'anim.play', 'anim.stop', 'anim.start', 'anim.end', 'anim.prevKey', 'anim.nextKey', 'anim.time', 'anim.speed', '-',
       'anim.key', 'anim.autokey', 'anim.copyKeys', 'anim.pasteKeys', 'anim.deleteKeys', 'anim.clear', '-',
+      'anim.camKey', 'anim.camFollow', 'anim.camClear', 'anim.cine', '-', 'anim.ik', 'anim.mirror', 'anim.lint', '-',
       'anim.spin', 'anim.bob', 'anim.bounce', 'anim.pulse', 'anim.walk', 'anim.wave']
   },
   modes: [{ id: 'animate', label: 'Animate', icon: 'an-mode', order: 20, gizmo: true }],
@@ -1306,7 +1522,7 @@ const plugin = {
       return true
     }
     app.anim = {
-      toClips, sample, EASE,
+      toClips, sample, EASE, easeFn, story: t => storyAt(cur(), t ?? app.time ?? 0),
       evaluate: t => evaluate(t ?? app.time ?? 0, true),
       rest: restAll, play, pause, stop,
       get playing() { return S.playing },

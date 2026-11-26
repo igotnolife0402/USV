@@ -70,7 +70,7 @@ def sheet(frames, path):
     out = np.zeros((S * g, S * g, 4), np.uint8)
     for i, f in enumerate(frames):
         out[(i // g) * S:(i // g + 1) * S, (i % g) * S:(i % g + 1) * S] = f
-    Image.fromarray(out, 'RGBA').save(path, compress_level=9)
+    Image.fromarray(out, 'RGBA').save(path, compress_level=6)   # lossless; 9 took 0.72 s vs 0.13 s for +3% size (2026-11-24)
     return out
 
 

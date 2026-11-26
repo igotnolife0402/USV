@@ -73,7 +73,7 @@ export function parseTurn(lines) {
   }
   return {
     prompt, relay: RELAY.test(prompt), t0, secs: Number.isFinite(t0) ? Math.round((Math.max(tEnd, t0) - t0) / 1000) : 0,
-    errors, fails, maxRetry: Math.max(0, ...fails.values()), reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
+    errors, fails, maxRetry: Math.max(0, ...fails.values()), tools: uses.size, reads: [...reads], writes: [...writes], skills: [...skills], lastText, lastErr,
     agentSecs: Number.isFinite(firstAgent) ? Math.round((firstAgent - t0) / 1000) : null, specSecs: Number.isFinite(firstSend) && Number.isFinite(firstAgent) ? Math.round((firstSend - firstAgent) / 1000) : null,
   };
 }
@@ -84,8 +84,8 @@ export const domainsOf = (paths) => [...new Set(paths.map(p => rel(p).match(/^do
 // Turn facts + router state -> list of signals worth a lesson.
 export function improvedCount(logText = '', label = 'improved') {
   const last = String(logText).split(/\n(?=## \[)/).pop() || '';
-  // `Fixed: a, b, c` (or `;`) on one line, or the label followed by a numbered/bulleted list. label = regex alternation.
-  const m = last.match(new RegExp(`^(?:${label}):[ \\t]*(.*)((?:\\n[ \\t]*(?:\\d+[.)]|[-*])[ \\t]+.+)*)`, 'im'));
+  // `Fixed: a, b, c` (or `;`) on one line (a leading `- ` bullet is fine: log entries are bullets), or the label followed by a numbered/bulleted list. label = regex alternation.
+  const m = last.match(new RegExp(`^[ \\t]*(?:[-*][ \\t]+)?(?:${label}):[ \\t]*(.*)((?:\\n[ \\t]*(?:\\d+[.)]|[-*])[ \\t]+.+)*)`, 'im'));
   if (!m) return 0;
   const inline = m[1].split(/[;,]/).map(s => s.trim()).filter(Boolean).length;
   const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;
@@ -106,11 +106,16 @@ export function signals(turn, state = {}, extra = {}) {
     out.push({ kind: 'correction', text: `owner said: "${turn.prompt.replace(/\s+/g, ' ').slice(0, 120)}"` });
   // Skill miss: the router named a skill for real work (files were written) but it was never invoked or read.
   // Writes only to vault plumbing (hooks, scripts, notes, router...) are vault work, not a domain build.
-  const VAULT_META = /^(hooks|scripts|tests|profiles|checklists|queue|state|archive|\.claude|\.orchestration|\.github)\/|^(CLAUDE\.md|index\.md|lessons\.md|log\.md|router\.json)$/;
+  // Notes and READMEs are docs, not builds (2026-11-25: answering "where are vfx" + a README edit was flagged as a vfx skill miss).
+  const VAULT_META = /^(hooks|scripts|tests|profiles|checklists|queue|state|archive|domains|\.claude|\.orchestration|\.github)\/|^(CLAUDE\.md|index\.md|lessons\.md|log\.md|router\.json)$|(^|\/)README\.md$/;
   const builds = turn.writes.filter(p => !VAULT_META.test(rel(p)));
   // An owner-invoked orchestration skill (/crew, /swarm, /helpers) replaces the routed skill (L-082): no skill miss then.
   const ownerSkill = ['crew', 'swarm', 'helpers'].some(s => (turn.skills || []).includes(s));
-  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).filter(s => !(turn.skills || []).includes(s)) : [];
+  // Only the primary route's skill is required (CLAUDE.md s1: a secondary route, e.g. "animate" in a vfx preview, reads its
+  // playbook only for the part it covers); 2026-11-24 a vfx turn was flagged for not loading 3d-editor.
+  // vault-upkeep is never required for a build outside vault plumbing: generic words (rules, lessons, log, checklist) in a
+  // pasted brief or a post-compaction summary routed builds to it (L-154, again 2026-11-25 on the vfx slots build).
+  const missedSkills = tier !== 'simple' && builds.length && !ownerSkill ? (state.skills || []).slice(0, 1).filter(s => s !== 'vault-upkeep' && !(turn.skills || []).includes(s)) : [];
   if (missedSkills.length)
     out.push({ kind: 'skill', text: `router named skill ${missedSkills.join(', ')} but it was not used`, skills: missedSkills });
   const routed = new Set(state.routes || []);
@@ -123,6 +128,8 @@ export function signals(turn, state = {}, extra = {}) {
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
   // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
   const imp = extra.improved; // null = not measured (unit calls); the Stop hooks always pass a number
+  // Mute (owner 2026-11-24): a turn with no tool calls, or a prompt saying don't reply, owes no footer or fixes.
+  if (turn.tools === 0 || NO_REPLY.test(turn.prompt || '')) return out;
   if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
   // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
   else if (imp != null && improvedCount(turn.lastText || '', 'fixed|improved') < 3) out.push({ kind: 'improve', text: 'fixes not listed in the reply footer (`Fixed: a, b, c`)' });
@@ -130,6 +137,7 @@ export function signals(turn, state = {}, extra = {}) {
   if (imp != null && improvedCount(turn.lastText || '', 'next|still to improve') < 3) out.push({ kind: 'improve', text: 'reply footer lacks `Next: a, b, c` (>= 3 items)' });
   return out;
 }
+export const NO_REPLY = /\b(don'?t|do not)\s+(respond|reply|answer|say anything)\b|\bno (reply|response)\b/i;
 const CLAIM = /\b(done|complete[d]?|finished|fixed|works|working|all (tests )?pass(ed|ing)?|success(ful)?)\b/i;
 const ADMIT = /\b(error|failed|fail(s|ing)?|not (done|verified|checked|working|fixed)|broken|blocked)\b/i;
 const KNOW = /^(domains|tools|checklists|\.claude\/skills)\/|^lessons\.md$/;

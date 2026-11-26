@@ -9,7 +9,7 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - Always improve: goal met is not the end; every task finds and fixes >= 3 real problems (section 5).
 - No overkill: one big effect when the whole thing completes, or small subtle ones throughout; never a big effect per step. Less when unsure.
 - Never claim a look you did not see: say "not visually verified" and queue the visual check.
-- Replies short (aim <= 10 words); errors, questions and requested reports exempt.
+- Mute layout always on, both modes ([profiles/mute.md](profiles/mute.md)): no narration, <= 10-word result or `Done`; "don't respond" = `Done` only; errors, questions and requested reports exempt.
 - Max quality, no placeholders, scope = exactly what was asked. Owner's latest word beats any stored rule: fix that rule now.
 
 ## 0. Session start (every session)
@@ -57,8 +57,9 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 - New note → add one line to its domain `index.md` the same task. Unlinked note = lost note.
 - [log.md](log.md): append one `## [YYYY-MM-DD] op / title` + 1-3 lines every session (stop-gate enforces).
 - [lessons.md](lessons.md) (ACE): lessons.md is append-only; allowed in-place edits are only bumping h:/x: counters and appending ` → applied: <path>` (every new lesson, same turn: the Stop hook blocks until its rule is in a note/hook), ` → promoted: <path>` or ` → dup of L-xxx` to a bullet's end; pruning is proposed in log.md, never deleted.
-- Binaries (models, audio, builds) stay out of git; commit scripts that regenerate them.
+- Binaries (models, audio, builds) stay out of git; commit scripts that regenerate them. Exception (owner 2026-11-24): white VFX sheets live in `vfx/sheets` ([vfx/README.md](vfx/README.md)).
 - Paths: forward slashes everywhere (hooks run in Git Bash on Windows).
+- Tool outputs (owner 2026-11-25): every tool saves its finished outputs to ONE fixed repo path that all tools and agents read (VFX sheets: `vfx/sheets` + `vfx/index.tsv`), and that path must reach `main`; artifact dbs and session branches are inboxes, never the home. The Stop hook fast-forwards `main` to the session branch when clean (owner 2026-11-25: always); diverged → merge main in first.
 
 ## 5. Self-improvement loop (every session)
 On any error, failed check or owner correction, in the same task:

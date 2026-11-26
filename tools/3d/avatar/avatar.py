@@ -9,6 +9,7 @@ studio's shots check (README). Poses use the rig frame (Z up, the avatar faces -
 # @style: toon
 # @model: Roblox avatar | posed animated avatar from real catalog items (R15 meshes)
 # @run: python3 avatar.py KIT OUT [--name Bacon] [--skin #F2F3F3] [--pose wave|stand|kamehameha|saber_guard] [--clip kamehameha|lightsaber]
+import re
 import math, os, sys, json, time
 import numpy as np
 from vmath import Vector, Matrix, Euler
@@ -119,6 +120,12 @@ def arc_keys(path, n=5):
 CLIPS['greatsword'] += arc_keys([(1.75, 'gs_windup2', 'in'), (1.83, 'gs_top', 'linear'), (1.89, 'gs_strike', 'out'), (1.97, 'gs_follow', 'linear')], 6) + \
                        [(1.97, 'gs_follow'), (2.85, 'gs_recover'), (3.7, 'gs_ready'), (4.3, 'gs_ready')]
 CLIP = opt('--clip', '')
+if '--clipfile' in args:                          # a clip as data: {"name", "poses": {new: {"base": old, joint: [x,y,z]}}, "keys": [[t, pose, ease?]]}
+    _cf = json.load(open(opt('--clipfile', '')))
+    for _n, _p in _cf.get('poses', {}).items():
+        _v = lambda j, v: {sd: tuple(tuple(x) for x in w) for sd, w in v.items()} if j == 'ik' else v if isinstance(v, bool) else tuple(v)
+        POSES[_n] = dict(POSES[_p['base']], **{j: _v(j, v) for j, v in _p.items() if j != 'base'}) if 'base' in _p else {j: _v(j, v) for j, v in _p.items()}
+    CLIP = _cf.get('name', 'fight'); CLIPS[CLIP] = [tuple(k) for k in _cf['keys']]
 POSE = POSES[opt('--pose', 'wave')]
 BG = opt('--bg', '#0b0f1a')                       # studio sky behind effects
 FX = json.load(open(opt('--fx', ''))) if '--fx' in args else None     # effect cards: README "Effects"
@@ -412,7 +419,7 @@ def studio_rig(cards=(), keys=None):
             g = {'verts': [verts[v * 3 + c] for v in used for c in range(3)], 'faces': [[rm[v] for v in f] for f in fs], 'uvs': [uvs[v * 2 + c] for v in used for c in range(2)]}
             txt = json.dumps(g, separators=(',', ':'))
             if len(txt) > 220_000: h = len(fs) // 2; emit(fs[:h], tag + 'a'); emit(fs[h:], tag + 'b'); return
-            gid = f'{NAME.lower()}-{o.name.lower()}{tag}'
+            gid = re.sub(r'[^a-z0-9_-]+', '-', f'{NAME.lower()}-{o.name.lower()}{tag}').strip('-')   # accessory names hold '/' and '()'
             open(os.path.join(OUT, 'studio', 'geo', gid + '.json'), 'w').write(txt)
             objs[f'M{i}{tag}'] = {'type': 'mesh', 'name': o.name, 'geo': gid, 'parent': 'J' + part, 'pos': [0, 0, 0], 'color': '#ffffff', 'smooth': True,
                                   'roughness': st['roughness'], 'texture': 't-' + st['texture']}

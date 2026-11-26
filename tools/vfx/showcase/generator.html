@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VFX Generator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+<style>
+/* VFX Generator (owner 2026-11-25): type the exact animation, Claude writes a showcase spec, this page builds and plays it
+   with the same pipeline as tools/vfx/showcase/build.mjs: newest white sheets (vfx/sheets) painted by gradient map,
+   Studio's cinePass (push-in, slow-mo, hit-stop, dip, flash, shake, grade) and cineLights (impact + rim lights). */
+:root{--bg:#07080c;--panel:#10131a;--panel2:#171b24;--line:#262c39;--fg:#e9edf5;--mute:#8d97aa;--accent:#a98bff;--bad:#ff7a7a;--ok:#7be0a4;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{max-width:1180px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) 28px max(16px,env(safe-area-inset-left));display:grid;gap:14px}
+h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.01em}
+h1 small{font-weight:400;color:var(--mute);font-size:13px;margin-left:8px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.stage{position:relative;background:#000;border:1px solid var(--line);border-radius:12px;overflow:hidden;aspect-ratio:16/9}
+.stage canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:10px;top:8px;font:12px ui-monospace,Menlo,monospace;color:#cfd6e4b3;pointer-events:none;text-shadow:0 1px 2px #000}
+.load{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);font-size:13px;pointer-events:none}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#120c22;font-weight:650}
+.scrub{position:relative;flex:1 1 200px;min-width:160px;height:28px}
+.scrub input{width:100%;height:28px;margin:0;accent-color:var(--accent)}
+.scrub .pay{position:absolute;top:2px;width:2px;height:24px;background:#fff;border-radius:1px;pointer-events:none;opacity:.8}
+.time{font:12px ui-monospace,Menlo,monospace;color:var(--mute);min-width:96px;text-align:right}
+.side{display:grid;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+.card h2{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+textarea{width:100%;min-height:150px;resize:vertical;font:13px/1.45 system-ui,sans-serif;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px}
+textarea.code{font:12px/1.4 ui-monospace,Menlo,monospace;min-height:260px;white-space:pre}
+.status{font-size:12.5px;color:var(--mute);white-space:pre-wrap;max-height:180px;overflow:auto}
+.status.bad{color:var(--bad)}.status.ok{color:var(--ok)}
+details summary{cursor:pointer;color:var(--mute);font-size:12.5px}
+.meta{font-size:12px;color:var(--mute)}
+pre.err{margin:0;color:var(--bad);font-size:12px;white-space:pre-wrap}
+.msg{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:calc(100% - 24px);padding:7px 12px;border-radius:8px;background:#0b0d13e6;border:1px solid var(--line);font-size:13px;white-space:pre-wrap;pointer-events:none}
+.msg.bad{color:var(--bad);border-color:#ff7a7a66}.msg.ok{color:var(--ok)}
+.tag{position:absolute;right:10px;top:8px;font:600 11px system-ui;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:#ffffff1a;color:#cfd6e4;pointer-events:none}
+.sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.sheets figure{margin:0;display:grid;gap:4px}.sheets img{width:100%;aspect-ratio:1;background:#000;border-radius:6px;border:1px solid var(--line)}
+dialog#lib{width:min(1100px,calc(100vw - 32px));max-height:calc(100dvh - 32px);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:0}
+dialog#lib::backdrop{background:#000b}
+.libhead{position:sticky;top:0;z-index:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.libhead h2{margin:0 auto 0 0}.libhead input{flex:1 1 180px;font:13px system-ui;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+#libbody{padding:12px;display:grid;gap:14px}#libbody h3{margin:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.libgrid figure{margin:0;display:grid;gap:4px;align-content:start}
+.libgrid img{width:100%;aspect-ratio:1;background:#000;border-radius:6px;border:1px solid var(--line);cursor:zoom-in}
+.libgrid figure.big{grid-column:1/-1}.libgrid figure.big img{max-width:min(640px,100%);cursor:zoom-out}
+.libgrid figcaption{font-size:11.5px;color:var(--mute);overflow-wrap:anywhere}.libgrid .row{display:flex;gap:6px;flex-wrap:wrap}.libgrid .row button{padding:3px 8px;font-size:12px}
+.sheets figcaption{font-size:11px;color:var(--mute);overflow-wrap:anywhere}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{padding:5px 10px;font-size:12.5px}.tabs button.on{border-color:var(--accent);color:var(--accent)}
+.slot{border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:7px;background:var(--panel2)}
+.slot.sel{border-color:var(--accent)}.slot b{font-size:13px}.slot textarea{min-height:90px;background:var(--panel)}
+.slot .timer{font:12px ui-monospace,Menlo,monospace;color:var(--mute);margin-left:auto}
+.slot label{font-size:12px;color:var(--mute);display:flex;gap:6px;align-items:center}
+.slot input,.slot select{font:12.5px system-ui;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.slot input[type=number]{width:86px}.slot input[type=color]{width:34px;height:26px;padding:1px}
+.set{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+#owBox{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:12px;color:var(--mute)}#owBox label{display:flex;gap:6px;align-items:center}
+#sOw{width:140px;accent-color:var(--accent)}#vOw{font:12px ui-monospace,Menlo,monospace;color:var(--fg);min-width:30px}
+.owline{flex:1;min-width:120px;display:flex;align-items:center;gap:8px}.owline i{flex:1;display:block;min-height:.5px;border-radius:2px;background:var(--fg)}.owline b{font:11px ui-monospace,Menlo,monospace;color:var(--mute);font-weight:400;white-space:nowrap}
+pre.code{margin:0;font:11.5px/1.4 ui-monospace,Menlo,monospace;white-space:pre-wrap;color:#cfd6e4;background:var(--panel2);border-radius:8px;padding:8px;max-height:260px;overflow:auto}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>VFX Generator<small>prompt → Claude writes the sheet scripts → new white sheets → painted anim.cine clip</small></h1>
+  <div class="grid">
+    <div style="display:grid;gap:10px">
+      <div class="tabs" id="tabs" role="tablist" aria-label="Clip shown on stage"></div>
+      <div class="stage" id="stage"><div class="hud" id="hud"></div><div class="load" id="load">Loading…</div><div class="tag" id="tag"></div><div class="msg" id="msg" hidden></div></div>
+      <div class="bar">
+        <button id="play" type="button">Pause</button>
+        <button id="restart" type="button">Restart</button>
+        <div class="scrub"><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline"><div class="pay" id="pay"></div></div>
+        <span class="time" id="time">0.00 / 0.00</span>
+      </div>
+      <div id="owBox"><label for="sOw">Rim outline <input id="sOw" type="range" min="5" max="50" step="5" aria-describedby="pxOw"> <span id="vOw"></span></label><div class="owline" title="Actual rim thickness on screen at the hero effect's current size"><i id="lOw"></i><b id="pxOw"></b></div></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <h2>Your animations</h2>
+        <div class="bar"><button class="primary" id="gen" type="button">Generate all</button><button id="stop" type="button" hidden>Stop all</button><button id="add" type="button">+ Add slot</button><label class="meta" title="Preview stand-in models (orbs, icicles, characters): placeholders for Umbrio models, not part of the effect"><input id="standins" type="checkbox" checked> Stand-ins</label><button id="sheetBtn" type="button" title="Every VFX sheet as a PNG: library + every sheet generated here">Sheet</button></div>
+        <div class="status" id="status"></div>
+        <div id="slots" style="display:grid;gap:10px"></div>
+      </div>
+      <div class="card" id="sheetsCard" hidden>
+        <h2>New sheets (written this run)</h2>
+        <div class="sheets" id="sheets"></div>
+        <details><summary>Sheet scripts</summary><pre class="code" id="scripts"></pre></details>
+      </div>
+      <div class="card">
+        <details id="specBox"><summary>Spec JSON (edit, then Apply)</summary>
+          <textarea class="code" id="spec" spellcheck="false"></textarea>
+          <div class="bar" style="margin-top:8px"><button id="apply" type="button">Apply</button><button id="dl" type="button">Download spec.json</button></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+<dialog id="lib" aria-labelledby="libt"><div class="libhead"><h2 id="libt">Every VFX sheet</h2><input id="libq" type="search" placeholder="Search name, element, prompt…" aria-label="Search sheets"><span id="libn" class="meta"></span><button id="libx" type="button">Close</button></div><div id="libbody"></div></dialog>
+<script type="module">
+import * as THREE from 'three'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+// Studio's own code, vendored unchanged in lib/: the same sampler, cine pass and flipbook renderer the showcase clip used.
+import { sample, storyAt } from './lib/sample.js'
+import { cinePass, cineLights, CINE } from './lib/cine.js'
+import VFX from './lib/vfx.js'
+// the library's own sheet method (the stylized unique.py), ported: Claude's scripts are drawn by it into NEW white sheets
+import { makeSheet, EL } from './lib/ugen.js'
+
+const LIB = '../../../vfx/', $ = id => document.getElementById(id)
+// status shows in the side panel AND on the stage (on a phone the panel sits below the fold)
+const status = (msg, cls = '') => { const s = $('status'); s.textContent = msg; s.className = 'status ' + cls; const m = $('msg'); m.hidden = !msg; m.textContent = msg; m.className = 'msg ' + cls; if (cls === 'ok') setTimeout(() => { if (m.textContent === msg) m.hidden = true }, 4000) }
+const store = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch {} } }
+
+// ---------- paint (port of tools/vfx/paint.py): light = sheet alpha -> ramp edge->core, texture multiplied inside the alpha
+// presets are vibrant multi-hue ramps (owner 2026-11-25, L-156): hue shifts edge -> core, never one colour lightened
+const RAMPS = {
+  fire: '#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#fff4c0,#ffffff', ice: '#04103a,#123a8a,#2f8cff,#3ae0ff,#b8fff4,#ffffff',
+  electric: '#12043a,#3a1a9e,#6a5cff,#6ac8ff,#e0f6ff,#ffffff', poison: '#0a2a2a,#0f6a4a,#3fbf2a,#a8f03a,#eaff9a,#ffffff',
+  holy: '#5a2000,#c8600a,#ffb02a,#ffe680,#fffbe8,#ffffff', void: '#000000,#1a0630,#4a0e8a,#9a2ad8,#e05ad8,#ffd0f4',
+  blood: '#1a0008,#5a0018,#a8101e,#e8401a,#ff9a6a,#ffe0d0', wind: '#123a4a,#2a7a8a,#5fc0c0,#a8f0e0,#eafff8,#ffffff'
+}
+const HEX = /^#[0-9a-f]{6}$/i
+const rampStops = r => (RAMPS[r] || r || '').split(',').map(s => s.trim())
+const validRamp = r => { const s = rampStops(r); return s.length >= 2 && s.every(x => HEX.test(x)) }
+// PAINT RULE (owner 2026-11-25: "every layer gets painted, textures, gradients ... vibrant, not bland"; vfx/README.md rule 8):
+// every generated layer = its own >= 4-stop ramp that shifts hue >= 20 deg (dark edge -> white-hot core) + a real texture.
+const hsl = h => { const [r, g, b] = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn
+  if (!d) return [0, 0, l]; const H = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(H * 60 + 360) % 360, d / (1 - Math.abs(2 * l - 1)), l] }
+const hueSpread = st => { const hs = st.map(hsl).filter(([, s, l]) => s > 0.25 && l > 0.08 && l < 0.92).map(x => x[0]); let m = 0
+  for (const a of hs) for (const b of hs) { const d = Math.abs(a - b); m = Math.max(m, Math.min(d, 360 - d)) } return m }
+const TEXES = ['noise', 'cells', 'streaks']
+function paintCheck(S) {
+  const bad = [], fx = S.fx || [], seen = new Map(), ramps = new Set(); let hot = 0
+  fx.forEach((e, i) => {
+    const tag = `fx[${i}] ${e.sheet || e.slug}`, st = rampStops(e.ramp)
+    if (!validRamp(e.ramp)) return
+    ramps.add(st.join(','))
+    if (st.length < 4) bad.push(`${tag}: ramp needs 4-7 stops (dark edge -> mids -> white-hot core), got ${st.length}`)
+    else if (hueSpread(st) < 20) bad.push(`${tag}: ramp is one flat hue (spread ${hueSpread(st).toFixed(0)} deg); shift hue along it, e.g. deep red -> orange -> gold -> white`)
+    else if (hsl(st[0])[2] > 0.3 || hsl(st[st.length - 1])[2] < 0.55) bad.push(`${tag}: ramp must run dark edge (lightness <= 0.3) -> bright end (>= 0.55)`)
+    if (validRamp(e.ramp) && hsl(st[st.length - 1])[2] >= 0.9) hot++
+    if (!TEXES.includes(e.tex)) bad.push(`${tag}: tex must be noise, cells or streaks (never none or missing)`)
+    if (!(e.tex_amt >= 0.3 && e.tex_amt <= 0.55)) bad.push(`${tag}: tex_amt 0.3-0.55`)
+    const k = [e.sheet || e.slug, st.join(','), e.tex].join('|')
+    if (seen.has(k)) bad.push(`${tag}: same sheet + ramp + tex as fx[${seen.get(k)}]; paint each layer on its own (other ramp or tex)`)
+    else seen.set(k, i)
+  })
+  // Storm Nova 2026-11-25: every layer ending #ffffff stacked additively into a flat grey-white blob
+  if (fx.length >= 3 && !hot) bad.push('no layer is white-hot: the core layer ramp ends #ffffff')
+  if (fx.length >= 3 && hot > Math.ceil(fx.length / 2)) bad.push(`${hot} of ${fx.length} layers end white: only core layers end white-hot, glow/sparks/decal end in a bright saturated colour (stacked white cores blow out flat)`)
+  if (fx.length >= 3 && ramps.size < 3) bad.push(`only ${ramps.size} distinct ramps; paint layers with >= 3 (smoke/glow/core/sparks/decal each their own)`)
+  return bad
+}
+function lut(r) {
+  const st = rampStops(r).map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))), out = new Uint8ClampedArray(256 * 3), n = st.length - 1
+  for (let i = 0; i < 256; i++) { const x = i / 255 * n, k = Math.min(n - 1, Math.floor(x)), f = x - k; for (let c = 0; c < 3; c++) out[i * 3 + c] = st[k][c] + (st[k + 1][c] - st[k][c]) * f }
+  return out
+}
+function hash(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
+function vnoise(u, v, f, s) {                       // tileable value noise on the unit square, period f
+  const x = u * f, y = v * f, x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy)
+  const g = (i, j) => hash(((i % f) + f) % f, ((j % f) + f) % f, s)
+  return (g(x0, y0) * (1 - sx) + g(x0 + 1, y0) * sx) * (1 - sy) + (g(x0, y0 + 1) * (1 - sx) + g(x0 + 1, y0 + 1) * sx) * sy
+}
+const texCache = new Map()
+function texField(kind, cs) {                      // one cell's texture (0..1), tiled once per grid cell like paint.py
+  const key = kind + cs; if (texCache.has(key)) return texCache.get(key)
+  const t = new Float32Array(cs * cs)
+  const pts = kind === 'cells' ? Array.from({ length: 12 }, (_, i) => [hash(i, 1, 7), hash(i, 2, 7)]) : null
+  for (let y = 0; y < cs; y++) for (let x = 0; x < cs; x++) {
+    const u = x / cs, v = y / cs; let val
+    if (kind === 'cells') {
+      let d1 = 9, d2 = 9
+      for (const p of pts) for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) { const d = Math.hypot(u - p[0] - ox, v - p[1] - oy); if (d < d1) { d2 = d1; d1 = d } else if (d < d2) d2 = d }
+      val = Math.min(1, (d2 - d1) * 6)
+    } else if (kind === 'streaks') val = 0.6 * vnoise(u, v * 0.0625 + 0.5, 32, 3) + 0.4 * vnoise(u, v, 8, 4)
+    else val = 0.5 * vnoise(u, v, 8, 1) + 0.3 * vnoise(u, v, 16, 2) + 0.2 * vnoise(u, v, 32, 3)
+    t[y * cs + x] = val
+  }
+  texCache.set(key, t); return t
+}
+// generated sheets: key 'gen|<hash of code+seed>' -> Promise<{url, jump, empty}> from ugen.makeSheet
+const GEN = new Map()
+// sheets saved by earlier runs (hub db + assets): shown and downloadable in Sheet only; the generator never reads them back
+const SAVED = new Map(), SESSION = new Map()
+// quality floor (flipbook rule max_step_jump < ~3): a sheet at or above it fails its slot's checks and is never saved
+const JUMP_MAX = 3
+// sheet label = what the sheet is (owner 2026-11-25: 'smoke cloud', never 'gun shot smoke cloud')
+const sheetName = (d, id) => String(d?.name || id).replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 40)
+const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36) }
+const genKey = d => 'gen|' + hashStr(d.code + '|' + (d.seed ?? 1125))
+const imgCache = new Map()
+const loadImg = slug => imgCache.get(slug) || imgCache.set(slug, (slug.startsWith('gen|') ? GEN.get(slug).then(r => r.url) : Promise.resolve(LIB + 'sheets/' + slug + '.png')).then(src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('sheet missing: ' + slug)); i.src = src }))).get(slug)
+// Sheet drawing runs in a small pool of module workers (one sheet each, several cores at once); if workers are blocked here
+// the same makeSheet runs on the main thread, so a blocked worker only costs speed.
+const POOL = { n: Math.max(1, Math.min(6, (navigator.hardwareConcurrency || 4) - 1)), ws: [], jobs: new Map(), next: 0, rr: 0, off: false }
+function poolKill(why) { POOL.off = true; for (const w of POOL.ws) w.terminate(); POOL.ws = []; const j = [...POOL.jobs.values()]; POOL.jobs.clear(); for (const x of j) makeSheet(x.code, x.seed).then(x.res, x.rej); if (why) console.warn('sheet workers off:', why) }
+function drawSheet(code, seed) {
+  if (!POOL.off && !POOL.ws.length) {
+    try { for (let i = 0; i < POOL.n; i++) { const w = new Worker(new URL('lib/ugen-worker.js', document.baseURI), { type: 'module' }); w.onerror = e => { e.preventDefault?.(); poolKill(e.message || 'worker error') }; w.onmessage = ({ data: m }) => { const j = POOL.jobs.get(m.id); if (!j) return; POOL.jobs.delete(m.id); m.error ? j.rej(new Error(m.error)) : j.res({ url: URL.createObjectURL(m.blob), blob: m.blob, empty: m.empty, jump: m.jump }) }; POOL.ws.push(w) } }
+    catch (e) { poolKill(e.message) }
+  }
+  if (POOL.off) return makeSheet(code, seed)
+  return new Promise((res, rej) => { const id = ++POOL.next; POOL.jobs.set(id, { code, seed, res, rej }); POOL.ws[POOL.rr++ % POOL.ws.length].postMessage({ id, code, seed }) })
+}
+// draw every script in S.sheets at once (cached by code+seed); throws naming the sheet whose script broke
+async function renderSheets(S, say = () => {}) {
+  const ids = Object.keys(S.sheets || {}), out = {}
+  say(`Drawing ${ids.length} new sheets in parallel…`)
+  await Promise.all(ids.map(async id => {
+    const d = S.sheets[id], k = genKey(d)
+    if (!GEN.has(k)) GEN.set(k, drawSheet(d.code, d.seed ?? 1125))
+    try { out[id] = await GEN.get(k) } catch (e) { GEN.delete(k); throw new Error(`sheet "${id}": ${e.message}`) }
+    if (out[id].empty > 4) { GEN.delete(k); throw new Error(`sheet "${id}": ${out[id].empty} of 16 frames are empty (draw from t≈0.05, the wrapper erodes it after 0.55)`) }
+    if (!(out[id].jump < JUMP_MAX)) { GEN.delete(k); throw new Error(`sheet "${id}": jump ${out[id].jump} >= ${JUMP_MAX} (a frame pops; ease the motion in t, no element appearing or vanishing in one frame)`) }
+  }))
+  return out
+}
+function showSheets(S, res) {
+  const ids = Object.keys(S.sheets || {}); $('sheetsCard').hidden = !ids.length; $('sheets').replaceChildren()
+  for (const id of ids) { const f = document.createElement('figure'), i = new Image(), c = document.createElement('figcaption'); i.src = res[id].url; i.alt = 'generated sheet ' + id; c.textContent = `${id} · jump ${res[id].jump}`; f.append(i, c); $('sheets').append(f) }
+  $('scripts').textContent = ids.map(id => `// ${id} (seed ${S.sheets[id].seed ?? 1125})\n${S.sheets[id].code}`).join('\n\n')
+}
+const PAINT_MS = []                                 // main-thread ms per painted sheet (perf check)
+let paintQ = Promise.resolve()
+const painted = new Map()                          // tex id -> Promise<blob url>
+// rim outline (owner 2026-11-26): the shot colour but brighter, default 30 %, 5-50 % of 0.016 cell; the line below the slider shows its real px
+let OW = Math.min(50, Math.max(5, Math.round(+store.get('vfxgen.ow') / 5) * 5 || 30))
+const RIM_DIR = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7071, 0.7071], [-0.7071, 0.7071], [0.7071, -0.7071], [-0.7071, -0.7071]]
+function paint(slug, grid, ramp, tex, amt, ow = 0) {
+  const id = ['fx', slug, ramp, tex, amt, ow].join('|')
+  // one sheet per task through a serial queue: 20 cached sheets painted in one microtask burst froze playback for seconds
+  if (!painted.has(id)) painted.set(id, (paintQ = paintQ.catch(() => {}).then(() => new Promise(r => setTimeout(r))).then(() => loadImg(slug))).then(img => {
+    const t0 = performance.now(), W = img.naturalWidth, H = img.naturalHeight, cv = document.createElement('canvas'); cv.width = W; cv.height = H
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0)
+    const d = cx.getImageData(0, 0, W, H), p = d.data, L = lut(ramp), cs = Math.max(1, Math.round(W / grid)), T = tex !== 'none' ? texField(tex, cs) : null
+    const A = new Float32Array(W * H)
+    for (let y = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, i += 4) {
+      let l = p[i + 3] / 255
+      if (T && l > 0) l = Math.min(1, l * Math.min(1.4, Math.max(0, 1 - amt + amt * 2 * T[(y % cs) * cs + (x % cs)])))
+      A[y * W + x] = l
+    }
+    // rim: 8-tap bilinear dilate at r px inside the frame's own cell (no bleed into neighbour frames); outer ring only
+    const r = ow * 0.00016 * cs, k7 = Math.round(0.7 * 255) * 3, rc = [0, 1, 2].map(c => Math.min(255, L[k7 + c] * 1.3 + 30))
+    const at = (x, y, x0, y0) => {
+      x = Math.min(x0 + cs - 1, Math.max(x0, x)); y = Math.min(y0 + cs - 1, Math.max(y0, y))
+      const xi = Math.min(x | 0, W - 1), yi = Math.min(y | 0, H - 1), fx = x - xi, fy = y - yi, x1 = Math.min(xi + 1, x0 + cs - 1, W - 1), y1 = Math.min(yi + 1, y0 + cs - 1, H - 1)
+      return (A[yi * W + xi] * (1 - fx) + A[yi * W + x1] * fx) * (1 - fy) + (A[y1 * W + xi] * (1 - fx) + A[y1 * W + x1] * fx) * fy
+    }
+    // separable max within ceil(r) (per cell): only pixels with a brighter neighbour (the edge band, ~5 %) pay the 8 bilinear taps
+    let N = null
+    if (r > 0) {
+      const R = Math.ceil(r), Hm = new Float32Array(W * H); N = new Float32Array(W * H)
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const x0 = x - x % cs, hi = Math.min(x0 + cs - 1, x + R); let m = 0; for (let q = Math.max(x0, x - R); q <= hi; q++) { const v = A[y * W + q]; if (v > m) m = v } Hm[y * W + x] = m }
+      for (let y = 0; y < H; y++) { const y0 = y - y % cs, lo = Math.max(y0, y - R), hi = Math.min(y0 + cs - 1, y + R); for (let x = 0; x < W; x++) { let m = 0; for (let q = lo; q <= hi; q++) { const v = Hm[q * W + x]; if (v > m) m = v } N[y * W + x] = m } }
+    }
+    for (let y = 0, i = 0; y < H; y++) for (let x = 0; x < W; x++, i += 4) {
+      const l = A[y * W + x], k = Math.round(l * 255) * 3, a1 = Math.min(1, l * 1.15)
+      let a2 = 0
+      // outer ring only (l < 0.25): textured interiors never get a rim
+      if (N && l < 0.25 && N[y * W + x] > l + 0.02) { const x0 = x - x % cs, y0 = y - y % cs; let m = 0; for (const d of RIM_DIR) m = Math.max(m, at(x + d[0] * r, y + d[1] * r, x0, y0)); a2 = Math.max(0, m - l) }
+      const a = Math.min(1, a1 + a2), w = a1 + a2 || 1
+      p[i] = (L[k] * a1 + rc[0] * a2) / w; p[i + 1] = (L[k + 1] * a1 + rc[1] * a2) / w; p[i + 2] = (L[k + 2] * a1 + rc[2] * a2) / w; p[i + 3] = a * 255
+    }
+    cx.putImageData(d, 0, 0); PAINT_MS.push(Math.round(performance.now() - t0))
+    return new Promise(r => cv.toBlob(b => r(URL.createObjectURL(b)), 'image/png'))
+  }))
+  return id
+}
+
+// ---------- the sheet catalog (vfx/index.tsv: slug name kind grid frames life src)
+let INDEX = {}
+async function loadIndex() {
+  const t = await (await fetch(LIB + 'index.tsv')).text()
+  for (const l of t.trim().split('\n').slice(1)) { const r = l.split('\t'); INDEX[r[0]] = { name: r[1], kind: r[2], grid: +r[3], frames: +r[4], life: +r[5] } }
+}
+
+// ---------- validate (build.mjs rules + the showcase floor)
+const SHAPES = ['box', 'cylinder', 'sphere', 'cone', 'torus', 'plane']
+const vec = (v, n = 3) => Array.isArray(v) && v.length === n && v.every(x => typeof x === 'number' && isFinite(x))
+function validate(S) {
+  const bad = []
+  if (!S || typeof S !== 'object') return ['spec is not an object']
+  const L = S.len
+  if (!(L >= 0.3 && L <= 30)) bad.push('len must be 0.3..30 s (short targets: len = target)')
+  if (!(S.payoff > 0 && S.payoff < L)) bad.push('payoff must be inside 0..len')
+  if (S.cine_kind && !(S.cine_kind in CINE) || S.cine_kind === 'loop') bad.push('cine_kind must be impact or burst')
+  if (!HEX.test(S.tint || '')) bad.push('tint must be #rrggbb')
+  if (!S.camera || !vec(S.camera.pos) || !vec(S.camera.target)) bad.push('camera needs pos and target [x,y,z]')
+  const parts = S.parts || {}
+  for (const [id, d] of Object.entries(S.sheets || {})) { const w = String(d?.name || '').trim().split(/\s+/).filter(Boolean).length; if (w < 1 || w > 3) bad.push(`sheets.${id}.name: 1-3 words saying what the sheet is (e.g. smoke cloud), no prompt context`) }
+  for (const [k, p] of Object.entries(parts)) {
+    if (!SHAPES.includes(p.shape || 'box')) bad.push(`part ${k}: shape ${p.shape}`)
+    if (p.model && !(p.model in MODELS)) bad.push(`part ${k}: model ${p.model} (one of ${Object.keys(MODELS).join(', ')})`)
+    if (!vec(p.size)) bad.push(`part ${k}: size [x,y,z]`)
+    if (p.pos && !vec(p.pos)) bad.push(`part ${k}: pos`)
+    if (p.parent && !parts[p.parent]) bad.push(`part ${k}: parent ${p.parent} missing`)
+  }
+  for (const [k, tr] of Object.entries(S.tracks || {})) {
+    if (!parts[k]) { bad.push(`track ${k}: no such part`); continue }
+    for (const [ch, ks] of Object.entries(tr)) {
+      if (['dissolve', 'char', 'freeze'].includes(ch)) { if (!Array.isArray(ks) || !ks.every(q => typeof q[0] === 'number' && disV(q) >= 0 && disV(q) <= 1)) bad.push(`track ${k}.${ch}: keys [t,[0..1],ease]`) }
+      else if (!['pos', 'rot', 'scale'].includes(ch)) bad.push(`track ${k}.${ch}: only pos/rot/scale/dissolve/char/freeze`)
+      else if (!Array.isArray(ks) || !ks.every(q => typeof q[0] === 'number' && vec(q[1]))) bad.push(`track ${k}.${ch}: keys [t,[x,y,z],ease]`)
+    }
+  }
+  const fx = S.fx || []
+  for (const [id, d] of Object.entries(S.sheets || {})) if (typeof d?.code !== 'string' || !d.code.trim()) bad.push(`sheet ${id}: code (the draw script) missing`)
+  if (fx.length < 3 || fx.length > 40) bad.push('fx count must be 3..40')
+  fx.forEach((e, i) => {
+    const m = e.sheet ? S.sheets?.[e.sheet] : INDEX[e.slug], tag = `fx[${i}] ${e.sheet || e.slug}`
+    if (!m) return bad.push(e.sheet ? `${tag}: no sheets.${e.sheet} script` : `${tag}: no such sheet`)
+    const dur = 'dur' in e ? e.dur : (e.life ?? (e.sheet ? m.life ?? 0.9 : 0.6))
+    if (!(e.t >= 0) || e.t + dur > L + 1e-6) bad.push(`${tag}: ${e.t}+${dur} leaves 0-${L}`)
+    if (!vec(e.pos)) bad.push(`${tag}: pos [x,y,z]`)
+    if (!(e.size > 0)) bad.push(`${tag}: size`)
+    if (e.parent && !parts[e.parent]) bad.push(`${tag}: parent ${e.parent} missing`)
+    if (!validRamp(e.ramp)) bad.push(`${tag}: ramp must be a preset (${Object.keys(RAMPS).join(', ')}) or "#hex,#hex,..."`)
+    if (e.shape === 'beam' && !(e.length > 0)) bad.push(`${tag}: beam needs length`)
+  })
+  ;(S.marks || []).forEach((m, i) => { if (!MARK_KINDS[m?.kind] || !vec(m.at) || !(m.t >= 0 && m.t <= L)) bad.push(`mark ${i}: kind (${Object.keys(MARK_KINDS).join('|')}), t inside len, at [x,y,z]`); if (m?.part && !parts[m.part]) bad.push(`mark ${i}: part ${m.part} missing`) })
+  const ims = S.impacts || []
+  if (ims.filter(i => i.payoff).length !== 1) bad.push('exactly one impact needs payoff:true')
+  ims.forEach((im, i) => { if (!vec(im.at) || !(im.t >= 0 && im.t <= L)) bad.push(`impact ${i}: t inside len and at [x,y,z]`) })
+  return bad
+}
+
+// ---------- build (build.mjs logic, then Studio's cinePass + cineLights)
+// short targets (< 4 s) scale the cine build-up, slow-mo and hit-stop down so fitDuration barely compresses the story
+const cineOpts = (S, opt) => opt.type === 'consistent' && !opt.loop
+  ? { payoff: S.payoff, kind: 'impact', tint: S.tint, push: 0.08, build: Math.min(0.12, S.payoff), shake: 0.02, flash: 0.6, dip: 0.05 }
+  : ({ payoff: S.payoff, kind: opt.loop ? 'loop' : S.cine_kind || 'burst', tint: S.tint, push: S.push ?? 0.2,
+  ...(opt.ms && opt.ms < 4000 ? { build: Math.min(1.6, 0.35 * S.len), slow: 0.7, hold: 1 } : {}) })
+function build(S, opt = {}) {
+  const objs = {}, tracks = {}
+  for (const [k, o] of Object.entries(S.parts || {})) objs[k] = { type: 'part', material: 'SmoothPlastic', parent: null, rot: [0, 0, 0], ...o }
+  for (const [k, tr] of Object.entries(S.tracks || {})) tracks[k] = tr
+  S.fx.forEach((e, i) => {
+    const m = e.sheet ? { grid: 4, frames: 16 } : INDEX[e.slug], src = e.sheet ? genKey(S.sheets[e.sheet]) : e.slug, loop = 'dur' in e, life = e.life ?? (e.sheet ? S.sheets[e.sheet].life ?? 0.9 : 0.6), dur = loop ? e.dur : life
+    const pa = [src, m.grid, e.ramp, e.tex || 'noise', e.tex_amt ?? 0.45], tex = paint(...pa, OW)
+    const o = { type: 'flipbook', name: `FX ${e.sheet || e.slug} ${e.t}`, tex, grid: m.grid, frames: m.frames, parent: e.parent || null, pos: e.pos,
+      pa, rot: e.rot || [0, 0, 0], size: e.size, start: e.t, life, loop, dur, fps: loop ? (e.fps || 12) : +(m.frames / life).toFixed(2), blend: 'add', flat: !!e.flat }
+    if (e.shape === 'beam') Object.assign(o, { shape: 'beam', length: e.length, speed: e.speed ?? 18 })
+    if (e.opacity != null) o.opacity = e.opacity
+    const id = 'fx' + String(i).padStart(2, '0'); objs[id] = o
+    if (e.grow) tracks[id] = { scale: e.grow.map(([t, s, ez]) => [t, [s, s, s], ez || 'auto']) }
+  })
+  let clip = { name: S.name, len: S.len, fps: 60, loop: !!opt.loop, tracks, camera: S.camera_keys }
+  if (opt.type === 'consistent' && !opt.loop) clip.warp = [[0, 0], [S.len, S.len]]      // real time: cinePass keeps an existing warp
+  clip = cinePass(clip, cineOpts(S, opt), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov })
+  const cam = clip.camera ||= {}
+  // camera setting: static drops every motion key (flash and grade stay); orbit swaps the drift for a 90° orbit of the target
+  if (opt.camera === 'static') for (const k of ['pos', 'target', 'fov', 'shake']) delete cam[k]
+  if (opt.camera === 'orbit' && !opt.loop) {
+    const F = S.camera.target, P = S.camera.pos, r = Math.hypot(P[0] - F[0], P[2] - F[2]), a0 = Math.atan2(P[2] - F[2], P[0] - F[0])
+    cam.pos = Array.from({ length: 9 }, (_, i) => { const a = a0 + Math.PI / 2 * i / 8; return [+(S.len * i / 8).toFixed(4), [F[0] + r * Math.cos(a), P[1], F[2] + r * Math.sin(a)], 'auto'] })
+    cam.target = [[0, F, 'auto'], [S.len, F]]
+  }
+  const lit = cineLights(objs, clip, { tint: S.tint, impacts: S.impacts, rims: S.rims })
+  const out = { objects: lit.objects, clip: lit.clip, camera: S.camera, env: S.env || {} }
+  if (opt.ms) fitDuration(out.clip, opt.ms, S.len)
+  return out
+}
+// Exact length: rescale only the clip-time axis of the warp (clip time -> story time), so tracks, camera, flipbooks, slow-mo
+// and hit-stop all keep their story timing and proportions while the played clip lasts exactly `ms`. Keys are integer ms
+// (no float drift); the last key is the target itself and maps to the story end, where every fx has finished (validate).
+function fitDuration(clip, ms, storyLen) {
+  ms = Math.round(ms)
+  const w = clip.warp?.length ? clip.warp : [[0, 0], [clip.len, storyLen]], c0 = w[w.length - 1][0]
+  let prev = -1
+  clip.warp = w.map((k, i) => { let m = i === w.length - 1 ? ms : Math.round(k[0] / c0 * ms); m = Math.max(m, prev + 1); prev = m; return [m / 1000, k[1], k[2]] })
+  clip.warp[clip.warp.length - 1] = [ms / 1000, w[w.length - 1][1]]
+  clip.len = ms / 1000; clip.lenMs = ms
+  return clip
+}
+
+// ---------- renderer (Studio viewport conventions)
+const LIGHTS = {
+  studio: { sky: '#dfe6f2', ground: '#3b3631', hemi: 0.9, sun: '#fff4e5', sunI: 2.4, dir: [0.55, 1, 0.38], env: 0.45 },
+  day: { sky: '#bcd8ff', ground: '#5a5040', hemi: 0.8, sun: '#fff1d6', sunI: 3.4, dir: [0.4, 1, 0.25], env: 0.35 },
+  sunset: { sky: '#ffb38a', ground: '#3a2a35', hemi: 0.7, sun: '#ff9a5a', sunI: 2.4, dir: [0.9, 0.35, 0.2], env: 0.3 },
+  night: { sky: '#4a5a8a', ground: '#101018', hemi: 0.45, sun: '#9fb4ff', sunI: 0.8, dir: [-0.3, 1, 0.5], env: 0.12 }
+}
+const stage = $('stage')
+let renderer
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+} catch (e) { $('load').innerHTML = '<pre class="err"></pre>'; $('load').firstChild.textContent = 'WebGL unavailable: ' + e.message; throw e }
+renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1
+stage.prepend(renderer.domElement)
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, 16 / 9, 0.05, 2000)
+const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+const hemi = new THREE.HemisphereLight(), sun = new THREE.DirectionalLight(); scene.add(hemi, sun, sun.target)
+const root = new THREE.Group(); scene.add(root)
+function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix() }
+new ResizeObserver(resize).observe(stage)
+
+// post passes, same shaders and order as Studio anim.js: scene -> grade -> flash
+const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), quadScene = new THREE.Scene(), quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); quadScene.add(quad)
+const GU = { exp: { value: 0 }, vig: { value: 0 }, tint: { value: 0 }, col: { value: new THREE.Color(1, 1, 1) }, aspect: { value: 1 } }
+const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
+const darkM = new THREE.ShaderMaterial({ uniforms: GU, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false,
+  fragmentShader: 'uniform float exp; uniform float vig; uniform float aspect; varying vec2 vUv; void main(){ vec2 d = (vUv - 0.5) * vec2(aspect, 1.0); float r = length(d) / length(vec2(aspect, 1.0) * 0.5); float a = clamp(max(0.0, -exp) + vig * smoothstep(0.45, 1.0, r), 0.0, 1.0); gl_FragColor = vec4(0.0, 0.0, 0.0, a); }' })
+const liftM = new THREE.ShaderMaterial({ uniforms: GU, vertexShader: vs, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+  fragmentShader: 'uniform float exp; uniform float tint; uniform vec3 col; varying vec2 vUv; void main(){ vec2 d = vUv - 0.5; float c = 1.0 - 0.6 * dot(d, d) * 4.0; gl_FragColor = vec4(vec3(max(0.0, exp)) + col * tint * c, 1.0); }' })
+const flashM = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false, depthWrite: false })
+function post(g, flash) {
+  renderer.autoClear = false
+  if (g) {
+    GU.aspect.value = camera.aspect; GU.exp.value = Math.max(-1, Math.min(1, g.exp)); GU.vig.value = Math.min(1, Math.max(0, g.vig)); GU.tint.value = Math.min(1, Math.max(0, g.tint)); GU.col.value.set(g.color)
+    if (GU.exp.value < 0 || GU.vig.value > 0) { quad.material = darkM; renderer.render(quadScene, ortho) }
+    if (GU.exp.value > 0 || GU.tint.value > 0) { quad.material = liftM; renderer.render(quadScene, ortho) }
+  }
+  const a = Math.max(-1, Math.min(1, flash || 0))
+  if (Math.abs(a) > 1e-3) { flashM.color.set(a > 0 ? 0xffffff : 0x000000); flashM.opacity = Math.abs(a); quad.material = flashM; renderer.render(quadScene, ortho) }
+  renderer.autoClear = true
+}
+
+// flipbooks: Studio's vfx plugin itself, fed painted sheets through a tiny app shim
+const listeners = []
+const APP = { tex: { get: id => painted.get(id).then(url => ({ data: url })) }, on: (ev, fn) => ev === 'time' && listeners.push(fn), anim: { story: t => t }, time: 0 }
+VFX.init(APP)
+
+const D2R = Math.PI / 180, geoCache = {}
+function partGeo(shape, s) {
+  let g
+  switch (shape) {
+    case 'sphere': g = new THREE.SphereGeometry(0.5, 32, 18); break
+    case 'cylinder': g = new THREE.CylinderGeometry(0.5, 0.5, 1, 32, 1); break
+    case 'cone': g = new THREE.ConeGeometry(0.5, 1, 32, 1); break
+    case 'torus': { const r = Math.min(s[1], s[0]) / 4, R = s[0] / 2 - r; g = new THREE.TorusGeometry(Math.max(0.01, R), Math.max(0.005, r), 16, 48); g.rotateX(-Math.PI / 2); g.scale(1, 1, s[2] / s[0]); return g }
+    case 'plane': g = new THREE.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2); break
+    default: g = new THREE.BoxGeometry(1, 1, 1)
+  }
+  g.scale(s[0], s[1], s[2]); return g
+}
+// placeholder models (owner 2026-11-26: "acid eroding character ... a grey cube, i have no idea if it even erodes"): a part with
+// `model` is a recognizable primitive figure; size = its bounding box in metres (uniform fit), pos = its centre
+const capG = (r, l) => new THREE.CapsuleGeometry(r, l, 6, 14)
+const atG = (g, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => { g.scale(sx, sy, sz); g.rotateX(rx); g.rotateY(ry); g.rotateZ(rz); g.translate(x, y, z); return g }
+const MODELS = {
+  humanoid: { nat: [0.62, 1.8, 0.3], parts: () => [
+    atG(new THREE.SphereGeometry(0.115, 24, 16), 0, 0.775, 0, 0, 0, 0, 0.9, 1.05, 0.95), atG(new THREE.CylinderGeometry(0.045, 0.055, 0.1, 12), 0, 0.64, 0),
+    atG(capG(0.16, 0.26), 0, 0.33, 0, 0, 0, 0, 1.15, 1, 0.68), atG(capG(0.14, 0.08), 0, -0.02, 0, 0, 0, 0, 1.05, 1, 0.7),
+    ...[-1, 1].flatMap(sd => [
+      atG(capG(0.052, 0.22), sd * 0.235, 0.41, 0, 0, 0, sd * 0.1), atG(capG(0.046, 0.21), sd * 0.265, 0.12, 0.01, 0, 0, sd * 0.04), atG(new THREE.SphereGeometry(0.05, 12, 8), sd * 0.272, -0.04, 0.015, 0, 0, 0, 0.8, 1.2, 0.9),
+      atG(capG(0.075, 0.3), sd * 0.1, -0.27, 0), atG(capG(0.058, 0.32), sd * 0.1, -0.65, 0), atG(new THREE.BoxGeometry(0.1, 0.06, 0.24), sd * 0.1, -0.87, 0.04)])] },
+  sword: { nat: [0.26, 1.1, 0.06], parts: () => [
+    atG(new THREE.BoxGeometry(0.07, 0.74, 0.016), 0, 0.2, 0), atG(new THREE.ConeGeometry(0.0495, 0.1, 4), 0, 0.62, 0, 0, Math.PI / 4, 0, 1, 1, 0.23),
+    atG(new THREE.BoxGeometry(0.26, 0.035, 0.05), 0, -0.185, 0), atG(new THREE.CylinderGeometry(0.02, 0.022, 0.2, 12), 0, -0.3, 0), atG(new THREE.SphereGeometry(0.035, 12, 8), 0, -0.43, 0)] },
+  gun: { nat: [0.62, 0.26, 0.06], parts: () => [
+    atG(new THREE.BoxGeometry(0.3, 0.09, 0.055), 0, 0.03, 0), atG(new THREE.CylinderGeometry(0.018, 0.018, 0.3, 12), 0.29, 0.045, 0, 0, 0, Math.PI / 2),
+    atG(new THREE.BoxGeometry(0.06, 0.14, 0.05), -0.09, -0.07, 0, 0, 0, 0.28), atG(new THREE.BoxGeometry(0.04, 0.1, 0.035), 0.05, -0.05, 0), atG(new THREE.BoxGeometry(0.1, 0.07, 0.05), -0.19, 0.02, 0)] },
+  staff: { nat: [0.16, 1.8, 0.16], parts: () => [atG(new THREE.CylinderGeometry(0.022, 0.03, 1.62, 12), 0, -0.09, 0), atG(new THREE.SphereGeometry(0.075, 20, 14), 0, 0.82, 0), atG(new THREE.TorusGeometry(0.06, 0.012, 8, 20), 0, 0.72, 0, Math.PI / 2)] },
+  shield: { nat: [0.7, 0.7, 0.12], parts: () => [atG(new THREE.CylinderGeometry(0.35, 0.35, 0.05, 40), 0, 0, 0, Math.PI / 2), atG(new THREE.TorusGeometry(0.34, 0.02, 8, 40), 0, 0, 0.02), atG(new THREE.SphereGeometry(0.08, 16, 10), 0, 0, 0.03, 0, 0, 0, 1, 1, 0.5)] },
+  rock: { nat: [1, 0.7, 0.9], parts: () => { const g = new THREE.IcosahedronGeometry(0.5, 1), p = g.attributes.position; for (let i = 0; i < p.count; i++) { const f = 0.82 + 0.18 * Math.abs(Math.sin(p.getX(i) * 12.9 + p.getY(i) * 78.2 + p.getZ(i) * 37.7)); p.setXYZ(i, p.getX(i) * f, p.getY(i) * f * 0.7, p.getZ(i) * f * 0.9) } g.computeVertexNormals(); return [g] } },
+  crystal: { nat: [0.4, 1, 0.4], parts: () => [atG(new THREE.OctahedronGeometry(0.2), 0, 0, 0, 0, 0, 0, 1, 2.5, 1)] },
+  tree: { nat: [1, 2, 1], parts: () => [atG(new THREE.CylinderGeometry(0.07, 0.11, 0.8, 12), 0, -0.6, 0), atG(new THREE.ConeGeometry(0.5, 0.9, 16), 0, 0.05, 0), atG(new THREE.ConeGeometry(0.38, 0.75, 16), 0, 0.5, 0), atG(new THREE.ConeGeometry(0.25, 0.55, 16), 0, 0.72, 0)] },
+  wall: { nat: [2, 1.2, 0.3], parts: () => [atG(new THREE.BoxGeometry(2, 1.1, 0.26), 0, -0.05, 0), atG(new THREE.BoxGeometry(2.04, 0.1, 0.3), 0, 0.55, 0)] },
+  barrel: { nat: [0.62, 0.8, 0.62], parts: () => [new THREE.CylinderGeometry(0.29, 0.29, 0.8, 24), ...[-0.28, 0, 0.28].map(y => atG(new THREE.TorusGeometry(0.295, 0.015, 6, 28), 0, y, 0, Math.PI / 2))] },
+  // test subjects (owner 2026-11-26: "useable models for testing bullet holes, eroding and more"); marks stick to any of them
+  dummy: { nat: [0.8, 1.8, 0.4], parts: () => [atG(new THREE.CylinderGeometry(0.3, 0.32, 0.06, 28), 0, -0.87, 0), atG(new THREE.CylinderGeometry(0.04, 0.04, 0.72, 12), 0, -0.5, 0),
+    atG(capG(0.2, 0.42), 0, 0.08, 0, 0, 0, 0, 1, 1, 0.72), atG(capG(0.06, 0.5), 0, 0.26, 0, 0, 0, Math.PI / 2), atG(new THREE.SphereGeometry(0.14, 20, 14), 0, 0.62, 0)] },
+  target: { nat: [0.9, 1.6, 0.3], parts: () => [atG(new THREE.CylinderGeometry(0.42, 0.42, 0.06, 40), 0, 0.35, 0, Math.PI / 2),
+    ...[0.3, 0.18].map(r => atG(new THREE.TorusGeometry(r, 0.015, 6, 40), 0, 0.35, 0.035)), atG(new THREE.CylinderGeometry(0.07, 0.07, 0.02, 20), 0, 0.35, 0.035, Math.PI / 2),
+    ...[-1, 1].map(sd => atG(new THREE.BoxGeometry(0.05, 0.95, 0.05), sd * 0.25, -0.38, -0.06, 0.12, 0, sd * 0.08))] },
+  crate: { nat: [0.84, 0.84, 0.84], parts: () => [new THREE.BoxGeometry(0.78, 0.78, 0.78), ...[-0.3, 0.3].map(y => atG(new THREE.BoxGeometry(0.84, 0.1, 0.84), 0, y, 0)),
+    ...[-0.36, 0.36].map(x => atG(new THREE.BoxGeometry(0.1, 0.84, 0.84), x, 0, 0))] },
+  car: { nat: [1.9, 0.95, 0.85], parts: () => [atG(new THREE.BoxGeometry(1.8, 0.42, 0.8), 0, -0.07, 0), atG(new THREE.BoxGeometry(0.95, 0.36, 0.72), -0.1, 0.32, 0),
+    ...[[-0.6, 0.4], [0.6, 0.4], [-0.6, -0.4], [0.6, -0.4]].map(([x, z]) => atG(new THREE.CylinderGeometry(0.18, 0.18, 0.14, 20), x, -0.29, z, Math.PI / 2))] },
+}
+// dissolve: a part with a `dissolve` track erodes away by 3D noise with a glowing rim (part.edge colour); 1 = fully gone
+const disV = q => +(Array.isArray(q[1]) ? q[1][0] : q[1])
+const DIS_GLSL = `uniform float uDis;uniform vec3 uEdge;uniform vec3 uOrg;varying vec3 vDisP;
+float disH(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float disV(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);return mix(mix(mix(disH(i),disH(i+vec3(1.0,0.0,0.0)),f.x),mix(disH(i+vec3(0.0,1.0,0.0)),disH(i+vec3(1.0,1.0,0.0)),f.x),f.y),mix(mix(disH(i+vec3(0.0,0.0,1.0)),disH(i+vec3(1.0,0.0,1.0)),f.x),mix(disH(i+vec3(0.0,1.0,1.0)),disH(i+vec3(1.0,1.0,1.0)),f.x),f.y),f.z);}
+float disN(vec3 p){return clamp((disV(p)*0.6+disV(p*2.13)*0.3+disV(p*4.37)*0.1-0.2)/0.6,0.0,1.0);}
+`
+function addDissolve(m, edge) {
+  const u = { uDis: { value: 0 }, uEdge: { value: new THREE.Color(edge) }, uOrg: { value: new THREE.Vector3() } }
+  m.userData.dis = u; m.customProgramCacheKey = () => 'vfxgen-dissolve'
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, u)
+    sh.vertexShader = 'varying vec3 vDisP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvDisP = (modelMatrix * vec4(transformed, 1.0)).xyz;')
+    sh.fragmentShader = DIS_GLSL + sh.fragmentShader.replace('void main() {', 'void main() {\nfloat dn = disN((vDisP - uOrg) * 7.0);\nif (dn < uDis * 1.001) discard;')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\nif (uDis > 0.0) totalEmissiveRadiance += uEdge * 4.0 * (1.0 - smoothstep(0.0, 0.08, dn - uDis));')
+  }
+}
+// surface marks: a mark sticks where its hit lands on a part (ray from the camera through `at`, weapons and glowing parts skipped),
+// appears at t and stays; hot kinds glow `color` then cool. char / freeze tracks change the part's own material (0..1).
+const MARK_KINDS = { hole: 0.12, scorch: 1.4, burn: 0.5, crack: 0.8, cut: 0.6, frost: 0.7 }, HOT_MARKS = new Set(['hole', 'scorch', 'burn', 'cut'])
+const markTex = {}
+function markTextures(kind) {
+  if (markTex[kind]) return markTex[kind]
+  const N = 128, c = N / 2, mk = () => { const v = document.createElement('canvas'); v.width = v.height = N; return v }, dv = mk(), gv = mk(), d = dv.getContext('2d'), g = gv.getContext('2d')
+  let sd = 9 + kind.length * 7; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647
+  const soft = (x, rad, col, a) => { const gr = x.createRadialGradient(c, c, 0, c, c, rad); gr.addColorStop(0, col.replace('A', a)); gr.addColorStop(1, col.replace('A', 0)); x.fillStyle = gr; x.fillRect(0, 0, N, N) }
+  const jag = (x, rad, k, j) => { x.beginPath(); for (let i = 0; i <= k; i++) { const a = i / k * Math.PI * 2, q = rad * (1 - j + 2 * j * r()); x.lineTo(c + Math.cos(a) * q, c + Math.sin(a) * q) } x.closePath() }
+  const crack = (x, len, w, col) => { let px = c, py = c, a = r() * Math.PI * 2; x.strokeStyle = col; x.lineCap = 'round'; for (let s = 0; s < 6; s++) { a += (r() - 0.5) * 0.9; const nx = px + Math.cos(a) * len / 6, ny = py + Math.sin(a) * len / 6; x.lineWidth = w * (1 - s / 6) + 0.4; x.beginPath(); x.moveTo(px, py); x.lineTo(nx, ny); x.stroke(); px = nx; py = ny } }
+  if (kind === 'hole') {
+    soft(d, N * 0.46, 'rgba(18,14,12,A)', 0.8); for (let i = 0; i < 7; i++) crack(d, N * (0.22 + 0.2 * r()), 2.2, 'rgba(12,10,9,0.85)')
+    jag(d, N * 0.17, 14, 0.25); d.fillStyle = '#2b2622'; d.fill(); d.beginPath(); d.arc(c, c, N * 0.085, 0, 7); d.fillStyle = '#050404'; d.fill()
+    g.strokeStyle = '#fff'; g.lineWidth = N * 0.04; g.beginPath(); g.arc(c, c, N * 0.11, 0, 7); g.stroke()
+  } else if (kind === 'scorch' || kind === 'burn') {
+    const col = kind === 'burn' ? 'rgba(22,26,10,A)' : 'rgba(10,8,6,A)'
+    soft(d, N * 0.48, col, 0.85); for (let i = 0; i < 9; i++) { const a = r() * 7, q = r() * N * 0.32, rr = N * (0.04 + 0.08 * r()); d.beginPath(); d.arc(c + Math.cos(a) * q, c + Math.sin(a) * q, rr, 0, 7); d.fillStyle = col.replace('A', 0.9); d.fill()
+      g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 2.5; g.beginPath(); g.arc(c + Math.cos(a) * q, c + Math.sin(a) * q, rr, 0, 7); g.stroke() }
+  } else if (kind === 'crack') {
+    for (let i = 0; i < 9; i++) { crack(d, N * (0.3 + 0.18 * r()), 3.2, 'rgba(10,9,8,0.9)'); crack(g, N * 0.2, 1.4, 'rgba(255,255,255,0.5)') }
+    d.beginPath(); d.arc(c, c, N * 0.05, 0, 7); d.fillStyle = 'rgba(8,7,6,0.9)'; d.fill()
+  } else if (kind === 'cut') {
+    const sl = (x, w, col) => { x.beginPath(); x.moveTo(N * 0.04, c); x.quadraticCurveTo(c, c - w, N * 0.96, c); x.quadraticCurveTo(c, c + w, N * 0.04, c); x.fillStyle = col; x.fill() }
+    sl(d, N * 0.09, 'rgba(14,10,9,0.9)'); sl(g, N * 0.035, '#fff')
+  } else {
+    soft(d, N * 0.45, 'rgba(220,242,255,A)', 0.55); for (let i = 0; i < 10; i++) { crack(d, N * (0.25 + 0.2 * r()), 2.4, 'rgba(240,250,255,0.95)'); crack(g, N * 0.3, 1.2, 'rgba(255,255,255,0.7)') }
+  }
+  const tx = v => { const t = new THREE.CanvasTexture(v); t.colorSpace = THREE.SRGBColorSpace; return t }
+  return (markTex[kind] = [tx(dv), tx(gv)])
+}
+const markGeo = new THREE.PlaneGeometry(1, 1)
+function buildMarks(S) {
+  return (Array.isArray(S.marks) ? S.marks : []).filter(m => m && MARK_KINDS[m.kind] && vec(m.at) && Number.isFinite(+m.t)).map(m => {
+    const [dt, gt] = markTextures(m.kind), grp = new THREE.Group(), base = { transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }
+    const dark = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial({ ...base, map: dt }))
+    const glow = new THREE.Mesh(markGeo, new THREE.MeshBasicMaterial({ ...base, map: gt, color: HEX.test(m.color || '') ? m.color : '#ff7a1a', blending: THREE.AdditiveBlending, toneMapped: false, opacity: 0 }))
+    grp.add(dark, glow); grp.visible = false; root.add(grp)
+    return { ...m, size: +m.size > 0 ? +m.size : MARK_KINDS[m.kind], grp, glow, placed: false, ok: false }
+  })
+}
+const rayc = new THREE.Raycaster(), skipMark = o => ['gun', 'sword', 'staff'].includes(o.model) || o.material === 'Neon'
+function attachMark(mk) {
+  mk.placed = true
+  const targets = Object.entries(CUR.nodes).filter(([id, n]) => n.userData.o.type === 'part' && !skipMark(n.userData.o) && (!mk.part || id === mk.part))
+  const meshes = []; for (const [, n] of targets) { n.updateWorldMatrix(true, true); n.traverse(m => m.isMesh && meshes.push(m)) }
+  const at = new THREE.Vector3(...mk.at), o = camera.position.clone(), dir = at.clone().sub(o).normalize()
+  rayc.set(o, dir); let hit = rayc.intersectObjects(meshes, false)[0]
+  if (!hit) { const n0 = targets.map(([, n]) => n).sort((a, b) => a.getWorldPosition(new THREE.Vector3()).distanceTo(at) - b.getWorldPosition(new THREE.Vector3()).distanceTo(at))[0]
+    if (n0) { const c = n0.getWorldPosition(new THREE.Vector3()); rayc.set(at, c.sub(at).normalize()); hit = rayc.intersectObjects(meshes, false)[0] } }
+  if (!hit || !hit.face) return
+  const nrm = hit.face.normal.clone().transformDirection(hit.object.matrixWorld); if (nrm.dot(rayc.ray.direction) > 0) nrm.negate()
+  mk.grp.position.copy(hit.point).addScaledVector(nrm, 0.004); mk.grp.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), nrm)
+  mk.grp.rotateZ((mk.t * 7.13 + mk.at[0] * 3.7) % 6.283); mk.grp.scale.setScalar(mk.size); mk.grp.updateMatrixWorld(true)
+  let host = hit.object; while (host.parent && !Object.values(CUR.nodes).includes(host)) host = host.parent
+  host.attach(mk.grp); mk.s0 = mk.grp.scale.clone(); mk.ok = true
+}
+function placeMarks(st) {
+  for (const mk of CUR?.marks || []) {
+    if (st < mk.t) { mk.grp.visible = false; continue }
+    if (!mk.placed) attachMark(mk)
+    mk.grp.visible = mk.ok; if (!mk.ok) continue
+    const a = st - mk.t; mk.grp.scale.copy(mk.s0).multiplyScalar(0.55 + 0.45 * Math.min(1, a / 0.06))
+    mk.glow.material.opacity = HOT_MARKS.has(mk.kind) ? Math.pow(Math.max(0, 1 - a / 0.9), 1.5) : 0.35 * Math.max(0, 1 - a / 1.5)
+  }
+}
+const SOOT = new THREE.Color('#141110'), ICE = new THREE.Color('#bfe6ff'), EMBER = new THREE.Color('#ff4a10'), FROSTGLOW = new THREE.Color('#5fb8ff')
+const chV = (ks, st) => Math.min(1, Math.max(0, sample(ks.map(q => [q[0], [disV(q)], q[2]]), st, 'pos')[0]))
+function react(n, k, st) {
+  const m = n.userData.mat; if (!m || !(k.char || k.freeze)) return
+  const b = m.userData.base ||= { c: m.color.clone(), r: m.roughness, e: m.emissive.clone(), ei: m.emissiveIntensity }
+  const ch = k.char ? chV(k.char, st) : 0, fr = k.freeze ? chV(k.freeze, st) : 0
+  m.color.copy(b.c).lerp(SOOT, ch).lerp(ICE, fr); m.roughness = Math.min(1, b.r + (1 - b.r) * ch) * (1 - 0.7 * fr)
+  m.emissive.copy(b.e).lerp(EMBER, Math.min(1, 4 * ch * (1 - ch))).lerp(FROSTGLOW, 0.25 * fr); m.emissiveIntensity = Math.max(b.ei, 1.6 * ch * (1 - ch) * 4, 0.6 * fr)
+}
+function partMesh(o, dissolve) {
+  const neon = o.material === 'Neon', m = new THREE.MeshStandardMaterial({ color: o.color || '#a3a2a5', roughness: o.roughness ?? (neon ? 0.5 : 0.5), metalness: o.metalness ?? 0, side: THREE.DoubleSide })
+  if (neon) { m.emissive.set(o.color || '#ffffff'); m.emissiveIntensity = 1; m.toneMapped = false }
+  if (o.emissive) { m.emissive.set(o.emissive); m.emissiveIntensity = o.glow ?? o.emissiveIntensity ?? 1 }
+  if (o.transparency) { m.transparent = true; m.opacity = 1 - o.transparency }
+  if (dissolve) addDissolve(m, HEX.test(o.edge || '') ? o.edge : '#9dff3a')
+  const M = MODELS[o.model], size = o.size || [1, 1, 1]
+  if (!M) { const n = new THREE.Mesh(partGeo(o.shape || 'box', size), m); n.userData.mat = m; return n }
+  // outer group carries pos/rot/scale tracks; the inner group holds the uniform fit, so a scale track multiplies it
+  const n = new THREE.Group(), inner = new THREE.Group(), k = Math.max(...size) / Math.max(...M.nat)
+  for (const g of M.parts()) inner.add(new THREE.Mesh(g, m))
+  inner.scale.setScalar(k); n.add(inner); n.userData.mat = m; return n
+}
+
+let CUR = null, T = 0, playing = true
+function clear() {
+  for (const n of [...root.children]) root.remove(n)
+  root.traverse?.(() => {})
+}
+// prepare: validate, draw the sheets, build + fit the clip, start painting (no scene change, so slots can prepare in parallel)
+async function prepare(S, opt = {}, say) {
+  const bad = validate(S, opt); if (bad.length) throw new Error(bad.join('\n'))
+  const res = await renderSheets(S, say)
+  const B = build(S, opt)
+  await Promise.all([...new Set(Object.values(B.objects).filter(o => o.tex).map(o => o.tex))].map(id => painted.get(id)))
+  return { S, B, res, opt }
+}
+// show: put a prepared clip on the one stage
+// stand-in parts: shown for the preview, hidden by the Stand-ins toggle; only the part's own material hides, so fx parented to it keep playing
+let STANDINS = true, SHOWN = null
+const standIns = S => Object.entries(S?.parts || {}).map(([id, p]) => ({ id, name: p.name || id, shape: p.shape, size: p.size, pos: p.pos }))
+function show(P) {
+  const { S, B, res, opt } = P; clear(); SHOWN = P
+  for (const o of Object.values(B.objects)) if (o.pa) o.tex = paint(...o.pa, OW)      // the rim width can change after prepare
+  
+  const nodes = {}
+  for (const [id, o] of Object.entries(B.objects)) {
+    let n
+    if (o.type === 'part') { n = partMesh({ edge: S.tint, ...o }, !!B.clip.tracks?.[id]?.dissolve); n.userData.mat.visible = STANDINS }
+    else if (o.type === 'flipbook') { n = VFX.types.flipbook.build(o, APP); n.userData.op = o.opacity }
+    else if (o.type === 'light') { n = new THREE.PointLight(o.color, o.intensity * 6, o.range, 1.2) }
+    else continue
+    n.userData.o = o; nodes[id] = n
+  }
+  for (const [id, n] of Object.entries(nodes)) { const p = n.userData.o.parent; (p && nodes[p] ? nodes[p] : root).add(n) }
+  for (const n of Object.values(nodes)) if (n.userData.op != null) n.userData.card.material.opacity = n.userData.op
+  const env = B.env, L = LIGHTS[env.light] || LIGHTS.studio
+  scene.background = new THREE.Color(env.bg || '#07060e'); scene.fog = env.fog ? new THREE.Fog(env.fog.color || env.bg, env.fog.near || 20, env.fog.far || 80) : null
+  hemi.color.set(L.sky); hemi.groundColor.set(L.ground); hemi.intensity = L.hemi; sun.color.set(L.sun); sun.intensity = L.sunI
+  sun.position.set(...L.dir).multiplyScalar(20); scene.environmentIntensity = L.env
+  CUR = { S, B, nodes, loop: !!opt.loop }; CUR.marks = buildMarks(S); APP.anim.story = t => storyAt(B.clip, t)
+  const len = B.clip.len, pt = clipTimeOf(B.clip, S.payoff)
+  $('pay').style.left = `calc(${(pt / len * 100).toFixed(2)}% - 1px)`
+  const nfx = Object.values(B.objects).filter(o => o.type === 'flipbook').length, nl = Object.values(B.objects).filter(o => o.type === 'light').length
+  const lenTxt = opt.ms ? `clip ${len.toFixed(3)} s (target ${(opt.ms / 1000).toFixed(3)})` : `clip ${len.toFixed(2)}s (slow-mo)`
+  $('meta').textContent = `${S.name} · ${nfx} painted sheets · ${nl} cine lights · story ${S.len}s → ${lenTxt} · payoff ${pt.toFixed(2)}s · ${opt.loop ? 'loop' : S.cine_kind || 'burst'}`
+  const ns = Object.keys(S.sheets || {}).length
+  $('tag').textContent = ns ? `generated · ${ns} new sheets` : 'example (library sheets)'
+  const si = standIns(S); if (si.length) $('meta').textContent += ` · stand-ins (Umbrio replaces): ${si.map(x => x.name).join(', ')}`
+  if (ns) $('meta').textContent += ` · ${ns} new sheets drawn by the library method, jump max ${Math.max(...Object.values(res).map(r => r.jump))}`
+  showSheets(S, res)
+  $('spec').value = JSON.stringify(S, null, 1); T = 0; hold = 0
+}
+async function load(S, say, opt) { const P = await prepare(S, opt, say); show(P); return P }
+function clipTimeOf(clip, st) { let lo = 0, hi = clip.len; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (storyAt(clip, m) < st) lo = m; else hi = m } return hi }
+
+// camera at story time: Studio anim.js camAt (pos/target/fov + decaying shake)
+function camAt(c, t) {
+  const k = c?.camera || {}, s = {}
+  for (const ch of ['pos', 'target']) if (k[ch]?.length) s[ch] = sample(k[ch], t, 'pos')
+  for (const ch of ['fov', 'shake']) if (k[ch]?.length) s[ch] = sample(k[ch].map(q => [q[0], [+q[1]], q[2]]), t, 'pos')[0]
+  const a = s.shake || 0
+  if (a && s.pos) { const n = f => Math.sin(t * f * 6.2832) * 0.6 + Math.sin(t * f * 2.71 + 1.3) * 0.4; s.pos = [s.pos[0] + a * n(17), s.pos[1] + a * n(23), s.pos[2] + a * n(29)] }
+  return s
+}
+const num = ks => ks.map(q => [q[0], [0, 1, 2].map(i => +(Array.isArray(q[1]) ? q[1][i] : 0) || 0), q[2]])
+function frameAt(t) {
+  if (!CUR) return
+  const { B, nodes } = CUR, clip = B.clip, st = storyAt(clip, t), tr = clip.tracks || {}
+  for (const [id, n] of Object.entries(nodes)) {
+    const o = n.userData.o, k = tr[id] || {}
+    const pos = k.pos ? sample(k.pos, st, 'pos') : o.pos || [0, 0, 0], rot = k.rot ? sample(k.rot, st, 'rot') : o.rot || [0, 0, 0]
+    n.position.set(pos[0], pos[1], pos[2])
+    if (o.type !== 'light') n.rotation.set(rot[0] * D2R, rot[1] * D2R, rot[2] * D2R, 'XYZ')
+    if (k.scale) { const s = sample(k.scale, st, 'scale'); n.scale.set(s[0], s[1], s[2]) }
+    if (o.type === 'light') n.intensity = (k.intensity ? sample(k.intensity, st, 'intensity')[0] : o.intensity) * 6
+    const du = n.userData.mat?.userData.dis
+    if (du) { du.uDis.value = k.dissolve ? Math.min(1, Math.max(0, sample(k.dissolve.map(q => [q[0], [disV(q)], q[2]]), st, 'pos')[0])) : 0; n.updateWorldMatrix(true, false); n.getWorldPosition(du.uOrg.value) }
+    react(n, k, st)
+  }
+  APP.time = st; for (const fn of listeners) fn(t)
+  const c = camAt(clip, st), cam0 = B.camera
+  const p = c.pos || cam0.pos, g = c.target || cam0.target
+  camera.position.set(p[0], p[1], p[2]); camera.fov = c.fov ?? cam0.fov ?? 50; camera.updateProjectionMatrix(); camera.lookAt(g[0], g[1], g[2]); camera.updateMatrixWorld(); placeMarks(st)
+  const gk = clip.camera?.grade, fk = clip.camera?.flash
+  const gv = gk?.length ? sample(num(gk), st, 'pos') : null
+  const grade = gv ? { exp: gv[0], vig: gv[1], tint: gv[2], color: clip.camera.gradeTint || '#ffffff' } : null
+  const flash = fk?.length ? sample(fk.map(q => [q[0], [+q[1]], q[2]]), st, 'pos')[0] : 0
+  renderer.render(scene, camera); post(grade, flash)
+  $('hud').textContent = `clip ${t.toFixed(2)}s · story ${st.toFixed(2)}s`
+  $('time').textContent = `${t.toFixed(2)} / ${clip.len.toFixed(2)}`
+  $('scrub').value = Math.round(t / clip.len * 1000)
+}
+let last = performance.now(), hold = 0
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now
+  if (CUR && playing) { const len = CUR.B.clip.len; if (CUR.loop) T = (T + dt) % len; else if (T >= len) { hold += dt; if (hold > 1) { T = 0; hold = 0 } } else T = Math.min(len, T + dt) }   // clamped: the last frame drawn is exactly len
+  frameAt(T); if (++owTick % 6 === 0) owLine(); requestAnimationFrame(loop)
+}
+// thickness line: rim px on screen = OW % of 0.016 of the biggest visible camera-facing card's projected height
+let owTick = 0, owLast = 0
+const V3a = new THREE.Vector3(), V3b = new THREE.Vector3()
+function owLine() {
+  let cell = 0
+  for (const n of Object.values(CUR?.nodes || {})) { const m = n.userData.card, fb = n.userData.fb
+    if (!m?.visible || !fb || fb.beam || fb.flat) continue
+    const d = camera.position.distanceTo(m.getWorldPosition(V3a)); if (d > 1e-3) cell = Math.max(cell, m.getWorldScale(V3b).x / (2 * d * Math.tan(camera.fov * Math.PI / 360)) * stage.clientHeight) }
+  if (cell) owLast = cell
+  const px = OW * 0.00016 * owLast
+  $('vOw').textContent = OW + ' %'
+  $('lOw').style.height = Math.max(0.5, px) + 'px'; $('lOw').style.background = CUR?.S?.tint || 'var(--fg)'
+  $('pxOw').textContent = owLast ? `${px.toFixed(1)} px on screen` : 'shows px once an effect is on screen'
+}
+$('sOw').value = OW
+$('sOw').oninput = e => { OW = Math.min(50, Math.max(5, +e.target.value)); owLine() }
+$('sOw').onchange = () => { store.set('vfxgen.ow', OW); if (SHOWN) { const t = T, pl = playing; show(SHOWN); T = t; playing = pl } }
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play' }
+$('restart').onclick = () => { T = 0; hold = 0; playing = true; $('play').textContent = 'Pause' }
+$('scrub').oninput = e => { if (!CUR) return; playing = false; $('play').textContent = 'Play'; T = e.target.value / 1000 * CUR.B.clip.len }
+// test hook: headless checks seek to an exact clip time
+
+// ---------- generate: Claude writes the spec (artifact `sample` capability)
+const RULES = `You make a VFX clip in two parts, returned as ONE minified JSON object, "sheets" FIRST (no prose, no code fences, no indentation or line breaks: every extra character makes the owner wait):
+(1) "sheets": NEW flipbook sheets you WRITE as draw scripts. They are drawn by the exact method of the owner's sheet library (the stylized unique.py): 16 frames, 160 px frames drawn at 2x with tapered disc strokes, 6 lingering motes added for you, noise erosion after 55 % of life added for you, glow lighting + edge fade + white Grid4x4 1024 px sheet (light = alpha). Colour is NOT in the script: the player paints each sheet by ramp.
+(2) the clip spec that places those sheets in a three.js scene with an automatic cinematic pass (camera push-in, slow-mo, hit-stop, dark dip, white flash, decaying shake, colour grade) and impact/rim lights.
+
+SHEET SCRIPTS: "sheets": {"<id>": {"name": "<what this sheet IS, 1-3 generic words, e.g. smoke cloud, blood spray, ground cracks; never the clip or prompt context (not gunshot smoke cloud)>", "code": "<JS function body>", "seed": <int>, "life": <s>}}. The body runs once per frame as (pen, rng, t, U); t = 0.05 -> 1 over the 16 frames. Frame coordinates: px, frame 160x160, centre 0,0, x right, y DOWN (negative y = up).
+- pen.dot(x,y,r,v=1); pen.stroke(points,w0,w1,v=1) = tapered stroke, radius w0 -> w1 along the points; pen.poly(points,v=1). v = light 0..1 (overlaps replace, not add).
+- U.EL.<name>(pen, rngX, t, S) draws one library element at the pen origin, timing built in. Elements: ${Object.keys(EL).join(', ')}. Ring-like (use once, never paired with another ring): shock, ground, vortex, zigring, polyshock, dashring.
+  Meanings: crescent slash arc; claw 3-4 parallel arcs; xcut cross slash; thrust stab line; shock ring; ground flat ring; spikes star burst; cracks jagged radial cracks; dashes inward speed dashes; spiral arms; helix twin rising strands; streaks horizontal wind lines; waves wavy lines; puffs soft blob cluster; bolt lightning; fountain droplets arcing up then falling; beam horizontal beam; orbit circling dots; rise rising dots + "+" crosses (ONLY for healing/buff/holy prompts); flames rising fire licks (ONLY for fire/heat/explosion prompts); shards spinning shards flying out; column rising blob column; fan upward fan of rays; pillar light pillar; faultline ground crack + debris; comet diagonal comet; petals spinning petals; zigring zigzag ring; bubbles bubble rings rising (hollow circles); vortex inward rings; sparkfall sparks thrown up then falling; polyshock polygon ring; dashring dashed ring.
+- U.params(scale, overrides) -> S {R radius px, w width mult 0.7-1.4, n 1-6, k count 5-12, sweep 1.8-3.6, sq squash 0.45-1}. Primary scale 0.8-0.95, partner 0.65-0.85. Override k for counts (e.g. {k: 12}).
+- U.at(x,y) sets the pen origin; U.rng(0) = a separate stable random stream (for the partner); U.ease(x) = 1-(1-x)^3 clamped; U.arc(r,a0,a1,{cx,cy,sq,rot,k}); U.jag(rngX,x0,y0,x1,y1,k,amp); U.linspace(a,b,n); U.C = 160.
+- rng is re-seeded every frame: call it in the same order every frame so particles keep their paths. Never Math.random, never Date. Return {motes:false} only for a clean single shape.
+- HOUSE STYLE (how every library sheet is made, keep it): one primary element at the origin + at most one partner element. Draw the partner FIRST at U.at(0,0) | U.at(U.C*.18,0) | U.at(0,U.C*.2) with U.rng(0), then U.at(0,0) and the primary with rng. Write custom pen strokes only when no element shows the action (e.g. a bubble swelling then popping); then copy the element style: fast-in timing with U.ease(t/0.3..0.5), tapered widths 0.4..8, hollow rings as stroke(U.arc(...)) width 1.2-5, everything inside radius ~70 px, never fade by hand (the wrapper erodes).
+- Template: const S2 = U.params(0.75), S1 = U.params(0.9, {k: 10})\nU.at(0, U.C*.2); U.EL.shock(pen, U.rng(0), t, S2); U.at(0, 0)\nU.EL.bubbles(pen, rng, t, S1)
+- Write 4-6 sheets, one per layer role of THIS animation (e.g. poison bubble burst: swelling bubble + pop ring, bubble cluster rising, droplet fountain, splash shards, ground splash ring, lingering rising bubbles). "life" = 0.5-1.6 s.
+
+CLIP SPEC (after "sheets"; same schema as the example, but every fx uses "sheet": "<id>" from your sheets; NO library slugs). All times are STORY seconds (the cine pass adds ~2 s of slow-mo around the payoff itself).
+- name, len (4..14 s), payoff (the ONE biggest moment), cine_kind "impact" (sharp hit) or "burst" (build then release), tint "#rrggbb" (light tint of the dominant hue), push (0.1..0.35).
+- camera {pos,target,fov} at t=0; camera_keys {pos:[[t,[x,y,z],"auto"]...], target:[...], fov:[[t,deg,"auto"]...]}: slow orbit/drift over 0..len with a key exactly at payoff; y-up metres.
+- env {bg "#hex" dark, fog null, grid false, light "night"|"sunset"|"studio"|"day"}.
+- parts {id:{shape box|cylinder|sphere|cone|torus|plane OR model ${Object.keys(MODELS).join('|')}, name, size [x,y,z], pos, rot [deg], color, roughness, material "Neon" for glowing parts, emissive, emissiveIntensity, transparency, edge "#hex" (dissolve rim glow)}}. Cylinder axis Y; floor = cylinder size [0.2,24,24] rot [0,0,90]. Parts are the PLACEHOLDER MODELS the effect plays on (Umbrio swaps in the real ones): every character, creature, weapon or object the prompt names gets a part, and it must LOOK like that thing: use "model" (character/person/enemy/npc -> humanoid size [0.8,1.8,0.3] pos [0,0.9,0] standing on the floor; sword; gun with the muzzle at +x; staff; shield; rock; crystal; tree; wall; barrel; test models: dummy (training dummy, 0.8x1.8x0.4), target (bullseye board, face +z, 0.9x1.6x0.3), crate (0.84 cube), car (front +x, 1.9x0.95x0.85)), never a plain box for a character or weapon; plain shapes only for orbs, projectiles, floors, simple props. size = the model's bounding box in metres, pos = its centre. Grey-blue neutral colour (#8a909c), never the effect colour. 1-5 parts, nothing the prompt does not need. No sheet draws the object itself. The effect must VISIBLY ACT on the model with a track: acid/erode/melt/corrode/disintegrate/burn away/dissolve/decay -> "dissolve" track (0 -> 1 = gone; erodes by noise with an edge-colour glowing rim; reach 1 only if the prompt says it is destroyed, otherwise stop at 0.4-0.7), shatter/explode -> scale to 0.01, burn/scorch/ignite -> "char" track (0 -> 1 soot black + ember glow), freeze/frost -> "freeze" track (0 -> 1 ice tint, glossy), hit/knockback -> pos + rot recoil. Example: "parts":{"hero":{"model":"humanoid","name":"character","size":[0.8,1.8,0.3],"pos":[0,0.9,0],"color":"#8a909c","edge":"#b6ff3a"}},"tracks":{"hero":{"dissolve":[[1.2,[0],"in"],[3.6,[1],"out"]]}}.
+- tracks {partId:{pos|rot|scale:[[t,[x,y,z],ease]...], dissolve|char|freeze:[[t,[0..1],ease]...]}}: "auto" through motion; anticipation (squash/pull-back "in" 0.1-0.15 s before) then "out" pop on the hit, settle "auto". A part that bursts scales to [0.01,0.01,0.01] at the payoff.
+- fx [{sheet, t, life (one-shot) OR dur (+fps 12-16, loops), pos, size (metres 2-10), parent (optional part id), flat (true = ground decal), opacity (0.4-0.8 for big back layers), rot, grow [[t,scale],...], ramp, tex, tex_amt}].
+- ramp: fire, ice, electric, poison, holy, void, blood, wind, or "#edge,...,#core" (4-7 stops, dark edge -> white-hot core). tex "noise"|"cells"|"streaks", tex_amt 0.3-0.55.
+PAINT RULE (owner, checked by code; a spec that breaks it is sent back): every sheet is white, so EVERY fx layer is painted on its own so the clip looks vibrant, never bland:
+  * its own gradient ramp, 4-7 stops that SHIFT HUE along the light (>= 20 deg: deep red -> orange -> gold -> white, indigo -> violet -> magenta -> pink, teal -> green -> lime -> white), dark edge (lightness <= 0.3) -> bright end; never one hue lightened, never a flat tint. Only core layers end white-hot (#ffffff); glow, sparks and decal end in a bright SATURATED colour (#4ac0ff, #ff7ae8), because stacked additive white ends blow out into a flat grey-white blob.
+  * a texture on every layer: tex noise (smoke, glow, fire), cells (liquid, poison, rock, bubbles) or streaks (sparks, slashes, energy), tex_amt 0.35-0.5; never "none".
+  * no two fx share the same sheet + ramp + tex: the same sheet used twice gets a different ramp or tex; >= 3 distinct ramps per clip (all layers blend additive: big back glow = deeper, darker-edged ramp at opacity 0.4-0.7, core = hottest, sparks = brightest accent, ground decal = deep saturated).
+- impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one}], marks [{t, at [x,y,z] on the hit surface, kind hole|scorch|burn|crack|cut|frost, size m (optional), color "#hex" hot rim, part (optional id)}] = damage left on the surface at time t, rims [{pos, color, base 1.0-1.5}] 1-2.
+
+SCOPE RULE (owner, checked by code): draw ONLY what the prompt names. Every sheet must trace to a word in the prompt (acid eroding a character = acid drips, corrosive bubbles, fumes, eroding flecks; NOT fire, NOT sparks of another element, NOT symbols). Never add "+" crosses, hearts, stars, runes, sigils, healing/buff motifs or a second element the prompt did not ask for; no "rise" or "flames" element unless the prompt is about healing or fire. FILLER = anything not physically part of the event: ambient motes, decorative rings or orbits, extra symbols, a second colour family; never draw filler. Scope limits WHICH elements, never how much happens: a 2-word prompt still gets a full story.
+COLOUR RULE (owner, fixed by code): the element sets the hue family (fire/gun orange 25, ice 200, electric 215, poison/acid green 100, holy gold 48, void purple 280, blood 355, water 205, wind 165, nature 120, earth 32); a colour word in the prompt wins ("blue fire" = blue). Every ramp, tint, impact, rim, edge and mark colour stays within 45 deg of it; code shifts any layer that strays.
+TEST RULE (owner, fixed by code): the effect visibly changes what it hits. Bullets/arrows -> hole marks on the wall/target/dummy/crate/car; slash -> cut marks; explosion -> scorch marks; punch/slam -> crack marks; acid/erode -> dissolve track + burn marks; burn -> char track; freeze -> freeze track + frost marks. Shooting or casting at nothing gets a test model (target for holes, dummy for reactions) at the payoff hit.
+ACTION RULE (owner, checked by code): a fight, duel, combo, battle or clash = an exchange, not one hit: >= 3 impacts spread over len (dash in, hit, counter, hit, finisher = payoff); every fighter is a humanoid part with a pos track of >= 3 keys (lunge, recoil, knockback) so they never stand still; weapons follow by parent or track. Fewer layers never means fewer beats.
+QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, accents stay inside the family). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 6-14 fx, each a physical part of the event. Exactly what the owner describes, nothing extra (SCOPE RULE).`
+let ctl = null
+// the reply's shape in ~1 kB (the 8 kB library example made every call read more and copy its long style)
+const SKELETON = '{"sheets":{"core":{"name":"burst core","code":"const S1 = U.params(0.9); U.at(0, 0); U.EL.spikes(pen, rng, t, S1)","seed":1,"life":0.8}},"name":"Fire Burst","len":5,"payoff":2,"cine_kind":"impact","tint":"#ff8a12","push":0.2,"camera":{"pos":[0,2.2,9],"target":[0,1.2,0],"fov":45},"camera_keys":{"pos":[[0,[0,2.2,9],"auto"],[2,[0.8,2,7.5],"auto"],[5,[1.2,2.1,8.5],"auto"]],"target":[[0,[0,1.2,0],"auto"],[5,[0,1.2,0],"auto"]],"fov":[[0,45,"auto"],[5,45,"auto"]]},"env":{"bg":"#07060e","fog":null,"grid":false,"light":"night"},"parts":{"orb":{"shape":"sphere","name":"orb","size":[0.6,0.6,0.6],"pos":[0,1.2,0],"color":"#ffd27a","material":"Neon"}},"tracks":{"orb":{"scale":[[1.85,[1.2,1.2,1.2],"in"],[2,[0.01,0.01,0.01],"out"]]}},"fx":[{"sheet":"core","t":1.95,"life":0.8,"pos":[0,1.2,0],"size":5,"ramp":"#2a0004,#8a0a08,#e8300c,#ff8a12,#ffd23a,#ffffff","tex":"noise","tex_amt":0.45}],"impacts":[{"t":2,"at":[0,1.2,0],"color":"#ff8a12","payoff":true}],"rims":[{"pos":[-3,3,-2],"color":"#ff8a12","base":1.2}]}'
+// draws each sheet the moment its script is complete in the streamed reply ("sheets" come first), so drawing overlaps
+// Claude writing the clip spec; enforce() gives sheet i seed seed0 + i, the same key, so prepare() finds them drawn
+function earlyDraw(seed0, want = '') {
+  let n = 0
+  return text => {
+    const a = text.indexOf('"sheets"'), i = a < 0 ? -1 : text.indexOf('{', a); if (i < 0) return
+    let depth = 0, str = false, esc = false, start = -1, k = 0
+    for (let j = i; j < text.length; j++) {
+      const c = text[j]
+      if (str) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') str = false; continue }
+      if (c === '"') str = true
+      else if (c === '{') { if (++depth === 2) start = j }
+      else if (c === '}') {
+        if (depth === 2 && k++ >= n) {
+          n = k
+          try { const d = JSON.parse(text.slice(start, j + 1)), seed = seed0 + k - 1; d.code = scopeCode(d.code, want)[0]; const key = genKey({ code: d.code, seed }); if (typeof d.code === 'string' && !GEN.has(key)) { const p = drawSheet(d.code, seed); p.catch(() => {}); GEN.set(key, p) } } catch {}
+        }
+        if (--depth === 0) return
+      }
+    }
+  }
+}
+function extractJSON(t) { const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a < 0 || b <= a) throw new Error('no JSON in the reply'); return JSON.parse(t.slice(a, b + 1)) }
+
+// ---------- slots: each slot = its own prompt, length, settings, Claude call, sheets and clip; all run at once
+// speed (owner 2026-11-26: 30-45 s -> 15 s goal): effort low (medium thought before writing), minified reply, sheets drawn while the
+// reply streams, mechanical errors repaired in code (each fix round was another full ~10-20 s reply)
+const MODEL = { model: 'claude-opus-5-5', modelTier: 'complex', effort: 'low' }, CAP_MS = 60000, FIX_CUTOFF = 20000, TARGET_MS = 15000
+const STYLES = {
+  library: ['Library (default)', 'the library house style: one primary element + at most one partner per sheet, as in RULES'],
+  sharp: ['Sharp / fast', 'sharp and fast: favour crescent, xcut, thrust, claw, spikes, cracks, bolt, shards; thin tapered strokes (w 0.7-0.9)'],
+  soft: ['Soft / magic', 'soft and magical: favour puffs, orbit, rise, petals, spiral, helix, bubbles, sparkfall; round strokes (w 1.1-1.3)'],
+  heavy: ['Heavy / elemental', 'heavy and elemental: favour shock, ground, faultline, column, flames, fountain, pillar, shards; wide strokes (w 1.2-1.4)']
+}
+const BGS = { dark: { bg: '#07060e', light: 'night' }, sky: { bg: '#bcd8ff', light: 'day' } }
+const DEF_SET = () => ({ type: 'cinematic', style: 'library', hue: '#9be04a', hueOn: false, intensity: 'normal', camera: 'cine', loop: false, seed: 1125, lock: false, bg: 'dark' })
+const slots = []; let sel = -1, nid = 0
+const fmtS = ms => (ms / 1000).toFixed(3)
+// Shortest a one-shot flipbook may play in clip time: 16 frames at 60 fps x1.5 (0.4 s), less only when the clip itself is shorter.
+const minLife = ms => Math.min(0.4, 0.6 * ms / 1000)
+const clampMs = v => Math.round(Math.min(14, Math.max(0.5, +v || 3)) * 1000)
+function settingsText(sl) {
+  const s = sl.set, life = `every one-shot fx life >= ${(minLife(sl.ms) * 1.3).toFixed(2)} s and t + life <= len so every fade finishes on screen`
+  if (s.type === 'consistent' && !s.loop) return [`TYPE consistent (owner): a gameplay VFX that plays the same way every time (gunshot, hit, cast, pickup). NO build-up, NO charge, NO anticipation beat: the action starts at once. The first fx (muzzle flash, slash, impact) at t 0-0.05 s, the main hit = payoff within the first 15% of len (a projectile that travels may land later), then follow-through and lingering smoke/sparks to the end. cine_kind "impact". The player plays it in REAL TIME (no slow-mo, no hit-stop; only a small camera punch, flash and shake at the payoff).`,
+    `TARGET LENGTH: story len = ${fmtS(sl.ms)} s exactly (real time; overrides the 4..14 rule), ${life}.`, ...settingsRest(sl)].join('\n')
+  const out = [`TYPE cinematic (owner): build-up, then the payoff in slow-mo with hit-stop, as RULES.`, `TARGET LENGTH: the played clip will be exactly ${fmtS(sl.ms)} s INCLUDING the cine slow-mo and hit-stop; the player time-scales your clip to fit, so plan the beats for it: ${sl.ms >= 6000 ? `story len ≈ ${Math.max(3, (sl.ms / 1000 - 2)).toFixed(1)} s` : sl.ms >= 4000 ? `story len ≈ ${(sl.ms / 1000 - 1).toFixed(1)} s, quick build` : `SHORT CLIP: story len = ${fmtS(sl.ms)} s exactly (overrides the 4..14 rule), payoff at 40-55% of len, build-up <= 35% of len, ${life}`}.`]
+  return [...out, ...settingsRest(sl)].join('\n')
+}
+function settingsRest(sl) {
+  const s = sl.set, out = []
+  out.push(`STYLE: ${STYLES[s.style][1]}.`)
+  if (s.hueOn) out.push(`DOMINANT HUE ${s.hue}: tint = "${s.hue}"; every ramp centres on this hue but still shifts hue 20-40 deg along it per the PAINT RULE ("#dark edge,...,#ffffff"; one contrasting accent ramp allowed).`)
+  out.push({ subtle: 'INTENSITY subtle: 6-10 fx, sizes 2-5 m, small payoff (2 sheets), push 0.1.', normal: 'INTENSITY normal: as the quality floor.', big: 'INTENSITY big: ONE big payoff (4 sheets at once, sizes 6-10 m, push 0.3); everything before and after stays small and sparse (no effect per step).' }[s.intensity])
+  out.push({ cine: 'CAMERA: cine auto (slow drift keys, as RULES).', static: 'CAMERA static: the camera never moves; camera_keys {} and frame the whole effect from camera.pos.', orbit: 'CAMERA orbit: the player orbits 90° around camera.target; put the action at the target.' }[s.camera])
+  if (s.loop) out.push('LOOP on: a seamless ambient loop; every fx uses dur (looping, fps 12-16) from t 0 to len; no one-shot burst; keep one gentle payoff impact (required by the schema).')
+  out.push(s.bg === 'sky' ? 'BACKGROUND light sky (#bcd8ff, day light): additive light washes out on it, so use darker, saturated ramp edges and opacity 0.8-1 on core layers.' : 'BACKGROUND dark (night).')
+  out.push(`SEEDS: sheet seeds ${s.seed}, ${s.seed + 1}, ${s.seed + 2}, …`)
+  return out
+}
+// settings the code enforces on Claude's spec (so a setting always takes effect, whatever the reply)
+function enforce(spec, sl) {
+  const s = sl.set
+  if (s.hueOn) spec.tint = s.hue
+  if (s.intensity !== 'normal') spec.push = s.intensity === 'big' ? 0.3 : 0.1
+  spec.env = { ...(spec.env || {}), ...BGS[s.bg] }
+  Object.values(spec.sheets || {}).forEach((d, i) => { d.seed = s.seed + i })
+  // consistent: the first fx fires at once (2026-11-26 gunshot: 4 s of a 7 s clip passed before the bullet); a lead-in is cut
+  if (s.type === 'consistent' && !s.loop) {
+    spec.cine_kind = 'impact'
+    const t0 = Math.min(...(spec.fx || []).map(e => +e.t).filter(Number.isFinite)), off = t0 - 0.05
+    if (off > 0.05 && off < spec.len - 0.3) shiftStory(spec, off)
+  }
+  // a missing texture is filled, never left flat (paintCheck still rejects an explicit "none")
+  ;(spec.fx || []).forEach((e, i) => { if (e.tex == null) e.tex = TEXES[i % 3]; if (e.tex_amt == null) e.tex_amt = 0.45 })
+  return spec
+}
+// move every story time earlier by off and shorten len by it (fx, grow, impacts, payoff, part tracks, camera keys)
+function shiftStory(S, off) {
+  const r = v => Math.max(0, +(v - off).toFixed(4))
+  const sh = ks => Array.isArray(ks) ? ks.map(k => [r(k[0]), ...k.slice(1)]).filter((k, i, a) => !(k[0] <= 0 && a[i + 1] && a[i + 1][0] <= 0)) : ks
+  for (const e of S.fx || []) { e.t = r(e.t); if (e.grow) e.grow = sh(e.grow) }
+  for (const m of S.impacts || []) m.t = r(m.t)
+  S.payoff = Math.max(0.05, r(S.payoff))
+  for (const tr of Object.values(S.tracks || {})) for (const ch of Object.keys(tr)) tr[ch] = sh(tr[ch])
+  for (const ch of Object.keys(S.camera_keys || {})) S.camera_keys[ch] = sh(S.camera_keys[ch])
+  S.len = +(S.len - off).toFixed(4)
+}
+// ---------- repair: mechanical faults the code fixes itself instead of a fix round (paint rule, timing, names, payoff)
+const hx2 = v => Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0')
+const hslHex = (h, s, l) => { const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)) }; return '#' + hx2(f(0)) + hx2(f(8)) + hx2(f(4)) }
+const hueOf = st => { const m = st.filter(x => HEX.test(x)).map(hsl).filter(([, s, l]) => s > 0.25 && l > 0.15 && l < 0.85); return m.length ? m[m.length >> 1][0] : null }
+const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d) }
+const nearPresets = h => Object.keys(RAMPS).sort((a, b) => hueDist(hueOf(rampStops(a)), h) - hueDist(hueOf(rampStops(b)), h)).map(k => RAMPS[k])
+const rampOk = st => st.length >= 4 && st.every(x => HEX.test(x)) && hueSpread(st) >= 20 && hsl(st[0])[2] <= 0.3 && hsl(st[st.length - 1])[2] >= 0.55
+const shiftHue = (r, dh) => rampStops(r).map(x => { const [h, s, l] = hsl(x); return hslHex((h + dh + 360) % 360, s, l) }).join(',')
+// owner 2026-11-26: "+ signs for healing, random green fire ... so unnecessary": themed elements only when the prompt names the theme
+const OFFSCOPE = [
+  ['rise', /\b(heal|buff|holy|bless|regen|restor|reviv|cure|life|divine|angel|saint|sacred)/, 'puffs'],
+  ['flames', /\b(fire|flame|burn|blaz|inferno|lava|magma|ember|torch|hell|scorch|ignit|explo|napalm|phoenix|dragon|heat|hot|sun|solar|meteor|gun|muzzle|shot|blast|bomb|grenade|rocket|cannon|candle|camp)/, 'puffs'],
+  ['bubbles', /\b(liquid|poison|acid|water|boil|potion|slime|splash|corro|lava|ooze|toxic|venom|bubbl|soap|ocean|sea|swamp|blood|melt)/, 'puffs'],
+  ['petals', /\b(petal|flower|sakura|blossom|leaf|leaves|nature|spring|rose|bloom|garden)/, 'shards'],
+  ['bolt', /\b(electr|lightning|thunder|volt|tesla|plasma|static|zap|storm|spark|shock)/, 'streaks'],
+  ['zigring', /\b(electr|lightning|thunder|volt|tesla|plasma|static|zap|storm|spark|shock)/, 'shock'],
+]
+// owner 2026-11-26 "correct coloring": the element sets the hue family, an explicit colour word wins over the element
+const COLOR_WORDS = [[/\bred\b/, 0], [/\borange\b/, 28], [/\b(gold|golden|yellow)\b/, 50], [/\blime\b/, 90], [/\bgreen\b/, 125], [/\bteal\b/, 172], [/\bcyan\b/, 188], [/\bblue\b/, 222], [/\b(purple|violet)\b/, 272], [/\bmagenta\b/, 305], [/\bpink\b/, 330]]
+const THEMES = [[/\b(fire|flame|burn|blaz|inferno|lava|magma|ember|scorch|ignit|explo|napalm|gun|muzzle|shot|shoot|bullet|pistol|rifle|blast|bomb|grenade|rocket|missile|cannon)/, 25], [/\b(ice|frost|freez|frozen|snow|blizzard|glacier|cryo)/, 200], [/\b(electr|lightning|thunder|volt|tesla|plasma|zap|static)/, 215], [/\b(poison|acid|toxic|venom|corro|erod|slime|ooze|decay|rot)/, 100], [/\b(holy|heal|divine|angel|bless|sacred|radiant)/, 48], [/\b(void|dark|shadow|abyss|curse|necro|black hole)/, 280], [/\b(blood|vampir|gore)/, 355], [/\b(water|ocean|sea|splash|tide|aqua|rain)\b/, 205], [/\b(wind|air|gust|tornado|cyclone)/, 165], [/\b(nature|leaf|leaves|vine|forest|petal|flower|plant)/, 120], [/\b(earth|rock|stone|sand|dust|mud|quake)/, 32]]
+function themeHues(want) {
+  const c = COLOR_WORDS.filter(([r]) => r.test(want)).map(([, h]) => h)
+  return c.length ? c : THEMES.filter(([r]) => r.test(want)).map(([, h]) => h)
+}
+const offHue = (h, hues) => h == null || !hues.length ? 0 : (() => { const c = hues.reduce((b, x) => hueDist(x, h) < hueDist(b, h) ? x : b); return hueDist(c, h) > 45 ? ((c - h + 540) % 360) - 180 : 0 })()
+const colHue = c => { if (!HEX.test(c || '')) return null; const [h, s, l] = hsl(c); return s > 0.25 && l > 0.12 && l < 0.92 ? h : null }
+function fixColors(S, want) {
+  const hues = themeHues(want), n = []
+  if (!hues.length) return n
+  const col = c => { const d = offHue(colHue(c), hues); if (!d) return c; const [h, s, l] = hsl(c); return hslHex((h + d + 360) % 360, s, l) }
+  for (const e of Array.isArray(S.fx) ? S.fx : []) {
+    const d = offHue(hueOf(rampStops(e.ramp)), hues); if (d) { e.ramp = shiftHue(e.ramp, d); n.push('fx ramps') }
+    // a wide ramp keeps a stray stop after the shift (green start on an orange gun ramp): pull every stop within 35 deg
+    const c0 = hueOf(rampStops(e.ramp)); if (c0 == null) continue
+    const st = rampStops(e.ramp).map(x => { const h = colHue(x); if (h == null || hueDist(h, c0) <= 35) return x; const [, sa, l] = hsl(x), dd = ((h - c0 + 540) % 360) - 180; return hslHex((c0 + Math.sign(dd) * 35 + 360) % 360, sa, l) })
+    if (st.join(',') !== rampStops(e.ramp).join(',')) { e.ramp = st.join(','); n.push('fx ramps') }
+  }
+  const fixKey = (o, k, what) => { if (o && typeof o[k] === 'string') { const c = col(o[k]); if (c !== o[k]) { o[k] = c; n.push(what) } } }
+  fixKey(S, 'tint', 'tint')
+  for (const im of Array.isArray(S.impacts) ? S.impacts : []) fixKey(im, 'color', 'impact colours')
+  for (const mk of Array.isArray(S.marks) ? S.marks : []) fixKey(mk, 'color', 'mark colours')
+  for (const p of Object.values(S.parts || {})) if (p && (p.material === 'Neon' || p.emissive)) { fixKey(p, 'color', 'glow part colours'); fixKey(p, 'emissive', 'glow part colours') }
+  for (const r of Array.isArray(S.rims) ? S.rims : []) fixKey(r, 'color', 'rim colours')
+  for (const p of Object.values(S.parts || {})) fixKey(p, 'edge', 'dissolve rim colours')
+  return [...new Set(n)]
+}
+// same swap in earlyDraw, so the sheet drawn while the reply streams is the one the clip keeps
+function scopeCode(code, want) {
+  const gone = []
+  if (typeof code !== 'string') return [code, gone]
+  for (const [el, words, to] of OFFSCOPE) if (code.includes(`U.EL.${el}(`) && !words.test(want)) { code = code.split(`U.EL.${el}(`).join(`U.EL.${to}(`); gone.push(el) }
+  return [code, gone]
+}
+function repair(S, sl) {
+  const n = new Set(), fx = Array.isArray(S.fx) ? S.fx : [], L = +S.len
+  if (!(L > 0)) return []
+  if (S.cine_kind && S.cine_kind !== 'impact' && S.cine_kind !== 'burst') { S.cine_kind = 'impact'; n.add('cine kind') }
+  for (const [id, d] of Object.entries(S.sheets || {})) {
+    if (!d || typeof d !== 'object') continue
+    const w = String(d.name || id).replace(/[_-]+/g, ' ').trim().split(/\s+/).filter(Boolean)
+    if (!String(d.name || '').trim() || w.length > 3) { d.name = w.slice(0, 3).join(' ') || id; n.add('sheet names') }   // validate reads d.name only, so a missing name is filled from the id
+  }
+  const want = String(sl?.prompt || '').toLowerCase()
+  for (const d of Object.values(S.sheets || {})) {
+    if (!d || typeof d.code !== 'string') continue
+    const [code, gone] = scopeCode(d.code, want); d.code = code; gone.forEach(el => n.add(`off-prompt ${el} removed`))
+  }
+  const tintHue = HEX.test(S.tint || '') ? hsl(S.tint)[0] : null
+  // paint: every layer its own texture + a vibrant hue-shifting ramp (a broken one becomes the nearest preset of its hue)
+  fx.forEach((e, i) => {
+    if (!TEXES.includes(e.tex)) { e.tex = TEXES[i % 3]; n.add('textures') }
+    if (!(e.tex_amt >= 0.3 && e.tex_amt <= 0.55)) { e.tex_amt = Math.min(0.55, Math.max(0.3, +e.tex_amt || 0.45)); n.add('textures') }
+    if (RAMPS[e.ramp]) e.ramp = RAMPS[e.ramp]
+    const st = rampStops(e.ramp)
+    if (!rampOk(st)) { e.ramp = nearPresets(hueOf(st) ?? tintHue ?? 20)[0]; n.add('ramps') }
+  })
+  fixColors(S, want).forEach(x => n.add(`${x} recoloured to the element`))
+  if (fx.length >= 3) {
+    const fam = themeHues(want), used = () => new Set(fx.map(e => e.ramp)), order = nearPresets(fam[0] ?? tintHue ?? hueOf(rampStops(fx[0].ramp)) ?? 20).filter(r => !fam.length || hueDist(hueOf(rampStops(r)), fam[0]) <= 45)
+    for (const i of fx.map((e, i) => i).sort((a, b) => fx[b].size - fx[a].size)) {   // biggest back layers get the extra ramps
+      if (used().size >= 3) break
+      if (fx.filter(e => e.ramp === fx[i].ramp).length < 2) continue
+      const r = order.find(r => !used().has(r)); if (r) { fx[i].ramp = r; n.add('ramps') }
+    }
+    const hot = e => hsl(rampStops(e.ramp).at(-1))[2] >= 0.9, pay = +S.payoff
+    if (!fx.some(hot)) {
+      const c = fx.reduce((b, e) => (Math.abs(e.t - pay) < Math.abs(b.t - pay) - 1e-6 || (Math.abs(e.t - pay) <= Math.abs(b.t - pay) + 1e-6 && e.size < b.size)) ? e : b)
+      const st = rampStops(c.ramp); st[st.length - 1] = '#ffffff'; c.ramp = st.join(','); n.add('white core')
+    }
+    // stacked additive white ends blow out (Storm Nova): the biggest layers past ceil(n/2) end in a bright saturated colour
+    const hots = fx.filter(hot).sort((a, b) => b.size - a.size)
+    for (const e of hots.slice(0, Math.max(0, hots.length - Math.ceil(fx.length / 2)))) {
+      const st = rampStops(e.ramp), keep = st.filter(x => hsl(x)[2] <= 0.75), sat = keep.filter(x => hsl(x)[1] > 0.25)
+      const h = sat.length ? hsl(sat.at(-1))[0] : hueOf(st) ?? tintHue ?? 20
+      while (keep.length < 3) keep.splice(keep.length, 0, hslHex(h, 0.9, 0.3 + 0.15 * keep.length))
+      e.ramp = [...keep, hslHex(h, 1, 0.72)].join(','); n.add('saturated ends')
+    }
+    // the steps above can flatten a ramp (dropped gold/white stops): warm its brightest coloured stop until the hue shifts again
+    fx.forEach(e => {
+      const st = rampStops(e.ramp)
+      for (let k = 0; hueSpread(st) < 20 && k < 3; k++) { const i = st.findLastIndex(x => { const [, s, l] = hsl(x); return s > 0.25 && l > 0.08 && l < 0.92 }); if (i < 1) break; const [h, s, l] = hsl(st[i]); st[i] = hslHex((h + 35) % 360, Math.max(s, 0.8), l) }
+      if (st.join(',') !== e.ramp) { e.ramp = st.join(','); n.add('ramps') }
+    })
+  }
+  const seen = new Set()
+  fx.forEach(e => {
+    const key = () => [e.sheet || e.slug, e.ramp, e.tex].join('|')
+    if (seen.has(key())) n.add('duplicate layers')
+    for (let j = 0; seen.has(key()) && j < 2; j++) e.tex = TEXES[(TEXES.indexOf(e.tex) + 1) % 3]
+    for (let j = 1; seen.has(key()) && j < 6; j++) e.ramp = shiftHue(e.ramp, 25)
+    seen.add(key())
+  })
+  // timing: every fx inside 0..len, its fade finishing on screen; exactly one payoff impact
+  fx.forEach(e => {
+    if (!(e.t >= 0)) { e.t = 0; n.add('timing') }
+    if ('dur' in e) { if (!(e.t + e.dur <= L + 1e-6)) { if (L - e.t < 0.3) e.t = Math.max(0, L - Math.max(0.3, +e.dur || 0)); e.dur = +(L - e.t).toFixed(4); n.add('timing') } return }
+    let life = +(e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9) || 0.9
+    if (e.t + life > L + 1e-6) { if (L - e.t >= Math.max(0.4, 0.6 * life)) life = L - e.t; else { e.t = Math.max(0, L - life); life = Math.min(life, L - e.t) } e.life = +life.toFixed(4); e.t = +e.t.toFixed(4); n.add('timing') }
+  })
+  if (!(S.payoff > 0 && S.payoff < L)) { S.payoff = +Math.min(L - 0.05, Math.max(0.05, +S.payoff || L * 0.4)).toFixed(4); n.add('payoff') }
+  const ims = Array.isArray(S.impacts) ? S.impacts : (S.impacts = [])
+  ims.forEach(m => { if (Number.isFinite(+m.t) && (m.t < 0 || m.t > L)) { m.t = Math.min(L, Math.max(0, m.t)); n.add('timing') } })
+  if (ims.length && ims.filter(m => m.payoff).length !== 1) {
+    const b = ims.reduce((b, m) => Math.abs(m.t - S.payoff) < Math.abs(b.t - S.payoff) ? m : b); ims.forEach(m => { m.payoff = m === b }); n.add('payoff')
+  }
+  reactRepair(S, want).forEach(x => n.add(x))
+  fixColors(S, want).forEach(x => n.add(`${x} recoloured to the element`))   // again: the duplicate-layer hue nudges above can leave the family
+  return [...n]
+}
+// owner 2026-11-26 "useable models for testing bullet holes, eroding and more": the effect visibly changes what it hits.
+// Reaction words add the part track, hit words add marks at each impact, and an untargeted effect gets a test model.
+const REACT_WORDS = [[/\b(acid|erod|dissolv|disintegrat|corro|melt|decay|wither|vaporiz)/, 'dissolve'], [/\b(burn|scorch|char(red|ring|s)?\b|incinerat|ignit|napalm|flamethrower)/, 'char'], [/\b(freez|frozen|frost)/, 'freeze']]
+const MARK_WORDS = [[/\b(bullet|gun|shot|shoot|pistol|rifle|sniper|shotgun|revolver|arrow)/, 'hole'], [/\b(slash|cut|sword|blade|katana|claw|slice)/, 'cut'], [/\b(explo|blast|bomb|grenade|fireball|missile|rocket)/, 'scorch'], [/\b(acid|corro)/, 'burn'], [/\b(punch|smash|slam|hammer|ground pound|quake)/, 'crack'], [/\b(freez|frozen|frost)/, 'frost']]
+const NOT_TARGET = new Set(['sword', 'gun', 'staff'])
+function reactRepair(S, want) {
+  const n = [], L = +S.len, ims = Array.isArray(S.impacts) ? S.impacts : [], parts = S.parts && typeof S.parts === 'object' ? S.parts : (S.parts = {})
+  const chs = REACT_WORDS.filter(([r]) => r.test(want)).map(([, c]) => c), kinds = [...new Set(MARK_WORDS.filter(([r]) => r.test(want)).map(([, k]) => k))]
+  if (!chs.length && !kinds.length) return n
+  const pay = ims.find(m => m.payoff) || ims[0], at = vec(pay?.at) ? pay.at.map(Number) : [0, 1, 0], P = Number.isFinite(+pay?.t) ? +pay.t : +S.payoff
+  const isFloor = (id, o) => o.shape === 'plane' || /floor|ground|terrain|arena|sky|backdrop/i.test(id + ' ' + (o.name || '')) || (vec(o.size) && o.size[1] < 0.12 && Math.max(o.size[0], o.size[2]) > 3)
+  const ok = Object.entries(parts).filter(([id, o]) => o && typeof o === 'object' && !NOT_TARGET.has(o.model) && o.material !== 'Neon' && !o.parent_weapon && !isFloor(id, o) && vec(o.pos))
+  const d2 = o => (o.pos[0] - at[0]) ** 2 + (o.pos[1] - at[1]) ** 2 + (o.pos[2] - at[2]) ** 2
+  let tid = ok.length ? ok.reduce((b, c) => d2(c[1]) < d2(b[1]) ? c : b)[0] : null
+  if (tid && d2(parts[tid]) > 9) tid = null   // nothing within 3 m of the payoff hit: the effect needs its own test model
+  if (!tid) {
+    const holeOnly = !chs.length && kinds.every(k => k === 'hole' || k === 'cut' || k === 'crack'), m = holeOnly ? 'target' : 'dummy', nat = MODELS[m].nat
+    tid = 'test_' + m; let k = 2; while (parts[tid]) tid = `test_${m}${k++}`
+    parts[tid] = { model: m, name: m === 'target' ? 'test target' : 'test dummy', size: [...nat], pos: [at[0], nat[1] / 2, +(at[2] - nat[2] / 2).toFixed(3)], rot: [0, 0, 0], color: m === 'target' ? '#d9d4c7' : '#b9a27c', roughness: 0.8 }
+    n.push(`test ${m} added`)
+  }
+  const tracks = S.tracks && typeof S.tracks === 'object' ? S.tracks : (S.tracks = {}), tr = tracks[tid] || (tracks[tid] = {})
+  const c = x => +Math.min(L, Math.max(0, x)).toFixed(3), gone = /\b(destroy|disintegrat|vaporiz|annihilat|erase)/.test(want) ? 1 : 0.6
+  const KEYS = { dissolve: [[c(P - 0.2), [0], 'in'], [c(P + 1.4), [gone], 'out']], char: [[c(P - 0.3), [0], 'in'], [c(P + 1.2), [1], 'out']], freeze: [[c(P - 0.1), [0], 'in'], [c(P + 0.6), [1], 'out']] }
+  for (const ch of chs) if (!Array.isArray(tr[ch]) || !tr[ch].length) { const k = KEYS[ch]; if (k[1][0] - k[0][0] < 0.2) k[0][0] = c(k[1][0] - 0.3); tr[ch] = k; n.push(`${ch} track on ${tid}`) }
+  if (chs.includes('dissolve') && !HEX.test(parts[tid].edge || '')) parts[tid].edge = HEX.test(S.tint || '') ? S.tint : '#9dff3a'
+  const marks = Array.isArray(S.marks) ? S.marks : (S.marks = []), have = new Set(marks.map(m => m?.kind))
+  const hits = ims.filter(m => vec(m.at) && Number.isFinite(+m.t)), src = hits.length ? hits : [{ t: P, at, color: S.tint }]
+  for (const kind of kinds) if (!have.has(kind)) {
+    for (const im of src) marks.push({ t: c(+im.t), at: im.at.map(Number), kind, color: HEX.test(im.color || '') ? im.color : (S.tint || '#ff8a12'), ...(vec(parts[tid].pos) && Math.hypot(...im.at.map((x, i) => x - parts[tid].pos[i])) < 1.6 ? { part: tid } : {}) })
+    n.push(`${kind} marks`)
+  }
+  return n
+}
+const optOf = sl => ({ ms: sl.ms, loop: sl.set.loop, camera: sl.set.camera, type: sl.set.type })
+// clip time at story time s through the fitted warp ([clip s, story s] keys; a hit-stop key pair maps to its first clip time)
+function clipAt(clip, s) {
+  const w = clip.warp; if (!w?.length) return s
+  for (let i = 1; i < w.length; i++) if (s <= w[i][1] + 1e-9) { const a = w[i - 1], b = w[i], d = b[1] - a[1]; return d <= 1e-9 ? a[0] : a[0] + (s - a[1]) / d * (b[0] - a[0]) }
+  return w[w.length - 1][0]
+}
+// short targets compress the story: every one-shot fx must still play long enough and finish its fade before len
+function fixLives(S, clip, ms) {
+  const lo = minLife(ms) * 1.15; let ch = false
+  ;(S.fx || []).forEach(e => {
+    if ('dur' in e) return
+    const life = e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9, c = clipAt(clip, Math.min(S.len, e.t + life)) - clipAt(clip, e.t)
+    if (c >= lo) return
+    let nl = Math.min(S.len, life * lo / Math.max(c, 1e-3)); if (e.t + nl > S.len) e.t = +Math.max(0, S.len - nl).toFixed(4)
+    e.life = +Math.min(nl, S.len - e.t).toFixed(4); ch = true
+  })
+  return ch
+}
+function lifeErrs(S, clip, ms) {
+  const lo = minLife(ms), bad = []
+  ;(S.fx || []).forEach((e, i) => {
+    if ('dur' in e) return
+    const life = e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9, c = clipAt(clip, Math.min(S.len, e.t + life)) - clipAt(clip, e.t)
+    if (c < lo - 1e-3) bad.push(`fx[${i}] ${e.sheet}: plays ${c.toFixed(2)} s in the ${fmtS(ms)} s clip, needs >= ${lo.toFixed(2)} s: raise its life or start it earlier`)
+    if (e.t + life > S.len + 1e-6) bad.push(`fx[${i}] ${e.sheet}: t + life ${(e.t + life).toFixed(2)} > len ${S.len}: its fade is cut off`)
+  })
+  return bad
+}
+
+function slotStatus(sl, msg, cls = '') { sl.status = msg; const e = sl.el?.querySelector('.status'); if (e) { e.textContent = msg; e.className = 'status ' + cls } }
+function addSlot(prompt = '') {
+  if (slots.length >= 6) return
+  const sl = { id: ++nid, prompt, ms: 3000, set: DEF_SET(), status: '', ctrl: null, spec: null, P: null, timing: null, running: false }
+  slots.push(sl); renderSlots(); return sl
+}
+function renderSlots() {
+  const box = $('slots'); box.replaceChildren()
+  slots.forEach((sl, i) => {
+    const d = document.createElement('div'); d.className = 'slot' + (i === sel ? ' sel' : ''); sl.el = d
+    d.innerHTML = `<div class="bar"><b></b><span class="timer"></span><button class="stop" type="button" hidden>Stop</button><button class="rm" type="button">Remove</button></div>
+<textarea class="p" placeholder="Describe the exact animation: the caster or object, what charges, each hit in order, the payoff, colours, camera feel, how it settles…"></textarea>
+<label>Duration <input class="dur" type="number" min="0.5" max="14" step="0.001"> s (exact clip length)</label>
+<details><summary>Settings</summary><div class="set">
+<label>Type <select class="type"><option value="consistent">consistent (gameplay: action at once, real time)</option><option value="cinematic">cinematic (build-up + slow-mo)</option></select></label>
+<label>Style <select class="style">${Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${v[0]}</option>`).join('')}</select></label>
+<label><input class="hueOn" type="checkbox"> Hue <input class="hue" type="color"></label>
+<label>Intensity <select class="intensity"><option value="subtle">subtle</option><option value="normal">normal</option><option value="big">big</option></select></label>
+<label>Camera <select class="camera"><option value="cine">cine auto</option><option value="static">static</option><option value="orbit">orbit</option></select></label>
+<label><input class="loop" type="checkbox"> Loop</label>
+<label>Background <select class="bg"><option value="dark">dark</option><option value="sky">light sky</option></select></label>
+<label>Seed <input class="seed" type="number" step="1"> <input class="lock" type="checkbox"> lock</label>
+<button class="all" type="button">Apply settings to all</button></div></details>
+<div class="status"></div>
+<div class="bar"><button class="go" type="button">Generate</button><button class="dl" type="button">Download spec.json</button></div>`
+    const q = c => d.querySelector('.' + c)
+    d.querySelector('b').textContent = `Slot ${i + 1}`
+    if (i === 0) q('p').id = 'prompt'
+    q('p').value = sl.prompt; q('p').oninput = e => { sl.prompt = e.target.value; store.set('vfxgen.slots', JSON.stringify(slots.map(s => ({ prompt: s.prompt, ms: s.ms, set: s.set })))) }
+    q('dur').value = fmtS(sl.ms); q('dur').onchange = e => { sl.ms = clampMs(e.target.value); e.target.value = fmtS(sl.ms) }
+    for (const k of ['type', 'style', 'intensity', 'camera', 'bg']) { q(k).value = sl.set[k]; q(k).onchange = e => { sl.set[k] = e.target.value } }
+    for (const k of ['hueOn', 'loop', 'lock']) { q(k).checked = sl.set[k]; q(k).onchange = e => { sl.set[k] = e.target.checked } }
+    q('hue').value = sl.set.hue; q('hue').oninput = e => { sl.set.hue = e.target.value; sl.set.hueOn = true; q('hueOn').checked = true }
+    q('seed').value = sl.set.seed; q('seed').onchange = e => { sl.set.seed = Math.round(+e.target.value) || 1125 }
+    q('all').onclick = () => { for (const o of slots) o.set = { ...sl.set }; renderSlots(); status(`Slot ${i + 1} settings applied to all slots.`, 'ok') }
+    q('rm').onclick = () => { sl.ctrl?.abort(); slots.splice(i, 1); if (sel === i) sel = -1; else if (sel > i) sel--; if (!slots.length) addSlot(); renderSlots(); renderTabs() }
+    q('stop').onclick = () => sl.ctrl?.abort()
+    q('go').onclick = () => runSlot(sl)
+    q('dl').onclick = () => saveSpec(sl.spec, sl.spec?.name)
+    q('rm').disabled = slots.length === 1
+    if (sl.status) slotStatus(sl, sl.status, sl.cls)
+    paintSlot(sl); box.append(d)
+  })
+  $('add').disabled = slots.length >= 6
+}
+function paintSlot(sl) {
+  if (!sl.el) return
+  const t = sl.timing, q = c => sl.el.querySelector('.' + c)
+  q('timer').textContent = t ? `${((sl.running ? performance.now() : t.end) - t.start) / 1000 | 0}.${(((sl.running ? performance.now() : t.end) - t.start) / 100 | 0) % 10} s` : ''
+  q('stop').hidden = !sl.running; q('go').disabled = sl.running; q('dl').disabled = !sl.spec
+}
+function renderTabs() {
+  const tb = $('tabs'); tb.replaceChildren()
+  const mk = (label, on, fn, dis) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; b.className = on ? 'on' : ''; b.disabled = !!dis; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', on); b.onclick = fn; tb.append(b) }
+  mk('Example', sel < 0, () => { sel = -1; if (EX) show(EX); renderTabs(); renderSlots() })
+  slots.forEach((sl, i) => mk(`Slot ${i + 1}${sl.running ? ' …' : sl.P ? '' : ' –'}`, sel === i, () => { if (!sl.P) return; sel = i; show(sl.P); playing = true; renderTabs(); renderSlots() }, !sl.P))
+}
+setInterval(() => { for (const sl of slots) if (sl.running) paintSlot(sl) }, 100)
+
+// one slot, start to finish: Claude call (Opus 5.5, MODEL.effort) -> streamed sheets drawn early -> code repair -> checks -> parallel sheet drawing -> fitted clip; hard cap 60 s
+async function runSlot(sl) {
+  const want = (sl.prompt || '').trim(); if (!want) { slotStatus(sl, 'Type the animation first.', 'bad'); return }
+  const S = await samplerP; if (!S) { slotStatus(sl, 'Failed: no Claude sample permission here (open inside Claude-Hub).', 'bad'); return }
+  if (sl.running) return
+  const t = sl.timing = { start: performance.now(), model: 0, draw: 0, calls: [], end: 0 }, ctrl = sl.ctrl = new AbortController()
+  if (!sl.set.lock) sl.set.seed = 1 + Math.floor(Math.random() * 999983)
+  sl.running = true; sl.over = false; paintSlot(sl); renderTabs()
+  const cap = setTimeout(() => { sl.over = true; ctrl.abort() }, CAP_MS)
+  const aborted = new Promise((_, rej) => ctrl.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' }))))
+  aborted.catch(() => {})
+  const msgs = [{ role: 'user', content: `${RULES}\n\nSHAPE (schema only, one of each; yours has 4-6 sheets, 6-14 fx):\n${SKELETON}\n\nOWNER'S SETTINGS (follow exactly):\n${settingsText(sl)}\n\nOWNER'S ANIMATION:\n${want}\n\nWrite the JSON (sheets + clip spec) for the owner's animation now.` }]
+  let applied = ''; const fixed = new Set()
+  try {
+    for (let round = 0; ; round++) {
+      slotStatus(sl, round ? `Fixing (try ${round + 1})…` : `Claude (Opus 5.5, ${MODEL.effort}) is writing the sheet scripts…`)
+      const m0 = performance.now(); t.calls.push(m0)
+      const early = earlyDraw(sl.set.seed, String(sl.prompt || '').toLowerCase())
+      const res = await S(msgs, { ...MODEL, signal: ctrl.signal, cache: false, onText: ({ text }) => { slotStatus(sl, (round ? 'Fixing… ' : 'Writing… ') + text.length + ' chars' + (GEN.size ? ' · drawing sheets as they arrive' : '')); early(text) } })
+      t.model += performance.now() - m0; sl.lastReply = res.text
+      applied = res.modelApplied ? `${res.modelApplied} · ${MODEL.effort}` : `tier ${res.modelTierApplied} (Opus 5.5 not applied)`
+      let spec, errs
+      try { spec = enforce(extractJSON(res.text), sl); repair(spec, sl).forEach(x => fixed.add(x)); errs = [...validate(spec), ...paintCheck(spec), ...actionErrs(spec, want)]; if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
+      if (!errs.length) {
+        const d0 = performance.now()
+        try {
+          let P = await Promise.race([prepare(spec, optOf(sl), m => slotStatus(sl, m)), aborted]); errs = lifeErrs(spec, P.B.clip, sl.ms)
+          // a layer that plays too short in the fitted clip gets a longer life here (sheets are cached, a rebuild is ms), not a fix round
+          for (let k = 0; errs.length && k < 2 && fixLives(spec, P.B.clip, sl.ms); k++) { fixed.add('lives'); P = await Promise.race([prepare(spec, optOf(sl)), aborted]); errs = lifeErrs(spec, P.B.clip, sl.ms) }
+          t.draw += performance.now() - d0; if (!errs.length) { sl.P = P; sl.spec = spec }
+        }
+        catch (e) { t.draw += performance.now() - d0; if (e.name === 'AbortError') throw e; errs = ['build failed: ' + e.message] }
+      }
+      if (!errs.length) break
+      const el = performance.now() - t.start
+      if (round >= 2 || (round >= 1 && el > FIX_CUTOFF)) throw new Error(errs.join('; '))
+      msgs.push({ role: 'assistant', content: res.text }, { role: 'user', content: `That spec failed these checks:\n- ${errs.join('\n- ')}\nReturn the corrected full JSON only.` })
+    }
+    t.end = performance.now(); const tot = t.end - t.start
+    sl.cls = 'ok'; slotStatus(sl, `Generated "${sl.spec.name}" · clip ${sl.P.B.clip.len.toFixed(3)} s (target ${fmtS(sl.ms)}) · ${applied}\nmodel ${(t.model / 1000).toFixed(1)} s · draw after reply ${(t.draw / 1000).toFixed(1)} s · total ${(tot / 1000).toFixed(1)} s (target 15 s)${t.calls.length > 1 ? ` · ${t.calls.length - 1} fix round` : ''}${fixed.size ? `\nauto-fixed in code: ${[...fixed].join(', ')}` : ''}`, 'ok')
+    saveSheets(sl.spec, sl.P.res, want).then(r => { const add = r.failed ? `\nFailed: sheet save (${r.failed}); kept for this session in Sheet` : r.saved ? `\n${r.saved} new sheets saved to Sheet` : r.store ? '' : '\nSheets kept for this session in Sheet (no hub storage here)'; if (add) slotStatus(sl, sl.status + add, r.failed ? 'bad' : 'ok') })
+    if (sel < 0 || sel === slots.indexOf(sl) || !slots[sel]?.P) { sel = slots.indexOf(sl); show(sl.P); playing = true }
+  } catch (e) {
+    t.end = performance.now(); sl.cls = 'bad'
+    slotStatus(sl, sl.over ? 'Failed: over 60 s' : e?.name === 'AbortError' || e?.code === 'aborted' ? 'Stopped.' : 'Failed: ' + (e?.message || e?.code || e), 'bad')
+  } finally { clearTimeout(cap); logRun(sl, want); sl.running = false; sl.ctrl = null; sl.applied = applied; paintSlot(sl); renderTabs(); renderSlots(); if (applied) $('status').textContent = 'Model: ' + applied }
+}
+async function generateAll() {
+  const go = slots.filter(s => (s.prompt || '').trim() && !s.running)
+  if (!go.length) return status('Type an animation in a slot first.', 'bad')
+  $('gen').disabled = true; $('stop').hidden = false; status(`Generating ${go.length} slot${go.length > 1 ? 's' : ''} at once (Opus 5.5 ${MODEL.effort} requested)…`)
+  const r = await Promise.allSettled(go.map(runSlot))       // every Claude call starts in the same tick; one failure never blocks the rest
+  const ok = go.filter(s => s.P && s.cls === 'ok').length
+  $('gen').disabled = false; $('stop').hidden = true
+  status(`${ok}/${go.length} slots generated${r.some(x => x.status === 'rejected') ? ' (one slot threw)' : ''}${go[0].applied ? ' · model ' + go[0].applied : ''}`, ok === go.length ? 'ok' : 'bad')
+}
+$('gen').onclick = generateAll
+$('stop').onclick = () => slots.forEach(s => s.ctrl?.abort())
+$('add').onclick = () => { addSlot(); renderTabs() }
+$('standins').onchange = e => { STANDINS = e.target.checked; if (CUR) for (const n of Object.values(CUR.nodes)) if (n.userData.o.type === 'part') n.userData.mat.visible = STANDINS }
+const showP = () => sel >= 0 ? slots[sel]?.P : EX
+$('apply').onclick = async () => { try { const sl = slots[sel], P = await load(JSON.parse($('spec').value), m => status(m), sl ? optOf(sl) : {}); if (sl) { sl.P = P; sl.spec = P.S } else EX = P; if (Object.keys(P.S.sheets || {}).length) saveSheets(P.S, P.res, ''); playing = true; status('Applied.', 'ok') } catch (e) { status('Failed: ' + e.message, 'bad') } }
+async function saveSpec(spec, nm) {
+  if (!spec) return
+  const d = await dlP, data = JSON.stringify({ ...spec, stand_ins: standIns(spec), outline: { style: 'rim', color: 'shot colour, brighter', width_pct: OW, width_uv: +(OW * 0.00016).toFixed(5) } }, null, 1), name = ((nm || 'vfx').replace(/[^\w-]+/g, '-').toLowerCase()) + '.spec.json'
+  if (!d) return status('Downloads are not available here; copy the JSON from the spec box.', 'bad')
+  try { await d.save({ filename: name, data }); status('Saved ' + name, 'ok') } catch (e) { status('Download not saved: ' + (e?.message || e?.code || e), 'bad') }
+}
+$('dl').onclick = () => { let s; try { s = JSON.parse($('spec').value) } catch { return status('Spec box is not valid JSON.', 'bad') } saveSpec(s, s.name) }
+// test hook: headless checks seek to an exact clip time and read every slot
+window.vfxgen = {
+  seek: t => { playing = false; T = t; frameAt(t) }, payoff: () => CUR && clipTimeOf(CUR.B.clip, CUR.S.payoff), get spec() { return CUR?.S },
+  slots, slot: i => slots[i], addSlot, select: i => { if (slots[i]?.P) { sel = i; show(slots[i].P); renderTabs(); renderSlots() } },
+  clipLen: i => (i == null ? CUR?.B.clip : slots[i]?.P?.B.clip)?.len, generateAll, runSlot, fitDuration,
+  clipLives: i => { const sl = slots[i], S = sl.spec, c = sl.P.B.clip; return (S.fx || []).filter(e => !('dur' in e)).map(e => +(clipAt(c, Math.min(S.len, e.t + (e.life ?? S.sheets?.[e.sheet]?.life ?? 0.9))) - clipAt(c, e.t)).toFixed(3)) },
+  lifeErrsOf: (S, ms) => { const c = cinePass({ name: S.name, len: S.len, fps: 60, loop: false, tracks: {}, camera: S.camera_keys }, cineOpts(S, { ms }), { pos: S.camera.pos, target: S.camera.target, fov: S.camera.fov }); fitDuration(c, ms, S.len); return lifeErrs(S, c, ms) },
+  partsVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'part' && n.userData.mat.visible).length : 0,
+  marksAt: () => (CUR?.marks || []).map(m => ({ kind: m.kind, t: m.t, ok: m.ok, visible: m.grp.visible, host: m.grp.parent?.userData?.o?.name || null })),
+  colorAt: id => CUR?.nodes[id]?.userData.mat?.color.getHexString() ?? null,
+  dissolveAt: id => CUR?.nodes[id]?.userData.mat?.userData.dis?.uDis.value ?? null,
+  partKids: id => { let c = 0; CUR?.nodes[id]?.traverse(x => { if (x.isMesh) c++ }); return c },
+  paintMs: () => PAINT_MS.slice(),
+  fxVisible: () => CUR ? Object.values(CUR.nodes).filter(n => n.userData.o.type === 'flipbook' && n.userData.card?.visible).length : 0
+}
+const cap = n => (window.claude?.use ? window.claude.use(n).catch(() => null) : Promise.resolve(null))
+const samplerP = cap('sample'), dlP = cap('downloads')
+// ---------- Sheet: every VFX sheet as a PNG (library + every sheet generated here); new sheets are saved to the hub (assets + db)
+const dbP = cap('db'), assetsP = cap('assets'), col = db => db.collection('vfxsheets')
+async function loadSaved() {
+  const db = await dbP; if (!db) return
+  try { const q = await col(db).orderBy('at', 'desc').limit(1000).get(); for (const d of q.docs) { const r = d.data(); if (r?.key && r.asset) SAVED.set(r.key, { ...r, url: '/_blob/' + r.asset }) } }
+  catch (e) { console.warn('saved sheets not loaded:', e?.code || e?.message || e) }
+  if ($('lib').open) renderLib()
+}
+// fights read as one flash when the model writes 1-2 impacts and statue fighters (owner 2026-11-26, "Anime fight")
+const FIGHT_RE = /\b(fight|duel|combo|battle|clash|brawl|spar|versus|vs\b|punch|kick|sword ?fight|showdown)/
+function actionErrs(S, want) {
+  if (!FIGHT_RE.test(String(want).toLowerCase()) || S.loop) return []
+  const bad = [], n = (S.impacts || []).length, men = Object.entries(S.parts || {}).filter(([, o]) => o.model === 'humanoid')
+  if (n < 3) bad.push(`ACTION RULE: a fight needs >= 3 impacts spread over len (has ${n})`)
+  if (men.length < 2) bad.push(`ACTION RULE: a fight needs 2 humanoid fighters in parts (has ${men.length})`)
+  men.forEach(([id]) => { if (!((S.tracks?.[id]?.pos || []).length >= 3)) bad.push(`ACTION RULE: fighter ${id} needs a pos track with >= 3 keys (lunge, recoil, knockback)`) })
+  return bad
+}
+// every run (ok or failed) is logged with its prompt, settings and the model's reply, so "compare the generation to the prompt" has data
+async function logRun(sl, want) {
+  try { const db = await dbP; if (!db || !sl.lastReply) return
+    await db.collection('vfxruns').doc(sl.id + '-' + Date.now().toString(36)).set({ prompt: want.slice(0, 2000), ms: sl.ms, set: sl.set, status: String(sl.status || '').slice(0, 600), reply: sl.lastReply.slice(0, 60000), at: Date.now() })
+  } catch (e) { console.warn('run log failed', e) }
+}
+async function saveSheets(S, res, prompt) {
+  const [db, assets] = await Promise.all([dbP, assetsP]); let saved = 0, failed = ''
+  for (const [id, d] of Object.entries(S.sheets || {})) {
+    const k = genKey(d), r = res?.[id]; if (!r || !(r.jump < JUMP_MAX) || r.empty > 4 || SAVED.has(k) || SESSION.has(k)) continue
+    const rec = { key: k, name: sheetName(d, id), sheet: id, clip: S.name || '', prompt: String(prompt || '').slice(0, 2000), code: d.code, seed: d.seed ?? 1125, life: d.life ?? 0.9, jump: r.jump, at: Date.now() }
+    SESSION.set(k, { ...rec, url: r.url, blob: r.blob })               // shown at once; stays "this session only" if the save fails
+    if (!db || !assets || !r.blob) continue
+    try { const a = await assets.upload(r.blob); rec.asset = a.id; await col(db).doc(k.slice(4)).set(rec); SAVED.set(k, { ...rec, url: a.url }); SESSION.delete(k); saved++ }
+    catch (e) { failed = e?.code || e?.message || String(e) }
+  }
+  if ($('lib').open) renderLib()
+  return { saved, failed, store: !!(db && assets) }
+}
+async function pngOf(t) { if (t.blob) return t.blob; const r = await fetch(t.url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob() }
+async function savePng(t, b) {
+  const d = await dlP; if (!d) { status('Downloads are not available here: long-press the sheet to save the image.', 'bad'); return }
+  b.disabled = true
+  try { await d.save({ filename: t.file, data: await pngOf(t) }); status('Saved ' + t.file, 'ok') } catch (e) { status('PNG not saved: ' + (e?.message || e?.code || e), 'bad') } finally { b.disabled = false }
+}
+function tile(t) {
+  const f = document.createElement('figure'), i = new Image(), c = document.createElement('figcaption'), row = document.createElement('div')
+  i.loading = 'lazy'; i.decoding = 'async'; i.src = t.url; i.alt = t.name; i.onclick = () => f.classList.toggle('big')
+  c.textContent = t.cap; row.className = 'row'
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = 'PNG'; b.onclick = () => savePng(t, b); row.append(b)
+  if (t.code) { const s = document.createElement('button'); s.type = 'button'; s.textContent = 'Copy script'
+    s.onclick = async () => { const j = JSON.stringify({ code: t.code, seed: t.seed, life: t.life }); try { await navigator.clipboard.writeText(j); status('Sheet script copied: paste it into "sheets" of a spec to reuse this sheet.', 'ok') } catch { $('spec').value = j; $('specBox').open = true; status('Clipboard blocked: the script is in the spec box.', 'ok') } }
+    row.append(s) }
+  f.append(i, c, row); return f
+}
+const slugFile = s => s.replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'vfx'
+function renderLib() {
+  const q = $('libq').value.trim().toLowerCase(), hit = (...a) => !q || a.join(' ').toLowerCase().includes(q)
+  const gen = [...SESSION.values(), ...SAVED.values()].sort((a, b) => b.at - a.at)
+    .filter(r => !r.repo && hit(r.name, r.prompt, r.code))
+    .map(r => ({ ...r, file: slugFile(r.name) + '.png', cap: `${r.name}${r.asset ? '' : ' · this session only'} · jump ${r.jump}` }))
+  const lib = Object.entries(INDEX).filter(([slug, r]) => hit(slug, r.name, r.kind))
+    .map(([slug, r]) => ({ name: r.name, url: LIB + 'sheets/' + slug + '.png', file: slug + '.png', cap: `${r.name} · ${r.kind} · ${r.frames} fr` }))
+  const body = $('libbody'); body.replaceChildren()
+  for (const [title, list, empty] of [[`Generated here (${gen.length})`, gen, q ? 'No generated sheet matches.' : 'Nothing generated yet: every sheet a slot draws is saved here.'], [`Library vfx/sheets (${lib.length})`, lib, 'No library sheet matches.']]) {
+    const h = document.createElement('h3'), g = document.createElement('div'); h.textContent = title; g.className = 'libgrid'
+    if (list.length) g.append(...list.map(tile)); else { const p = document.createElement('p'); p.className = 'meta'; p.textContent = empty; g.append(p) }
+    body.append(h, g)
+  }
+  $('libn').textContent = `${gen.length + lib.length} sheets`
+}
+$('sheetBtn').onclick = () => { renderLib(); $('lib').showModal() }
+$('libx').onclick = () => $('lib').close()
+$('libq').oninput = renderLib
+$('lib').onclick = e => { if (e.target === $('lib')) $('lib').close() }
+loadSaved()
+samplerP.then(s => { if (!s) { $('gen').disabled = true; status('Generation needs the Claude sample capability (open this inside Claude-Hub). Playback and the spec editor work.') } })
+
+// ---------- boot: the showcase spec plays first
+let DEFAULT = null, EX = null
+{ let saved = []; try { saved = JSON.parse(store.get('vfxgen.slots') || '[]') } catch {}
+  if (!saved.length) saved = [{ prompt: store.get('vfxgen.prompt') || '' }]
+  for (const o of saved.slice(0, 6)) { const sl = addSlot(o.prompt || ''); if (o.ms) sl.ms = clampMs(o.ms / 1000); if (o.set) sl.set = { ...DEF_SET(), ...o.set } }
+  renderSlots(); renderTabs() }
+try {
+  await loadIndex()
+  DEFAULT = await (await fetch('spec.json')).json()
+  EX = await load(DEFAULT)
+  $('load').remove()
+} catch (e) { $('load').innerHTML = '<pre class="err"></pre>'; $('load').firstChild.textContent = 'Failed to load: ' + e.message; console.error(e) }
+requestAnimationFrame(loop)
+</script>
+</body>
+</html>

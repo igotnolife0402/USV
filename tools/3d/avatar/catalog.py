@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rbx
 
 AD = 'https://assetdelivery.roblox.com/v1/asset/?id={}'
+AD_LOC = 'https://assetdelivery.roblox.com/v1/assetId/{}'
 UA = {'User-Agent': 'vault-avatar/1.0', 'Accept-Encoding': 'gzip'}
 
 
@@ -28,7 +29,15 @@ def get(url, tries=4):
 
 def asset(kit, aid, ext):
     p = os.path.join(kit, f'{aid}.{ext}')
-    if not os.path.exists(p): open(p, 'wb').write(get(AD.format(aid)))
+    if not os.path.exists(p):
+        try: b = get(AD.format(aid), tries=1)
+        except urllib.error.HTTPError as e:
+            # 2026-11-24: v1/asset now answers 401 without a login; v1/assetId still returns a signed CDN location
+            if e.code != 401: raise
+            loc = json.loads(get(AD_LOC.format(aid))).get('location')
+            if not loc: raise ValueError(f'{aid}: asset needs a Roblox login (no CDN location)')
+            b = get(loc)
+        open(p, 'wb').write(b)
     return p
 
 

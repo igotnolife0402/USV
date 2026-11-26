@@ -23,3 +23,4 @@ triggers: [web error, css bug, cors, console error, vite error, hydration]
 | Fonts flash / layout shift | Webfont swap without fallback metrics | `font-display:swap` + `size-adjust`, or system stack | 2026-11-21 |
 | Screenshot shows old version | Browser/dev server cache | Hard reload, new tab, or cache-bust query | 2026-11-21 |
 | Form submit reloads page in SPA | Default submit behavior | `e.preventDefault()` in submit handler | 2026-11-21 |
+| `python3 -m http.server` denied in cloud (auto-mode classifier) | background local servers are blocked on mobile | serve the repo inside Playwright: `page.route("http://repo.test/**", r => r.fulfill({path: REPO + pathname}))`, no server | 2026-11-25 |

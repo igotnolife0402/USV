@@ -19,6 +19,53 @@ export default async function (t) {
     s.noErrors()
   })
 
+  await t.test('clip camera: keyed pos/target/fov drive the view mid-clip, shake 0 is exact, Follow off and leaving Animate restore the view', async () => {
+    const s = await t.open()
+    await s.project('Cam', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Shot', len: 2, fps: 30 })
+    const r = await s.eval(cid => {
+      const A = window.studio.app, vp = A.viewport, run = (c, a) => A.exec(c, a)
+      vp.setCamera({ pos: [9, 9, 9], target: [0, 0, 0], fov: 50 }); const user = vp.getCamera()
+      A.setTime(0); run('anim.camKey', { values: { pos: [0, 2, 10], target: [0, 1, 0], fov: 40, shake: 0 } })
+      A.setTime(2); run('anim.camKey', { values: { pos: [10, 2, 0], target: [0, 3, 0], fov: 60, shake: 0 } })
+      A.setTime(1); const mid = vp.getCamera()
+      const keys = A.scene.anims[cid].camera
+      run('anim.camFollow', { on: false }); const off = vp.getCamera()
+      run('anim.camFollow', { on: true }); A.setTime(1)
+      A.setMode('build'); const back = vp.getCamera()
+      return { mid, off, back, user, n: keys.pos.length, fovKeys: keys.fov.length }
+    }, cid)
+    t.eq(r.n, 2, 'two pos keys'); t.eq(r.fovKeys, 2, 'fov keyed')
+    t.near(r.mid.pos[0], 5, 0.01, 'smooth midpoint x'); t.near(r.mid.pos[2], 5, 0.01, 'smooth midpoint z'); t.near(r.mid.target[1], 2, 0.01, 'target midpoint')
+    t.near(r.mid.fov, 50, 0.01, 'fov midpoint')
+    t.near(r.off.pos[0], r.user.pos[0], 0.01, 'Follow off puts the user view back'); t.near(r.back.pos[1], r.user.pos[1], 0.01, 'leaving Animate puts the user view back')
+    s.noErrors()
+  })
+
+  await t.test('clip letterbox: camera.bars keyed 0 -> 1 draws black bars top and bottom at 2.39:1, none at amount 0', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Bars', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Bars', len: 2, fps: 30 })
+    const r = await s.eval(cid => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement
+      A.scene.env.bg = '#ffffff'
+      A.patchAnim(cid, { camera: { bars: [[0, 0, 'linear'], [1, 1, 'linear']] } })
+      const px = t => { A.setTime(t); vp.render(); const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(cv, 0, 0)
+        const at = y => [...g.getImageData(Math.floor(cv.width / 2), y, 1, 1).data].slice(0, 3)
+        const want = cv.width / 2.39, bar = Math.max(0, (cv.height - want) / 2)
+        return { top: at(2), bottom: at(cv.height - 3), mid: at(Math.floor(cv.height / 2)), bar, w: cv.width, h: cv.height } }
+      return { on: px(1.5), off: px(0) }
+    }, cid)
+    t.ok(r.on.bar > 4, 'canvas is taller than 2.39:1 ' + JSON.stringify(r.on))
+    t.ok(r.on.top.every(v => v < 8) && r.on.bottom.every(v => v < 8), 'black bars at amount 1 ' + JSON.stringify(r.on))
+    t.ok(r.off.top.some(v => v > 16), 'no bar at amount 0 (sky shows) ' + JSON.stringify(r.off.top))
+    s.noErrors()
+  })
+
   await t.test('clip + keys at 0 s and 1 s: scrubbing to 0.5 s interpolates, rest pose stays', async () => {
     const s = await t.open()
     await s.project('Anim', { empty: true })
@@ -288,6 +335,189 @@ export default async function (t) {
     t.ok(ui.minH >= 44, 'touch targets ≥ 44 px: ' + ui.minH)
     t.ok(ui.over <= 0, 'no sideways scroll')
     await s.shot('phone-anim.png')
+    s.noErrors()
+  })
+
+  await t.test('quality sampler: rot slerps (spins keep Euler), auto passes through keys without stopping, cubic ease, warp slow-mo', async () => {
+    const s = await t.open()
+    await s.project('Sampler', { empty: true })
+    const r = await s.eval(async () => {
+      const THREE = await import('three'), { sample, easeFn } = window.studio.app.anim, D = Math.PI / 180
+      const a = [0, 0, 0], b = [0, 90, 90], mid = sample([[0, a], [1, b]], 0.5, 'rot')
+      const qa = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)), qb = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 90 * D, 90 * D))
+      const want = qa.clone().slerp(qb, 0.5), got = new THREE.Quaternion().setFromEuler(new THREE.Euler(mid[0] * D, mid[1] * D, mid[2] * D))
+      const spin = sample([[0, [0, 0, 0]], [1, [0, 360, 0]]], 0.5, 'rot')
+      const K = [[0, [0], 'auto'], [1, [1], 'auto'], [2, [3], 'auto'], [3, [4]]]
+      const v = (t, h = 1e-3) => (sample(K, t + h, 'pos')[0] - sample(K, t - h, 'pos')[0]) / (2 * h)
+      const cub = easeFn('cubic:0.42,0,0.58,1'), sm = easeFn('ease')
+      return { err: got.angleTo(want) / D, spin: spin[1], through: [sample(K, 1, 'pos')[0], sample(K, 2, 'pos')[0]], vmid: v(1), vend: v(2.5),
+               cub: [cub(0.25), cub(0.5), cub(0.75)], sm: sm(0.5) }
+    })
+    t.ok(r.err < 0.5, 'slerp midpoint within 0.5 deg: ' + r.err)
+    t.near(r.spin, 180, 0.01, 'a 360 spin keeps the Euler path')
+    t.near(r.through, [1, 3], 1e-6, 'auto passes through its keys')
+    t.ok(Math.abs(r.vmid) > 0.5, 'auto keeps speed through the middle key: ' + r.vmid)
+    t.near(r.cub[1], 0.5, 0.01, 'cubic ease is symmetric'); t.ok(r.cub[0] < 0.25 && r.cub[2] > 0.75, 'cubic ease in-out shape')
+    const w = await s.eval(() => {
+      const A = window.studio.app, id = A.addPart ? null : null
+      return null
+    })
+    const id = await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const cid = await s.run('anim.new', { name: 'Warp', len: 2, fps: 30 })
+    const pos = await s.eval(([id, cid]) => {
+      const A = window.studio.app
+      A.patchAnim(cid, { tracks: { [id]: { pos: [[0, [0, 0.5, 0]], [2, [4, 0.5, 0]]] } }, warp: [[0, 0], [1, 0.25], [2, 2]] })
+      A.setTime(1); const x1 = A.viewport.objects.get(id).position.x
+      A.setTime(0.5); const xh = A.viewport.objects.get(id).position.x
+      return { x1, xh, story: A.anim.story(1) }
+    }, [id, cid])
+    t.near(pos.story, 0.25, 1e-6, 'story time at clip 1 s'); t.near(pos.x1, 0.5, 1e-3, 'object at story 0.25 s (slow-mo)'); t.near(pos.xh, 0.25, 1e-3, 'half-speed ramp')
+    s.noErrors()
+  })
+
+  await t.test('rigging: two-bone IK lands the hand on its target, mirror copies L->R, lint flags jumps and dead holds', async () => {
+    const s = await t.open()
+    await s.project('Rig', { empty: true })
+    await s.run('anim.mode')
+    const r = await s.eval(async () => {
+      const A = window.studio.app, add = o => A.exec('parts.box', o)
+      // a chain: shoulder group at (0,3,0), elbow group 1 stud down, wrist group 1 stud further
+      const sh = A.add({ type: 'group', name: 'LeftShoulder', pos: [0, 3, 0], rot: [0, 0, 0] })
+      const el = A.add({ type: 'group', name: 'LeftElbow', parent: sh, pos: [0, -1, 0], rot: [0, 0, 0] })
+      const wr = A.add({ type: 'group', name: 'LeftWrist', parent: el, pos: [0, -1, 0], rot: [0, 0, 0] })
+      const rs = A.add({ type: 'group', name: 'RightShoulder', pos: [2, 3, 0], rot: [0, 0, 0] })
+      const cid = A.exec('anim.new', { name: 'IK', len: 6, fps: 30 }); A.setTime(1)
+      const ik = A.exec('anim.ik', { chain: [sh, el, wr], target: [1.2, 2.4, 0.3], pole: [0, 3, 2], t: 1 })
+      const n = A.exec('anim.mirror', { t: 1 })
+      const c = A.scene.anims[A.anim.clip]
+      const mir = [c.tracks[sh].rot.at(-1)[1], c.tracks[rs]?.rot?.at(-1)?.[1]]
+      // a bad clip: a 170 deg jump, then a 3 s hold
+      A.patchAnim(A.anim.clip, { loop: false, tracks: { ...c.tracks, [el]: { rot: [[0, [0, 0, 0]], [0.05, [170, 0, 0]], [1, [170, 0, 0]]] } } })
+      const bad = A.exec('anim.lint')
+      return { ik, mir, n, types: [...new Set(bad.map(i => i.type))], bad: bad.slice(0, 4) }
+    })
+    t.ok(r.ik.reached && r.ik.miss < 0.01, 'IK end on target: ' + JSON.stringify(r.ik))
+    t.ok(r.n >= 1, 'mirror wrote the right side'); t.near(r.mir[1], [r.mir[0][0], -r.mir[0][1], -r.mir[0][2]], 1e-3, 'mirrored rot = [x,-y,-z]')
+    t.ok(r.types.includes('euler-jump') && r.types.includes('dead-hold') && r.types.includes('pose-snap'), 'lint flags jump, snap, hold: ' + JSON.stringify(r.bad))
+    const clean = await s.eval(() => { const A = window.studio.app, c = A.exec('anim.new', { name: 'Clean', len: 2, fps: 30 }); const o = Object.keys(A.scene.objects)[0]
+      A.patchAnim(A.anim.clip, { tracks: { [o]: { rot: [[0, [0, 0, 0], 'auto'], [1, [0, 40, 0], 'auto'], [2, [0, 0, 0]]] } } }); return A.exec('anim.lint') })
+    t.eq(clean, [], 'a clean clip lints to 0 issues')
+    s.noErrors()
+  })
+
+  await t.test('cinematic baseline: anim.cine adds eased push-in, slow-mo into the payoff, dip + flash, hit-stop, shake, settle; idempotent; lints clean', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Cine', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(() => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement, o = Object.keys(A.scene.objects)[0]
+      A.scene.env.bg = '#808080'
+      const cid = A.exec('anim.new', { name: 'Hit', len: 4, fps: 30 })
+      A.patchAnim(cid, { loop: false, tracks: { [o]: { pos: [[0, [0, 0.5, 0], 'auto'], [2.5, [0, 0.5, 3], 'auto'], [4, [0, 0.5, 3.4]]] } } })
+      vp.setCamera({ pos: [8, 3, 8], target: [0, 0.5, 1.5], fov: 45 })
+      const res = A.exec('anim.cine', { payoff: 2.5 })
+      const c = A.scene.anims[cid], w = c.warp, cam = c.camera
+      const slopes = w.slice(1).map((k, i) => (k[1] - w[i][1]) / (k[0] - w[i][0]))
+      const pc = w.find(k => Math.abs(k[1] - 2.5) < 1e-4)[0]
+      const luma = t => { A.setTime(t); vp.render(); const g = document.createElement('canvas'); g.width = cv.width; g.height = cv.height; const x = g.getContext('2d', { willReadFrequently: true }); x.drawImage(cv, 0, 0)
+        const d = x.getImageData(4, 4, 1, 1).data; return (d[0] + d[1] + d[2]) / 3 }
+      const lum = { before: luma(0.5), dip: luma(pc - 0.2), peak: luma(pc + 0.02), after: luma(c.len - 0.1) }
+      const once = JSON.stringify(A.scene.anims[cid]); A.exec('anim.cine', { payoff: 2.5 }); const twice = JSON.stringify(A.scene.anims[cid])
+      const lint = A.exec('anim.lint')
+      // per-call override: push 0.2 closes 20 % of the distance instead of 45 % (camera at the payoff stays farther out)
+      const dAt = () => { const k = A.scene.anims[cid].camera.pos.find(q => Math.abs(q[0] - 2.5) < 1e-4)[1]; return Math.hypot(k[0], k[1] - 0.5, k[2] - 1.5) }
+      const d45 = dAt(); A.exec('anim.cine', { payoff: 2.5, push: 0.2 }); const d20 = dAt(); A.exec('anim.cine', { payoff: 2.5 })
+      A.exec('anim.cine', { off: true }); const off = A.scene.anims[cid]
+      return { res, len: c.len, storyEnd: w.at(-1)[1], minSlope: Math.min(...slopes.filter(v => v > 0)), holdFrames: Math.round(slopes.reduce((n, v, i) => v === 0 ? n + (w[i + 1][0] - w[i][0]) * 30 : n, 0)),
+        posEases: cam.pos.map(k => k[2] || 'linear'), nPos: cam.pos.length, flash: cam.flash.map(k => +k[1]), shake: cam.shake.map(k => +k[1]), lum, same: once === twice, lint, push: [d45, d20],
+        off: { len: off.len, warp: off.warp, camera: off.camera, cine: off.cine } }
+    })
+    t.ok(r.len > 4 && r.storyEnd === 4, 'slow-mo stretches the clip, story length kept: ' + r.len)
+    t.ok(r.minSlope <= 0.35, 'warp slows to <= 0.35x into the payoff: ' + r.minSlope)
+    t.eq(r.holdFrames, 4, 'hit-stop freezes 4 frames')
+    t.ok(r.nPos >= 3 && r.posEases.slice(0, -1).every(e => e !== 'linear' && e !== 'smooth'), 'camera push-in keys are eased, never stop-start: ' + r.posEases)
+    t.ok(Math.min(...r.flash) < 0 && Math.max(...r.flash) >= 0.8, 'dark dip then white flash: ' + r.flash)
+    t.ok(Math.max(...r.shake) > 0 && r.shake.at(-1) === 0, 'shake kicks and decays to 0')
+    t.ok(r.lum.dip < r.lum.before * 0.92 && r.lum.peak > r.lum.before + 60 && Math.abs(r.lum.after - r.lum.before) < 6, 'frame dims, flashes, settles: ' + JSON.stringify(r.lum))
+    t.ok(r.same, 're-running anim.cine replaces its own keys (idempotent)')
+    t.eq(r.lint, [], 'a cine clip lints to 0 issues')
+    t.ok(r.push[1] > r.push[0] * 1.3, 'push override keeps the camera farther out: ' + r.push.map(v => v.toFixed(2)))
+    t.ok(r.off.len === 4 && !r.off.warp && !r.off.camera && !r.off.cine, 'off restores the clip: ' + JSON.stringify(r.off))
+    s.noErrors()
+  })
+
+  await t.test('baseline lint: motion-stop, camera-robotic, payoff-flat, loop-seam, static-camera; cine loop orbit has no seam', async () => {
+    const s = await t.open()
+    await s.project('Lint2', { empty: true })
+    await s.run('parts.box', { pos: [0, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(() => {
+      const A = window.studio.app, o = Object.keys(A.scene.objects)[0], vp = A.viewport
+      const a = A.exec('anim.new', { name: 'Bad', len: 2, fps: 30 })
+      A.patchAnim(a, { tracks: { [o]: { pos: [[0, [0, 0, 0], 'smooth'], [1, [1, 0, 0], 'smooth'], [2, [2, 0, 0]]] } },
+        camera: { pos: [[0, [5, 2, 5], 'smooth'], [1, [4, 2, 4], 'smooth'], [2, [3, 2, 3]]], target: [[0, [0, 0, 0]]], shake: [[0.9, 0, 'step'], [1, 0.2, 'out'], [1.4, 0]] } })
+      const bad = [...new Set(A.exec('anim.lint').map(i => i.type))]
+      A.exec('anim.new', { name: 'Still', len: 3, fps: 30 }); A.patchAnim(A.anim.clip, { tracks: { [o]: { rot: [[0, [0, 0, 0], 'auto'], [1.5, [0, 30, 0], 'auto'], [3, [0, 0, 0]]] } } })
+      const still = A.exec('anim.lint').map(i => i.type)
+      vp.setCamera({ pos: [6, 3, 0], target: [0, 0.5, 0], fov: 45 }); A.exec('anim.cine', { kind: 'loop' })
+      const c = A.scene.anims[A.anim.clip], at = t => window.studio.anim?.camAt?.(c, t)
+      return { bad, still, after: A.exec('anim.lint').map(i => i.type), n: c.camera.pos.length }
+    })
+    for (const k of ['motion-stop', 'camera-robotic', 'payoff-flat', 'loop-seam']) t.ok(r.bad.includes(k), k + ' flagged: ' + r.bad)
+    t.eq(r.still, ['static-camera'], 'a 3 s clip with no camera move is flagged')
+    t.eq(r.after, [], 'cine loop: orbit keys, seamless, lints clean')
+    t.ok(r.n >= 16, 'orbit keyed with >= 16 auto keys')
+    s.noErrors()
+  })
+  await t.test('cine v2: grade darkens + vignettes the build and tints the payoff; light intensity track; cineLights; spacing + framing lint', async () => {
+    const s = await t.open({ device: 'desktop' })
+    await s.project('Cine2', { empty: true })
+    const a = await s.run('parts.box', { pos: [0, 0.5, 0] }), b = await s.run('parts.box', { pos: [3, 0.5, 0] })
+    await s.run('anim.mode')
+    const r = await s.eval(async ([a, b]) => {
+      const A = window.studio.app, vp = A.viewport, cv = vp.renderer.domElement
+      A.scene.env.bg = '#808080'
+      const cid = A.exec('anim.new', { name: 'Hit', len: 4, fps: 30 })
+      A.patchAnim(cid, { loop: false, tracks: { [a]: { pos: [[0, [0, 0.5, 0], 'auto'], [2.5, [0, 0.5, 2], 'auto'], [4, [0, 0.5, 2.4]]] } } })
+      vp.setCamera({ pos: [8, 3, 8], target: [0, 0.5, 1.5], fov: 45 })
+      A.exec('anim.cine', { payoff: 2.5, tint: '#ff2020' })
+      const c = A.scene.anims[cid], pc = c.warp.find(k => Math.abs(k[1] - 2.5) < 1e-4)[0]
+      const px = (t, x, y) => { A.setTime(t); vp.render(); const g = document.createElement('canvas'); g.width = cv.width; g.height = cv.height; const q = g.getContext('2d', { willReadFrequently: true }); q.drawImage(cv, 0, 0)
+        const d = q.getImageData(Math.round(x * (cv.width - 1)), Math.round(y * (cv.height - 1)), 1, 1).data; return [d[0], d[1], d[2]] }
+      const corner = { before: px(0.3, 0.01, 0.01), dip: px(pc - 0.2, 0.01, 0.01), end: px(c.len - 0.05, 0.01, 0.01) }, mid = px(pc - 0.2, 0.5, 0.15)
+      const clipAt = st => { const w = c.warp, i = w.findIndex(k => k[1] >= st), a0 = w[i - 1], b0 = w[i]; return a0[0] + (st - a0[1]) / (b0[1] - a0[1]) * (b0[0] - a0[0]) }   // warp inverse
+      const peak = px(clipAt(2.85), 0.5, 0.15)
+      // light intensity track: a point light keyed 0 -> 8 -> 0 drives the three.js light, and is restored when the clip stops
+      const lid = A.add({ type: 'light', kind: 'point', name: 'L', pos: [0, 3, 2], color: '#ffffff', intensity: 1, range: 12 })
+      A.patchAnim(cid, { tracks: { ...A.scene.anims[cid].tracks, [lid]: { intensity: [[0, [0], 'linear'], [1, [8], 'linear'], [2, [0]]] } } })
+      const L = () => vp.objects.get(lid).userData.light.intensity
+      A.setTime(0); const i0 = L(); A.setTime(clipAt(1)); const i1 = L()
+      const { cineLights } = await import(new URL('plugins/cine.js', location.href).href)
+      const cl = cineLights({ [a]: A.scene.objects[a] }, c, { impacts: [{ t: 1, at: [0, 2, 0] }, { t: 2.5, at: [0, 2, 1], payoff: true }], rims: [{ parent: a, color: '#49c6ff' }] })
+      const again = cineLights(cl.objects, cl.clip, { impacts: [{ t: 1, at: [0, 2, 0] }] })
+      // spacing + framing: two roots 0.5 apart for 1 s, then 12 apart for 2 s; a camera that looks away from them
+      const sid = A.exec('anim.new', { name: 'Space', len: 4, fps: 30 })
+      A.patchAnim(sid, { loop: false, tracks: { [a]: { pos: [[0, [0, 0.5, 0], 'step'], [1.5, [-6, 0.5, 0], 'step'], [4, [-6, 0.5, 0]]] }, [b]: { pos: [[0, [0.5, 0.5, 0], 'step'], [1.5, [6, 0.5, 0], 'step'], [4, [6, 0.5, 0]]] } },
+        camera: { pos: [[0, [0, 3, 12], 'auto'], [4, [0, 3, 12]]], target: [[0, [0, 2, 0], 'auto'], [2, [0, 2, 0], 'auto'], [2.6, [30, 2, 0], 'auto'], [4, [30, 2, 0]]] } })
+      const sp = A.exec('anim.lint', { id: sid }).map(i => i.type)
+      A.exec('anim.mode')
+      return { grade: c.camera.grade.length, tint: c.camera.gradeTint, corner, mid, peak, i0, i1, rest: L(), lint: A.exec('anim.lint', { id: cid }).map(i => i.type),
+        lights: Object.keys(cl.objects).filter(k => k.startsWith('cine_')), rimKeys: cl.clip.tracks.cine_R0.intensity.length, payPeak: cl.clip.tracks.cine_L1.intensity[1][1][0],
+        againLights: Object.keys(again.objects).filter(k => k.startsWith('cine_')), sp }
+    }, [a, b])
+    const lum = p => (p[0] + p[1] + p[2]) / 3
+    t.ok(r.grade >= 4 && r.tint === '#ff2020', 'cine writes grade keys + the tint: ' + r.grade + ' ' + r.tint)
+    t.ok(lum(r.corner.dip) < lum(r.corner.before) * 0.75, 'build: corners darken (vignette + exposure dip): ' + JSON.stringify(r.corner))
+    t.ok(Math.abs(lum(r.corner.end) - lum(r.corner.before)) < 6, 'grade settles back to neutral: ' + JSON.stringify(r.corner))
+    t.ok(r.peak[0] - r.peak[2] > r.corner.before[0] - r.corner.before[2] + 15, 'after the flash: frame keeps a wash of the element colour with the element colour: ' + JSON.stringify(r.peak))
+    t.ok(r.i0 < 0.01 && r.i1 > 40 && Math.abs(r.rest - 6) < 0.01, 'intensity track drives the light (x6 point units) and restores it: ' + [r.i0, r.i1, r.rest])
+    t.eq(r.lint, [], 'a cine v2 clip still lints clean')
+    t.eq(r.lights, ['cine_L0', 'cine_L1', 'cine_R0'], 'cineLights adds an impact light per hit and a rim light')
+    t.ok(r.rimKeys === 7 && r.payPeak === 15, 'rim pulses on both impacts, payoff light 3x: ' + r.rimKeys + ' ' + r.payPeak)
+    t.eq(r.againLights, ['cine_L0'], 're-running cineLights replaces its own lights')
+    for (const k of ['spacing-close', 'spacing-far', 'framing']) t.ok(r.sp.includes(k), k + ' flagged: ' + r.sp)
     s.noErrors()
   })
 }

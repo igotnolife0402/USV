@@ -17,6 +17,7 @@ triggers: [index, map, where, vault]
 - Audio tool: [tools/audio/sfx.mjs](tools/audio/sfx.mjs): procedural game SFX (coin, hit, win...) → 16-bit WAV, no deps; `node tools/audio/sfx.mjs OUT`.
 - [images](domains/images/index.md): the owner's 20 style prompts, add-ons, Roblox thumbnails rendered in Studio.
 - [math](domains/math/index.md): calculations, formulas, game balance curves, probability, vectors/CFrame (compute with code, check twice).
+- [vfx/](vfx/README.md): every VFX sheet ever made (white), `vfx/index.tsv` to grep, painting rules.
 - Tools (runnable, each with a README): [tools/3d](tools/3d/README.md), [tools/roblox](tools/roblox/README.md), [tools/vfx](tools/vfx/README.md), [tools/art](tools/art/README.md).
 
 ## Core
@@ -26,6 +27,7 @@ triggers: [index, map, where, vault]
 - [profiles/mobile.md](profiles/mobile.md): cloud session capabilities, PC → mobile fallback table, queue format.
 - [profiles/owner.md](profiles/owner.md): owner preferences and quality floor (both modes); read before any build.
 - [profiles/must.md](profiles/must.md): the 10 owner hard rules the prompt router injects into every build prompt.
+- [profiles/mute.md](profiles/mute.md): mute layout, always on: reply length, footer, "don't respond" = `Done`.
 - [profiles/vault-rules.md](profiles/vault-rules.md): every applied lesson rule for vault work, hooks, routing and sub-agents.
 - Checklists (definition of done): [simple](checklists/simple.md), [web](checklists/web.md), [game](checklists/game.md), [roblox](checklists/roblox.md), [3d](checklists/3d.md), [vfx](checklists/vfx.md), [audio](checklists/audio.md), [vault](checklists/vault.md).
 - [lessons.md](lessons.md): ACE rule bullets; append-only, bump h/x or tag promoted/dup in place.

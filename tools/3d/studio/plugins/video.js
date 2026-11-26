@@ -22,6 +22,10 @@ export async function mp4 (app, o = {}) {
   if (!clip) throw new Error('No animation clip: make one in Animate, then export the video')
   const render = o.quality === 'render'
   const fps = Math.max(1, Math.min(render ? 60 : 30, Math.round(+o.fps || clip.fps || 30))), len = Math.max(1 / fps, +clip.len || 1), n = Math.max(1, Math.round(len * fps))
+  // o.frames = [a, b] (frame indexes, b exclusive): one chunk of the clip, so a runner renders chunks in parallel and concats them
+  // (not o.from/o.to: exportTo already owns o.to = 'data' | 'assets')
+  const [fa, fb] = Array.isArray(o.frames) ? o.frames.map(Number) : [0, n]
+  const i0 = Math.max(0, Math.min(n - 1, Math.round(fa) || 0)), i1 = Math.max(i0 + 1, Math.min(n, Number.isFinite(fb) ? Math.round(fb) : n))
   const cv = vp.renderer.domElement
   let W, H
   if (render) { W = +o.w || 1920; H = +o.h || 1080 } else { const k = Math.min(1, 1280 / Math.max(cv.width, cv.height)); W = cv.width * k; H = cv.height * k }
@@ -40,29 +44,31 @@ export async function mp4 (app, o = {}) {
   const temps = o.temp ? [] : app.ids().filter(id => app.obj(id)?.temp).map(id => vp.objects.get(id)).filter(x => x?.visible).map(x => [x, x.visible])   // temporary models are not in the video
   for (const [x] of temps) x.visible = false
   if (A.playing) A.pause()
-  if (!render) { vp.helpers.visible = false; if (vp.gizmo) vp.gizmo.visible = false }                 // the render path hides these itself
+  // Light gizmos (octahedra) are scene children, not in vp.helpers: a cine light rig printed yellow diamonds into the MP4 (2026-11-24).
+  const lh = []
+  if (!render) { vp.helpers.visible = false; if (vp.gizmo) vp.gizmo.visible = false; vp.world?.traverse(c => { if (c.userData.lightHelper && c.visible) { c.visible = false; lh.push(c) } }) }   // the render path hides these itself
   try {
-    for (let i = 0; i < n; i++) {
+    for (let i = i0; i < i1; i++) {
       if (failed) throw failed
       app.setTime(i / fps)                                    // poses the rig and steps every flipbook synchronously
       let src
       if (render) src = await app.exec('look.render', { w: W, h: H, canvas: true, silent: true })
       else { vp.render(); g.drawImage(cv, 0, 0, W, H); src = frame }
-      const f = new VideoFrame(src, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) })
-      enc.encode(f, { keyFrame: i % (fps * 2) === 0 }); f.close()
+      const f = new VideoFrame(src, { timestamp: Math.round((i - i0) * 1e6 / fps), duration: Math.round(1e6 / fps) })
+      enc.encode(f, { keyFrame: (i - i0) % (fps * 2) === 0 }); f.close()
       while (enc.encodeQueueSize > 3) await yieldUI()        // back-pressure: memory stays flat on long clips
-      if (i % 5 === 0) { o.progress?.(i / n); await yieldUI() }
+      if (i % 5 === 0) { o.progress?.((i - i0) / (i1 - i0)); await yieldUI() }
     }
     await enc.flush()
     if (failed) throw failed
   } finally {
     if (enc.state !== 'closed') enc.close()
-    if (!render) { vp.helpers.visible = was.helpers; if (vp.gizmo) vp.gizmo.visible = was.gizmo }
+    if (!render) { vp.helpers.visible = was.helpers; if (vp.gizmo) vp.gizmo.visible = was.gizmo; for (const c of lh) c.visible = true }
     for (const [x, v] of temps) x.visible = v
     app.setTime(was.t); if (was.playing) A.play()
     vp.requestRender()
   }
   muxer.finalize()
   const name = String(clip.name || app.scene.name || 'clip').replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '') || 'clip'
-  return { filename: name + '.mp4', data: new Uint8Array(muxer.target.buffer), mime: 'video/mp4', frames: n, width: W, height: H, fps }
+  return { filename: name + '.mp4', data: new Uint8Array(muxer.target.buffer), mime: 'video/mp4', frames: i1 - i0, total: n, width: W, height: H, fps }
 }

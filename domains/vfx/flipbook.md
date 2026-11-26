@@ -43,3 +43,4 @@ Tool: [tools/vfx/flipbook](tools/vfx/flipbook/README.md) (python3 + numpy + Pill
 ## Mobile fallback (/mobile)
 - Cloud session with python3 + numpy + Pillow: build and check there exactly as on PC (no Studio upload).
 - Otherwise: write the recipe string and the `STACKS` edit in the repo, preview the look as a canvas Artifact (playbook), queue `- [ ] YYYY-MM-DD python3 tools/vfx/flipbook/vfx.py OUT <recipe> --check, upload PNG, set AssetId — mobile vfx` in [queue/pc.md](queue/pc.md).
+5. Look check vs the owner's stylized reference: `python3 tools/vfx/flipbook/grid.py OUT grid.png` composites every sheet like the preview (bands x colours x Brightness + halo, navy) at its most-hued frame; prints lit sat (ref 0.60) and near-white % (ref ~1.4). Max-light frames are white blobs, never pick those.

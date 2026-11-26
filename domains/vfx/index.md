@@ -1,6 +1,6 @@
 ---
 summary: VFX domain entry: particles, shaders (GLSL), post-processing, screen juice for web/games/Roblox
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [vfx, flipbook, effect sheet, particles, shader, glsl, bloom, explosion, trail, glow, post-processing, effect, fragment shader]
 ---
@@ -15,7 +15,8 @@ Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox
 2. [Errors](domains/vfx/errors.md): symptom → fix table.
 3. [Pipeline](domains/vfx/pipeline.md): shader files, textures, flipbooks, perf budget.
 4. [Snippets](domains/vfx/snippets/README.md): particle pool, shader boilerplate.
-5. [Flipbook](domains/vfx/flipbook.md): physics-made Roblox flipbook sheets, 4-layer stacks, recipes, smoothness checks; tool [tools/vfx](tools/vfx/README.md).
+5. [Library](vfx/README.md): every VFX ever made, white, in `vfx/sheets`; grep `vfx/index.tsv`; painting rules (gradients, textures, blend).
+6. [Flipbook](domains/vfx/flipbook.md): physics-made Roblox flipbook sheets, 4-layer stacks, recipes, smoothness checks; tool [tools/vfx](tools/vfx/README.md).
 
 ## Skill and done
 - Skill: [vfx](.claude/skills/vfx/SKILL.md)
@@ -31,3 +32,4 @@ Visual effects: canvas particles, GLSL shaders, three.js post-processing, Roblox
 
 ## Default pipeline (owner rule 2026-11-21)
 - Liquid effects: [tools/vfx/liquid](tools/vfx/liquid/README.md) (VFX Generator); other effects: [tools/vfx/flipbook](tools/vfx/flipbook/README.md). Then import the layered sheets into **Umbrio Sandbox** and attach to the animation ([profiles/tools.md](profiles/tools.md)). Never Blender unless the owner names it.
+- Showcase reel: [tools/vfx/showcase/reel.html](../../tools/vfx/showcase/reel.html) (artifact https://claude.ai/artifact/Rkbb6hcGYJ4zwPa6FP8Zkb): 10 shots x 2 s of library sheets painted on the GPU; MP4 via `reel-capture.cjs` + ffmpeg.

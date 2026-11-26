@@ -1,0 +1,149 @@
+slug	name	kind	grid	frames	life	src
+act-000-spikes-dashes	Spikes + Dashes	action	4	16	0.6	mix3/000_spikes+dashes_cyan.png
+act-001-crescent-cracks	Crescent + Cracks	action	4	16	0.6	mix3/001_crescent+cracks_yellow.png
+act-002-dashes-rise	Dashes + Rise	action	4	16	0.6	mix3/002_dashes+rise_magenta.png
+act-003-streaks-shards	Streaks + Shards	action	4	16	0.6	mix3/003_streaks+shards_white.png
+act-004-streaks-petals	Streaks + Petals	action	4	16	0.6	mix3/004_streaks+petals_gold.png
+act-005-ground-dashring	Ground + Dashring	action	4	16	0.6	mix3/005_ground+dashring_purple.png
+act-006-petals-polyshock	Petals + Polyshock	action	4	16	0.6	mix3/006_petals+polyshock_teal.png
+act-007-claw-rise	Claw + Rise	action	4	16	0.6	mix3/007_claw+rise_orange.png
+act-008-crescent-orbit	Crescent + Orbit	action	4	16	0.6	mix3/008_crescent+orbit_blue.png
+act-009-shock-flames	Shock + Flames	action	4	16	0.6	mix3/009_shock+flames_green.png
+act-010-xcut-sparkfall	Xcut + Sparkfall	action	4	16	0.6	mix3/010_xcut+sparkfall_red.png
+act-011-waves-comet	Waves + Comet	action	4	16	0.6	mix3/011_waves+comet_cyan.png
+act-012-spiral-streaks	Spiral + Streaks	action	4	16	0.6	mix3/012_spiral+streaks_yellow.png
+act-013-streaks-bolt	Streaks + Bolt	action	4	16	0.6	mix3/013_streaks+bolt_magenta.png
+act-014-crescent-flames	Crescent + Flames	action	4	16	0.6	mix3/014_crescent+flames_white.png
+act-015-waves-petals	Waves + Petals	action	4	16	0.6	mix3/015_waves+petals_gold.png
+act-016-crescent-rise	Crescent + Rise	action	4	16	0.6	mix3/016_crescent+rise_purple.png
+act-017-crescent	Crescent	action	4	16	0.6	mix3/017_crescent_teal.png
+act-018-helix-zigring	Helix + Zigring	action	4	16	0.6	mix3/018_helix+zigring_orange.png
+act-019-thrust-streaks	Thrust + Streaks	action	4	16	0.6	mix3/019_thrust+streaks_blue.png
+act-020-faultline-petals	Faultline + Petals	action	4	16	0.6	mix3/020_faultline+petals_green.png
+act-021-helix-rise	Helix + Rise	action	4	16	0.6	mix3/021_helix+rise_red.png
+act-022-streaks-beam	Streaks + Beam	action	4	16	0.6	mix3/022_streaks+beam_cyan.png
+act-023-dashes-bolt	Dashes + Bolt	action	4	16	0.6	mix3/023_dashes+bolt_yellow.png
+act-024-spiral-comet	Spiral + Comet	action	4	16	0.6	mix3/024_spiral+comet_magenta.png
+act-025-streaks-rise	Streaks + Rise	action	4	16	0.6	mix3/025_streaks+rise_white.png
+act-026-crescent-column	Crescent + Column	action	4	16	0.6	mix3/026_crescent+column_gold.png
+act-027-crescent-claw	Crescent + Claw	action	4	16	0.6	mix3/027_crescent+claw_purple.png
+act-028-crescent-spiral	Crescent + Spiral	action	4	16	0.6	mix3/028_crescent+spiral_teal.png
+act-029-thrust-column	Thrust + Column	action	4	16	0.6	mix3/029_thrust+column_orange.png
+act-030-streaks-comet	Streaks + Comet	action	4	16	0.6	mix3/030_streaks+comet_blue.png
+act-031-claw-helix	Claw + Helix	action	4	16	0.6	mix3/031_claw+helix_green.png
+act-032-dashes-bubbles	Dashes + Bubbles	action	4	16	0.6	mix3/032_dashes+bubbles_red.png
+act-033-spiral-waves	Spiral + Waves	action	4	16	0.6	mix3/033_spiral+waves_cyan.png
+act-034-dashes-shards	Dashes + Shards	action	4	16	0.6	mix3/034_dashes+shards_yellow.png
+act-035-dashes-spiral	Dashes + Spiral	action	4	16	0.6	mix3/035_dashes+spiral_magenta.png
+act-036-fountain-faultline	Fountain + Faultline	action	4	16	0.6	mix3/036_fountain+faultline_white.png
+act-037-streaks-fountain	Streaks + Fountain	action	4	16	0.6	mix3/037_streaks+fountain_gold.png
+act-038-crescent-petals	Crescent + Petals	action	4	16	0.6	mix3/038_crescent+petals_purple.png
+act-039-streaks-sparkfall	Streaks + Sparkfall	action	4	16	0.6	mix3/039_streaks+sparkfall_teal.png
+act-040-dashes-sparkfall	Dashes + Sparkfall	action	4	16	0.6	mix3/040_dashes+sparkfall_orange.png
+act-041-dashes-streaks	Dashes + Streaks	action	4	16	0.6	mix3/041_dashes+streaks_blue.png
+act-042-dashes-orbit	Dashes + Orbit	action	4	16	0.6	mix3/042_dashes+orbit_green.png
+act-043-petals-vortex	Petals + Vortex	action	4	16	0.6	mix3/043_petals+vortex_red.png
+act-044-spiral-rise	Spiral + Rise	action	4	16	0.6	mix3/044_spiral+rise_cyan.png
+act-045-rise-comet	Rise + Comet	action	4	16	0.6	mix3/045_rise+comet_yellow.png
+act-046-spiral-bolt	Spiral + Bolt	action	4	16	0.6	mix3/046_spiral+bolt_magenta.png
+act-047-bolt-orbit	Bolt + Orbit	action	4	16	0.6	mix3/047_bolt+orbit_white.png
+act-048-claw-thrust	Claw + Thrust	action	4	16	0.6	mix3/048_claw+thrust_gold.png
+act-049-dashes	Dashes	action	4	16	0.6	mix3/049_dashes_purple.png
+act-050-faultline-comet	Faultline + Comet	action	4	16	0.6	mix3/050_faultline+comet_teal.png
+act-051-spiral-bubbles	Spiral + Bubbles	action	4	16	0.6	mix3/051_spiral+bubbles_orange.png
+act-052-bolt-petals	Bolt + Petals	action	4	16	0.6	mix3/052_bolt+petals_blue.png
+act-053-bolt-shards	Bolt + Shards	action	4	16	0.6	mix3/053_bolt+shards_green.png
+act-054-dashes-fountain	Dashes + Fountain	action	4	16	0.6	mix3/054_dashes+fountain_red.png
+act-055-beam-bubbles	Beam + Bubbles	action	4	16	0.6	mix3/055_beam+bubbles_cyan.png
+act-056-crescent-bubbles	Crescent + Bubbles	action	4	16	0.6	mix3/056_crescent+bubbles_yellow.png
+act-057-claw-faultline	Claw + Faultline	action	4	16	0.6	mix3/057_claw+faultline_magenta.png
+act-058-crescent-faultline	Crescent + Faultline	action	4	16	0.6	mix3/058_crescent+faultline_white.png
+act-059-crescent-dashes	Crescent + Dashes	action	4	16	0.6	mix3/059_crescent+dashes_gold.png
+act-060-streaks	Streaks	action	4	16	0.6	mix3/060_streaks_purple.png
+act-061-flames-orbit	Flames + Orbit	action	4	16	0.6	mix3/061_flames+orbit_teal.png
+act-062-fountain-bubbles	Fountain + Bubbles	action	4	16	0.6	mix3/062_fountain+bubbles_orange.png
+act-063-bolt-comet	Bolt + Comet	action	4	16	0.6	mix3/063_bolt+comet_blue.png
+act-064-petals-bubbles	Petals + Bubbles	action	4	16	0.6	mix3/064_petals+bubbles_green.png
+act-065-fountain-rise	Fountain + Rise	action	4	16	0.6	mix3/065_fountain+rise_red.png
+act-066-rise-shards	Rise + Shards	action	4	16	0.6	mix3/066_rise+shards_cyan.png
+sym-000-u2600	U2600	symbol	1	1	0.6	mix3/000_U2600_cyan.png
+sym-002-u2713	U2713	symbol	1	1	0.6	mix3/002_U2713_magenta.png
+sym-004-ue002	Ue002	symbol	1	1	0.6	mix3/004_UE002_gold.png
+sym-006-ue004	Ue004	symbol	1	1	0.6	mix3/006_UE004_teal.png
+sym-011-u25c7	U25C7	symbol	1	1	0.6	mix3/011_U25C7_cyan.png
+sym-012-ue008	Ue008	symbol	1	1	0.6	mix3/012_UE008_yellow.png
+sym-020-ue00e	Ue00E	symbol	1	1	0.6	mix3/020_UE00E_green.png
+sym-024-u2607	U2607	symbol	1	1	0.6	mix3/024_U2607_magenta.png
+sym-030-u2608	U2608	symbol	1	1	0.6	mix3/030_U2608_blue.png
+sym-039-u260a	U260A	symbol	1	1	0.6	mix3/039_U260A_teal.png
+sym-060-ue200	Ue200	symbol	1	1	0.6	mix3/060_UE200_purple.png
+sym-062-ue201	Ue201	symbol	1	1	0.6	mix3/062_UE201_orange.png
+sym-066-ue203	Ue203	symbol	1	1	0.6	mix3/066_UE203_cyan.png
+sym-072-u272b	U272B	symbol	1	1	0.6	mix3/072_U272B_teal.png
+sym-083-u263d	U263D	symbol	1	1	0.6	mix3/083_U263D_teal.png
+sym-098-ue50e	Ue50E	symbol	1	1	0.6	mix3/098_UE50E_red.png
+sym-099-u2642	U2642	symbol	1	1	0.6	mix3/099_U2642_cyan.png
+sym-102-ue510	Ue510	symbol	1	1	0.6	mix3/102_UE510_white.png
+sym-114-ue517	Ue517	symbol	1	1	0.6	mix3/114_UE517_gold.png
+sym-117-ue51a	Ue51A	symbol	1	1	0.6	mix3/117_UE51A_orange.png
+sym-119-ue51b	Ue51B	symbol	1	1	0.6	mix3/119_UE51B_green.png
+sym-122-ue51d	Ue51D	symbol	1	1	0.6	mix3/122_UE51D_yellow.png
+sym-123-ue51e	Ue51E	symbol	1	1	0.6	mix3/123_UE51E_magenta.png
+sym-127-u264b	U264B	symbol	1	1	0.6	mix3/127_U264B_teal.png
+sym-130-u264c	U264C	symbol	1	1	0.6	mix3/130_U264C_green.png
+sym-135-ue100	Ue100	symbol	1	1	0.6	mix3/135_UE100_white.png
+sym-156-u2656	U2656	symbol	1	1	0.6	mix3/156_U2656_magenta.png
+sym-171-u2667	U2667	symbol	1	1	0.6	mix3/171_U2667_teal.png
+sym-173-u2668	U2668	symbol	1	1	0.6	mix3/173_U2668_blue.png
+sym-199-u26b8	U26B8	symbol	1	1	0.6	mix3/199_U26B8_yellow.png
+gen-ground-crack-ring	Ground Crack Ring	action	4	16	1	hub/gen|13bauwu
+gen-blood-burst	Blood Burst	action	4	16	0.8	hub/gen|141goo6
+gen-bullet-tracer	Bullet Tracer	action	4	16	0.5	hub/gen|14zcfu8
+gen-shock-dashes	Shock Dashes	action	4	16	1	hub/gen|1an4d7v
+gen-blood-fountain	Blood Fountain	action	4	16	1.2	hub/gen|1c16yq5
+gen-claw-slash	Claw Slash	action	4	16	0.6	hub/gen|1d8pl2h
+gen-liquid-pool	Liquid Pool	action	4	16	1.6	hub/gen|1dofx6u
+gen-shard-debris	Shard Debris	action	4	16	1	hub/gen|1j7s8hn
+gen-crescent-nick	Crescent Nick	action	4	16	0.6	hub/gen|1m38ts6
+gen-ground-splat	Ground Splat	action	4	16	1	hub/gen|1oeo900
+gen-collision-burst	Collision Burst	action	4	16	0.8	hub/gen|1rqg0cn
+gen-black-hole-vortex	Black Hole Vortex	action	4	16	1.2	hub/gen|1t49tf1
+gen-rising-puffs	Rising Puffs	action	4	16	1.4	hub/gen|1tnvax3
+gen-liquid-spray	Liquid Spray	action	4	16	1.2	hub/gen|4lztr5
+gen-suction-vortex	Suction Vortex	action	4	16	0.9	hub/gen|6lnd6n
+gen-falling-droplets	Falling Droplets	action	4	16	1	hub/gen|bl7zga
+gen-ground-splash	Ground Splash	action	4	16	1.2	hub/gen|ec5j1n
+gen-tiny-cuts	Tiny Cuts	action	4	16	1.4	hub/gen|f5wx49
+gen-blood-spray	Blood Spray	action	4	16	1	hub/gen|gr9s2s
+gen-orbit-waves	Orbit Waves	action	4	16	0.8	hub/gen|h9k992
+gen-rising-sparks	Rising Sparks	action	4	16	1.5	hub/gen|jnc0a0
+gen-muzzle-flash	Muzzle Flash	action	4	16	0.5	hub/gen|n1kgsa
+gen-orb-aura	Orb Aura	action	4	16	1	hub/gen|prbva1
+gen-hit-burst	Hit Burst	action	4	16	0.7	hub/gen|q6qfij
+gen-cut-flurry	Cut Flurry	action	4	16	0.9	hub/gen|r3r189
+gen-muzzle-thrust	Muzzle Thrust	action	4	16	0.5	hub/gen|y0ao5u
+gen-storm-nova	Storm Nova	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/magic/storm-nova.js
+gen-acid-geyser	Acid Geyser	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/acid-geyser.js
+gen-black-hole	Black Hole	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/black-hole.js
+gen-blood-spray-arc	Blood Spray Arc	action	4	16	0.8	gen/claude|tools/vfx/showcase/gen/combat/blood-spray-arc.js
+gen-cataclysm	Cataclysm	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/magic/cataclysm.js
+gen-chain-lightning	Chain Lightning	action	4	16	0.6	gen/claude|tools/vfx/showcase/gen/elements/chain-lightning.js
+gen-crystal-shatter	Crystal Shatter	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/crystal-shatter.js
+gen-earth-slam	Earth Slam	action	4	16	1	gen/claude|tools/vfx/showcase/gen/combat/earth-slam.js
+gen-electric-dash	Electric Dash	action	4	16	0.6	gen/claude|tools/vfx/showcase/gen/combat/electric-dash.js
+gen-fireball-explosion	Fireball Explosion	action	4	16	1	gen/claude|tools/vfx/showcase/gen/elements/fireball-explosion.js
+gen-heal-aura	Heal Aura	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/magic/heal-aura.js
+gen-holy-pillar	Holy Pillar	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/holy-pillar.js
+gen-iai-slash	Iai Slash	action	4	16	0.5	gen/claude|tools/vfx/showcase/gen/combat/iai-slash.js
+gen-ice-spikes	Ice Spikes	action	4	16	0.9	gen/claude|tools/vfx/showcase/gen/elements/ice-spikes.js
+gen-laser-beam	Laser Beam	action	4	16	0.8	gen/claude|tools/vfx/showcase/gen/combat/laser-beam.js
+gen-meteor-impact	Meteor Impact	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/combat/meteor-impact.js
+gen-rifle-muzzle-flash	Rifle Muzzle Flash	action	4	16	0.4	gen/claude|tools/vfx/showcase/gen/combat/rifle-muzzle-flash.js
+gen-plasma-orb	Plasma Orb	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/plasma-orb.js
+gen-poison-cloud	Poison Cloud	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/elements/poison-cloud.js
+gen-shadow-tendrils	Shadow Tendrils	action	4	16	1	gen/claude|tools/vfx/showcase/gen/magic/shadow-tendrils.js
+gen-tornado	Tornado	action	4	16	1.4	gen/claude|tools/vfx/showcase/gen/elements/tornado.js
+gen-mushroom-blast	Mushroom Blast	action	4	16	1.0	gen/claude|tools/vfx/showcase/gen/elements/mushroom-blast.js
+gen-toxic-creep	Toxic Creep	action	4	16	1.6	gen/claude|tools/vfx/showcase/gen/elements/toxic-creep.js
+gen-star-rift	Star Rift	action	4	16	1.2	gen/claude|tools/vfx/showcase/gen/magic/star-rift.js
+gen-plasma-crescent	Plasma Crescent	action	4	16	1.0	gen/claude|tools/vfx/showcase/gen/magic/plasma-crescent.js

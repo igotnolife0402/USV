@@ -6,7 +6,9 @@ import { spawnSync } from 'node:child_process';
 
 const ROOT_OK = new Set(['CLAUDE.md', 'CLAUDE.local.md', 'CLAUDE.local.md.example', 'index.md', 'lessons.md', 'log.md', 'router.json',
   'README.md', '.gitignore', '.gitattributes', '.github', '.githooks', '.claude', '.orchestration', 'archive', 'checklists',
-  'domains', 'hooks', 'profiles', 'queue', 'scripts', 'state', 'tests', 'tools']);
+  'domains', 'hooks', 'profiles', 'queue', 'scripts', 'state', 'tests', 'tools', 'vfx']);
+// owner 2026-11-24: every white VFX sheet lives flat in vfx/sheets, found via vfx/index.tsv; 1024 px flipbooks exceed the image cap by design
+const VFX_LIB = /^vfx\/sheets(\/|$)/;
 const FOLDER_CAP = 20, IMG_CAP = 400_000, FILE_CAP = 200_000;
 const IMG = /\.(png|jpe?g|webp|gif)$/i;
 const TEXT = /\.(md|py|js|mjs|cjs|ts|json|lua|luau|txt|html|css|sh|yml|yaml|toml|xml|svg|csv)$/i;
@@ -51,13 +53,13 @@ export function repoCheck(root, files = listFiles(root)) {
       if (!parts[i].startsWith('.')) (kids.get(dir) || kids.set(dir, new Set()).get(dir)).add(parts[i]);
     }
     if (CONTENT_SKIP.test(f)) continue;
-    if (JUNK.test(basename(f, extname(f))) && !/^tools\/3d\/models\/([^/]+)\/\1_v\d+\.\w+$/.test(f)) add(f, 'copy/version name; overwrite the original instead');
+    if (JUNK.test(basename(f, extname(f))) && !VFX_LIB.test(f) && !/^tools\/3d\/models\/([^/]+)\/\1_v\d+\.\w+$/.test(f)) add(f, 'copy/version name; overwrite the original instead');
     let size = 0;
     try { size = statSync(join(root, f)).size; } catch { continue; }
-    if (IMG.test(f)) { if (size > IMG_CAP) add(f, `${Math.round(size / 1000)} KB > ${IMG_CAP / 1000} KB; compress it`); }
+    if (IMG.test(f)) { if (size > IMG_CAP && !VFX_LIB.test(f)) add(f, `${Math.round(size / 1000)} KB > ${IMG_CAP / 1000} KB; compress it`); }
     else if (!/\.md$/i.test(f) && size > FILE_CAP) add(f, `${Math.round(size / 1000)} KB > ${FILE_CAP / 1000} KB; too big for the vault (gitignore generated output, regenerate it from a script)`);
   }
-  for (const [dir, set] of kids) if (!/^(\.orchestration|archive|\.claude)(\/|$)|^tools\/.*\/(test|tests|plugins)$/.test(dir) && set.size > FOLDER_CAP) add(dir, `${set.size} items > ${FOLDER_CAP}; split by category`);
+  for (const [dir, set] of kids) if (!/^(\.orchestration|archive|\.claude)(\/|$)|^tools\/.*\/(test|tests|plugins)$/.test(dir) && !VFX_LIB.test(dir) && set.size > FOLDER_CAP) add(dir, `${set.size} items > ${FOLDER_CAP}; split by category`);
 
   // Content: machine/session paths, old-vault names, image embeds, backticked paths, CDN pins.
   const texts = files.filter(f => TEXT.test(f) && !CONTENT_SKIP.test(f));
@@ -82,7 +84,9 @@ export function repoCheck(root, files = listFiles(root)) {
       if (!/^@\d+\.\d+\.\d+(?:[-+][\w.]+)?$/.test(ver || '')) add(f, `CDN library ${pkg}${ver || ''} is not pinned to an exact version`);
   }
   const embedded = new Set([...corpus.matchAll(/[\w%. -]+\.(?:png|jpe?g|webp|gif)/gi)].map(m => basename(decodeURIComponentSafe(m[0].trim()))));
-  for (const f of files) if (IMG.test(f) && !CONTENT_SKIP.test(f) && !embedded.has(basename(f))) add(f, 'image not referenced by any note or page; delete it or link it');
+  // vfx/sheets are referenced by slug from vfx/index.tsv (676+ rows), not by notes
+  const vfxIdx = files.includes('vfx/index.tsv') ? new Set(read('vfx/index.tsv').split('\n').map(l => l.split('\t')[0])) : new Set();
+  for (const f of files) if (IMG.test(f) && !CONTENT_SKIP.test(f) && !embedded.has(basename(f)) && !(f.startsWith('vfx/sheets/') && vfxIdx.has(basename(f).replace(/\.png$/i, '')))) add(f, 'image not referenced by any note or page; delete it or link it');
 
   // Notes must be reachable: linked from another note, index or router.json.
   const mdAll = files.filter(f => /\.md$/i.test(f));
@@ -165,7 +169,8 @@ function toolChecks(root, files, read, has, add) {
       add(t.dir, 'no note links it (tools/<cat>/<tool>/ in a domain note or index), so no task can reach it');
     for (const [f, x] of t.body) for (const m of x.matchAll(/(?:\.\.[/\\])+[\w./\\-]*/g)) {
       const p = posix.normalize(posix.join(posix.dirname(f), m[0].replace(/\\/g, '/')));
-      if (!p.startsWith(t.dir + '/') && p !== t.dir) { add(f, `'../' path leaves its tool folder (${m[0]})`); break; }
+      // vfx/ is the shared white-sheet library every tool may read (vfx/README.md), not another tool
+      if (!p.startsWith(t.dir + '/') && p !== t.dir && !/^vfx(\/|$)/.test(p)) { add(f, `'../' path leaves its tool folder (${m[0]})`); break; }
     }
     for (const o of info) {
       if (o === t || !t.all.includes(o.name)) continue;

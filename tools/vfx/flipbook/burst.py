@@ -17,7 +17,7 @@ from slash import _glow, _entry
 S = 128
 
 
-def shock(seed, element='Ar-blue', delay=1, r0=0.05, grow=0.3, width=0.05, ring=1.0, core=1.0, gain=1.0, exposure=1.5, life=1.4):
+def shock(seed, element='Ar-blue', delay=1, r0=0.05, grow=0.3, width=0.05, ring=1.0, core=1.0, gain=1.0, exposure=1.5, life=1.4, attack=3.0):
     y, x = np.mgrid[0:S, 0:S].astype(np.float32) + 0.5; r = np.hypot(x - S / 2, y - S / 2) / S
     rgb = element_rgb(element); ang = np.arctan2(y - S / 2, x - S / 2)
     rough = img.fbm(ang / (2 * math.pi) * 16, r * 10, 0.0, seed, 3, pa=16)        # the shell is torn, not a perfect ring
@@ -25,7 +25,7 @@ def shock(seed, element='Ar-blue', delay=1, r0=0.05, grow=0.3, width=0.05, ring=
     for t in range(F):
         a = t - delay
         if a < -0.5: frames.append(img.finish(np.zeros((S, S, 3), np.float32), np.zeros((S, S), np.float32))); continue
-        rise = img.smooth(-0.5, 2.0, a); tt = max(a, 0) + 1.0
+        rise = img.smooth(-0.5, attack - 0.5, a); tt = max(a, 0) + 1.0   # attack: frames to full; 2.5 popped (jump 3.65-3.96), 3.0 = 2.4-2.5 (2026-11-24)
         R = r0 + grow * (tt / F) ** 0.4 * (0.92 + 0.16 * rough)                    # Sedov-Taylor: R ~ t^(2/5)
         W = width * (1 + tt / 18)
         shell = np.exp(-((r - R) / W) ** 2) * tt ** -1.2 * 3.0 * ring
@@ -37,7 +37,7 @@ def shock(seed, element='Ar-blue', delay=1, r0=0.05, grow=0.3, width=0.05, ring=
 
 
 def glints(seed, n=180, element='Ar-blue', delay=1, speed=3.2, drag=0.94, gravity=0.06, spin=0.35, shine=60, life_f=40,
-           size=1, gain=1.0, exposure=1.4, spread=1.0, life=1.4):
+           size=1, gain=1.0, exposure=1.4, spread=1.0, life=1.4, attack=0.8):
     n = int(n); rng = np.random.default_rng(seed + 11)
     rgb = element_rgb(element); tint = 0.55 * rgb + 0.45
     ang = rng.uniform(0, 2 * math.pi, n); sp = speed * rng.uniform(0.25, 1.0, n) ** 0.6 * spread
@@ -57,7 +57,7 @@ def glints(seed, n=180, element='Ar-blue', delay=1, speed=3.2, drag=0.94, gravit
             th = w * tt; c, s = np.cos(th)[:, None], np.sin(th)[:, None]
             nt = nrm * c + np.cross(ax, nrm) * s + ax * (ax * nrm).sum(1, keepdims=True) * (1 - c)       # Rodrigues: the flake turns
             spec = np.abs(nt @ H) ** shine                                                                 # both faces mirror
-            b = (spec * 3.0 + 0.06) * np.exp(-tt / lf) * img.smooth(-0.5, 0.8, tt) * img.smooth(F - 1, F - 10, t + q / sub)
+            b = (spec * 3.0 + 0.06) * np.exp(-tt / lf) * img.smooth(-0.5, attack, tt) * img.smooth(F - 1, F - 10, t + q / sub)
             col = (tint[None] * (1 - spec[:, None]) + spec[:, None]) * b[:, None] / sub
             ix, iy = P[:, 0] - 0.5, P[:, 1] - 0.5; x0, y0 = np.floor(ix).astype(int), np.floor(iy).astype(int); fx, fy = ix - x0, iy - y0
             for ox, oy, wt in ((0, 0, (1 - fx) * (1 - fy)), (1, 0, fx * (1 - fy)), (0, 1, (1 - fx) * fy), (1, 1, fx * fy)):
