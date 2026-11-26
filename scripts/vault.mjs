@@ -6,6 +6,7 @@
 //   node scripts/vault.mjs bump L-012 --helped|--hurt   count a lesson again (seen twice -> promote)
 //   node scripts/vault.mjs words <routeId> <word...>   add trigger words to a route (warns on clashes)
 //   node scripts/vault.mjs queue add "<step>" [--context ""] | queue list | queue done <n>
+//   node scripts/vault.mjs fix add [--build] "<fix>" | fix built <n|all> | fix list | fix done   build = fix the current deliverable
 //   node scripts/vault.mjs status                      lint, performance, lessons to promote, queue, last commit
 //   node scripts/vault.mjs tool find <words> | tool add "<name>" --where <url|path> [--kind artifact|cli|mcp|app] [--how ""]
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
@@ -128,6 +129,37 @@ export function toolAdd(name, { where, kind = 'artifact', how = '' }) {
   return { name, where, updated: i >= 0 };
 }
 
+// Running fix list (owner 2026-11-24): log each fix the moment it is spotted (`fix add`), keep working, implement them all at
+// the very end, then `fix done` moves them into this turn's log.md `improved:` line and clears the list.
+export const FIXES = 'state/fixes-pending.md';
+// Build fixes (owner 2026-11-24 "you always build fixed version too"): `fix add --build "<x>"` is a fix to the CURRENT
+// deliverable; it stays `[build]` until `fix built <n|all>` after the rebuild + re-check, and `fix done` refuses until then.
+export const unbuiltFixes = (text) => text.split('\n').filter(l => l.startsWith('- [build] ')).map(l => l.slice(10));
+export function fix(op = 'list', text = '') {
+  const cur = readIf(P(FIXES)).split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2));
+  if (op === 'add') {
+    const build = /^--build\s+/.test(text); text = text.replace(/^--build\s+/, '').trim();
+    if (!text) throw new Error('fix add [--build] "<what to fix>"');
+    cur.push(build ? `[build] ${text}` : text);
+  }
+  if (op === 'built') {
+    const idx = cur.map((x, i) => x.startsWith('[build] ') ? i : -1).filter(i => i >= 0);
+    const pick = text === 'all' || !text ? idx : idx.filter((_, k) => String(k + 1) === text.trim());
+    if (!pick.length) throw new Error(`fix built <n|all>: ${idx.length} unbuilt build fix(es)`);
+    for (const i of pick) cur[i] = cur[i].replace(/^\[build\] /, '[built] ');
+  }
+  if (op === 'done') {
+    const left = cur.filter(x => x.startsWith('[build] '));
+    if (left.length) throw new Error(`fix done refused: ${left.length} build fix(es) not applied to the current deliverable: ${left.map(x => x.slice(8)).join(' | ')}. Apply, rebuild, re-run the check, then fix built <n|all>`);
+    const log = readIf(P('log.md')), line = `improved: ${cur.map(x => x.replace(/^\[built\] /, '')).join('; ')}`;
+    writeFileSync(P('log.md'), log.replace(/\s*$/, '') + '\n' + line + '\n');
+    writeFileSync(P(FIXES), '');
+    return { moved: cur.length, line: line.slice(0, 120) };
+  }
+  if (op === 'add' || op === 'built') writeFileSync(P(FIXES), cur.map(x => `- ${x}`).join('\n') + '\n');
+  return { pending: cur.length, unbuilt: cur.filter(x => x.startsWith('[build] ')).length, fixes: cur };
+}
+
 export function status() {
   const lint = lintAll(VAULT), errs = lint.filter(r => r.level === 'error');
   const g = spawnSync('git', ['log', '-1', '--format=%h %cr %s'], { cwd: VAULT, encoding: 'utf8' });
@@ -149,6 +181,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     else if (cmd === 'words') show(addWords(a[0], a.slice(1)));
     else if (cmd === 'queue') show(queue(a[0] || 'list', a[1], flag(a, 'context')));
     else if (cmd === 'status') show(status());
+    else if (cmd === 'fix') show(fix(a[0] || 'list', a.slice(1).join(' ')));
     else if (cmd === 'tool' && a[0] === 'add') show(toolAdd(a[1], { where: flag(a, 'where'), kind: flag(a, 'kind'), how: flag(a, 'how') }));
     else if (cmd === 'tool') show(toolFind(a.slice(a[0] === 'find' ? 1 : 0)));
     else { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 11).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exitCode = cmd ? 1 : 0; }

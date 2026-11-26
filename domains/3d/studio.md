@@ -48,7 +48,7 @@ Docs (open only the one you need): [scene format](tools/3d/studio/docs/scene-for
 
 ## Mobile fallback (/mobile)
 - Browser tests DO run here (Playwright + Chromium preinstalled, 2026-11-23): `npm i` three@0.186.1 three-mesh-bvh@0.9.16 three-bvh-csg@0.0.18 mp4-muxer@5.2.2 into `<scratch>/deps`, then `SCRATCH=<scratch> DEPS=<scratch>/deps/node_modules node test/run.mjs <suite>`. Every-angle labeled real render: `VIEWS_TAB=<dir: project.json meta.json geo/> VIEWS_OUT=<dir> node test/run.mjs views` (~15 s). Also: Edit studio files in the repo, `node --check` each touched module, run `node cli/studio.mjs validate scene.json` if `three` is installable in the session scratch.
-- Preview: paste a scene as a three.js HTML Artifact (procedural, pinned CDN) or write the Hub db docs if an Artifact data tool exists.
+- Preview: build in the Umbrio tab (hub db docs); the owner's preview is the MP4 from `SHOTS_VIDEO=1` shots (clip.mp4), sent as a file. Never a standalone three.js HTML artifact (owner 2026-11-24).
 - Queue: `- [ ] YYYY-MM-DD node tools/3d/studio/test/run.mjs <suite> + shots check — <change>` in [queue/pc.md](queue/pc.md).
 
 ## Done

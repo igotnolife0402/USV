@@ -32,6 +32,8 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 ## Delivery deadline (owner 2026-11-23: the full prompt lands at the think time +-5 s, never earlier or later)
 - First tool call: `node scripts/improve-timer.mjs start <seconds>` (clock = the moment the owner's message arrived, from the prompt hook). It prints `send_brief_at` = think time - the Sonnet time it predicts for that budget (interpolated from measured runs, 17 s at 30 s to 27 s at 240 s); budgets <= 15 s have no Sonnet.
 - Budget <= 60 s: start writing the brief at `send_brief_at` - 10 s, fragments only (2026-11-25 vfx generator: a 35 s hand-written brief delivered at 97 s, L-143).
+- Timer starts with `elapsed` > half the budget (message delay, 2026-11-24 nova: 52.9 s of 60): skip research, write the brief and spawn the improver as the very next call.
+- Never spawn the improver before `send_brief_at` unless `note` says LATE START (2026-11-24: spawned at 13 s of 60, prompt landed 13.9 s early).
 - Between research steps: `node scripts/improve-timer.mjs left`; obey `advice` (keep researching / write the brief now / send now). Never start a read that won't finish before `brief_left`.
 - While `advice` says keep researching, spend the time on rungs 4-7 (gate math, contradiction pass, depth) and re-check `left`; an early brief wastes the owner's think time.
 - Sonnet back early: spend the slack on a real check (brief values survived, gate math re-run, contradictions) and fix what it finds; still > 5 s early with nothing left to check: wait out the rest with Monitor until `left` <= 2. Late: deliver at once, never pad further.
@@ -41,6 +43,10 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - send_brief_at is a hard line (2026-11-24, 120 s run spawned 8 s late -> +12.4 s): when `left` says write, spawn in the next call; no 'one more' lookup. After the prompt shows, invoke every skill the router named, not only the first.
 - Interrupted turns before `/improve` (2026-11-25, +49.5 s): start with `start <s> --now` so earlier turns do not eat the budget.
 - The improver hand-back can land mid-build: run `node scripts/improve-timer.mjs done` as the very next call when it arrives, before any other tool (2026-11-24: done ran 115 s late -> false FAIL).
+- The build usually continues in the improver's hand-back turn: run `fix add` there as you go; the Stop hook now checks working relay turns (2026-11-24).
+- Never end the turn while the improver runs (2026-11-24 Macarena: turn ended to wait, the Stop-hook commit round cost +13.6 s): wait with Monitor in the same turn.
+- Call `done` the moment the prompt arrives inside the window, before any build command (2026-11-24 Void Rift: done ran after the build write, +21 s).
+- Delivery lines in the brief name the deliverable only (MP4, model, page); verification sheets/frames are reviewed silently, never sent (owner 2026-11-24).
 - Show the prompt, then `node scripts/improve-timer.mjs done` and put its `elapsed`/`result` on one line under the prompt.
 
 ## Do exactly this
@@ -59,6 +65,7 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
    - verify: the ONE outside check + pass numbers.
    Write it fast: fragments, numbers, hex; Sonnet turns it into sentences and tables.
 2. Same turn, right after the spawn: start the build from your BRIEF (invoke the brief's skill, open its checklist, first build step). Do not wait. Until the prompt is shown, keep to short tool calls (reads, `left`): a background result is seen only between tool calls, so long planning between calls delays delivery past the deadline. At `left` <= 2, stop build work and wait for Sonnet with Monitor.
+2. Rule (promoted L-136, 2026-11-24: a 60 s beam prompt landed at 269.8 s because a 400-line Write was composed before the Sonnet notice): never Write or compose a file over ~40 lines, nor fire a batch of slow external calls (2026-11-24: 12 Firecrawl screenshots made a 120 s prompt 20 s late), before the prompt is shown; until then only reads, skill load, scaffold, one slow call at most and `left`.
 3. When the full prompt arrives: show it to the owner in a collapsed block (`<details><summary>Improved prompt</summary>...</details>`), then follow its Build steps, Verify and Owner rules for the rest of the build. Brief values win over anything Sonnet changed.
 4. `/improve only ...`: skip step 2; show the prompt when it arrives and stop.
 

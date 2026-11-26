@@ -34,17 +34,33 @@ Umbrio work: [umbrio-animator.md](umbrio-animator.md) first (engine API, timing 
 
 ## PC (/pc)
 1. Edit the spec (ANIM or POSES/CLIPS), rebuild (`python orc.py out --sheets DIR` / `python avatar.py KIT OUT --clip C`, ~1 s).
-2. Shots check: `SHOTS_TAB=OUT/studio SHOTS_AT=1,2,3 SHOTS_VIDEO=1 node tools/3d/studio/test/run.mjs shots` → look at `shots.jpg` + `clip.mp4` once.
+2. Shots check: `SHOTS_TAB=OUT/studio SHOTS_AT=1,2,3 SHOTS_VIDEO=1 node tools/3d/studio/test/run.mjs shots` → then the frame review below (never one look).
 3. Beast video: `NODE_MODULES=<three> node video.mjs out 12 24` (ffmpeg) → look at 4-6 frames once.
 4. Write the clip into the Studio tab (pin `if_version`); Roblox: KeyframeSequence via Studio export or the kit's Animator script.
 
 ## Mobile fallback (/mobile)
 - Edit the spec files and Studio clip JSON (`anim` tracks: `[[t, value, ease]]`) in the repo; run the Python build if numpy exists in the session.
-- Preview: a three.js Artifact that tweens the key poses with the same `smooth` ease.
+- Preview: the studio shots run works in cloud sessions (Playwright + llvmpipe, verified 2026-11-24, 47 s): install deps once (`npm i three@0.186.1 three-mesh-bvh@0.9.16 three-bvh-csg@0.0.18 mp4-muxer@5.2.2` in `$SCRATCH/deps`), then `SHOTS_TAB=OUT/studio SHOTS_AT=... SHOTS_VIDEO=1 SCRATCH=$SCRATCH node tools/3d/studio/test/run.mjs shots` -> real MP4; queue only if it fails.
+- First key pose check (2026-11-24 Macarena): render ONE frame of the first IK pose (`SHOTS_AT=<t>`) before writing the whole clip; a wrong front axis wastes the full build.
 - Queue: `- [ ] YYYY-MM-DD shots check SHOTS_VIDEO=1 for <clip> — mobile-edited animation` in [queue/pc.md](queue/pc.md).
 
+## Frame review (owner 2026-11-24: "always go frame by frame, EVERY SINGLE FRAME")
+- Render ALL frames at >= 10 fps (`SHOTS_AT=0,0.1,...,<len>`) from two fixed cameras: front + 3/4 (`SHOTS_CAM`), both framing the whole body, head included.
+- Tile into labeled 8-frame sheets (4x2, frame + time label); read every sheet of both cameras, silently: send the owner only the final MP4, never sheets or frames (owner 2026-11-24). Check per frame: palms/facing, hands through head or body, arm straightening (out of reach), foot slide/float, loop seam last vs first.
+- Write each defect as `F<n>: <what>`; fix all, rebuild, IK check (<= 0.05 stud), re-render, re-review every frame. Done = a full pass with 0 defects. Macarena needed 3 passes (8 defects, then 2, then 0).
+- Clearing render dirs: `rm -rf "${N:?}"/shots` (unguarded vars are blocked).
+- Tools: `tools/3d/avatar/framesheets.py` (sheets), `ikcheck.py` (reach); see its README.
+- Cross-body moves: outside via keys (`VIA` in tools/3d/avatar/avatar.py) with the full lean of the surrounding poses.
+
+## Dance and emote motion (owner 2026-11-24: "wiggles his butt side to side", "choppy")
+- Feet planted: `plant` key in the pose (avatar.py `ik_leg`) pins both ankles to their rest spots; never move the root with feet attached unless the move is a step or hop.
+- Isolations (hip roll, chest pop): the pelvis travels its path AND tips against its own offset (pitch 42 deg/stud depth, tilt 36 deg/stud side) so chest and head stay over the feet.
+- Cyclic motion: >= 12 linear keys per cycle, radius eased in/out over a quarter cycle; never 4 quarter keys with sine eases (dead stop at each key).
+- Holds: no two identical keys in a row; each beat = hit (knees down) -> up (mid-beat) -> pre (next dip), so the body never freezes.
+- Check: `ikcheck.py` prints worst foot slide (pass <= 0.03 stud).
+
 ## Done
-[checklists/3d.md](checklists/3d.md) + clip watched once (shots/MP4). New failure → [errors](domains/animation/errors.md).
+[checklists/3d.md](checklists/3d.md) + frame review pass with 0 defects. New failure → [errors](domains/animation/errors.md).
 
 ## Cutscene rules (fight scenes; from the supernova duel critique 2026-11-24, every number measured by FK on the tab)
 - Choreograph contact, not swings: every clash is a key where both blade segments meet (FK distance <= 0.15 stud) at a named contact point; the duel had 0 of 300 samples under 0.15 (strike moments 0.57-2.92 apart), so blades passed through each other.

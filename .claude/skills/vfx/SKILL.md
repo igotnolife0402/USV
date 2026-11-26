@@ -4,6 +4,12 @@ description: 'Use for visual effects, particles, explosions, magic, trails, beam
 ---
 # vfx — Roblox + three.js effects
 
+## House style (owner 2026-11-24, permanent, every VFX in every session)
+- One shared anime cel style ([anime-vfx-reference](domains/vfx/anime-vfx-reference.md)) so all effects look good together: white core -> saturated body -> dark same-hue edge in hard bands.
+- Gradients CLEARLY visible: >= 4 distinct colour steps per gradient, neighbours far apart in value (Umbrio: stack bands, each with a 2-colour `gradient` texture, or opaque-ish cel shells).
+- A reference image gives structure and part count only; never copy its style (2026-11-24: copied a photoreal black hole, owner rejected it).
+- Max detail always: many layered parts (pro reference = dozens of distinct elements), not 2-3. Speed comes from templates, never from skipping detail; end early only when nothing better is possible.
+
 ## Design rules (both engines)
 - Layer every effect, back to front: SMOKE (slow, dark/grey, alpha, long) → GLOW (soft additive, big, short) → CORE (bright, small, the shape) → SPARKS (fast, tiny, additive, gravity). Optional: shockwave ring, ground decal, light flash.
 - Timing: anticipation 0-0.1 s → impact 0-0.08 s (brightest, biggest) → follow-through 0.2-0.6 s → dissipation 0.5-2 s. Fast in, slow out. Total hit effect <= 0.5 s; explosion <= 1.5 s; ambient loops seamless.
@@ -61,7 +67,8 @@ Trigger the effect 3 times against the real scene background; screenshot at peak
 - [ ] Particle budget respected; readable against background.
 
 ## Time target
+- Invoke this skill on every VFX build turn, even if it was loaded earlier in the session (Stop hook checks per turn, L-152). One shots run per build: put new Umbrio tricks (impact sphere, flipbook orientation) in that first run.
 Single effect < 5 min. Effect library (5+ presets) → one preset per pass.
 
 ## Mobile
-No Studio. Sheet effects (slash, burst, beam): python3+numpy+Pillow exist in cloud sessions, so build and `--check` the flipbook exactly as on PC; queue only the upload + playtest. Otherwise build the effect as a single-file three.js HTML Artifact (CDN import map, button to trigger, preset JSON visible) to judge timing/layers, then write the Roblox version as a `.luau` module in the repo that constructs the emitters in code (`src/shared/VFX/<Name>.luau` with `play(cframe)`). Queue: `- [ ] YYYY-MM-DD playtest VFX <Name> in Studio, tune sizes/textures — mobile build`.
+No Roblox Studio. Build every effect/animation in a fresh **Umbrio Sandbox** tab (hub db docs via ArtifactData, recipe [umbrio-build](domains/3d/umbrio-build.md)): Neon/ForceField parts, point lights, anim tracks, flipbook `shape: beam`. Preview for the owner = **MP4** (`SHOTS_VIDEO=1 node test/run.mjs shots` in tools/3d/studio → clip.mp4, sent as a file), never a standalone HTML artifact (owner 2026-11-24). Then, for Roblox, write the Roblox version as a `.luau` module in the repo that constructs the emitters in code (`src/shared/VFX/<Name>.luau` with `play(cframe)`). Queue: `- [ ] YYYY-MM-DD playtest VFX <Name> in Studio, tune sizes/textures — mobile build`. Sheet effects (slash, burst, beam): python3+numpy+Pillow exist in cloud sessions, so build and `--check` the flipbook exactly as on PC; queue only the upload + playtest.

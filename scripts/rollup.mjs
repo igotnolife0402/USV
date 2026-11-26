@@ -49,8 +49,8 @@ export function rollupMetrics(root = ROOT, now = today()) {
     const rows = old[m], n = rows.length;
     const avg = (t) => { const x = rows.filter(r => r.tier === t); return x.length ? `${t} ${Math.round(x.reduce((s, r) => s + r.secs, 0) / x.length)}s (${x.length})` : null; };
     const bad = {};
-    for (const r of rows) if (!r.ok || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
-    appendFileSync(join(root, 'archive', `metrics-${m}.md`), `# Metrics ${m}\n- turns: ${n}; on target: ${Math.round(100 * rows.filter(r => r.ok).length / n)}%\n` +
+    for (const r of rows) if (r.inLimit === false || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
+    appendFileSync(join(root, 'archive', `metrics-${m}.md`), `# Metrics ${m}\n- turns: ${n}; on goal: ${Math.round(100 * rows.filter(r => r.ok).length / n)}%\n` +
       `- avg: ${['simple', 'medium', 'complex'].map(avg).filter(Boolean).join(', ')}\n- tool errors: ${rows.reduce((s, r) => s + (r.errors || 0), 0)}; owner corrections: ${rows.filter(r => (r.signals || []).includes('correction')).length}\n` +
       `- weakest routes: ${Object.entries(bad).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([d, c]) => `${d} (${c})`).join(', ') || 'none'}\n\n`);
   }

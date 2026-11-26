@@ -17,8 +17,10 @@ triggers: [vault, lesson, note, index, lint, rollup]
 - [ ] Hook or automation changes are complex tier (< 30 min): write code + tests together, run `node --test "tests/*.test.mjs"` once at the end, not per edit.
 - [ ] Code edits (hooks, tests, scripts) use the Edit/Write tools; never string-replace JS through a Bash heredoc (backslashes and newlines get re-escaped).
 ## Verify (one)
-- `node scripts/vault-lint.mjs` exits 0 (plus `node --test tests/` if hooks/scripts changed).
+- `node scripts/vault-lint.mjs` exits 0 (plus `node --test tests/*.test.mjs` if hooks/scripts changed).
+- Build fixes: `node scripts/vault.mjs fix list` shows `unbuilt: 0` (each applied, rebuilt, re-verified); queue only PC-only steps.
 ## Log
 - log.md entry `## [date] vault / what changed`.
 - [ ] Worktree branch done: merge into main without asking (owner rule 2026-11-22); append-only conflicts (lessons.md, errors.md, log.md) keep both sides; lesson id clash across sessions: renumber yours first.
 - Owner rule text (profiles/owner.md, must.md, CLAUDE.md owner rules) changes only after the owner states the new rule in words; an inferred change = follow the latest request, ask in wrap_up, leave the file (L-122).
+- [ ] Fixes logged as you went (`vault.mjs fix add`), all implemented at the end, `fix done` wrote >= 10 to log.md, `fix list` empty.

@@ -49,10 +49,13 @@ test('signals: errors, slow, correction, router miss; relays give none', () => {
   assert.deepEqual(L.signals(one, { tier: 'simple', routes: ['images'] }).map(s => s.kind), ['errors'], 'one error on a tiny task still teaches');
   const task = L.parseTurn(transcript('make it learn from every error and when it was super slow', []).split('\n'));
   assert.equal(L.signals(task, { tier: 'medium', routes: [] }).length, 0, 'a task description is not a correction');
+  const idle = L.parseTurn(transcript('<task-notification> done', []).split('\n'));
+  assert.equal(L.signals(idle, {}).length, 0, 'a relay that does no work stays quiet');
   const relay = L.parseTurn(transcript('<task-notification> done', failing).split('\n'));
-  assert.equal(L.signals(relay, {}).length, 0);
   const dot = L.parseTurn(transcript('.', []).split('\n'));
   assert.equal(L.signals(dot, { tier: 'medium' }, { improved: 0 }).length, 0, 'a bare "." nudge asks for no improve footer');
+  assert.ok(L.signals(relay, { tier: 'medium' }).map(s => s.kind).includes('errors'), 'work continued in a relay turn still teaches (Macarena 2026-11-24)');
+  assert.ok(L.signals({ ...idle, tools: 12 }, { tier: 'medium' }, { improved: 0 }).map(s => s.kind).includes('improve'), 'a working relay needs the 10 fixes too');
   const vault = L.signals(t, { tier: 'medium', routes: ['vault'] }).map(s => s.kind);
   assert.ok(!vault.includes('router'), 'vault upkeep may read any domain');
 });
@@ -87,9 +90,9 @@ test('metrics: one line per owner turn, digest names weak routes, promote list',
   assert.equal(L.recordMetrics(t, { tier: 'simple', routes: ['vfx'] }, [], 'pc'), false, 'deduped');
   const path = join(process.env.VAULT_ROOT, L.METRICS);
   const row = JSON.parse(readFileSync(path, 'utf8').trim());
-  assert.equal(row.ok, true); assert.equal(row.errors, 2);
+  assert.equal(row.inLimit, true); assert.equal(row.ok, row.secs <= 15, 'ok = on goal (limit/4)'); assert.equal(row.errors, 2);
   const many = Array.from({ length: 5 }, (_, i) => JSON.stringify({ t: at(i), tier: 'medium', secs: 400, ok: false, errors: 1, routes: ['roblox'], signals: ['slow'] })).join('\n');
-  assert.match(L.perfDigest(many), /0% on target.*weakest routes: roblox \(5\)/);
+  assert.match(L.perfDigest(many), /0% on goal.*weakest routes: roblox \(5\)/);
   assert.deepEqual(L.toPromote('- [L-001] (h:2 x:0) a\n- [L-002] (h:0 x:1) b\n- [L-003] (h:3 x:0) c → promoted: x.md'), ['L-001']);
 });
 
@@ -101,7 +104,7 @@ test('rollupMetrics: past months become a summary note, current month stays', ()
     { t: '2026-11-02T10:00:00.000Z', tier: 'simple', secs: 20, ok: true, errors: 0, routes: [], signals: [] },
   ].map(r => JSON.stringify(r)).join('\n') + '\n');
   assert.deepEqual(rollupMetrics(root, '2026-11-21'), ['2026-10']);
-  assert.match(readFileSync(join(root, 'archive', 'metrics-2026-10.md'), 'utf8'), /turns: 2; on target: 50%[\s\S]*roblox \(1\)/);
+  assert.match(readFileSync(join(root, 'archive', 'metrics-2026-10.md'), 'utf8'), /turns: 2; on goal: 50%[\s\S]*roblox \(1\)/);
   assert.equal(readFileSync(join(root, 'archive', 'metrics.jsonl'), 'utf8').trim().split('\n').length, 1);
   assert.deepEqual(rollupMetrics(root, '2026-11-21'), [], 'idempotent');
 });
@@ -110,7 +113,7 @@ test('stop-gate end to end: blocks to learn, then commits once the lesson is wri
   const V = join(BASE, 'stop learn vault');
   const g = (...a) => spawnSync('git', a, { cwd: V, encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_'))) });
   mkdirSync(V, { recursive: true }); g('init', '-q'); g('config', 'user.name', 't'); g('config', 'user.email', 't@t');
-  put(V, 'log.md', `# Log\n## [${today()}] test / x\nimproved: a; b; c\n`);   // the hook's own (local) date, not UTC
+  put(V, 'log.md', `# Log\n## [${today()}] test / x\nimproved: a; b; c; d; e; f; g; h; i; j\n`);   // the hook's own (local) date, not UTC
   const FM = '---\nsummary: l\nupdated: 2026-11-21\nstatus: current\n---\n';
   put(V, 'lessons.md', `${FM}# Lessons\n- [L-001] (h:0 x:0) 2026-11-21 a — trigger: a\n`);
   g('add', '-A'); g('commit', '-qm', 'init');
@@ -143,16 +146,12 @@ test('honesty: claiming done after a failed last call is flagged; admitting it i
   assert.ok(!L.signals(fixed, { tier: 'medium' }).some(s => s.kind === 'honesty'));
 });
 
-test('always improve: every task needs >= 3 logged fixes; crew spawn/spec delays are slow signals', () => {
+test('always improve: every task needs >= 10 logged fixes, none listed in the reply; crew spawn/spec delays are slow signals', () => {
   const clean = L.parseTurn(transcript('make a landing page', [use('w', 'Write', { file_path: 'C:/x/site/index.html' }, 5), res('w', 'ok', false, 6)]).split('\n'));
-  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 1 });
-  assert.deepEqual(sigs.map(s => s.kind), ['improve', 'improve'], 'fixes not logged + backlog not listed');
-  assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE/);
-  assert.match(L.learnReason(sigs, { lessonsChanged: true, routerChanged: false, knowChanged: true, nextId: 'L-1' }), /at least 3/, 'a note change alone is not 3 fixes');
-  assert.deepEqual(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 3 }).map(s => s.text), ['fixes not listed in the reply footer (`Fixed: a, b, c`)', 'reply footer lacks `Next: a, b, c` (>= 3 items)'], 'logged but not told to the owner');
-  assert.equal(L.signals({ ...clean, lastText: 'Fixed: sub-agent delay, realistic style, candy now kills\nNext: house rebuild, old plugin, spec template\nDone' }, { tier: 'simple', routes: ['web'] }, { improved: 3 }).length, 0, 'tiny footer passes');
-  assert.equal(L.signals({ ...clean, lastText: 'Improved: a; b; c\nStill to improve:\n1. d\n2. e\n3. f' }, { tier: 'simple' }, { improved: 3 }).length, 0, 'long form still accepted');
-  assert.ok(L.signals({ ...clean, lastText: 'Fixed: a, b, c' }, { tier: 'simple' }, { improved: 3 }).some(s => /Next/.test(s.text)), 'backlog list required');
+  const sigs = L.signals(clean, { tier: 'medium', routes: ['web'] }, { improved: 3 });
+  assert.deepEqual(sigs.map(s => s.kind), ['improve'], 'only 3 of 10 fixes logged');
+  assert.match(L.learnReason(sigs, { lessonsChanged: false, routerChanged: false, nextId: 'L-1' }), /ALWAYS IMPROVE[\s\S]*at least 10/);
+  assert.equal(L.signals(clean, { tier: 'simple', routes: ['web'] }, { improved: 10 }).length, 0, '10 logged, no reply footer needed (owner: wastes tokens)');
   assert.equal(L.improvedCount('## [d] a\nimproved: x; y; z\n## [d] b\nimproved: q\n'), 1, 'only the newest entry counts');
   assert.equal(L.improvedCount('## [d] a\nwe log `improved:` lines\nimproved: x; y; z'), 3, 'line-start match only');
   assert.equal(L.signals({ ...clean, tools: 0, lastText: 'Done' }, { tier: 'simple' }, { improved: 0 }).length, 0, 'mute: no-tool turn owes no footer');
@@ -171,4 +170,12 @@ test('owner-preferred tools: Blender is denied unless the owner names it (Umbrio
   };
   assert.match(run('make a poison armor model'), /Umbrio Sandbox/);
   assert.equal(run('make it in blender please'), '');
+});
+
+test('unbuilt build fix blocks Stop until fix built', () => {
+  const t = { ...L.parseTurn(transcript('build it', []).split('\n')), tools: 5 };
+  const s = L.signals(t, { tier: 'medium' }, { improved: 12, unbuilt: ['macarena arms out of reach'] });
+  assert.deepEqual(s.map(x => x.kind), ['unbuilt']);
+  assert.match(L.learnReason(s, { lessonsChanged: true, routerChanged: true, nextId: 'L-1' }), /BUILD THE FIX/);
+  assert.deepEqual(L.signals(t, { tier: 'medium' }, { improved: 12, unbuilt: [] }).map(x => x.kind), []);
 });

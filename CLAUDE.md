@@ -2,7 +2,7 @@
 
 Knowledge vault for the owner's builds: Roblox games, websites, browser games, 3D models, VFX, sounds, tools (e.g. browser mini-Blender).
 Runs from the Windows PC (`pc`) and from phone cloud sessions on this repo (`mobile`). Contract: [.orchestration/ARCHITECTURE.md](.orchestration/ARCHITECTURE.md).
-Prime directives: hit the tier time target; never fill context; leave the vault smarter than you found it.
+Prime directives: hit the tier GOAL (limit/4; the tier time is an ABSOLUTE LIMIT, owner 2026-11-24); never fill context; leave the vault smarter than you found it.
 
 ## Owner rules (both modes; detail in [profiles/owner.md](profiles/owner.md), read it before any build)
 - 100% honest: never call it done unless checked; else `Failed: <what>`, no excuses or softening. A fallback + queued PC step is not a failure.
@@ -21,12 +21,12 @@ Prime directives: hit the tier time target; never fill context; leave the vault 
 5. Long task: create `state/<task>.md` before the first sub-agent.
 
 ## 1. Classify the task first (tier)
-| Tier | Target | Do | Skip |
+| Tier | Limit (absolute) → Goal (4x faster) | Do | Skip |
 |---|---|---|---|
-| Simple | < 1 min | Read only routed notes; answer or one edit; quick check | Plans, research, sub-agents |
-| Medium | < 5 min | One recipe skill + scaffold; build in one thread; one check (/verify or screenshot); checklist; stop | Plan mode, agent teams, polish past the checklist |
-| Complex | < 30 min | Short plan; contracts first; 2-4 sub-agents in own worktrees with file lists; 3-try cap; qa-gate before merge; `state/<task>.md` | Research rabbit holes, one giant context |
-| Huge | 30-min waves | `swarm` skill: orchestrator plans only, domain leads, workers, qa-gate, retro into lessons.md | Simple/medium work |
+| Simple | 1 min → 15 s | Read only routed notes; answer or one edit; quick check | Plans, research, sub-agents |
+| Medium | 5 min → 75 s | One recipe skill + scaffold; build in one thread; one check (/verify or screenshot); checklist; stop | Plan mode, agent teams, polish past the checklist |
+| Complex | 30 min → 7.5 min | Short plan; contracts first; 2-4 sub-agents in own worktrees with file lists; 3-try cap; qa-gate before merge; `state/<task>.md` | Research rabbit holes, one giant context |
+| Huge | 30-min waves → 7.5 min | `swarm` skill: orchestrator plans only, domain leads, workers, qa-gate, retro into lessons.md | Simple/medium work |
 - The prompt-router hook tags every prompt simple, medium (default) or complex from router.json `tiers` words; it never tags huge. Retag an obviously one-line ask as simple, and pick huge yourself.
 - Over budget: ship the working subset, log what is left, stop. Never gold-plate.
 - Multiple routes hit (e.g. roblox + vfx): primary = the deliverable's platform; read the secondary playbook only for the part it covers.
@@ -68,8 +68,9 @@ On any error, failed check or owner correction, in the same task:
 2. Add a lesson bullet, or bump `h:`/`x:` on the matching one.
 3. Add the trigger words that should have routed here to [router.json](router.json) (route `words` or `tiers`).
 4. Lesson seen twice (h >= 2 or same root cause twice) → promote to a rule in the domain playbook or a hook; leave the lesson bullet, add `→ promoted: path`.
-Every task, success or not (owner rule; a contentless prompt like "." with no tool work is exempt: just ask): find and fix >= 3 real problems, as many as possible (speed of this run, routing, rules, notes, tools) and log them as `improved: a; b; c` in the log entry and end the reply with the tiny footer `Fixed: a, b, c` + `Next: a, b, c` (vault edits count); the Stop hook blocks until 3 are logged.
-Live clock: `hooks/budget.mjs` (PostToolUse) warns at 50/80/100 % of the tier target; obey it (no new research, ship, then stop). Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on any real tool error (every task, however small: pictures, models, math, vault upkeep), a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly. Sessions in ANY folder learn into this vault too (user-level hooks from `scripts/install-global.mjs`; `--remove` undoes it).
+Every round, every project, success or not (owner 2026-11-24): log fixes as you go (`vault.mjs fix add`), implement them all at the very end, then `fix done`; >= 10 real fixes (target 20+: speed, routing, rules, notes, hooks, tools, templates) as `improved: a; b; ...` in the log entry, each made impossible to repeat; never list them in the reply (wastes tokens); the Stop hook blocks until 10 are logged.
+Fixes apply to the current project too: rebuild + re-verify with every fix before replying (`fix add --build` → `fix built`; Stop blocks until built); queue only PC-only steps ([owner.md](profiles/owner.md)).
+Live clock: `hooks/budget.mjs` (PostToolUse) warns at the goal (25 %) and at 50/80/100 % of the tier LIMIT; obey it (no new research, ship, then stop). Hooks run this loop automatically (`hooks/learn.mjs`): Stop reads the turn's transcript and blocks once on any real tool error (every task, however small: pictures, models, math, vault upkeep), a repeated failing call, a turn over its tier target, an owner complaint or a router miss, until the lesson + note fix (+ router words) exist. PreToolUse denies the 4th identical failing call (3-try cap). SessionStart shows PERF (on-target %, weakest routes) and PROMOTE NOW; per-turn metrics live in `archive/metrics.jsonl` and roll up monthly. Sessions in ANY folder learn into this vault too (user-level hooks from `scripts/install-global.mjs`; `--remove` undoes it).
 
 ## 6. Speed levers
 - Simple: effort low, no sub-agents, no plan, answer from routed notes.

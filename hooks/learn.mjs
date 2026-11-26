@@ -4,7 +4,10 @@ import { openSync, readSync, closeSync, fstatSync, appendFileSync, mkdirSync, wr
 import { join, relative, isAbsolute } from 'node:path';
 import { ROOT, readIf, today } from './lib.mjs';
 
-export const TARGET_S = { simple: 60, medium: 300, complex: 1800 };
+// Owner 2026-11-24: tier times are ABSOLUTE LIMITS; the goal is 4x faster than the limit for every tier.
+export const TARGET_S = { simple: 60, medium: 300, complex: 1800 };   // limit (hard)
+export const MIN_FIXES = 10;   // owner 2026-11-24: >= 10 fixes logged + implemented every round (target 20+)
+export const GOAL_S = Object.fromEntries(Object.entries(TARGET_S).map(([k, v]) => [k, v / 4]));   // goal: 15 / 75 / 450 s
 export const METRICS = 'archive/metrics.jsonl';
 const RELAY = /<agent-message|<task-notification|\[SYSTEM NOTIFICATION|Subagent hand-back/i;
 // The owner says the last result was bad. Short prompts only (pasted logs are not corrections).
@@ -44,7 +47,7 @@ export function parseTurn(lines) {
   const t0 = start >= 0 ? Date.parse(E[start].timestamp) : NaN;
   let tEnd = t0;
   const uses = new Map(), errors = [], fails = new Map(), reads = new Set(), writes = new Set(), skills = new Set();
-  let firstAgent = NaN, firstSend = NaN;
+  let firstAgent = NaN, firstSend = NaN, tools = 0;
   let lastText = '', lastErr = false; // final reply + whether the last tool result was a real failure
   for (const m of String(prompt).matchAll(/<command-name>\s*\/?([\w:-]+)/g)) skills.add(m[1].split(':').pop()); // slash command
   for (const e of E.slice(start + 1)) {
@@ -54,6 +57,7 @@ export function parseTurn(lines) {
       if (b?.type === 'text' && e.type === 'assistant' && b.text?.trim()) lastText = b.text;
       if (b?.type === 'tool_result') lastErr = !!b.is_error && !NOISE.test(resultText(b)) && !/^(Grep|Glob)$/.test(uses.get(b.tool_use_id)?.name || '');
       if (b?.type === 'tool_use') {
+        tools++;
         uses.set(b.id, { name: b.name, input: b.input || {} });
         if (b.name === 'Agent' && Number.isNaN(firstAgent)) firstAgent = ts;
         if (b.name === 'SendMessage' && Number.isNaN(firstSend)) firstSend = ts;
@@ -91,15 +95,19 @@ export function improvedCount(logText = '', label = 'improved') {
   const listed = (m[2].match(/\n[ \t]*(?:\d+[.)]|[-*])[ \t]+\S/g) || []).length;
   return inline + listed;
 }
+export const relayWorked = (t) => (t.errors || []).length > 0 || (t.writes || []).length > 0 || (t.tools || 0) >= RELAY_WORK;
+const RELAY_WORK = 3; // tool calls: a relay that only reads a result and replies stays quiet
 export function signals(turn, state = {}, extra = {}) {
   const out = [];
-  if (turn.relay) return out; // agent/system relays are not owner tasks
+  // Relays (agent hand-back, task notification) are not owner tasks, UNLESS the owner's task continued in them:
+  // 2026-11-24 Macarena: the whole build ran in the improver's hand-back turn, 4 errors, and nothing was learned.
+  if (turn.relay && !relayWorked(turn)) return out;
   const tier = state.tier || 'medium';
   // Any real error counts, on any task however small (pictures, models, math, vault upkeep).
   if (turn.errors.length >= 1)
     out.push({ kind: 'errors', text: `${turn.errors.length} tool error(s), worst retry x${turn.maxRetry}: ${turn.errors.slice(0, 3).map(e => `${e.tool} \`${e.what}\` → ${e.text}`).join(' | ')}` });
   const target = TARGET_S[tier];
-  if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s vs ${tier} target ${target}s` });
+  if (target && turn.secs > target) out.push({ kind: 'slow', text: `took ${turn.secs}s, over the ${tier} LIMIT ${target}s (goal ${target / 4}s)` });
   if ((turn.skills || []).includes('crew') && turn.agentSecs != null && turn.agentSecs > 30) out.push({ kind: 'slow', text: `crew spawned workers ${turn.agentSecs}s after the prompt (cap 30s)` });
   if ((turn.skills || []).includes('crew') && turn.specSecs != null && turn.specSecs > 90) out.push({ kind: 'slow', text: `crew sent build specs ${turn.specSecs}s after spawning (cap 90s): brain worked alone` });
   if (turn.prompt.length < 1500 && CORRECTION.test(turn.prompt))
@@ -126,17 +134,16 @@ export function signals(turn, state = {}, extra = {}) {
   // Honesty: the reply claims success while the last tool call failed (owner rule: never claim done unless checked).
   if (turn.lastErr && CLAIM.test(turn.lastText || '') && !ADMIT.test(turn.lastText || ''))
     out.push({ kind: 'honesty', text: 'the final reply claims success but the last tool call failed' });
-  // Always improve (owner 2026-11-22): every task, any size, finds and fixes >= 3 real problems, logged as `improved: a; b; c`.
   // A contentless prompt (".", "?") with no tool work is a nudge, not a task: nothing to improve (owner 2026-11-25).
   const idle = !/[\p{L}\p{N}]/u.test(turn.prompt || '') && !turn.writes.length && !turn.errors.length;
-  const imp = idle ? null : extra.improved; // null = not measured (unit calls / idle nudges); the Stop hooks always pass a number
   // Mute (owner 2026-11-24): a turn with no tool calls, or a prompt saying don't reply, owes no footer or fixes.
   if (turn.tools === 0 || NO_REPLY.test(turn.prompt || '')) return out;
-  if (imp != null && imp < 3) out.push({ kind: 'improve', text: `${imp}/3 improvements logged` });
-  // ...and the owner must be told them: the final reply lists them too (owner 2026-11-22). Vault edits count as fixes.
-  else if (imp != null && improvedCount(turn.lastText || '', 'fixed|improved') < 3) out.push({ kind: 'improve', text: 'fixes not listed in the reply footer (`Fixed: a, b, c`)' });
-  // ...and what is still left: >= 3 concrete next improvements, so the owner sees the backlog (owner 2026-11-22).
-  if (imp != null && improvedCount(turn.lastText || '', 'next|still to improve') < 3) out.push({ kind: 'improve', text: 'reply footer lacks `Next: a, b, c` (>= 3 items)' });
+  // Always improve (owner 2026-11-24, every round, every project): >= 10 real fixes (target 20+) implemented and logged as
+  // `improved: a; b; ...`; NOT listed in the reply (owner: telling them wastes tokens), so no reply-footer check.
+  const imp = idle ? null : extra.improved; // null = not measured (unit calls / idle nudges); the Stop hooks always pass a number
+  if (imp != null && imp < MIN_FIXES) out.push({ kind: 'improve', text: `${imp}/${MIN_FIXES} improvements logged` });
+  // Build fixes must reach the current deliverable (owner 2026-11-24): a fix queued instead of built is not done.
+  if ((extra.unbuilt || []).length) out.push({ kind: 'unbuilt', text: `${extra.unbuilt.length} build fix(es) not applied yet: ${extra.unbuilt.slice(0, 3).join(' | ')}` });
   return out;
 }
 export const NO_REPLY = /\b(don'?t|do not)\s+(respond|reply|answer|say anything)\b|\bno (reply|response)\b/i;
@@ -153,11 +160,13 @@ export const nextLessonId = (text) => {
 // Stop-hook instruction: diagnose, fix the note, record the lesson, retune the router. Kept short.
 export function learnReason(sigs, { lessonsChanged, routerChanged, knowChanged = false, nextId }) {
   const need = sigs.filter(s => s.kind === 'router' ? !routerChanged
-    : s.kind === 'improve' ? true : s.kind === 'honesty' || !lessonsChanged);
+    : s.kind === 'improve' || s.kind === 'unbuilt' ? true : s.kind === 'honesty' || !lessonsChanged);
   if (!need.length) return null;
   const steps = [];
   if (need.some(s => s.kind === 'honesty')) steps.push('HONESTY: your reply claims success but the last tool call failed. Re-run the check until it passes, or tell the owner `Failed: <what>` plainly. No excuses, no softening, no "mostly done".');
-  if (need.some(s => s.kind === 'improve')) steps.push('ALWAYS IMPROVE (owner rule, every task): goal met is not the end. Find and fix at least 3 real problems, as many as possible: speed (measure this turn, cut the slowest phase), routing (router.json words), rules (contradictions, missing injection), notes, tools. Vault edits (rules, routing, hooks, notes) count. Add to the log.md entry of this turn one line `improved: <fix 1>; <fix 2>; <fix 3>` AND end your reply with a tiny footer: `Fixed: <2-5 words>, <..>, <..>` then `Next: <2-5 words>, <..>, <..>` (>= 3 things not yet fixed), then Done. No sentences. Real fixes only, no filler.');
+  const ub = need.find(s => s.kind === 'unbuilt');
+  if (ub) steps.push(`BUILD THE FIX (owner 2026-11-24): ${ub.text}. Apply each to the current deliverable, rebuild, re-run its check, then node scripts/vault.mjs fix built <n|all>. Queue only PC-only steps; never reply "Failed + queued" when the fix can run here.`);
+  if (need.some(s => s.kind === 'improve')) steps.push(`ALWAYS IMPROVE (owner rule 2026-11-24, every round, every project): log each fix as you spot it (node scripts/vault.mjs fix add "..."), implement them all at the very end, then fix done writes them to log.md; at least ${MIN_FIXES} real fixes (target 20+): speed (cut the slowest phase), routing (router.json words), rules, notes, hooks, tools, templates; make each impossible to repeat (rule/hook/test). Add one line to this turn's log.md entry: \`improved: <fix 1>; <fix 2>; ...\` (>= ${MIN_FIXES} items). Do NOT list them in the reply (wastes tokens). Real fixes only, no filler.`);
   if (!lessonsChanged && need.some(s => LEARNED.has(s.kind))) steps.push(
     'Name the root cause in one line: why it failed, errored or was slow (not the symptom).',
     'Fix the note that would have prevented it: a row in domains/<d>/errors.md (symptom | cause | fix | date) or a rule in its playbook/checklist; a speed fix goes in the playbook\'s speed section.',
@@ -179,12 +188,12 @@ export function loadTurnState(sid) { try { return JSON.parse(readIf(stateFile(si
 
 // One metrics line per owner turn (deduped by turn start). Committed, rolled up monthly.
 export function recordMetrics(turn, state, sigs, mode) {
-  if (turn.relay || !Number.isFinite(turn.t0)) return false;
+  if ((turn.relay && !relayWorked(turn)) || !Number.isFinite(turn.t0)) return false;   // working relays are owner work too
   const path = join(ROOT, METRICS);
   const t = new Date(turn.t0).toISOString();
   if (readIf(path).slice(-4000).includes(`"t":"${t}"`)) return false;
   const tier = state.tier || 'medium';
-  const line = { t, tier, secs: turn.secs, ok: turn.secs <= (TARGET_S[tier] || 300), errors: turn.errors.length, retry: turn.maxRetry,
+  const line = { t, tier, secs: turn.secs, ok: turn.secs <= (GOAL_S[tier] || 75), inLimit: turn.secs <= (TARGET_S[tier] || 300), errors: turn.errors.length, retry: turn.maxRetry,
     routes: state.routes || [], touched: domainsOf(turn.reads), signals: sigs.map(s => s.kind), mode };
   try { mkdirSync(join(ROOT, 'archive'), { recursive: true }); appendFileSync(path, JSON.stringify(line) + '\n'); return true; } catch { return false; }
 }
@@ -193,13 +202,14 @@ export function recordMetrics(turn, state, sigs, mode) {
 export function perfDigest(text, n = 40) {
   const rows = text.split('\n').filter(Boolean).slice(-n).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
   if (rows.length < 3) return '';
-  const pct = Math.round(100 * rows.filter(r => r.ok).length / rows.length);
+  const onGoal = r => r.secs <= (GOAL_S[r.tier] || 75), inLimit = r => r.secs <= (TARGET_S[r.tier] || 300);
+  const pct = Math.round(100 * rows.filter(onGoal).length / rows.length), lim = Math.round(100 * rows.filter(inLimit).length / rows.length);
   const avg = (t) => { const r = rows.filter(x => x.tier === t); return r.length ? `${t} ${Math.round(r.reduce((s, x) => s + x.secs, 0) / r.length)}s` : null; };
   const bad = {};
-  for (const r of rows) if (!r.ok || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
+  for (const r of rows) if (!inLimit(r) || r.errors || (r.signals || []).length) for (const d of (r.routes?.length ? r.routes : ['unrouted'])) bad[d] = (bad[d] || 0) + 1;
   const worst = Object.entries(bad).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([d, c]) => `${d} (${c})`).join(', ');
   const corr = rows.filter(r => (r.signals || []).includes('correction')).length;
-  return `PERF last ${rows.length} turns: ${pct}% on target; avg ${['simple', 'medium', 'complex'].map(avg).filter(Boolean).join(', ')}; owner corrections ${corr}` +
+  return `PERF last ${rows.length} turns: ${pct}% on goal (4x under limit), ${lim}% within limit; avg ${['simple', 'medium', 'complex'].map(avg).filter(Boolean).join(', ')}; owner corrections ${corr}` +
     (worst ? `; weakest routes: ${worst}. Read that domain's errors.md before working there.` : '.');
 }
 

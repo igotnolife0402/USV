@@ -1,6 +1,6 @@
 ---
 summary: Known animation failures (Studio clips, rigs, Roblox playback, swings) with cause and fix
-updated: 2026-11-21
+updated: 2026-11-24
 status: current
 triggers: [animation error, clip not playing, pose wrong, swing through body, jerky motion]
 ---
@@ -38,3 +38,14 @@ triggers: [animation error, clip not playing, pose wrong, swing through body, je
 | full renders wasted on plumbing bugs | new render options were first tested with full 2-min renders, so two plumbing bugs (o.to name clash, wrong output dir) cost 3 full runs | 10-frame smoke test first | 2026-11-24 |
 | cine payoff landed at 10.6 s on a 12 s clip, clip grew to 14.5 s | anim.cine slow-mo stretches story time (~2 s burst/impact); spec was written in clip time | write the spec in story time: payoff_story = payoff_clip - ~1.65, len_story = len - ~2; read `anims.*.warp` after the build (2026-11-24) |
 | headless Studio shots failed: no deps in a fresh session | `npm i` in a dir without package.json installs nowhere; deps are per session | in scratch/deps: `echo '{}' > package.json`, then npm i the pinned deps from docs/tests.md; DEPS=scratch/deps/node_modules (2026-11-24) |
+| Macarena forward arm pointed sideways | IK wrist targets typed from the rig-frame note, never rendered before the full clip | Render one frame of the first IK pose first; fix targets; queued fix in queue/pc.md | 2026-11-24 |
+| Studio shots fail: mp4-muxer import | SHOTS_VIDEO needs mp4-muxer@5.2.2 in deps, not listed | Install it with the three deps (playbook Mobile fallback) | 2026-11-24 |
+| arm sideways | Macarena IK wrist targets typed blind; full clip built before one frame was rendered, forward arm went sideways | one-frame render first | 2026-11-24 |
+| Palm-down beat showed palm up | Wrist euler sign guessed; hand +X is the palm normal | Probe the palm normal (`palm.py`), fwd_down = (0,0,90) | 2026-11-24 |
+| Crossed hand jumped when the other arm moved | Left cross offset applied only on the crossing beat | Apply the offset whenever that hand target is held | 2026-11-24 |
+| Hand passed through face/crotch on cross-body moves | Straight joint interpolation between key poses | Outside via key per move (`VIA` map), full lean | 2026-11-24 |
+| Held hand left the hip, arm straightened mid-move | Via key used half the lean, target out of reach | Via waist = max(lean before, after) + 2 | 2026-11-24 |
+| Owner saw bad frames a 5-shot sheet missed | Review sampled frames, not every frame | Every-frame review rule (playbook Frame review) | 2026-11-24 |
+| owner: cat vomited over my keyboard | Macarena verified with a 5-shot contact sheet; owner found swapped palms, hands through face and body, invisible hip roll | 3 review passes, 10 defects fixed | 2026-11-24 |
+| Owner: stop sending all the frames | Verification sheets sent with the MP4 | Review silently; send only the deliverable (profiles/owner.md) | 2026-11-24 |
+| Owner: hip roll reads as a side-to-side butt wiggle, clip choppy | Hip roll moved the whole root sideways (feet slid with it) and every beat held identical keys with stop-start eases | ik_leg + plant in avatar.py; 16-key linear pelvis circles; hit/up/pre bounce keys per beat | 2026-11-24 |

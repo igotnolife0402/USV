@@ -37,7 +37,7 @@ export function fastPath(prompt, routes = []) {
 export const routeNotes = (routes, max = 4) => { const out = [], lists = routes.map(r => r.notes || []); for (let i = 0; out.length < max && lists.some(l => i < l.length); i++) for (const l of lists) if (l[i] && !out.includes(l[i]) && out.length < max) out.push(l[i]); return out; };
 export const skillsFor = (prompt, routes) => { const f = fastPath(prompt, routes); return [...new Set((f && 'skill' in f ? [f.skill] : routes.map(r => r.skill)).filter(Boolean))]; };
 
-const TARGET = { simple: '<1 min', medium: '<5 min', complex: '<30 min' };
+const TARGET = { simple: 'goal 15 s, limit 1 min', medium: 'goal 75 s, limit 5 min', complex: 'goal 7.5 min, limit 30 min' };   // owner 2026-11-24: limit is absolute, goal = limit/4
 
 // Mute layout (owner 2026-11-24): always on, both modes; full rules in profiles/mute.md.
 const MUTE = 'MUTE (profiles/mute.md): no text between tool calls; final reply = result in <= 10 words or `Done`, then the Fixed/Next footer only after real work; "don\'t respond" = reply `Done` only. Errors, questions, requested reports exempt.';
@@ -46,7 +46,7 @@ const must = () => (readIf(join(ROOT, 'profiles/must.md')) || '').replace(/^---[
 function buildContext(prompt, mode, router) {
   if (RELAY.test(prompt)) return `MODE=${mode}`;
   const tier = classify(prompt, router.tiers);
-  const lines = [`MODE=${mode} | TIER=${tier} (target: ${TARGET[tier]})`];
+  const lines = [`MODE=${mode} | TIER=${tier} (${TARGET[tier]})`];
   lines.push(MUTE);
   const routes = route(prompt, router);
   if (routes.length) {

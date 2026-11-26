@@ -26,6 +26,9 @@ triggers: [sfx, sound effect, webaudio, jsfxr, wav export]
 | Power-up | square | arpeggio up 3-4 notes | each 60 ms | |
 Always randomize pitch ±5% per play to avoid repetition fatigue.
 
+## Impact layering (general practice, unmeasured; see [epic-reference](domains/animation/epic-reference.md))
+- Whoosh pre-hit 150-300 ms → 1-3 frames silence → crack transient < 30 ms + sub boom 40-60 Hz 0.5-1.5 s → debris tail 1-2 s → low rumble bed.
+
 ## PC (/pc)
 1. Write the synth from [snippets](domains/audio/snippets/README.md) in `sfx/sfx.js` with a preset table.
 2. Build `sfx/preview.html`: one button per preset + "export WAV".

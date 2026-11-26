@@ -709,3 +709,96 @@ improved: pre-tool gap gate blocks live geo writes that never passed seethru (te
 ## [2026-11-24] fix / car60 gaps root cause + do-it-now rule (/improve 30)
 improve 30: 38.3 s FAIL (+8.3; timer start ran at 8 s). Root cause of all car60 gaps: zfight fix cut split body docs (exact-name skip). Regex skip + hood/rear-glass 0.045 thick: seethru 0.00%, zfight PASS on live read-back of 182 docs; 8 docs uploaded. Not visually verified.
 improved: root cause found by cutting variants instead of flipping faces; budget gate lets the owner ask finish up to 2x target; owner rule "orders = this turn" in CLAUDE.md + owner.md
+## [2026-11-24] build / crimson cataclysm beam (/improve 60)
+tools/vfx/crimson-beam/crimson-beam.html (three 0.186.1, artifact GJQ94bTLeBKkJA8BcA8E5d): vortex, pilot drop, r 12 beam, hit-stop, shockwaves, cracks, 600 debris, 6.7k GPU particles, push-in + shake. Check: tools/vfx/shots/shoot.cjs, 0 errors, red 39% at t=3 (try 3).
+improve 60: ~45 s brief, 14 s Sonnet, 269.8 s total (FAIL, big Write before notice), rungs 1-4.
+improved: pre-tool install check ignores redirects and quoted text; tools/vfx/shots/shoot.cjs cloud VFX screenshots; vfx playbook/errors beam gain + CDN rules; L-136 promoted into improve SKILL.
+
+## [2026-11-24] fix / VFX builds go to Umbrio, previews are MP4 (owner correction)
+Cause: vfx playbook + vfx skill + studio.md mobile lines said "three.js HTML Artifact", must.md rule 2 scoped Umbrio to 3D models only, vfx/animation routes never named umbrio-build. Rebuilt beam as Umbrio tab cbeam-1124 (150 objects, 149 tracks, read-back 150, zfight PASS), clip.mp4 1.6 MB sent.
+improve 60: ~40 s brief, 18 s Sonnet, 66.9 s total (+6.9 FAIL), rungs 1-3.
+improved: vfx/studio/must rules -> Umbrio + MP4; router vfx+animation load umbrio-build; mp4-muxer allowed on mobile (studio deps); tools/vfx/crimson-beam/umbrio_beam.py generator.
+
+## [2026-11-24] build / crimson beam v2 detail pass (/improve 60, owner: "looks flat")
+Umbrio tab cbeam2-1124: plasma flipbook beam (kamehameha-beam:element=Ne, hub asset), noise core tube, 3 helix strands, 8 lightning arcs, spiked crown, rippled shock rings, dust wall, 30 ground spikes, 48 streak sparks; rune circle kept. 205 objects read back, zfight PASS, clip.mp4 1.4 MB sent.
+improve 60: ~40 s brief, 16 s Sonnet, 59.7 s total (PASS), rungs 1-3.
+improved: vfx playbook depth rule + v2 template with tube() helper; flipbook sheet upload path (asset + local data-url for shots); L-146 lesson.
+
+## [2026-11-24] fix / beam v2 white core (owner: "white middle looks pretty bad")
+cbeam2-1124 core: solid white Neon 9 m tube -> translucent hot-red ForceField 4.4 m tube (new geo g-c2-core2, old deleted); read-back 205, zfight PASS, MP4 sent.
+improved: vfx playbook core rule; umbrio_beam2.py core; L-147 lesson; old geo cleaned from hub.
+
+## [2026-11-24] research / epic anime-fight reference study (/improve 120)
+youtu.be/ljMl9px0WXI (35:12 AMV): youtube blocked + yt-dlp blocked on mobile, so 13 Firecrawl embed stills (one per chapter) -> domains/animation/epic-reference.md (10 measured rules: 2-tone impact frame 9:12, complementary accents, dark desaturated base, letterbox 9.6-12.4 %, diagonals...). Every-3 s/frame-by-frame/audio queued for PC.
+improve 120: ~95 s brief, 22 s Sonnet, 140.2 s total (+20 FAIL), rungs 1-2.
+improved: epic-reference note + links; vfx checklist epic section; audio playbook impact layering; router words epic/anime fight/impact frame/hit-stop; improve SKILL slow-call rule (L-148).
+
+## [2026-11-24] research / every-3 s VFX study of the reference video (owner chose VFX fights only)
+8 sub-agents, Firecrawl embed screenshots every 3 s over 5 effect fights: 148/383 stills before the daily MCP credit allowance ran out. Rules -> domains/vfx/anime-vfx-reference.md (12 rules with timestamps + crimson beam plan); missing ranges queued.
+improved: anime-vfx-reference note + index links; Firecrawl daily cap documented (L-150); state/epic-frames.md result; queue item with exact missing ranges.
+
+## [2026-11-24] build / Cyan Nova (/improve 60, "using what you learned")
+Umbrio tab nova-1124 from anime-vfx-reference rules: obsidian crystal charges cyan plasma sphere, quiet dip, white impact frame, 7 plasma beams with hit rings, lit craters, chip debris, orange embers, dolly-back aftermath. 121 objects read back, zfight PASS, clip.mp4 sent. 2 render rounds (impact sphere fogged grey -> small sphere around camera).
+improve 60: ~8 s brief (52.9 s lost before start), 17 s Sonnet, 115.9 s total (+56 FAIL), rungs 1-2.
+improved: umbrio_nova.py template; impact-frame recipe in anime-vfx-reference; improve SKILL late-start rule (L-151); flipbook cyan sheets as hub assets.
+
+## [2026-11-24] build / Cyan Nova v2 (/improve 60, owner 6/10 "orb not crystal, looks 2d, underwhelming")
+Umbrio tab nova2-1124 (umbrio_nova2.py): 14 m crystal with cyan facet veins + 12 orbit shards + glints; 3D energy = 3 noise shells, 8 shell arcs, 3 tilted orbit rings (no facing card); thick helix-wrapped beams, 90 m shock rings, dust wall, 30 spikes, final flash, falling crystal fragments. 202 objects read back, zfight PASS, MP4 sent, 1 render run. Gate miss: crystal 0.4 % of frame at t=1.5 (target 3 %).
+improve 60: ~20 s brief, 16 s Sonnet, 57.2 s total (PASS), rungs 1-3.
+improved: v2 template; 3D-energy rule in anime-vfx-reference; L-153; one render run per build held.
+
+## [2026-11-24] fix / tier time = absolute limit, goal = limit/4 (owner)
+hooks/learn.mjs GOAL_S + metrics ok (<= goal) / inLimit; budget.mjs warns at goal then 50/80/100 % of limit; prompt-router shows "goal 75 s, limit 5 min"; perf digest "% on goal, % within limit"; rollup on goal; CLAUDE.md table, must.md rule 12, owner.md speed line; tests updated, all pass.
+improve 60: ~20 s brief, 12 s Sonnet, 57.5 s total (PASS), rungs 1-2.
+improved: goal/limit in hooks + docs; budget warns at the goal; perf digest shows on-goal %; L-155.
+
+## [2026-11-24] build / Void Rift (/improve 60, "another vfx, different, within time")
+Umbrio tab void-1124 (umbrio_void.py, full helper block copied): black singularity + 2 noise horizon shells, 3 rippled disk bands + orange inner edge, 6 lensing arcs, 24 infalling rocks on spirals, squeeze, impact frame, 2 shock rings, 12 spaghetti streaks, 30 embers. 110 objects read back, zfight PASS, 1 render (46 s), MP4 sent. Turn ~160 s (limit 300, goal 75 missed).
+improve 60: ~25 s brief, 15 s Sonnet, 81.2 s total (+21 FAIL), rungs 1-2.
+improved: void template; improve done-timing rule (L-156); helper-block copy via sed (no NameError).
+
+## [2026-11-24] fix / Void Rift orb layers (owner "no gradient, no texture, 1 layer")
+void-1124 v2: black core + 5 textured noise shells (clouds/marble/stripes, hue dark->lilac, counter-rotating) + pulsing photon ring + orange Doppler arc; old rim geo deleted. 115 objects read back, zfight PASS, 1 render 53 s, MP4 sent. Turn ~150 s (limit 300, goal 75 missed).
+improve 60: ~25 s brief, 13 s Sonnet, 55.5 s total (PASS), rungs 1-2.
+improved: orb layering rule (L-157); patch prepared before delivery so build started at the window; same-tab update via if_version + geo delete in one batch.
+
+## [2026-11-24] build / Void Rift v3: ray-traced hero (owner "quality is horrible" + Interstellar-style reference)
+blackhole.py frame size now env-tunable (BH_FRAME_PX=512 BH_GRID=4: 80 s, 2048 px sheet), tinted pink-white to the reference, uploaded as hub asset; umbrio_void.py --hero-bh swaps the primitive orb/disk for the ray-traced card + 160 stars, keeps squeeze/impact/burst. New tab void3-1124, 210 objects read back, zfight PASS, 1 render, MP4 sent.
+improved: blackhole.py BH_FRAME_PX/BH_GRID; --hero-bh path in umbrio_void.py; realistic-phenomena rule applied (L-158).
+
+## [2026-11-24] rule + build / VFX house style (owner, permanent) + Void Rift v4 anime
+Permanent rule for ALL VFX: must.md rule 13 + vfx SKILL "House style" (one anime cel style, clear >= 4-step gradients, reference = structure only, max detail many parts, fast via templates). Void v4 (void4-1124, --anime): 317 objects, 4 cel photon tori, 8 lensed arcs, 16 speed lines, Doppler arcs, 160 stars + 12 sparkles; 1 render; MP4 sent. Defect: disk bands render flat white (Neon ignores gradient texture) -> L-159, fix next.
+improve 120: ~45 s brief, 17 s Sonnet, 123.9 s total (PASS), rungs 1-6.
+improved: permanent VFX house-style rule in must.md + vfx skill; errors row Neon vs gradient texture; --anime path in umbrio_void.py.
+
+## [2026-11-24] rule / >= 10 fixes every round, every project, never listed (owner)
+learn.mjs MIN_FIXES=10 (Stop hook blocks under 10), reply-footer checks removed; must.md 11, CLAUDE.md s5, owner.md, improver agent updated; tests pass. improve 60: 46.1 s (-13.9 early FAIL: spawned at 13 s).
+improved: Stop hook enforces >= 10 logged fixes; Fixed/Next footer requirement removed everywhere (hook, CLAUDE.md, must.md, owner.md, improver agent); learn test rewritten for 10-fix rule; improve-timer start says LATE START spawn now when > half gone; pre-tool hook no longer blocks curl -o /dev/null; mobile.md Blender fallback -> Umbrio tab + MP4; router vault words for meta-rule prompts (every round, perm rule, things to fix); state/epic-frames superseded; vfx playbook links house style; void --anime disk bands solid Neon colour steps (Neon ignores gradient textures); void --anime disk tilt 25 deg so bands read; ship.py: one command builds shots dir, renders once, writes hub batch JSON; umbrio-build documents ship.py; L-161 lesson applied
+
+## [2026-11-24] rule / log fixes as you go, implement at the end (owner)
+vault.mjs fix add|list|done (state/fixes-pending.md); rules, hook text, skill, checklist updated; tests pass.
+improved: vault.mjs fix add/list/done running fix list (state/fixes-pending.md); cli test covers fix add, list, done into log.md; must.md rule 11: log as you go, implement at the end; CLAUDE.md s5 fix workflow; owner.md fix workflow line; Stop hook reason text teaches fix add / fix done; improve skill: never spawn before send_brief_at unless LATE START; vault checklist: fix list empty, >= 10 moved to log; state/README documents fixes-pending.md; vault-rules: no backticks inside hook template literals + run learn test after hook text edits; vault.mjs usage header lists fix commands; L-162 lesson for the fix workflow applied
+
+## [2026-11-24] build / Macarena emote clip
+improve 30: 43.6 s FAIL (+13.6). avatar.py mac_* poses + macarena clip (9.33 s, 495 keys), set_pose shift/hop; shots+MP4 rendered; beat 1-4 arm placement wrong (sideways). Failed visual gate; queued fix.
+improved: avatar IK targets: assert front axis with a one-frame render before writing a full clip (macarena beat-1 arm went sideways); studio shots deps: document npm i three three-mesh-bvh three-bvh-csg mp4-muxer@5.2.2 into SCRATCH/deps (2 failed runs); improve timer: Stop-hook commit turn delayed delivery +13.6 s; deliver before ending turn; studio run.mjs prints the exact deps install command; studio run.mjs fails fast when SHOTS_VIDEO lacks mp4-muxer; animation playbook: cloud MP4 render replaces artifact-only preview; animation playbook: one-frame IK pose render before full clip; animation errors.md: 2 rows (sideways arm, mp4-muxer); improve skill: never end turn while improver runs; avatar README: macarena clip + shift/hop key documented; avatar.py set_pose: shift/hop root offset (feet planted, hops possible); router: emote/macarena/dance words to animation; lessons L-163, L-164 applied; checklist 3d: animation MP4 + first-pose check; mobile profile: studio shots MP4 works in cloud
+
+## [2026-11-24] fix / learn hook skipped relay build turns
+Root cause: hooks/learn.mjs returned no signals for agent hand-back turns; the Macarena build ran in one. Now working relays are checked.
+improved: learn.mjs: working relay turns (errors/writes/>=3 tools) get every signal; learn.mjs parseTurn counts tool calls; learn.mjs metrics line includes working relay turns; test: idle relay stays quiet; test: relay with errors teaches; test: working relay needs 10 fixes; vault-rules: learn hook covers the turn where work happened; improve skill: fix add in the hand-back turn; router vault words: you missed, log mistakes, learning loop; lesson L-165 applied to hooks/learn.mjs
+improved: tests: node --test needs tests/*.test.mjs, not the folder (failed once)
+
+## [2026-11-24] vault / build-fix gate + Macarena fixed
+improve 60: 108.3 s FAIL (+48.3). fix add --build / fix built / fix done refusal + learn unbuilt Stop signal; rule in owner, must, CLAUDE, checklists. Macarena IK targets in reach: probe exact, shots+MP4 PASS, frames seen.
+improved: Macarena IK targets moved inside 1.47 stud reach, rebuilt + probe + MP4; vault.mjs fix add --build tags deliverable fixes; vault.mjs fix built <n|all> marks rebuilt+re-verified; fix done refuses (exit 1, names them) while build fixes unbuilt; learn.mjs unbuilt Stop signal with BUILD THE FIX steps; stop-gate + global hooks pass unbuilt fixes to signals; tests: unbuilt signal + fix --build CLI flow; owner.md: fixes-apply-to-current-project rule (full text); CLAUDE.md s5 + must.md 11: build-fix rule line linking owner.md; checklists vault+3d: unbuilt 0 / re-render with every fix; checklists/vault.md: test cmd node --test tests/*.test.mjs; avatar README: IK targets <= 1.45 stud from shoulder rule; router: vault words build fixed version / apply fixes / fixes apply
+
+## [2026-11-24] build / Macarena v3 every-frame review
+Owner rejected v2 (contact-sheet check missed swapped palms, hands through face/body). 3 review passes over all 94 frames x front + 3/4 cams: 8, 2, then 0 defects; IK worst 0.045; MP4 sent. L-167.
+improved: animation verify: every frame at >=10 fps from fixed front + 3/4 cams, never a 5-shot contact sheet; Macarena v3 rebuilt: VIA outside keys with full lean, re-rendered 94 frames x2 cams, 0 defects; palm sign probed: fwd_down wrist +90 (palm normal = hand +X); left cross offset always applied while held (no hidden jump); via keys for head, front_hip and back_hip moves (no hand through face/crotch); via waist = max(lean before, after)+2 so held hand stays in reach (IK 0.054 -> 0.045); hip roll amplitude 0.25/0.15 so it reads from the front; front_hip lowered to belt height, distinct from shoulder cross; every-frame review rule in .claude/rules/animation.md, playbook, checklists/3d.md (replaced look once); framesheets.py + ikcheck.py committed in tools/3d/avatar (review = 2 commands); 5 errors.md rows: palm sign, cross offset, through-body path, half-lean reach, sampled review; router words: frame by frame, every frame, every single frame, looks bad, emote, dance, macarena; rm -rf on vars blocked: use "${N:?}" guards in render scripts (noted in playbook)
+
+## [2026-11-24] rule / review frames silently
+Owner: stop sending frames. Delivery = final MP4 only; sheets reviewed silently. L-168.
+improved: owner.md: deliver only the final result, never verification renders; rules/animation.md: review sheets silently, send MP4 only; playbook Frame review: silent review, MP4-only delivery; checklists/3d.md: done item says review silently, deliver MP4; lesson L-168 applied to owner.md; router words: review silently, stop sending; improve brief template: never put 'send sheet' in Delivery (deliverable only); SendUserFile for 3D/animation = 1 file (the result) unless owner asks; errors.md row: sent verification sheets to owner; Macarena delivery rule applied: MP4 already sent alone is the deliverable going forward
+## [2026-11-24] fix / Macarena hip roll + smoothness
+Owner: hip roll = side-to-side butt wiggle, clip choppy. Feet now planted by leg IK, pelvis circles tip against offset (chest still), beats bounce hit/up/pre. IK 0.045, foot slide 0.007. Front 94 frames + 3/4 roll/hop/beats 9-12 sheets reviewed, 0 defects; 3/4 sheets Q00-Q04, Q06 not re-reviewed (limit hit). L-169.
+improved: Macarena hip roll rebuilt: planted feet, pelvis circle tipping against its offset, 16 linear keys per circle; Macarena beats: hit/up/pre bounce keys replace identical holds (no frozen body); Macarena count-in bounce key so frame 0-0.4 s is not dead still; avatar.py ik_leg: two-bone leg IK with flat feet, reusable by every avatar clip; avatar.py set_pose plant key: feet pinned, pelvis drop from knee-dip degrees; _mac pelvis=(pitch,tilt) and plant flag for isolations and airborne keys; ikcheck.py: worst foot slide check (pass <= 0.03 stud); playbook: Dance and emote motion section (planted feet, isolations, dense linear cyclic keys, no identical holds); rules/animation.md: dance rule line linking the playbook section; router animation words: choppy, not smooth, wiggle, side to side, hip roll, feet slide; Hip roll ends before the hop crouch; last roll key smooth into the crouch (no overlap of keys)

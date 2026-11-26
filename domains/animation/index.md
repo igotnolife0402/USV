@@ -32,3 +32,4 @@ Motion for 3D pieces: key poses with `smooth` (sine in-out) tweens in the Studio
 
 ## Related domains
 - [3D](domains/3d/index.md): models, rigs, Studio. [VFX](domains/vfx/index.md): flipbooks timed to clips. [Roblox](domains/roblox/index.md): Animator, Motor6D.
+- [epic-reference](domains/animation/epic-reference.md): epic-fight look rules from the owner's anime fight reference (impact frames, complementary accents, letterbox, diagonals); timing/SFX rows unmeasured until the PC pass.

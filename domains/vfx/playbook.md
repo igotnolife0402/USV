@@ -7,6 +7,7 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 # VFX playbook
 
 - Any model this needs (creature, sword, prop): reuse or save it in the [model library](domains/3d/playbook.md) (`tools/3d/models/<kind>/<kind>_v<N>.py`).
+House style for every effect (owner 2026-11-24, permanent): anime cel bands, >= 4 clearly visible colour steps, max detail; see [anime-vfx-reference](domains/vfx/anime-vfx-reference.md) and the vfx skill.
 
 ## Pick the tool
 | Need | Use |
@@ -27,17 +28,20 @@ triggers: [particles, shader, explosion, glow, bloom, vfx]
 Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool (orange/red → gray).
 
 ## PC (/pc)
-1. Build the effect in an isolated test page `tools/vfx/pages/<name>.html` with a trigger key and an FPS readout.
+1. Build the effect in an isolated test page `tools/vfx/<name>/<name>.html` (+ tool.json; a root `vfx/` folder fails lint) with a trigger key and an FPS readout.
 2. Serve, open with chrome-devtools-mcp/playwright-mcp, trigger, screenshot at peak (~100 ms) and decay; console clean.
 3. Performance trace (chrome-devtools-mcp) for heavy effects: frame time ≤ 16 ms with 4x CPU throttle.
 4. Integrate into the game/site; re-screenshot in context.
 5. Roblox: build via Studio MCP run code (ParticleEmitter props), play, `look`/console check.
 
 ## Mobile fallback (/mobile)
+- Build every effect/animation in a fresh **Umbrio Sandbox** tab (hub db docs via ArtifactData, recipe [umbrio-build](domains/3d/umbrio-build.md)): Neon/ForceField parts, point lights, anim tracks, flipbook `shape: beam`. Preview for the owner = **MP4** (`SHOTS_VIDEO=1 node test/run.mjs shots` in tools/3d/studio → clip.mp4, sent as a file), never a standalone HTML artifact (owner 2026-11-24).
 - Sheet effects: run the flipbook tool in the cloud session as on PC ([flipbook](domains/vfx/flipbook.md)); queue only upload + Studio playtest.
-- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Otherwise build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `tools/vfx/pages/<name>.html` in the repo.
-- Artifacts: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
+- Headless Chromium + Playwright work for one small screenshot check (profiles/mobile.md); no local files. Otherwise build the effect as an Artifact (tap to trigger) so the user sees it on the phone; save to `tools/vfx/<name>/<name>.html` in the repo.
+- Standalone three.js pages only when the owner asks for a web page: no external textures; generate sprites on an offscreen canvas (radial gradient) or in-shader (smoothstep circles, noise).
 - Shader errors are invisible without a console: log `gl.getShaderInfoLog` to an on-screen `<pre>`.
+- Cloud check that works (2026-11-24): headless Chromium + [tools/vfx/shots/shoot.cjs](tools/vfx/shots/shoot.cjs); jsDelivr is unreachable there, so it serves three from a scratch `npm i three@0.186.1`. Make pages render a pure `frame(t)` from `?t=` and set `window.__done`.
+- Additive beam/glow layers: keep layer gains <= ~1.5 and bloom <= ~1, use `NeutralToneMapping`; ACES + stacked additive red reads pink-white (crimson beam, 3 tries).
 - Queue PC checks in [queue/pc.md](queue/pc.md), e.g.:
   `- [ ] 2026-11-21 perf trace explosion at 4x throttle, screenshot peak — vfx tools/vfx/pages/explosion.html`
 
@@ -67,6 +71,8 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - Impact sheets must carry light past the flash (owner 2026-11-24: "I only see the first 0.1 s"): shock/crystal-burst/glints lost 75 %+ of sum(L*A) within 10 of 64 frames. `vfx.white` runs `sustain()` (per-frame gamma, light >= peak*(1-0.65p)); one-shot Transparency only tails (0.9-0.2f -> 0.15+0.35f). Measure light per frame, not alpha mass: alpha stayed 50-90 % while the light was gone.
 - Flipbook preset tuning: sweep params x seeds in ONE pooled script that prints max_step_jump per combo (2026-11-24: 6 serial probes cost ~4 min); edit a code line by replacing the whole line, never by appending a comment mid-line (it swallowed `; tt = ...`).
 - New ugen sheets in bulk (2026-11-26, L-214/L-215): check every new name against `vfx/index.tsv` before drawing (`grep '^gen-<name>\b'`), clash → rename the script; write curves linear/accelerating with ramped-in elements (an ease-out hold then a pop fails jump); `node tools/vfx/showcase/gen/draw.mjs --dir SCRATCH a.js b.js ...` draws all in one browser (~1 s/sheet); put the full art prompt in a `// PROMPT:` header line.
+- Umbrio VFX depth (owner 2026-11-24 'beam is just a linear line, flat'): never plain cylinders/tori/spheres for energy. Template `tools/vfx/crimson-beam/umbrio_beam2.py`: physics flipbook beam (`kamehameha-beam:element=Ne`, sheet uploaded as hub asset, tex doc `{asset}`; headless shots get a data-url copy in `tex/`), thin translucent hot-red core tube (never a solid white Neon core: owner 2026-11-24 'white middle looks pretty bad'; the flipbook carries the bright centre), helix strand tubes, jagged lightning tubes flickering via `visible`, spiked crown, rippled ring meshes, rock shards rising with the shockwave, streak sparks aimed along launch. Its `tube(path, radii)` helper builds all of them.
+- Umbrio VFX in one read (2026-11-24, 474 s spent finding these): template `tools/vfx/crimson-beam/umbrio_beam.py`; glow = `Neon` (core) / `ForceField` + `transparency` 0.45-0.88 (layers); torus lies flat, `size [dia, tube, dia]`, expand rings by scaling from a full-size torus (scaling a small one fattens the tube into a disc); tracks pos/rot/scale/color/visible only (fade = color to black); no camera track (shake = root group); `env.light: night`, fog `{color,near,far}`; keep sky effects below the view top (~target y + tan(fov/2)*dist). MP4: shots dir needs project.json, meta.json, geo/, uploads.json `{}`; ~90-100 s per run on llvmpipe, so get the layout right in one run. Flipbook sheets (1024 px, ~250 KB webp) always exceed the 225 KB doc cap: upload as a hub asset at once, never try data-url compression first (2026-11-24 cost a round).
 - One generic emitter `{rate, life, speed, spread, gravity, drag, colors, size}` + presets beats bespoke code.
 - Additive blending makes anything look 2x better on dark backgrounds.
 - Value noise / fbm in shader covers fire, smoke, water, clouds.

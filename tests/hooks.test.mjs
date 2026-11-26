@@ -64,7 +64,7 @@ test('prompt-router: routes, tiers and /mobile override', () => {
   const ctx = (prompt) => run('prompt-router.mjs', { prompt, session_id: 'r1' }).hookSpecificOutput.additionalContext;
 
   const web = ctx('build me a website with a hero');
-  assert.match(web, /TIER=medium \(target: <5 min\)/);
+  assert.match(web, /TIER=medium \(goal 75 s, limit 5 min\)/);
   assert.match(web, /domains\/web\/index\.md \(web entry point\)/);
   assert.match(web, /Checklist: checklists\/web\.md/);
   assert.match(web, /Skill: website/);

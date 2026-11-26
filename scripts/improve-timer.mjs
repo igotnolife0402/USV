@@ -42,7 +42,7 @@ if (cmd === 'start') {
   writeFileSync(FILE, JSON.stringify({ t0, budget }));
   const brief = budget - sonnetFor(budget);
   console.log(JSON.stringify({ budget, elapsed: +((now - t0) / 1000).toFixed(1), sonnet: sonnetFor(budget),
-    send_brief_at: brief, note: budget <= 15 ? 'quick: write the outline yourself, no Sonnet' : `spawn Sonnet at ${brief}s` }));
+    send_brief_at: brief, note: budget <= 15 ? 'quick: write the outline yourself, no Sonnet' : (now - t0) / 1000 > budget / 2 ? 'LATE START (> half gone): write the brief and spawn Sonnet NOW, no research' : `spawn Sonnet at ${brief}s` }));
 } else if (cmd === 'left' || cmd === 'done') {
   let s;
   try { s = JSON.parse(readFileSync(FILE, 'utf8')); } catch { console.error('no timer: run start first'); process.exit(2); }

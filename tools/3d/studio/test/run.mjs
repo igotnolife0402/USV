@@ -15,7 +15,8 @@ const ROOT = resolve(HERE, '..')
 const SCRATCH = process.env.SCRATCH || join(tmpdir(), 'studio-test')
 const DEPS = process.env.DEPS || join(SCRATCH, 'deps/node_modules')
 const SHOTS = process.env.SHOTS || join(SCRATCH, 'shots')
-if (!existsSync(join(DEPS, 'three'))) { console.error(`No local libraries at ${DEPS}: set SCRATCH (holds deps/node_modules) or DEPS (README: Tests)`); process.exit(2) }   // 404 boot errors named nothing
+if (!existsSync(join(DEPS, 'three'))) { console.error(`No local libraries at ${DEPS}: set SCRATCH (holds deps/node_modules) or DEPS (README: Tests); install: mkdir -p $SCRATCH/deps && cd $SCRATCH/deps && npm i three@0.186.1 three-mesh-bvh@0.9.16 three-bvh-csg@0.0.18 mp4-muxer@5.2.2`); process.exit(2) }
+if (process.env.SHOTS_VIDEO && !existsSync(join(DEPS, 'mp4-muxer'))) { console.error(`SHOTS_VIDEO needs mp4-muxer: cd ${DEPS}/.. && npm i mp4-muxer@5.2.2`); process.exit(2) }   // 2026-11-24: failed late inside the page   // 404 boot errors named nothing
 const ORIGIN = 'https://studio.test'   // https: a secure context, so WebCodecs (video export) exists
 // NODE_TOOLS = folder whose node_modules has playwright (cloud default /opt/node-tools); CHROME = browser exe on PC (no Playwright browsers)
 const require = createRequire((process.env.NODE_TOOLS || '/opt/node-tools') + '/')

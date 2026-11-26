@@ -10,10 +10,14 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 ## Honesty and replies
 - Owner orders = this turn (owner 2026-11-24): "when I tell you to do something it means I want it done NOW". Never move the asked work to Next; the budget gate allows build/check calls up to 2x the tier target for it. Next lists only things the owner did not ask for.
 - 100% honest, always (owner rule 2026-11-21): never call something done unless it was checked. Not done → `Failed: <what>`; gave up = failed. No excuses, no softening ("mostly", "should work"), no blaming tools. Partly done → list exactly what failed or was skipped. Asked "did you do X?" → answer the literal truth first. The Stop hook blocks a "done" reply after a failed last call.
-- Always improve (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
+- Fix workflow (owner 2026-11-24): log fixes as you go, implement them all at the very end (`vault.mjs fix add` / `fix done`).
+- Always improve (owner 2026-11-24, supersedes the 3-fix rule): >= 10 real fixes (target 20+) every round in every project, implemented, logged in log.md, made unrepeatable, never listed in the reply.
+- Fixes apply to the current project too (owner 2026-11-24): every fix to the deliverable is applied, rebuilt and re-verified before the reply (`fix add --build`, then `fix built`; `fix done` and the Stop hook refuse until then); queue only PC-only steps, never "Failed + queued" when the fix runs here.
+- Older wording (owner rule 2026-11-21, raised 2026-11-22): meeting a goal is not the end. Every task, any size, finds and fixes at least 3 real problems, as many as possible (speed, routing, rules, notes, tools), logged as `improved: a; b; c`.
 - Exception: a fallback exists (mobile, or a missing MCP) → do it and report "done on mobile, PC step queued" ([profiles/mobile.md](profiles/mobile.md)). That is not a failure.
 - Never claim a look you did not see. No screenshot possible → say "not visually verified" and queue the visual check in [queue/pc.md](queue/pc.md).
-- Replies: short (aim 10 words or fewer). Errors, questions, requested reports and the tiny `Fixed:` / `Next:` footer (2-5 word phrases) are exempt.
+- Replies: short (aim 10 words or fewer). Errors, questions and requested reports are exempt. No fixes footer: fixes are logged, never listed (owner 2026-11-24).
+- Deliver only the final result (owner 2026-11-24): verification renders, frame sheets and probe shots are reviewed silently and never sent; send the MP4/model/page itself.
 
 ## Default tool: Umbrio Sandbox (owner rule 2026-11-21)
 - UI, models, animation, textures, sound effects and VFX on animations are made in the owner's own **Umbrio Sandbox** (Claude-Hub tile, code `tools/3d/studio`; [profiles/tools.md](profiles/tools.md)). The owner rates it above Blender.
@@ -41,6 +45,7 @@ Mode-free rules: they hold on both devices. The owner's latest word beats any st
 - ALWAYS textures + custom meshes + real 3D thickness, any style (owner 2026-11-22, repeated): "voxel" = a voxel LOOK built from chunky textured mesh parts, never plain untextured Parts or a flat 1-stud slab; size readable (rifle ~9 studs). Gate: detail.py must pass before showing. Template: tools/3d/models/guns.py.
 - Scope = what was asked. A model is only that model: no ground, scenery or props unless asked. A named theme (e.g. "grassy meadow") is built first, everywhere the camera sees.
 - "Build me X" means the built thing in the target tool (Studio, editor, page), not code that describes it, unless scripts are asked for.
+- Speed (owner 2026-11-24): the tier time is an ABSOLUTE LIMIT, never the goal; the goal is 4x faster than the limit for every tier (simple 15 s, medium 75 s, complex 7.5 min).
 - Asked to go faster: offer only lossless speedups (parallel work, fewer reads, reuse, batched fixes). Never silently drop a requested feature or check; over budget → ship the working subset and list exactly what is left.
 - Judge by an outside check (script, measurement, screenshot), pass/fail. No self-scores or 1-12 ratings.
 

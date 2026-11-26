@@ -108,7 +108,7 @@ export function outsideInstalls(cmd, allowed) {
   for (const m of cmd.matchAll(re)) {
     const anyName = !!m[3];
     for (const a of (m[1] ?? m[2] ?? m[4] ?? '').trim().split(/\s+/)) {
-      if (!a || a.startsWith('-')) continue;
+      if (!a || a.startsWith('-') || /^\d*[<>]/.test(a)) continue; // shell redirects (`2>&1` leaves `2>`) are not packages
       const name = a.replace(/^['"]|['"]$/g, '').split(/(?<=.)@|==|>=|<=|~=|[<>=[]/)[0].toLowerCase();
       if (anyName || !ok.has(name)) bad.push(a);
     }

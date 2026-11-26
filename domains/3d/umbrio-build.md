@@ -28,6 +28,9 @@ Why this note: the 2026-11-22 house run spent ~9 min reading 8 files (playbook, 
 Patterns: bricks, planks, noise, clouds, checker, studs, grid, tiles, marble, gradient, stripes, camo, rock, woodgrain, brushed, fabric, asphalt, road, grass, sand, water, grip, carbon.
 Real-scale picks: brick `bricks` count 2 scale 0.43 aspect 1.65 (215 x 65 mm); lap siding `planks` count 4 scale 0.8 (200 mm boards, horizontal on fuv uvs); shingles `bricks` dark, count 2 scale 0.66; stone `rock` 1.5; painted trim `woodgrain` light 1.2; oak `woodgrain` 0.9; metal `brushed` 1.0.
 
+## Ship in one command (2026-11-24)
+- After a generator run: `python tools/vfx/crimson-beam/ship.py OUT <project-id> --at 2,4 [--sheet tex-id=file.webp]` builds the shots dir, renders frames + clip.mp4 once, and writes OUT/batch.json for one ArtifactData batch.
+
 ## Umbrio write (hub https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF)
 - Fresh tab = new project id. Docs: `projects/<id>` (scene = `OUT/live/p<i>.json`), `meta/<id>` (`OUT/live/m<i>.json`, `building: true` until the last stage), geo `projects/<id>/geo/<gid>` (= `OUT/geo/<gid>.json`).
 - One ArtifactData batch per stage: that stage's geo docs + project + meta (<= 50 writes, <= 1 MiB). Relative `file_path` under `.worktrees/` (scratchpad paths prompt the owner every write).

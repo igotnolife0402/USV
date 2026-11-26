@@ -37,3 +37,7 @@ status: current
 - New `.claude/agents/*.md` loads only at session start: test it the same session via general-purpose + `model`/`effort` override that Reads the agent file first (L-132)
 - SKILL.md description <= 300 chars (lint cap): count it before writing; skill/agent edits are medium tier (L-133)
 - Push check (L-145, 2026-11-25): commit, then verify with `git ls-remote origin <branch>` = `git rev-parse HEAD`; a lint-blocked commit pushes nothing, and `git fetch` of a never-pushed branch errors.
+- Hook message strings are JS template literals: never put backticks inside them (2026-11-24 learn.mjs broke every hook); run `node --test tests/learn.test.mjs` after any hook text edit.
+- Learn hook must cover the turn where the work happened: a relay turn (agent hand-back, task notification) with errors, writes or >= 3 tool calls gets every signal (2026-11-24 Macarena build ran in the improver hand-back, nothing learned); test in tests/learn.test.mjs
+- Run the vault tests as `node --test tests/*.test.mjs` (a bare `tests/` folder fails on Node 22, 2026-11-24)
+- JS/MJS/TS edits: Edit tool only, never `sed -i` (pre-tool denies it, L-045 x9); insert an import with Edit on the line before.
