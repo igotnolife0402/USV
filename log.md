@@ -633,3 +633,6 @@ improved: hub one-file republish recipe in playbook (L-220); errors rows for hea
 Root cause: rim paint did 8 bilinear taps on every pixel and all 20 sheets were painted in one microtask burst (paint 562 -> 3627 ms on the main thread). Now: separable-max early-out to the outer edge band, serial paint queue (one sheet per task), 1753 ms total. Outline check re-passed; hub republished. Not measured on a phone.
 improved: paint perf instrumentation vfxgen.paintMs + gen-perf-check.cjs; paint queue survives a failed sheet (catch); rim no longer tints textured interiors
 improved: L-222 speed rule (pageerror first, no mid-line // comments); errors.md row; L-045 bumped (sed -i on scratch .cjs)
+## [2026-11-25] improve / VFX generator upgrade prompt
+/improve 60: prompt for upgrading hub tool vfx generator (slots, exact duration, 60 s cap / 15 s target, Opus 5.5 medium). improve 60: ~35 s research, ~32 s brief, 19 s Sonnet, 97 s total (FAIL +37), rungs 1-3.
+improved: tools.md VFX Generator row pointed at liquid CLI, now hub entry; hub-tool code read rule (Artifact read path); router words vfx generator/hub tool; improve skill brief-start rule for <= 60 s (L-143)
