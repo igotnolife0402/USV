@@ -1,6 +1,6 @@
-* text=auto eol=lf
-*.png binary
-*.jpg binary
-*.glb binary
-*.rbxm binary
-*.rbxl binary
+# Append-only vault files: parallel sessions both add lines, so merges keep both sides instead of conflicting.
+log.md merge=union
+lessons.md merge=union
+queue/pc.md merge=union
+archive/metrics.jsonl merge=union
+domains/*/errors.md merge=union
