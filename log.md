@@ -558,3 +558,7 @@ improved (stop-gate): L-206 background-check wait rule promoted to vfx playbook;
 Parts take `model` (humanoid, sword, gun, staff, shield, rock, crystal, tree, wall, barrel); `dissolve` track erodes a model with a glowing rim; SCOPE RULE + code swap of off-prompt rise (+ crosses) and flames. Hub v66. Headless acid check: 16-mesh humanoid, dissolve 0→1, 0 errors; erosion look not visually verified.
 improved: placeholder models; dissolve channel; off-prompt element swap in code and early draw (no redraw after reply); router words placeholder/erode/dissolve; L-207 + errors row
 improved (learn L-208): vault learn rejects lessons > 350 chars before lint; playbook rule to grep names before new consts; errors row for the 328 s overrun
+
+## [2026-11-26] fix / vfx generator: fight prompts were 2 flash hits
+Diagnosed from hub db vfxsheets (Anime fight: 5 impact sheets, clip not logged) + headless repro (2 impacts, still fighters). Added ACTION RULE + actionErrs, run log (vfxruns); hub republished.
+improved: fight beat/motion check in code; SCOPE RULE no longer shrinks beats; every generation logged with prompt+reply for diagnosis

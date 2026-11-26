@@ -601,7 +601,8 @@ PAINT RULE (owner, checked by code; a spec that breaks it is sent back): every s
   * no two fx share the same sheet + ramp + tex: the same sheet used twice gets a different ramp or tex; >= 3 distinct ramps per clip (all layers blend additive: big back glow = deeper, darker-edged ramp at opacity 0.4-0.7, core = hottest, sparks = brightest accent, ground decal = deep saturated).
 - impacts [{t, at [x,y,z], color "#hex", payoff true on exactly one}], rims [{pos, color, base 1.0-1.5}] 1-2.
 
-SCOPE RULE (owner, checked by code): draw ONLY what the prompt names. Every sheet must trace to a word in the prompt (acid eroding a character = acid drips, corrosive bubbles, fumes, eroding flecks; NOT fire, NOT sparks of another element, NOT symbols). Never add "+" crosses, hearts, stars, runes, sigils, healing/buff motifs or a second element the prompt did not ask for; no "rise" or "flames" element unless the prompt is about healing or fire. When unsure, fewer layers.
+SCOPE RULE (owner, checked by code): draw ONLY what the prompt names. Every sheet must trace to a word in the prompt (acid eroding a character = acid drips, corrosive bubbles, fumes, eroding flecks; NOT fire, NOT sparks of another element, NOT symbols). Never add "+" crosses, hearts, stars, runes, sigils, healing/buff motifs or a second element the prompt did not ask for; no "rise" or "flames" element unless the prompt is about healing or fire. Scope limits WHICH elements, never how much happens: a 2-word prompt still gets a full story.
+ACTION RULE (owner, checked by code): a fight, duel, combo, battle or clash = an exchange, not one hit: >= 3 impacts spread over len (dash in, hit, counter, hit, finisher = payoff); every fighter is a humanoid part with a pos track of >= 3 keys (lunge, recoil, knockback) so they never stand still; weapons follow by parent or track. Fewer layers never means fewer beats.
 QUALITY FLOOR (the owner's standard): ONE dominant hue family + white-hot core, every layer painted per the PAINT RULE (hue-shifting ramps of that family, one contrasting accent allowed). Layer every hit: glow (big, faint) + core (the shape) + sparks/droplets. Payoff = 3-4 sheets at once, the largest sizes; build-up sparse; fast in, slow out; 0.5-1.5 s lingering after the payoff; t + life/dur <= len. 8-16 fx. Exactly what the owner describes, nothing extra (SCOPE RULE).`
 let ctl = null
 // the reply's shape in ~1 kB (the 8 kB library example made every call read more and copy its long style)
@@ -894,10 +895,10 @@ async function runSlot(sl) {
       const m0 = performance.now(); t.calls.push(m0)
       const early = earlyDraw(sl.set.seed, String(sl.prompt || '').toLowerCase())
       const res = await S(msgs, { ...MODEL, signal: ctrl.signal, cache: false, onText: ({ text }) => { slotStatus(sl, (round ? 'Fixing… ' : 'Writing… ') + text.length + ' chars' + (GEN.size ? ' · drawing sheets as they arrive' : '')); early(text) } })
-      t.model += performance.now() - m0
+      t.model += performance.now() - m0; sl.lastReply = res.text
       applied = res.modelApplied ? `${res.modelApplied} · ${MODEL.effort}` : `tier ${res.modelTierApplied} (Opus 5.5 not applied)`
       let spec, errs
-      try { spec = enforce(extractJSON(res.text), sl); repair(spec, sl).forEach(x => fixed.add(x)); errs = [...validate(spec), ...paintCheck(spec)]; if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
+      try { spec = enforce(extractJSON(res.text), sl); repair(spec, sl).forEach(x => fixed.add(x)); errs = [...validate(spec), ...paintCheck(spec), ...actionErrs(spec, want)]; if (!Object.keys(spec.sheets || {}).length) errs.push('no sheets: write the draw scripts in "sheets"'); (spec.fx || []).forEach((e, i) => { if (!e.sheet) errs.push(`fx[${i}]: use "sheet" (your own new sheet), not a library slug`) }) } catch (e) { errs = ['invalid JSON: ' + e.message] }
       if (!errs.length) {
         const d0 = performance.now()
         try {
@@ -920,7 +921,7 @@ async function runSlot(sl) {
   } catch (e) {
     t.end = performance.now(); sl.cls = 'bad'
     slotStatus(sl, sl.over ? 'Failed: over 60 s' : e?.name === 'AbortError' || e?.code === 'aborted' ? 'Stopped.' : 'Failed: ' + (e?.message || e?.code || e), 'bad')
-  } finally { clearTimeout(cap); sl.running = false; sl.ctrl = null; sl.applied = applied; paintSlot(sl); renderTabs(); renderSlots(); if (applied) $('status').textContent = 'Model: ' + applied }
+  } finally { clearTimeout(cap); logRun(sl, want); sl.running = false; sl.ctrl = null; sl.applied = applied; paintSlot(sl); renderTabs(); renderSlots(); if (applied) $('status').textContent = 'Model: ' + applied }
 }
 async function generateAll() {
   const go = slots.filter(s => (s.prompt || '').trim() && !s.running)
@@ -965,6 +966,22 @@ async function loadSaved() {
   try { const q = await col(db).orderBy('at', 'desc').limit(1000).get(); for (const d of q.docs) { const r = d.data(); if (r?.key && r.asset) SAVED.set(r.key, { ...r, url: '/_blob/' + r.asset }) } }
   catch (e) { console.warn('saved sheets not loaded:', e?.code || e?.message || e) }
   if ($('lib').open) renderLib()
+}
+// fights read as one flash when the model writes 1-2 impacts and statue fighters (owner 2026-11-26, "Anime fight")
+const FIGHT_RE = /\b(fight|duel|combo|battle|clash|brawl|spar|versus|vs\b|punch|kick|sword ?fight|showdown)/
+function actionErrs(S, want) {
+  if (!FIGHT_RE.test(String(want).toLowerCase()) || S.loop) return []
+  const bad = [], n = (S.impacts || []).length, men = Object.entries(S.parts || {}).filter(([, o]) => o.model === 'humanoid')
+  if (n < 3) bad.push(`ACTION RULE: a fight needs >= 3 impacts spread over len (has ${n})`)
+  if (men.length < 2) bad.push(`ACTION RULE: a fight needs 2 humanoid fighters in parts (has ${men.length})`)
+  men.forEach(([id]) => { if (!((S.tracks?.[id]?.pos || []).length >= 3)) bad.push(`ACTION RULE: fighter ${id} needs a pos track with >= 3 keys (lunge, recoil, knockback)`) })
+  return bad
+}
+// every run (ok or failed) is logged with its prompt, settings and the model's reply, so "compare the generation to the prompt" has data
+async function logRun(sl, want) {
+  try { const db = await dbP; if (!db || !sl.lastReply) return
+    await db.collection('vfxruns').doc(sl.id + '-' + Date.now().toString(36)).set({ prompt: want.slice(0, 2000), ms: sl.ms, set: sl.set, status: String(sl.status || '').slice(0, 600), reply: sl.lastReply.slice(0, 60000), at: Date.now() })
+  } catch (e) { console.warn('run log failed', e) }
 }
 async function saveSheets(S, res, prompt) {
   const [db, assets] = await Promise.all([dbP, assetsP]); let saved = 0, failed = ''

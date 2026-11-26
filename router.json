@@ -501,7 +501,10 @@
         "erosion",
         "dissolve",
         "acid",
-        "plus signs"
+        "plus signs",
+        "flashing impact",
+        "nothing useful",
+        "only impacts"
       ],
       "notes": [
         "domains/vfx/playbook.md",
