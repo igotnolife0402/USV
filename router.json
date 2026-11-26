@@ -504,7 +504,11 @@
         "plus signs",
         "flashing impact",
         "nothing useful",
-        "only impacts"
+        "only impacts",
+        "bullet holes",
+        "test models",
+        "correct coloring",
+        "eroding"
       ],
       "notes": [
         "domains/vfx/playbook.md",

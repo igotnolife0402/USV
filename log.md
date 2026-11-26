@@ -563,3 +563,8 @@ improved (learn L-208): vault learn rejects lessons > 350 chars before lint; pla
 Diagnosed from hub db vfxsheets (Anime fight: 5 impact sheets, clip not logged) + headless repro (2 impacts, still fighters). Added ACTION RULE + actionErrs, run log (vfxruns); hub republished.
 improved: fight beat/motion check in code; SCOPE RULE no longer shrinks beats; every generation logged with prompt+reply for diagnosis
 - learn L-210: improved: playbook rule read vfxruns first when diagnosing; mock repro specs pre-checked for jump gate; publish-refusal diff/republish step written down
+
+## [2026-11-26] build / vfx generator: no filler, element colours, test models + reactions
+Generator-wide: fixColors (element hue family, colour word wins), OFFSCOPE bubbles/petals/bolt/zigring, reactRepair (dissolve/char/freeze tracks, hole/cut/scorch/burn/crack/frost marks, test target/dummy), marks system + dummy/target/crate/car models, RULES text (FILLER, COLOUR, TEST). Headless: acid -> dissolve 0.6 + burn mark visible; gun -> test target + hole visible, ramps on hue 25; 0 errors. Not visually verified.
+improve 60: 124.6 s total (FAIL +64.6), brief late after long edits; Sonnet 16.5 s
+improved: repair fills missing sheet names (validate failed on them); char regex no longer matches "character"; colours re-fixed after duplicate-layer hue nudges; check10 harness with PROMPT=; router words bullet holes/test models/filler

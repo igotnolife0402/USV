@@ -1,6 +1,6 @@
 ---
 summary: Fastest proven path to punchy, performant VFX: layered particles, shaders, bloom; PC screenshot-verified, mobile Artifacts
-updated: 2026-11-24
+updated: 2026-11-26
 status: current
 triggers: [particles, shader, explosion, glow, bloom, vfx]
 ---
@@ -49,6 +49,7 @@ Curves: size and alpha over life via ease-out; color hot (white/yellow) → cool
 - Hub generator speed (owner 2026-11-26: 30-45 s, goal 15 s, L-205): effort low, minified reply with "sheets" first, 4-6 sheets / 8-16 fx, ~1 kB SKELETON instead of the 8 kB example; sheets draw while the reply streams (`earlyDraw`, same genKey); paint/timing/life faults fixed in code (`repair`, `fixLives`) instead of a fix round. Type select: consistent = gameplay (identity warp, real time, first fx at t 0, story shifted), cinematic = build-up + slow-mo.
 - Diagnosing a hub generation (L-210): read hub db `vfxruns` (prompt, settings, full reply) first, never rebuild the clip; a headless repro mock returns one fixed spec (no fix rounds), so pre-fix gate faults (jump >= 3) in it before running; hub publish refused as "newer version": read the live generator file, diff vs HEAD, equal → publish again.
 - Editing generator.html (L-208): before adding a top-level const/function, `grep -nE "(const|let|function) <name>\b"`; collisions (e.g. `cap`) only show at `node --check` and cost a pass.
+- Generator repairs (owner 2026-11-26, L-211): `repair` fixes colour (`fixColors`: element hue family, colour word wins, stops within 35 deg), off-prompt elements (OFFSCOPE: rise, flames, bubbles, petals, bolt, zigring) and reactions (`reactRepair`: dissolve/char/freeze tracks, hole/cut/scorch/burn/crack/frost marks, test target/dummy when nothing is hit). Reaction regexes need word bounds (`char` hit "character"); repair must fill every field validate reads (sheet names). Headless check: `check10.cjs` with `PROMPT=` prints marksAt/dissolveAt/ramp hues.
 - Painted-clip renders (2026-11-25, L-204): lint the spec with generator `paintCheck` rules (own ramp + tex per layer, only core ends #ffffff) BEFORE the ~25 s build+MP4 render, so one render passes; a rule missing on main: `git log --all --grep <L-id|word>` across origin/claude/* first.
 - Library rebuilds (100 sheets ~115 s): start `batch.py` in the background the moment the code passes a 3-family smoke run (`--only shock,glints,explosion`), then write the preview/Lua/docs while it runs; preview loops: clamp `now - t0` at 0 (the first rAF time can precede t0 and index frame -1) (2026-11-24).
 - Previews of Roblox emitters emulate the emitter, never a loop of staggered restarts (owner 2026-11-24: "just blinking"): particles born every 1/Rate, frame = OneShot age/Lifetime*64 or Loop age*FlipbookFramerate, linear Color/Transparency keys exactly as VFX.make writes them; one-shots play as Emit(1) every Lifetime. Check: `window.previewTime` sweep, loops 0 alpha jumps > 25 %.
