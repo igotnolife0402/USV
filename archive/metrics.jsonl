@@ -139,3 +139,4 @@
 {"t":"2026-11-26T01:24:37.789Z","tier":"medium","secs":113,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T01:29:37.250Z","tier":"medium","secs":277,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T05:11:38.192Z","tier":"simple","secs":82,"ok":false,"errors":0,"retry":0,"routes":["web"],"touched":[],"signals":["slow"],"mode":"mobile"}
+{"t":"2026-11-26T05:14:36.037Z","tier":"simple","secs":41,"ok":true,"errors":1,"retry":1,"routes":["web"],"touched":[],"signals":["errors"],"mode":"mobile"}
