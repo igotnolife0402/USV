@@ -406,3 +406,7 @@ improved: Studio now plays clip camera keys (anim.js); video export hides light 
 ## [2026-11-26] build / frost-comet v3 (owner: bland models, tiny comet, no texture)
 models.py: textured faceted ice-rock comet 1.9 m + 7 spikes + glow core, 13-shard crystal cluster + frozen base (24 parts, 8632 tris, 5 procedural textures); ramps no longer end pure white, texAmt 0.6, trail/gather bigger, flat ground mist back. mp4 frames seen; crystal marble veins faint at video res. Hub tab frost-comet-3 FAILED: hub DB at 100 MB quota, nothing written.
 improved: build.mjs runs models.py itself; comet core shrunk (poked out as a pale bulb); L-163 rule in vfx playbook + 2 errors rows (incl. hub quota)
+
+## [2026-11-26] build / fireball v1 (owner: classic fireball with burn marks)
+tools/vfx/fireball: models.py (core + 2 fbm flame shells + 5 embers + dirt patch, 12.4k tris) + build.mjs reusing frost-comet sheets with fire ramps. 4 mp4 renders seen. FAILED: scorch reads tan not black and fades by ~6 s; fireball shells read flat red; hub tab not written (hub DB full). Over budget (~300 s).
+improved: core sphere unit-radius bug found (swallowed the flames); trail size 4.5 hid the hero mesh -> 2.4; gather sheet implodes so burst uses mist sheet; errors rows added

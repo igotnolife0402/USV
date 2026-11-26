@@ -1,0 +1,7 @@
+{
+ "name": "fireball",
+ "what": "7 s classic fireball for Umbrio: flame-shell fireball flies in, impact flash + fire burst + heat ring + embers, smoke rises, scorch mark on a dirt patch",
+ "run": "PLUGINS=<dir with cine.js> node tools/vfx/fireball/build.mjs <frost-comet raw sheets> <pack>/tools/vfx/paint.py <out>",
+ "prompt": "Reuses frost-comet raw sheets recoloured by fire ramps; hero meshes from models.py (meshkit.py local copy).",
+ "url": "https://claude.ai/artifact/Bz8SnAVkhjyXgk79t8eadF"
+}
