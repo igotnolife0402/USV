@@ -30,7 +30,7 @@ The owner builds Roblox games, websites, browser games, realistic 3D models, ani
 | Huge | 30-min waves | 7.5 min per wave | brain plans only, domain leads, workers, review gate per merge | small work |
 
 - **Ambiguity.** Pick the most likely reading, state it in one line and build. Ask first only when a wrong guess would waste more than 5 minutes or the task needs a fact, file or access only the owner has.
-- **Several domains match.** The primary is the deliverable's platform; read the secondary section only for the part it covers.
+- **Several domains match.** The primary is the deliverable's platform; read the secondary section only for the part it covers, because two-domain turns took about twice as long.
 - **Fallback before failure.** Never answer "can't" while a fallback exists: do the fallback, queue the step that needs the other machine, and report both.
 - **Reuse before building.** Start from the closest existing template, library model or tool; a library asset plus changes beats building from scratch because the proven parts are already verified. For N variants, feed parameters into one template with one shared check.
 - **Brain and hands.** With sub-agents, the main model makes every design decision (names, values, sizes, paths) and workers copy the spec in one pass. A worker that designs, researches or retries turns a fast copy into a slow hunt.
@@ -56,7 +56,6 @@ Route by trigger words, not by mood: match the request against this table, open 
 | 4-8 Process | vault audit, routing miss, rule conflict, fix all, merge branches, self-improve | self-improvement protocol |
 
 - **When the owner names a tool**, search for it (typos allowed) before asking for a link; ask once, then record the link in section 10 the same turn.
-- **Name one primary domain.** Turns that touched two domains took about twice as long as one-domain turns, so read the secondary section only for its part.
 
 ## 4. Speed
 
@@ -338,7 +337,7 @@ Each line is a rule plus its reason. Section 5's checklists say when each domain
 - **Cloud sessions load only the repo's `.claude/`**; plugins and `~/.claude` skills, hooks and settings never load there, so anything mobile needs lives in the repo. Some CDNs refuse the cloud proxy, so headless checks serve pinned libraries locally through request routing.
 - **PC-only steps** are queued in `queue/pc.md` as one imperative line, `- [ ] YYYY-MM-DD step — context (files, why, expected result)`, with enough context to run cold, and committed to the session branch; the PC reads unchecked lines from the session branches at start.
 - **On PC**, make one cheap status call before the first use of a desktop-app MCP; if it fails, tell the owner the one exact fix and do the non-app parts meanwhile. Prefer own tools, then dedicated MCPs, then the browser, then computer use.
-- **Injected context has caps**: hook context is cut at 10,000 characters (keep injections under 8,000, critical facts first); CLAUDE.md imports load in full, so link instead; auto-memory loads only the first 200 lines or 25 KB.
+- **Injected context is truncated**: hook-injected context is cut at about 10,000 characters (Claude Code, as of 2026-11; check the docs when it matters), so keep injections under 8,000 with critical facts first; CLAUDE.md imports load in full, so link instead; auto-memory loads only its first 200 lines or 25 KB.
 - **New agent and skill files load at the next session start**; test them mid-session through a general-purpose agent that reads the file first.
 - **Merging session branches**: append-only files keep both sides; renumber your own ids on a clash.
 
@@ -374,12 +373,12 @@ Scale for every line: **10** proven (enforced, measured or recurring), general, 
 | Precision | 9 | Edit, compute and path rules are proven by repeated failures |
 | Decision making | 9 | Tier, ambiguity, fallback, reuse and brain/hands rules |
 | Bug fixing | 9 | Root cause, bisect, 3-try cap, fail-open guards |
-| Analysis | 8 | Measurement and labelling rules are strong; bot and user-simulation methods cover games but few other domains |
+| Analysis | 9 | Measurement, claim labels, recorded-data diagnosis, baseline deltas and hypothesis-first are general; no automated claim-labelling check yet |
 
 **Left out (below threshold or excluded):**
 - Excluded by the owner: every skill, every hub or artifact tool and all tool code, including tool APIs, file paths inside tools and generator internals (about 60 lessons and 40 note lines).
-- Below 7 and rejected: one-off incidents and tuning constants from a single build (about 45 lessons and 20 note lines); rules contradicted by a newer owner word (the 3-fix footer, the mute footer, "push so the phone sees", merge to main without asking, placeholder art, "animate generously"); stale facts (deprecated MCP servers, old asset APIs, retired folder layouts); slogans and restated model defaults.
-- Scored 7 and left out: the budget hard gate and clock warnings (measured: 80 % of turns within limit before the gate, 70 % after), per-route fast paths, monthly log rollup, relay detection, kids'-shop UI taste values, lobby part-count floors, marketing notes.
+- Below 7 and rejected: one-off incidents and tuning constants from a single build (about 45 lessons and 20 note lines); rules contradicted by a newer owner word (the 3-fix count, the Fixed/Next reply footer, "push so the phone sees", merge to main without asking, placeholder art, "animate generously"); stale facts (deprecated MCP servers, old asset APIs, retired folder layouts); slogans and restated model defaults.
+- Scored 7 and left out: the budget hard gate and clock warnings (measured: 80 % of turns within limit before the gate, 70 % after), per-route fast paths, monthly log rollup, relay detection, kids'-shop UI taste values, per-lobby hero part-count floors (250-part centrepieces), marketing notes.
 
 ## 13. Changelog
 
