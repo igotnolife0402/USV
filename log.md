@@ -365,3 +365,7 @@ improved: library 28 → 23 entries, all checkable ones pass the floor; armor RE
 ## [2026-11-26] vault / /prompt audit (no such command; asked which audit)
 /prompt is not a skill or command on any branch; "audit" routed nowhere.
 improved: vault route owns audit / vault audit / prompt audit / health check
+
+## [2026-11-26] vault / prompt audit (anthropics prompt-audit.md guide)
+3 parallel auditors (core, vault skills/agents, vendored eng skills), target Opus 5.5 (Sonnet 5.5 for improver/crew-worker). ~80 findings; 53-hunk proposed diff passes git apply --check; not applied (guide: propose only). Report + diff sent to owner.
+improved: audit found lessons written 3 ways; "always improve" 1 vs 3 conflict; thinking-control prose in crew/improver/crew-worker
