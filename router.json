@@ -520,7 +520,9 @@
         "generator outline",
         "rim outline slider",
         "outline thickness",
-        "thickness line"
+        "thickness line",
+        "hub republish",
+        "headless generator"
       ],
       "notes": [
         "domains/vfx/playbook.md",

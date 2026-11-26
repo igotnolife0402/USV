@@ -596,3 +596,4 @@ improved: Width slider; reel-slider-check.cjs committed; vfx router words slider
 ## [2026-11-26] build / generator rim outline + width slider + thickness line
 Rim outline (shot colour, brighter) now default in the VFX generator paint step, 30 % width, slider 5-50 % under the stage with a live on-screen px line; spec.json exports `outline`. Hub artifact republished (v73). Headless check: labels 5→0.2 px, 30→1.4 px, 50→2.4 px, 150 clamps to 50, 0 errors, no 390 px overflow. Rim look not visually verified (the no-sample overlay hides the stage headless).
 improved: L-219 + playbook rule (outline asks target the generator); router words for generator outline/thickness; new gen-outline-check.cjs with THREE_DIR route so headless runs without the CDN tunnel
+improved: hub one-file republish recipe in playbook (L-220); errors rows for headless CDN tunnel + rev-parse --short; check script THREE_DIR route documented
