@@ -102,3 +102,5 @@
 {"t":"2026-11-26T00:36:14.990Z","tier":"medium","secs":65,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T00:38:58.554Z","tier":"medium","secs":178,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T00:47:55.785Z","tier":"medium","secs":54,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T00:49:10.428Z","tier":"medium","secs":129,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T00:52:15.973Z","tier":"medium","secs":29,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
