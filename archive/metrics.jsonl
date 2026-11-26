@@ -100,3 +100,5 @@
 {"t":"2026-11-26T00:20:33.076Z","tier":"medium","secs":210,"ok":true,"errors":2,"retry":1,"routes":["3d"],"touched":[],"signals":["errors"],"mode":"mobile"}
 {"t":"2026-11-26T00:27:31.676Z","tier":"medium","secs":299,"ok":true,"errors":0,"retry":0,"routes":["vfx"],"touched":[],"signals":[],"mode":"mobile"}
 {"t":"2026-11-26T00:36:14.990Z","tier":"medium","secs":65,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T00:38:58.554Z","tier":"medium","secs":178,"ok":true,"errors":0,"retry":0,"routes":["3d"],"touched":[],"signals":[],"mode":"mobile"}
+{"t":"2026-11-26T00:47:55.785Z","tier":"medium","secs":54,"ok":true,"errors":0,"retry":0,"routes":[],"touched":[],"signals":[],"mode":"mobile"}
