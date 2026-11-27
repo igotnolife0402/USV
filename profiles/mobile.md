@@ -41,3 +41,4 @@ If the PC is on and the owner wants PC tools from the phone, suggest `/remote-co
 
 PC capabilities: [profiles/pc.md](profiles/pc.md).
 - New cloud session screen (before the first message): the `/` menu lists built-ins only (`/model`); repo skills load after the clone. Type the full `/improve 90 <prompt>` and send, or send one message first, then `/` lists repo skills (owner screenshot 2026-11-23). Account skills (claude.ai upload) are repo-independent.
+- Other repos from mobile (2026-11-27): read via GitHub MCP `get_file_contents` with `ref: refs/heads/<branch>`; `gh` is search-only and `git clone` is hook-blocked.

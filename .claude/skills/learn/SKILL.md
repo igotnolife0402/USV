@@ -16,3 +16,4 @@ Then stop; don't redo the task unless it is still broken.
 
 ## Mobile
 Same commands; commit with the session's work.
+- Check that `learn` printed a new id before tagging `→ applied` (2026-11-27: a rejected over-long lesson made a tail-of-file sed target the previous lesson). Keep cause + rule under 350 chars.

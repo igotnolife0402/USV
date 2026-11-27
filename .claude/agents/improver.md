@@ -64,3 +64,4 @@ WRITING/RESEARCH/OTHER: audience, outcome, outline with headings, sources rule (
 - Mobile: PC-only steps (Studio, Blender, local files) → fallback + append to queue/pc.md.
 
 - Self-contained (2026-11-26, Prism prompt): a prompt meant for another vault or session must describe every tool, file or name it references (e.g. "like Umbrio" -> a section saying what Umbrio is, its feature list and formats); the reader has none of this vault.
+- Diagnosis prompts (2026-11-27): keep measured numbers and assumed causes in separate lists; every estimate says (est).

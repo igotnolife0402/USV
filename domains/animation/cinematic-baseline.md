@@ -40,3 +40,6 @@ Shared shape: build (push-in + escalation) -> dip -> flash + freeze -> shake -> 
 
 ## Verified 2026-11-24
 `node test/run.mjs anim` 17/17 (cine v2 case: grade pixels, intensity track, cineLights, spacing/framing); earlier 16/16 (2 new cases: cine numbers, pixels dim/flash/settle, idempotent, off; each lint rule). 12 fps sheet of a dart-into-board clip read frame by frame: push-in speeds up, flash holds 2 sheet frames, decays over 6, close-up holds ~1 s, reveal spreads over 11 frames. First version pulled back under the flash in one frame (fixed: hold + even ease). Real rigs/duel not yet re-shot with cine (queued).
+- Shot plan before building (2026-11-27, Prism dragon_city: camera kept the dragon behind parapets, no hero shot): write 3 shots first (wide establish, low-angle hero with the creature >= 25 % of frame height, impact), each cut motivated.
+- Contact + occlusion (2026-11-27): landed feet within 2 cm of the surface top; foreground geometry hides <= 30 % of the hero body in hero shots.
+- Preview first (2026-11-27, 8.8 min per full 720p render, ~5 re-renders = 45 of 60 min): block camera and run every check on a 320x180, MSAA 1, no shadow/bloom preview; one full render at the end.

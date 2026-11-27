@@ -285,7 +285,10 @@
         "rbxmx dry-run, simulate roblox export, db full",
         "database full",
         "storage limit",
-        "quota"
+        "quota",
+        "speed audit",
+        "why so slow",
+        "render time"
       ],
       "notes": [
         "domains/3d/playbook.md",
@@ -410,7 +413,10 @@
         "wiggles",
         "side to side",
         "hip roll",
-        "feet slide"
+        "feet slide",
+        "shot plan",
+        "dragon city",
+        "hero shot"
       ],
       "notes": [
         "domains/animation/umbrio-animator.md",
