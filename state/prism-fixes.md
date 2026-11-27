@@ -22,3 +22,4 @@ check house <= 0.3 s; cargo test <= 5 s warm; 4 s draft MP4 <= 6 s; dragon_city 
 
 ## Status
 - 2026-11-27 sent (delivered). Next: read its before/after table, compare to pass lines, report to owner.
+- 2026-11-27 Prism reply: not started; it needs the owner's yes typed in the Prism tab (relayed approval refused, correct), and the owner told it to scrap the dragon, so L1-L6 are on hold unless the owner overrides there. S7 already queued there.
