@@ -610,3 +610,7 @@ improved: router 3d word "template" removed (misrouted this picture task to 3d);
 ## [2026-11-27] build / model, vfx, animation blueprints
 Same concept as PB-001, one shared sheet.html + sheets.js data: steps (do/out/gate), basics diagram, gates, files. render.cjs renders all 4, PASS (0 errors, 0 overflow); looked at each PNG.
 improved: data-driven sheet template (new domain = one SHEETS entry); render.cjs renders all sheets in one run and skips the by-design arrow overflow; HTML-escaped spawn&lt;Name&gt; (was eaten as a tag); router words blueprints/step blueprint
+
+## [2026-11-27] edit / worked examples in blueprints
+Model (iron longsword), VFX (fire impact), animation (heavy sword slash): an E.G. line in every step, example in the subtitle and as the files-tree root. render.cjs PASS for all 3; looked at each.
+improved: step tuple gains an example slot (sheets.js comment documents it); step 01 model text no longer duplicates its example; steps panel enlarged so examples fit without overflow

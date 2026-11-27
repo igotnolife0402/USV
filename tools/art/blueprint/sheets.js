@@ -1,18 +1,18 @@
 // Content for each domain blueprint (sheet.html?s=<key>). Facts mirror domains/<d>/playbook.md, pipeline.md, detail.md;
-// change the note first, then this file. Step = [name, what to do, output, gate].
+// change the note first, then this file. Step = [name, what to do, worked example, output, gate].
 const AX = (x1,y1,x2,y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cfe6ff" stroke-width="1.5"/>`;
 const SHEETS = {
 model: {
-  title: 'MODEL', dn: 'PB-101', sub: 'REALISTIC 3D MODEL · UMBRIO SANDBOX · CUSTOM MESHES + TEXTURES + REAL THICKNESS',
+  ex: 'IRON LONGSWORD (HERO)', title: 'MODEL', dn: 'PB-101', sub: 'REALISTIC 3D MODEL · UMBRIO SANDBOX · CUSTOM MESHES + TEXTURES + REAL THICKNESS',
   steps: [
-    ['REFERENCE', 'List what the real thing is made of (sword: pommel, grip wrap, guard, fuller, edge bevel). Pick class prop | hero | scene.', 'part list + class', 'owner ref matched'],
-    ['SCALE', '1 unit = 1 m, origin at base centre, +Y up. One joint group per moving part, pivot at the joint.', 'bounds + groups', 'real-world size'],
-    ['PRIMARY', 'Big forms as custom meshes: tapered swept tubes, lathes, bevelled extrusions. Never raw primitives.', 'silhouette', 'reads from far'],
-    ['SECONDARY', 'Trims, rims, straps, rivets, ridges, seams, hinges: separate parts sitting proud ≥ 1 cm.', 'mid detail', 'no floating parts'],
-    ['TERTIARY', 'Chips, wear, grooves, engravings, stitches. Vary size and rotation: no perfect repeats.', 'close detail', 'no repetition'],
-    ['SURFACES', 'Texture on every non-glow part (wood, brushed, fabric, rock...). Glow = separate Neon parts.', 'materials', '≥ 70% textured'],
-    ['LIVE BUILD', 'Write stage by stage into a fresh Umbrio tab, the exact model only: no ground, no scenery.', 'Umbrio tab', 'read-back matches'],
-    ['GATES', 'zfight check, detail.py --class, attach check, then cut useless tris / split meshes so caps pass.', 'shipped model', 'all PASS + looked'],
+    ['REFERENCE', 'List every sub-part the real thing is made of, then pick class prop | hero | scene.', 'pommel, grip wrap, crossguard, ricasso, fuller, edge bevel, rivets → hero', 'part list + class', 'owner ref matched'],
+    ['SCALE', '1 unit = 1 m, origin at base centre, +Y up. One joint group per moving part, pivot at the joint.', '1.1 m long; origin at grip base; blade group pivots at the guard', 'bounds + groups', 'real-world size'],
+    ['PRIMARY', 'Big forms as custom meshes: tapered swept tubes, lathes, bevelled extrusions. Never raw primitives.', 'blade = bevelled extrusion; grip = tapered tube; pommel = lathe', 'silhouette', 'reads from far'],
+    ['SECONDARY', 'Trims, rims, straps, rivets, ridges, seams, hinges: separate parts sitting proud ≥ 1 cm.', 'leather wrap bands, guard rim, 2 rivets, fuller groove 4 mm deep', 'mid detail', 'no floating parts'],
+    ['TERTIARY', 'Chips, wear, grooves, engravings, stitches. Vary size and rotation: no perfect repeats.', 'edge nicks, worn wrap edges, engraving on the ricasso', 'close detail', 'no repetition'],
+    ['SURFACES', 'Texture on every non-glow part (wood, brushed, fabric, rock...). Glow = separate Neon parts.', 'brushed steel blade, leather grip, dark iron guard', 'materials', '≥ 70% textured'],
+    ['LIVE BUILD', 'Write stage by stage into a fresh Umbrio tab, the exact model only: no ground, no scenery.', 'stage 1 blade → 2 guard → 3 grip → 4 pommel → read back', 'Umbrio tab', 'read-back matches'],
+    ['GATES', 'zfight check, detail.py --class, attach check, then cut useless tris / split meshes so caps pass.', 'zfight PASS · detail --class hero PASS · every mesh ≤ 19k tris', 'shipped model', 'all PASS + looked'],
   ],
   svg: `<svg width="760" height="200" viewBox="0 0 760 200">
     <rect x="10" y="20" width="220" height="150" fill="none" stroke="#cfe6ff" stroke-width="2.5"/>
@@ -40,7 +40,7 @@ model: {
     ['Hero: triangles', '≥ 15k'], ['Any one size group', '≤ 25%'], ['Prop: parts', '≥ 15'], ['Tris per mesh (Roblox cap 20k)', '≤ 19k'],
     ['zfight: level overlap', '< 1.5 cm'], ['zfight: layered overlap', '< 12 cm'], ['Proud detail offset', '≥ 1 cm'], ['Web GLB', '≤ 5 MB'],
   ],
-  files: `<b>&lt;model&gt;/</b>
+  files: `<b>iron-longsword/</b>
 ├─ README.md   <i>run · test · status</i>
 ├─ SPEC.md     <i>ref parts · class</i>
 ├─ <b>scripts/</b>
@@ -50,16 +50,16 @@ model: {
 └─ <b>out/</b>        <i>project.json · glb</i>`,
 },
 vfx: {
-  title: 'VFX', dn: 'PB-102', sub: 'VISUAL EFFECTS · WEB + ROBLOX · WHITE SHEETS, TINTED IN CODE · LAYERED, READABLE, 60 FPS',
+  ex: 'FIRE IMPACT (ORANGE, ONE-SHOT)', title: 'VFX', dn: 'PB-102', sub: 'VISUAL EFFECTS · WEB + ROBLOX · WHITE SHEETS, TINTED IN CODE · LAYERED, READABLE, 60 FPS',
   steps: [
-    ['BRIEF', 'Element, colour word, mood, one-shot or loop. Grep vfx/index.tsv first: reuse a sheet before drawing one.', 'spec + colour ramp', 'scope = the ask'],
-    ['TIMING', 'Lay the layers on a timeline: anticipation, core, secondary, residue. Gameplay hits ≤ 0.5 s.', 'timeline', 'reads in 0.5 s'],
-    ['SHEETS', 'White flipbooks (4x4 / 8x8, power of 2), soft particle 64 px. Light must last past the flash.', 'vfx/sheets/*.png', 'no 1-frame pop'],
-    ['CORE', 'Bright, fast, additive burst, 100-300 ms life. Only the core may end at pure white.', 'core layer', 'clear silhouette'],
-    ['SECONDARY', 'Smoke and debris: slower, normal blend, gravity + drag. Same hue family as the core.', 'depth layer', 'hue within 35°'],
-    ['RESIDUE', 'Embers / decals fading 0.5-2 s. Camera: shake 4-10 px decaying, hit-stop 30-80 ms.', 'tail + camera', 'no overkill'],
-    ['TEST PAGE', 'Isolated page with trigger + FPS readout. Capture peak (~100 ms) and decay frames.', 'test.html', '60 fps, 0 errors'],
-    ['INTEGRATE', 'spawn&lt;Name&gt;(x, y) with a pool, or Roblox Emit(n) / Beam / Trail. Save sheets + index row.', 'game-ready fx', 'looked in context'],
+    ['BRIEF', 'Element, colour word, mood, one-shot or loop. Grep vfx/index.tsv first: reuse a sheet before drawing one.', 'fire hit, orange → red, one-shot; index.tsv has an explosion sheet: reuse it', 'spec + colour ramp', 'scope = the ask'],
+    ['TIMING', 'Lay the layers on a timeline: anticipation, core, secondary, residue. Gameplay hits ≤ 0.5 s.', 'flash 0-50 · core 30-300 · smoke 80-900 · embers 250-2000 ms', 'timeline', 'reads in 0.5 s'],
+    ['SHEETS', 'White flipbooks (4x4 / 8x8, power of 2), soft particle 64 px. Light must last past the flash.', '8x8 white fireball flipbook + 64 px soft dot, tinted orange in code', 'vfx/sheets/*.png', 'no 1-frame pop'],
+    ['CORE', 'Bright, fast, additive burst, 100-300 ms life. Only the core may end at pure white.', '24 additive fire sprites, life 0.2 s, white → yellow → orange', 'core layer', 'clear silhouette'],
+    ['SECONDARY', 'Smoke and debris: slower, normal blend, gravity + drag. Same hue family as the core.', '10 grey smoke puffs, drag 3, slow rise; 6 debris chunks with gravity', 'depth layer', 'hue within 35°'],
+    ['RESIDUE', 'Embers / decals fading 0.5-2 s. Camera: shake 4-10 px decaying, hit-stop 30-80 ms.', '15 embers fade over 1.5 s; shake 6 px; hit-stop 50 ms', 'tail + camera', 'no overkill'],
+    ['TEST PAGE', 'Isolated page with trigger + FPS readout. Capture peak (~100 ms) and decay frames.', 'fire-impact test.html: tap = trigger, FPS top-left, frames at 100 + 600 ms', 'test.html', '60 fps, 0 errors'],
+    ['INTEGRATE', 'spawn&lt;Name&gt;(x, y) with a pool, or Roblox Emit(n) / Beam / Trail. Save sheets + index row.', 'spawnFireImpact(x, y) from a pool · Roblox: Emit(24) on hit', 'game-ready fx', 'looked in context'],
   ],
   svg: (() => { const L = [['ANTICIPATION',0,50,'#fff'],['CORE',30,300,'#ffd166'],['SECONDARY',80,900,'#cfe6ff'],['RESIDUE',250,2000,'#8fb8e6'],['CAMERA SHAKE',30,400,'#cfe6ff']];
     const x = t => 150 + Math.sqrt(t/2000)*590;
@@ -78,7 +78,7 @@ vfx: {
     ['Canvas 2D particles', '~2,000'], ['three.js instanced', '~50,000'], ['Full-screen passes', '≤ 3 @ DPR ≤ 2'], ['Bloom', '1, half res'],
     ['Frame time (4x throttle)', '≤ 16 ms'], ['Roblox texture', '≤ 1024 px'], ['Hue spread in ramp', '≤ 35°'], ['Flashing', '≤ 3 Hz'],
   ],
-  files: `<b>&lt;effect&gt;/</b>
+  files: `<b>fire-impact/</b>
 ├─ README.md   <i>run · test · status</i>
 ├─ SPEC.md     <i>element · timing</i>
 ├─ <b>src/</b>
@@ -89,16 +89,16 @@ vfx: {
 └─ <b>out/</b> → vfx/sheets + index.tsv`,
 },
 animation: {
-  title: 'ANIMATION', dn: 'PB-103', sub: 'KEY-POSE ANIMATION · ONE SPEC → STUDIO CLIP, ROBLOX, VIDEO · WEIGHT IS TIMING',
+  ex: 'HEAVY SWORD SLASH', title: 'ANIMATION', dn: 'PB-103', sub: 'KEY-POSE ANIMATION · ONE SPEC → STUDIO CLIP, ROBLOX, VIDEO · WEIGHT IS TIMING',
   steps: [
-    ['SPEC', 'One motion spec per rig drives every output (clip, Roblox Lua, MP4). Edit the spec, never an output.', 'spec file', 'single source'],
-    ['RIG', 'A group per joint at its pivot, meshes at rest under it. A pose = the groups\' rotations.', 'rig at rest', 'pivots correct'],
-    ['KEY POSES', 'Keys only on turning points: anticipation, contact, extremes. A few per joint, never per frame.', 'pose set', 'fits with tol'],
-    ['TIMING', 'Slow lift, long wind-up, held beat, fast cut, braked follow-through, slow recovery.', 'beat sheet', 'cut ≈ 0.22 s'],
-    ['EASING', 'auto (Hermite) through motion; smooth only at real starts/stops; impacts out + hit-stop.', 'eased tracks', 'no linear jerks'],
-    ['ARCS & IK', 'arc_keys in-betweens on fast cuts; wrists by two-bone IK; blades by aim; feet on the ground.', 'clean arcs', 'no clipping'],
-    ['FX & CAMERA', 'Effects ride the clip at the contact point. Fights: anim.cine camera, grade, impact + rim lights.', 'cine pass', 'fx on contact'],
-    ['CHECK', 'anim.lint 0, shots at 3 times + MP4, payoff as a 12 fps sheet. Fights: FK gate first.', 'clip + MP4', 'lint 0 + looked'],
+    ['SPEC', 'One motion spec per rig drives every output (clip, Roblox Lua, MP4). Edit the spec, never an output.', 'slash.py: POSES ready / windup / strike / follow + one CLIP', 'spec file', 'single source'],
+    ['RIG', 'A group per joint at its pivot, meshes at rest under it. A pose = the groups\' rotations.', 'groups at shoulder, elbow, wrist, hips; sword under the hand group', 'rig at rest', 'pivots correct'],
+    ['KEY POSES', 'Keys only on turning points: anticipation, contact, extremes. A few per joint, never per frame.', '5 keys: ready · wind-up (blade back) · contact · follow · recover', 'pose set', 'fits with tol'],
+    ['TIMING', 'Slow lift, long wind-up, held beat, fast cut, braked follow-through, slow recovery.', 'lift 0.3 · wind-up 0.5 · hold 0.15 · cut 0.22 · follow 0.3 · recover 0.5 s', 'beat sheet', 'cut ≈ 0.22 s'],
+    ['EASING', 'auto (Hermite) through motion; smooth only at real starts/stops; impacts out + hit-stop.', 'wind-up auto · cut eases out · 0.1 s hit-stop at contact', 'eased tracks', 'no linear jerks'],
+    ['ARCS & IK', 'arc_keys in-betweens on fast cuts; wrists by two-bone IK; blades by aim; feet on the ground.', '3 arc_keys on the cut; ik_arm puts the wrist on the grip; feet keyed flat', 'clean arcs', 'no clipping'],
+    ['FX & CAMERA', 'Effects ride the clip at the contact point. Fights: anim.cine camera, grade, impact + rim lights.', 'swing trail on the tip path; camera push-in + shake on contact', 'cine pass', 'fx on contact'],
+    ['CHECK', 'anim.lint 0, shots at 3 times + MP4, payoff as a 12 fps sheet. Fights: FK gate first.', 'anim.lint 0 · shots at 0.8 / 1.1 / 1.6 s · 12 fps payoff sheet', 'clip + MP4', 'lint 0 + looked'],
   ],
   svg: (() => { const P = [['LIFT',0,.18],['WIND-UP',.18,.48],['HOLD',.48,.58],['CUT',.58,.66],['FOLLOW',.66,.8],['RECOVER',.8,1]];
     const x = t => 20 + t*720;
@@ -119,7 +119,7 @@ animation: {
     ['Single Euler jump', '< 150° (arc_keys)'], ['Blade turn at shoulder', '> 120°'], ['Blade contact distance', '≤ 0.15 stud'], ['Fighter gap', '≈ blade × 0.8'],
     ['Blade tip height', '≥ 0.05'], ['Shots check', '3 times + MP4'], ['Payoff review', '12 fps sheet'], ['Roblox priority', 'Action'],
   ],
-  files: `<b>&lt;clip&gt;/</b>
+  files: `<b>heavy-slash/</b>
 ├─ README.md   <i>run · test · status</i>
 ├─ SPEC.md     <i>beats · contacts</i>
 ├─ <b>src/</b>

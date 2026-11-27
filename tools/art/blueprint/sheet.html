@@ -9,7 +9,7 @@ body{width:1920px;height:1200px;background:var(--bg);color:var(--line);font:15px
  background-size:120px 120px,120px 120px,24px 24px,24px 24px;position:relative;overflow:hidden}
 .frame{position:absolute;inset:24px;border:2px solid var(--line)}.frame::after{content:"";position:absolute;inset:8px;border:1px solid var(--dim)}
 h1{position:absolute;left:64px;top:50px;font-size:44px;letter-spacing:6px;color:var(--hi)}
-.sub{position:absolute;left:66px;top:108px;color:var(--dim);letter-spacing:2px;font-size:16px}
+.sub{position:absolute;left:66px;top:104px;color:var(--dim);letter-spacing:2px;font-size:16px}
 .box{position:absolute;border:1.5px solid var(--line);padding:20px}
 .tag{position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 8px;color:var(--acc);font-size:13px;letter-spacing:2px}
 .steps{display:grid;grid-template-columns:repeat(8,1fr);gap:22px;height:100%}
@@ -18,12 +18,13 @@ h1{position:absolute;left:64px;top:50px;font-size:44px;letter-spacing:6px;color:
 .step:not(:last-child)::before{content:"";position:absolute;right:-23px;top:29px;border:6px solid transparent;border-left:9px solid var(--line);border-right:0}
 .num{color:var(--acc);font-size:12px;border:1px solid var(--acc);align-self:flex-start;padding:0 5px}
 .step h3{color:var(--hi);font-size:18px;letter-spacing:2px}
-.step p{font-size:15.5px;line-height:1.5}
+.step p{font-size:14.5px;line-height:1.45}
+.step .ex{font-size:13.5px;line-height:1.45;color:var(--hi);border-left:2px solid var(--acc);padding-left:7px;margin-top:2px}.step .ex b{color:var(--acc);font-weight:400;font-size:11px;letter-spacing:1px}
 .step .k{margin-top:auto;font-size:13px;color:var(--dim);border-top:1px dashed var(--dim);padding-top:6px}
 .step .k b{color:var(--acc);font-weight:400}
-ul{list-style:none}ul li{font-size:16px;padding:6px 0 6px 20px;position:relative}ul li::before{content:"▸";position:absolute;left:0;color:var(--acc)}
+ul{list-style:none}ul li{font-size:15.5px;padding:4px 0 4px 20px;position:relative}ul li::before{content:"▸";position:absolute;left:0;color:var(--acc)}
 li b,td b{color:var(--hi)}
-table{border-collapse:collapse;width:100%}td{border-bottom:1px dashed rgba(143,184,230,.45);padding:9px 4px;font-size:15.5px;vertical-align:top}
+table{border-collapse:collapse;width:100%}td{border-bottom:1px dashed rgba(143,184,230,.45);padding:7px 4px;font-size:15px;vertical-align:top}
 td:last-child{text-align:right;color:var(--acc);white-space:nowrap}
 .tree{white-space:pre;font-size:15.5px;line-height:1.85}.tree b{color:var(--hi)}.tree i{color:var(--dim);font-style:normal}
 svg{display:block}svg text{font-family:"DejaVu Sans Mono",monospace;fill:var(--line)}
@@ -33,10 +34,10 @@ svg{display:block}svg text{font-family:"DejaVu Sans Mono",monospace;fill:var(--l
 </style></head><body>
 <div class="frame"></div>
 <h1 id="t"></h1><div class="sub" id="sub"></div>
-<div class="box" style="left:64px;top:160px;width:1792px;height:410px"><span class="tag">A · EVERY STEP, IN ORDER</span><div class="steps" id="steps"></div></div>
-<div class="box" style="left:64px;top:604px;width:800px;height:548px"><span class="tag">B · BASICS</span><div id="basics"></div></div>
-<div class="box" style="left:896px;top:604px;width:480px;height:548px"><span class="tag">C · GATES &amp; NUMBERS</span><table id="gates"></table></div>
-<div class="box" style="left:1408px;top:604px;width:448px;height:384px"><span class="tag">D · FILES</span><div class="tree" id="files"></div></div>
+<div class="box" style="left:64px;top:150px;width:1792px;height:470px"><span class="tag">A · EVERY STEP, IN ORDER</span><div class="steps" id="steps"></div></div>
+<div class="box" style="left:64px;top:648px;width:800px;height:504px"><span class="tag">B · BASICS</span><div id="basics"></div></div>
+<div class="box" style="left:896px;top:648px;width:480px;height:504px"><span class="tag">C · GATES &amp; NUMBERS</span><table id="gates"></table></div>
+<div class="box" style="left:1408px;top:648px;width:448px;height:344px"><span class="tag">D · FILES</span><div class="tree" id="files"></div></div>
 <div class="title"><div class="wide" id="tt"></div><div><span>DRAWING</span><em id="dn" style="font-style:normal"></em></div><div><span>REV</span>A</div>
 <div><span>DATE</span>2026-11-27</div><div><span>PARENT</span>PB-001 LAYOUT</div></div>
 <script src="sheets.js"></script>
@@ -44,8 +45,8 @@ svg{display:block}svg text{font-family:"DejaVu Sans Mono",monospace;fill:var(--l
 const id=new URLSearchParams(location.search).get('s')||'model', S=SHEETS[id];
 if(!S) throw new Error('unknown sheet '+id);
 const $=x=>document.getElementById(x);
-$('t').textContent=S.title+' BLUEPRINT'; $('sub').textContent=S.sub; $('tt').textContent=S.title+' BLUEPRINT'; $('dn').textContent=S.dn;
-$('steps').innerHTML=S.steps.map((s,i)=>`<div class="step"><span class="num">${String(i+1).padStart(2,'0')}</span><h3>${s[0]}</h3><p>${s[1]}</p><div class="k"><b>OUT</b> ${s[2]}<br><b>GATE</b> ${s[3]}</div></div>`).join('');
+$('t').textContent=S.title+' BLUEPRINT'; $('sub').textContent=S.sub+' · WORKED EXAMPLE: '+S.ex; $('tt').textContent=S.title+' BLUEPRINT'; $('dn').textContent=S.dn;
+$('steps').innerHTML=S.steps.map((s,i)=>`<div class="step"><span class="num">${String(i+1).padStart(2,'0')}</span><h3>${s[0]}</h3><p>${s[1]}</p><p class="ex"><b>E.G.</b> ${s[2]}</p><div class="k"><b>OUT</b> ${s[3]}<br><b>GATE</b> ${s[4]}</div></div>`).join('');
 $('basics').innerHTML=S.svg+'<ul style="margin-top:22px">'+S.basics.map(b=>`<li>${b}</li>`).join('')+'</ul>';
 $('gates').innerHTML=S.gates.map(g=>`<tr><td>${g[0]}</td><td>${g[1]}</td></tr>`).join('');
 $('files').innerHTML=S.files;
