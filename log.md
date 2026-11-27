@@ -819,3 +819,7 @@ improved: tool trivia and incident stories stripped; 3D floor vs every-part rule
 - Read Prism via GitHub MCP (Idk@3192d50). Causes: AI loop runs debug CLI (GUIDE.md:9,115; build.mjs uses target/debug); SwiftShader CPU WebGPU with MSAA4 + 2048 shadow + bloom per frame (gpu.js); per-frame canvas readback + software H.264 (video.js); wasm opt-level z, no simd128 (Cargo.toml). Timings requested from Prism session; fixes await owner go.
 - improve 60: brief ~20 s, Sonnet ~25 s, 52.9 s total (early FAIL), rungs 1-2.
 - 2026-11-27 Prism timings (session reply, Idk@3192d50): check 224 ms for the 361-part house, so debug Rust is not the bottleneck (correction). 720p frame 0.536 s (MSAA4, 1 worker): ~75 ms fixed, ~90 ms PNG encode, <20 ms CDP, ~350 ms shadow + MSAA + bloom on SwiftShader; MSAA1 0.381, 2 workers 0.280.
+
+## [2026-11-27] audit / Prism dragon_city.mp4 (60 min, bad look)
+- 12-frame sheet: tiny dark dragon on navy sky, flat wings, lands behind parapet, pink fire cone hits nothing, ring-sprite explosion, stray sphere, dead box city. ~8.8 min per full render explains most of the 60 min. Fix list ready; awaits owner go.
+- improve 60: brief ~15 s, Sonnet 20 s, 62.7 s total (PASS +2.7), rungs 1-4.
