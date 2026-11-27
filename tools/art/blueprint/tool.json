@@ -1,8 +1,8 @@
 {
  "name": "blueprint",
- "what": "Standard project-structure blueprint PNG: root layout, src/ per project type, rules, lifecycle, README header",
+ "what": "Blueprint PNGs: project layout plus model, vfx and animation sheets (every step, basics, gates, files)",
  "run": "node tools/art/blueprint/render.cjs -> tools/art/blueprint/out/project-blueprint.png (exits 1 on overflow or page error)",
  "prompt": "When starting or scaffolding any project, follow the layout in blueprint.html. To change the standard, edit blueprint.html only, then re-render and look at the PNG.",
  "url": "",
- "web": ["blueprint.html"]
+ "web": ["blueprint.html", "sheet.html", "sheets.js"]
 }

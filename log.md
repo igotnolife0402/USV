@@ -606,3 +606,7 @@ improved: L-222 speed rule (pageerror first, no mid-line // comments); errors.md
 ## [2026-11-27] build / project blueprint PNG
 Standard project layout blueprint: tools/art/blueprint/blueprint.html → render.cjs → out/project-blueprint.png (3840x2400). Render PASS (0 page errors, 0 overflowing panels); looked at the PNG.
 improved: router 3d word "template" removed (misrouted this picture task to 3d); images route gained blueprint/project structure/diagram words; render.cjs overflow gate catches text spilling past panels (caught 2 this run)
+
+## [2026-11-27] build / model, vfx, animation blueprints
+Same concept as PB-001, one shared sheet.html + sheets.js data: steps (do/out/gate), basics diagram, gates, files. render.cjs renders all 4, PASS (0 errors, 0 overflow); looked at each PNG.
+improved: data-driven sheet template (new domain = one SHEETS entry); render.cjs renders all sheets in one run and skips the by-design arrow overflow; HTML-escaped spawn&lt;Name&gt; (was eaten as a tag); router words blueprints/step blueprint

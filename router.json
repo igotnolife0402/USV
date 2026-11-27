@@ -383,7 +383,9 @@
         "project structure",
         "folder structure",
         "project layout",
-        "diagram"
+        "diagram",
+        "blueprints",
+        "step blueprint"
       ],
       "notes": [
         "domains/images/playbook.md",
