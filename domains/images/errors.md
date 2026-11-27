@@ -17,3 +17,4 @@ triggers: [thumbnail wrong, style wrong, glow invisible, text wraps, prompt off]
 | Headline wraps oddly before fonts load | Box sized for the web font | Size for the widest fallback, plus `tsc` | 2026-11-19 |
 | Cluttered thumbnail | Too many hooks | 3-4 hooks max, one headline, 2 lines | 2026-11-13 |
 | Guessed avatar colours/items | Not from catalog | Real catalog assets via `catalog.py`; look at `KIT/refs/*.png` once | 2026-11-13 |
+| picture ask routed to 3d; panel text overflowed | 3d word 'template' misrouted a blueprint PNG ask; text overflow cost 3 renders | removed 3d template word; render.cjs overflow gate | 2026-11-27 |

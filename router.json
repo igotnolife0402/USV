@@ -249,7 +249,6 @@
         "tower",
         "castle",
         "boat",
-        "template",
         "templates",
         "style catalog",
         "gaps",
@@ -379,7 +378,12 @@
         "pixel art",
         "voxel art",
         "claymation",
-        "watercolor"
+        "watercolor",
+        "blueprint",
+        "project structure",
+        "folder structure",
+        "project layout",
+        "diagram"
       ],
       "notes": [
         "domains/images/playbook.md",

@@ -1,0 +1,143 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Project Blueprint</title>
+<!-- Single source of the standard project layout. Edit here, re-render with render.cjs. -->
+<style>
+:root{--bg:#0b3a6e;--line:#cfe6ff;--dim:#8fb8e6;--hi:#ffffff;--acc:#ffd166;--grid:rgba(207,230,255,.07);--grid2:rgba(207,230,255,.16)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1920px;height:1200px;background:var(--bg);color:var(--line);font:15px/1.35 "DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;
+ background-image:linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+ background-size:120px 120px,120px 120px,24px 24px,24px 24px;position:relative;overflow:hidden}
+.frame{position:absolute;inset:24px;border:2px solid var(--line)}
+.frame::after{content:"";position:absolute;inset:8px;border:1px solid var(--dim)}
+h1{position:absolute;left:64px;top:52px;font-size:46px;letter-spacing:6px;color:var(--hi);font-weight:700}
+.sub{position:absolute;left:66px;top:112px;color:var(--dim);letter-spacing:2px;font-size:16px}
+.box{position:absolute;border:1.5px solid var(--line);padding:18px 20px}
+.box h2{font-size:15px;letter-spacing:3px;color:var(--acc);margin-bottom:12px;font-weight:700}
+.tag{position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 8px;color:var(--acc);font-size:13px;letter-spacing:2px}
+.tree{white-space:pre;font-size:17px;line-height:1.95}
+.tree b{color:var(--hi)} .tree i{color:var(--dim);font-style:normal} .tree u{color:var(--acc);text-decoration:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{border:1px dashed var(--dim);padding:10px 12px}
+.card h3{color:var(--hi);font-size:15px;letter-spacing:2px;margin-bottom:6px}
+.card pre{font-size:14px;line-height:1.5;color:var(--line);white-space:pre}
+.card pre i{color:var(--dim);font-style:normal}
+ol{list-style:none;counter-reset:r}
+ol li{counter-increment:r;padding:7px 0 7px 40px;position:relative;font-size:16px}
+ol li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:4px;color:var(--acc);border:1px solid var(--acc);font-size:12px;padding:1px 4px}
+ol li b{color:var(--hi);font-weight:700}
+.flow{display:flex;align-items:center;gap:0}
+.step{border:1.5px solid var(--line);padding:10px 14px;text-align:center;min-width:150px}
+.step b{display:block;color:var(--hi);font-size:15px;letter-spacing:2px}
+.step span{color:var(--dim);font-size:12px}
+.arrow{flex:1;height:2px;background:var(--line);position:relative;min-width:22px}
+.arrow::after{content:"";position:absolute;right:-1px;top:-5px;border:6px solid transparent;border-left:10px solid var(--line);border-right:0}
+.loop{color:var(--acc);font-size:13px;margin-top:10px;letter-spacing:1px}
+.title{position:absolute;right:48px;bottom:48px;width:520px;border:2px solid var(--line);display:grid;grid-template-columns:1fr 1fr;font-size:13px}
+.title div{border:1px solid var(--dim);padding:7px 10px}
+.title div span{display:block;color:var(--dim);font-size:10px;letter-spacing:2px}
+.title .wide{grid-column:span 2;color:var(--hi);font-size:18px;letter-spacing:3px;font-weight:700}
+.dim-line{position:absolute;border-top:1px solid var(--dim)}
+.note{color:var(--dim);font-size:14px;margin-top:16px}
+</style></head><body>
+<div class="frame"></div>
+<h1>PROJECT BLUEPRINT</h1>
+<div class="sub">STANDARD STRUCTURE FOR EVERY BUILD · GAMES · WEBSITES · ROBLOX · 3D · VFX · SFX · TOOLS</div>
+
+<!-- A: universal tree -->
+<div class="box" style="left:64px;top:170px;width:640px;height:600px">
+<span class="tag">A · ROOT LAYOUT (EVERY PROJECT)</span>
+<div class="tree"><b>&lt;project-name&gt;/</b>       <i>kebab-case, one folder</i>
+├─ <u>README.md</u>          <i>what · run · test · status</i>
+├─ <u>SPEC.md</u>            <i>goal · scope · done criteria</i>
+├─ <b>src/</b>               <i>all source, one entry point</i>
+│  └─ main.*          <i>index.html · main.js · init.luau</i>
+├─ <b>assets/</b>            <i>small committed files (svg, json)</i>
+├─ <b>scripts/</b>           <i>generators: rebuild every binary</i>
+│  └─ build.*         <i>models · audio · sheets</i>
+├─ <b>tests/</b>             <i>one check per feature</i>
+│  └─ <u>check.mjs</u>       <i>THE one outside verify</i>
+├─ <b>docs/</b>              <i>decisions.md · notes ≤150 lines</i>
+├─ <b>out/</b>               <i>build output · gitignored</i>
+└─ .gitignore         <i>out/ · binaries · .env</i></div>
+<div class="note">Binaries (glb, wav, rbxl, mp4) never in git: commit the script in scripts/ that regenerates them into out/.</div>
+</div>
+
+<!-- B: src variants -->
+<div class="box" style="left:736px;top:170px;width:620px;height:600px">
+<span class="tag">B · src/ BY PROJECT TYPE</span>
+<div class="grid">
+<div class="card"><h3>WEBSITE</h3><pre>src/
+ index.html
+ styles.css  <i>tokens on :root</i>
+ main.js</pre></div>
+<div class="card"><h3>BROWSER GAME</h3><pre>src/
+ main.js     <i>fixed-step loop</i>
+ input.js · states.js
+ entities/ · fx/ · sfx/</pre></div>
+<div class="card"><h3>ROBLOX (ROJO)</h3><pre>default.project.json
+src/server/  <i>*.server.luau</i>
+src/client/  <i>*.client.luau</i>
+src/shared/  <i>modules</i></pre></div>
+<div class="card"><h3>3D MODEL</h3><pre>scripts/build.py <i>parts</i>
+src/parts/   <i>mesh + tex</i>
+out/model.glb <i>ignored</i>
+tests/zfight + detail</pre></div>
+<div class="card"><h3>VFX</h3><pre>scripts/sheets.*
+out/ → vfx/sheets/
+vfx/index.tsv <i>one home</i>
+src/emitters.*</pre></div>
+<div class="card"><h3>SFX / AUDIO</h3><pre>src/params.json
+scripts/render.mjs
+out/*.wav    <i>ignored</i>
+tests/loudness</pre></div>
+<div class="card" style="grid-column:span 2"><h3>TOOL / APP (e.g. mini-Blender, generators)</h3><pre>src/index.html + src/modules/   docs/format.md <i>data contract</i>
+saves outputs to ONE fixed repo path <i>(never a session inbox)</i></pre></div>
+</div>
+</div>
+
+<!-- C: rules -->
+<div class="box" style="left:1388px;top:170px;width:468px;height:600px">
+<span class="tag">C · RULES</span>
+<ol>
+<li><b>One entry point</b>, run in one command written in README.</li>
+<li><b>SPEC before code</b>: scope = exactly what was asked.</li>
+<li><b>No placeholders</b>: real copy, real assets, max quality.</li>
+<li><b>Binaries out of git</b>; the script that makes them in.</li>
+<li><b>One fact, one place</b>; link everywhere else.</li>
+<li><b>Outputs to one fixed path</b> every tool and agent reads.</li>
+<li><b>Done = outside check passed</b> (tests/check.mjs, screenshot); never self-judged.</li>
+<li><b>Secrets</b> only in .env (gitignored).</li>
+<li><b>Forward slashes</b>, kebab-case names.</li>
+<li><b>Notes ≤150 lines</b>; split by topic.</li>
+<li><b>Log + 1 improvement</b> every session.</li>
+</ol>
+</div>
+
+<!-- D: lifecycle -->
+<div class="box" style="left:64px;top:806px;width:1260px;height:150px">
+<span class="tag">D · LIFECYCLE</span>
+<div class="flow" style="margin-top:14px">
+<div class="step"><b>SPEC</b><span>goal · done</span></div><div class="arrow"></div>
+<div class="step"><b>SCAFFOLD</b><span>this layout</span></div><div class="arrow"></div>
+<div class="step"><b>BUILD</b><span>thin slices</span></div><div class="arrow"></div>
+<div class="step"><b>CHECK</b><span>tests/check.mjs</span></div><div class="arrow"></div>
+<div class="step"><b>SHIP</b><span>out/ → home path</span></div><div class="arrow"></div>
+<div class="step"><b>LOG</b><span>+ improve</span></div>
+</div>
+<div class="loop">↺ CHECK FAILS → fix → re-run (3 tries max, then change approach)</div>
+</div>
+
+<!-- E: README contract -->
+<div class="box" style="left:64px;top:990px;width:1260px;height:120px;padding:14px 20px">
+<span class="tag">E · README.md HEADER (EVERY PROJECT)</span>
+<div class="tree" style="font-size:16px;line-height:1.7"><b># name</b> <i>— one-line summary</i>    <u>Run:</u> &lt;one command&gt;    <u>Test:</u> node tests/check.mjs    <u>Status:</u> current | wip | superseded
+<u>Outputs:</u> &lt;fixed path&gt;    <u>Updated:</u> YYYY-MM-DD    <u>Needs PC:</u> &lt;step or none&gt;</div>
+</div>
+
+<div class="title">
+<div class="wide">STANDARD PROJECT LAYOUT</div>
+<div><span>DRAWING</span>PB-001</div><div><span>REV</span>A</div>
+<div><span>DATE</span>2026-11-27</div><div><span>SCALE</span>ALL PROJECTS</div>
+<div class="wide" style="font-size:12px;color:var(--dim);font-weight:400;letter-spacing:2px">SOURCE: tools/art/blueprint/blueprint.html</div>
+</div>
+</body></html>

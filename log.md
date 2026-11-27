@@ -602,3 +602,7 @@ improved: hub one-file republish recipe in playbook (L-220); errors rows for hea
 Root cause: rim paint did 8 bilinear taps on every pixel and all 20 sheets were painted in one microtask burst (paint 562 -> 3627 ms on the main thread). Now: separable-max early-out to the outer edge band, serial paint queue (one sheet per task), 1753 ms total. Outline check re-passed; hub republished. Not measured on a phone.
 improved: paint perf instrumentation vfxgen.paintMs + gen-perf-check.cjs; paint queue survives a failed sheet (catch); rim no longer tints textured interiors
 improved: L-222 speed rule (pageerror first, no mid-line // comments); errors.md row; L-045 bumped (sed -i on scratch .cjs)
+
+## [2026-11-27] build / project blueprint PNG
+Standard project layout blueprint: tools/art/blueprint/blueprint.html → render.cjs → out/project-blueprint.png (3840x2400). Render PASS (0 page errors, 0 overflowing panels); looked at the PNG.
+improved: router 3d word "template" removed (misrouted this picture task to 3d); images route gained blueprint/project structure/diagram words; render.cjs overflow gate catches text spilling past panels (caught 2 this run)
