@@ -23,3 +23,4 @@ check house <= 0.3 s; cargo test <= 5 s warm; 4 s draft MP4 <= 6 s; dragon_city 
 ## Status
 - 2026-11-27 sent (delivered). Next: read its before/after table, compare to pass lines, report to owner.
 - 2026-11-27 Prism reply: not started; it needs the owner's yes typed in the Prism tab (relayed approval refused, correct), and the owner told it to scrap the dragon, so L1-L6 are on hold unless the owner overrides there. S7 already queued there.
+- 2026-11-27 13:43 Prism S1-S6 done (sha 36b46c1819ed): check 0.26 s release PASS; debug tests 36.0 → 4.7-4.9 s PASS; flaky speed tests fixed (thread CPU time) 5/5 PASS; 4 s draft MP4 640 px 63.1 → ~5 s PASS. FAIL: 720p draft MP4 15.3 s, 10 s 720p final ~141 s (est), both SwiftShader-bound (99 % GPU); S4 raw RGBA only 3 %; wasm kept opt s (+370 KB vs z), boot 2071/797 KB vs 350/130 budget (owner call). dragon skipped (owner).
