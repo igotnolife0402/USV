@@ -814,3 +814,7 @@ improved: tool trivia and incident stories stripped; 3D floor vs every-part rule
 ## [2026-11-26] improve / Prism build prompt
 - /improve 300: Umbrio-successor build prompt (Rust+WGSL Prism) delivered at 349.7 s (FAIL +49.7); L-274 rule added to improve skill.
 - [2026-11-26] Prism prompt exported as txt+zip (scratchpad); added self-contained 09-umbrio-reference after owner flagged missing Umbrio context (L-276).
+
+## [2026-11-27] audit / Prism speed (why ~10x slow)
+- Read Prism via GitHub MCP (Idk@3192d50). Causes: AI loop runs debug CLI (GUIDE.md:9,115; build.mjs uses target/debug); SwiftShader CPU WebGPU with MSAA4 + 2048 shadow + bloom per frame (gpu.js); per-frame canvas readback + software H.264 (video.js); wasm opt-level z, no simd128 (Cargo.toml). Timings requested from Prism session; fixes await owner go.
+- improve 60: brief ~20 s, Sonnet ~25 s, 52.9 s total (early FAIL), rungs 1-2.
