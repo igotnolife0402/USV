@@ -16,7 +16,10 @@
         "teach",
         "new tool",
         "use my",
-        "hub tool"
+        "hub tool",
+        "prism",
+        "prism tab",
+        "prism session"
       ],
       "notes": [
         "profiles/tools.md"

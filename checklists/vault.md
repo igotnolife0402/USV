@@ -24,3 +24,5 @@ triggers: [vault, lesson, note, index, lint, rollup]
 - [ ] Worktree branch done: merge into main without asking (owner rule 2026-11-22); append-only conflicts (lessons.md, errors.md, log.md) keep both sides; lesson id clash across sessions: renumber yours first.
 - Owner rule text (profiles/owner.md, must.md, CLAUDE.md owner rules) changes only after the owner states the new rule in words; an inferred change = follow the latest request, ask in wrap_up, leave the file (L-122).
 - [ ] Fixes logged as you went (`vault.mjs fix add`), all implemented at the end, `fix done` wrote >= 10 to log.md, `fix list` empty.
+- [ ] Hub/artifact publish (promoted L-234, 2026-11-27): absolute source paths; sha-compare every published file to HEAD before publishing.
+- [ ] Relay to another session: send_message returned `delivered`, the prompt's IDs + pass lines saved in `state/`, follow-up noted in that file.

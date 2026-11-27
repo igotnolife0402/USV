@@ -7,3 +7,4 @@ Working memory for long (complex/huge) tasks so context can be cleared without l
 - Task done: move durable facts into the domain playbook/errors, then move the file to archive/.
 - No secrets, no binary data. Each file <= 150 lines.
 - `fixes-pending.md`: the running fix list for the current turn (`vault.mjs fix add|list|done`); empty between turns.
+- `prism-fixes.md`: Prism speed + dragon_city fix pass relayed to the Prism session (2026-11-27), baseline and pass lines.

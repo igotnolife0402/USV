@@ -828,3 +828,5 @@ improved: cinematic-baseline: shot plan, contact/occlusion, preview-first rules;
 
 ## [2026-11-27] relay / Prism fix prompt sent
 - Owner approved all fixes; improver built a self-contained prompt (S1-S8 speed, L1-L6 look, P1-P5 process) and it was delivered to session_01NdorJbawUfbAwyxcvbGoJs. Awaiting its before/after table.
+- prune proposal (2026-11-27): lessons.md is 154 lines (> 150 warn); archive dup L-275 and the promoted L-136-era bullets to archive/ in the next upkeep (never delete in place).
+improved: state/prism-fixes.md: relay IDs, baseline, pass lines; state/README: index line for prism-fixes; tools registry: Prism entry with repo, branch, session; router: prism/prism tab/prism session on tools route; improve skill: relay asks skip time box; improver: Reply-to section for other-session prompts; mobile profile: send_message vs SendMessage for cloud tabs; vault checklist: L-234 hub publish promoted; vault checklist: relay delivered + state file; queue: Prism real-GPU bench mirrored (Idk queue unseen by USV hook); log: lessons.md prune proposal

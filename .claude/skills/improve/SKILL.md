@@ -76,3 +76,4 @@ Value ladder (order measured 2026-11-23: briefs missing rungs 1-3 broke owner ru
 - Why the brief flow: the brief carries Opus-level decisions and Sonnet expands them at roughly half Opus's typing time; without a brief, Sonnet's prompt contradicts its own gates (part counts, thickness, sizes).
 - Think time: quality rises steeply to ~120 s and flattens after; the most common short-budget failure is a wrong template or a missing front axis (rungs 2-3).
 - Phone, new cloud session: `/improve` is not in the pre-session `/` menu (repo not cloned yet); type `/improve <s> <prompt>` in full and send, or use the account-level copy (tools/skills/improve-standalone).
+- Relay asks (2026-11-27 "send all fixes with improve skill to prism tab"): no seconds and the prompt is for another session → skip the time box; spawn the improver at once with every measured fact, then send_message the full prompt and save its IDs in state/.
