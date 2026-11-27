@@ -818,3 +818,4 @@ improved: tool trivia and incident stories stripped; 3D floor vs every-part rule
 ## [2026-11-27] audit / Prism speed (why ~10x slow)
 - Read Prism via GitHub MCP (Idk@3192d50). Causes: AI loop runs debug CLI (GUIDE.md:9,115; build.mjs uses target/debug); SwiftShader CPU WebGPU with MSAA4 + 2048 shadow + bloom per frame (gpu.js); per-frame canvas readback + software H.264 (video.js); wasm opt-level z, no simd128 (Cargo.toml). Timings requested from Prism session; fixes await owner go.
 - improve 60: brief ~20 s, Sonnet ~25 s, 52.9 s total (early FAIL), rungs 1-2.
+- 2026-11-27 Prism timings (session reply, Idk@3192d50): check 224 ms for the 361-part house, so debug Rust is not the bottleneck (correction). 720p frame 0.536 s (MSAA4, 1 worker): ~75 ms fixed, ~90 ms PNG encode, <20 ms CDP, ~350 ms shadow + MSAA + bloom on SwiftShader; MSAA1 0.381, 2 workers 0.280.
